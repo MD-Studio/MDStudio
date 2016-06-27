@@ -1,0 +1,111 @@
+<!-- Top level MD component container div -->
+<div id="md" class="flex-container-rows valign-stretch halign-stretch nowrap" style="height: 100%">
+    
+    <!-- Chart and table container -->
+    <div class="flex-item flex-container-cols valign-stretch halign-stretch">
+    
+        <!-- Chart with MD energy trajectory data -->
+        <div id="md-trajectory-chart" class="flex-item ui-component-container">
+            <nvd3 [options]="options" [data]="data"></nvd3>
+        </div>
+
+        <!-- Table with MD data -->
+        <div id="md-table" class="flex-item ui-component-container">
+        
+            <div class="header">
+            
+                <!-- data table menu -->
+                <div class="ui-menu-bar flex-container-rows valign-center">
+                    
+                    <div class="ui-inputtext-wrapper flex-item">
+                        <span class="ui-icon fa fa-search"></span>
+                        <input #gb type="text" pInputText placeholder="Global Filter..." class="flex-item">
+                    </div>
+
+                    <div class="ui-multiselect-wrapper flex-item">
+                        <p-multiSelect [options]="availableColumns" [(ngModel)]="selectedColumns"
+                         (onChange)="sortSelectedColumns()"></p-multiSelect>
+                    </div>
+                
+                    <div class="spacer flex-item stretch"></div>
+                
+                    <div class="ui-widget-bar flex-item" *ngIf="selectedMD && selectedMD.length > 0">
+                        <button type="button" pButton (click)="update(dt)" label="{{selectedMD.length}}"></button>
+                        <button type="button" pButton (click)="update(dt)" label="Reset"></button>
+                        <button type="button" pButton (click)="update(dt)" label="Reset" icon="fa-file" iconPos="right"></button>
+                        <button type="button" pButton (click)="delete()" icon="fa-close"></button>
+                    </div>
+                    
+                    <button type="button" pButton icon="fa-file-o" iconPos="left" label="CSV" (click)="dt.exportCSV()"></button>
+                    <button type="button" pButton (click)="update(dt)" icon="fa-refresh"></button>
+                    <button type="button" pButton (click)="md_detail_unfold = !md_detail_unfold;"
+                        [class.ui-state-active]="md_detail_unfold" icon="fa-edit"></button>
+                    
+                </div>
+            
+            </div>    
+        
+            <div class="inner">
+            
+                <!-- data table -->
+                <p-dataTable #dt [value]="mds" [globalFilter]="gb" [contextMenu]="cm"
+                 [responsive]="true" [reorderableColumns]="true" sortMode="multiple"
+                 selectionMode="multiple" [(selection)]="selectedMD" (onRowSelect)="onRowSelect($event)">
+                
+                    <!-- Add row selection indicator column -->
+                    <p-column [sortable]="false" styleClass="status-col">
+                        <template let-col="rowData"><span class="ui-row-status"></span></template>
+                    </p-column>
+                
+                    <!-- Add the data columns -->
+                    <p-column *ngFor="let col of selectedColumns" field="{{col}}" header="{{col}}" 
+                     [sortable]="true" styleClass="{{col}}"></p-column>
+            
+                </p-dataTable>
+            
+                <!-- Right-click contextual menu, TODO: does not work with router-deprecated-->
+                <p-contextMenu #cm [model]="items"></p-contextMenu>
+            
+            </div>
+        </div>
+    </div>
+    
+    <!-- MD details panel -->
+    <div id='md-details' class='ui-foldable-panel' [class.show]="md_detail_unfold">
+        <div style="padding: 20px">
+            <div *ngIf="md">
+                <div class="ui-inputtext-wrapper">
+                    <label for="id">ID</label>
+                    <input pInputText id="id" [(ngModel)]="md.id" disabled/>
+                </div>
+                <div class="ui-inputtext-wrapper">
+                    <label for="compound">Compound</label>
+                    <input pInputText id="compound" [(ngModel)]="md.compound" />
+                </div>
+                <div class="ui-inputtext-wrapper">
+                    <label for="pose">Pose</label>
+                    <input pInputText id="pose" [(ngModel)]="md.pose" />
+                </div>
+                <div class="ui-inputtext-wrapper">
+                    <label for="range">Range</label>
+                    <input pInputText id="range" [(ngModel)]="md.range" />
+                </div>
+                <div class="ui-inputtext-wrapper">
+                    <label for="start">Start</label>
+                    <input type="number" pInputText id="start" [(ngModel)]="md.start" />
+                </div>
+                <div class="ui-inputtext-wrapper">
+                    <label for="end">End</label>
+                    <input type="number" pInputText id="end" [(ngModel)]="md.end" />
+                </div>
+            </div>
+            <footer>
+                <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+                    <button type="button" pButton icon="fa-close" (click)="delete(first_selected=true)" label="Delete"></button>
+                    <button type="button" pButton icon="fa-check" (click)="save()" label="Save"></button>
+                </div>
+            </footer>
+        </div>
+    </div>
+        
+</div>

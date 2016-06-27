@@ -1,0 +1,25 @@
+#dashboard {
+  padding: 30px;
+}
+
+.item-container {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #DFE5EB;
+  border-radius: 5px;
+
+  .title {
+    background-color: #F7F9FA;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-bottom: 1px solid #DFE5EB;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #46535B;
+    padding: 10px;
+  }
+
+  .container {
+    padding: 10px;
+  }
+}

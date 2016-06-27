@@ -1,0 +1,498 @@
+@import "../../shared/styles/theme_variables";
+
+/**
+ * General widget style
+ */
+.ui-widget {
+  
+  span,
+  label {
+    font-weight: 400;
+  }
+  
+  a {
+    text-decoration: none;
+  }
+  
+}
+
+.ui-component-container {
+  
+  background: #ffffff;
+  padding: 0;
+  
+  .header {
+    padding: 5px;
+    margin: 0px 10px;
+    border-bottom: 1px solid #F1F2F7;
+  }
+  
+  .inner {
+    padding: 10px;
+  }
+  
+  .footer { }
+}
+
+/**
+ * Foldable panels
+ */
+.ui-foldable-panel {
+  
+  padding: 0px;
+  width: 0px;
+  overflow: hidden;
+  -webkit-transition: width ease-in-out 0.5s;
+  transition: width ease-in-out 0.5s;
+  
+  &.show {
+    width: 240px;
+    -webkit-transition: width ease-in-out 0.5s;
+    transition: width ease-in-out 0.5s;
+  }
+  
+}
+
+/**
+ * Data Table
+ */
+.ui-datatable {
+  
+  // Hide the table scrollbar. Works in webkit based browsers only
+  ::-webkit-scrollbar { 
+      display: none; 
+  }
+  
+  // Data status indication, usually in column 'status-col'
+  .ui-row-status {
+    display: block;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+  }
+  
+  .ui-cell-data,
+  .ui-column-title {
+    font-size: 0.75em;
+  }
+  
+  // Table as flexbox to circumvent scrollable bug in datatable
+  // TODO: should be removed as soon as bug is fixed.
+  table {
+    display: block;
+    width: 100%;
+    table-layout: auto;
+  }
+  
+  tbody {
+    display: block;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 300px;
+  } 
+  
+  thead tr,
+  tbody tr {
+    display: -webkit-flex;
+    -webkit-flex-flow: row;
+    min-height: 35px;
+  }
+  
+  thead th,
+  tbody td {
+    display: -webkit-flex;
+    width: 100%;
+    -webkit-align-items: stretch;
+  }
+  
+  // DataTable header
+  thead {
+    
+    border-bottom: 1px solid #F1F2F7;
+    
+    th {
+      border: 0;
+      text-align: left;
+      font-weight: 400;
+      color: #65686F;
+    
+      &.ui-state-hover {
+        border-bottom: 2px solid #3B9BC4;
+      }
+    
+      &.ui-state-active {
+        color: #186ba0;
+        border-bottom: 2px solid #186ba0;
+      }
+    
+      &.ui-sortable-column-icon {
+        color: #dbdbdb;
+      }
+    
+      &.ui-state-active .fa-sort-asc,
+      &.ui-state-active .fa-sort-desc {
+        color: #186ba0;
+      }
+      
+      &.status-col {
+        width: 50px;
+      }
+    }
+  }
+  
+  // DataTable body
+  tbody {
+    
+    tr {
+      
+      &.ui-datatable-even {
+        background-color: #F7F8FB;
+      }
+      
+      &.ui-state-hover {
+        border: inherit;
+        background-color: #EBF3F7;
+      }
+      
+      &.ui-state-highlight {
+        background-color: #EBF3F7;
+        
+        .ui-row-status {
+          border: 2px solid #ffffff;
+          box-shadow: 0 0 0 2px $left-nav-btn-color-hover;
+          border-radius: 50%;
+          background-color: $left-nav-btn-color-hover;
+        }
+      }
+    }
+    
+    td {
+      border: 0;
+      padding: 10px;
+      
+      &.status-col {
+        width: 50px;
+      }
+    }
+  }
+}
+
+/**
+ * Widget bars
+ */
+.ui-widget-bar {
+  
+  .ui-widget {
+    border-radius: 0;
+    float: left;
+    margin-left: 0;
+    margin-right: 0;
+    border-right: 1px solid #fff;
+  }
+    
+  .ui-widget:first-child {
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    min-width: 35px;
+  }
+  
+  .ui-widget:last-child {
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    border-right: 0;
+    min-width: 35px;
+  }
+  
+}
+
+/**
+ * Menu bar
+ * - Single row menu bar to populate with ui-widgets
+ * - Layout configured using flexbox classes including the use of spacer divs
+ */
+.ui-menu-bar {
+  
+  &>* {
+    margin-right: 10px;
+  }
+  
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+/**
+ * Style overrides for PrimeNG Menubar (p-menubar)
+ */
+.ui-menubar {
+  
+  a {
+    color: #fff;
+  }
+  
+  .ui-menu-list {
+    background-color: transparent;
+    border: 0;
+     
+    .ui-menuitem {
+      
+      .ui-menuitem-link {
+        padding: .4em .3em
+      }
+      .ui-menuitem-text {}
+      .ui-menuitem-icon {}
+      .ui-submenu-icon {} // fold/unfold
+      
+      &.ui-menuitem-active {
+        background-color: #c0c0c0;
+        
+        .ui-menuitem-text,
+        .ui-menuitem-icon,
+        .ui-submenu-icon {
+          color: #3C454E;
+        }
+      }
+    }
+  }
+  
+  .ui-menu-child {
+    
+    padding: .3em 0 !important;
+    text-align: left;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0px;
+    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    background-clip: padding-box;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    
+    .ui-menu-item {
+      
+      .ui-menuitem-link {
+        padding: .4em .3em
+      }
+      .ui-menuitem-text {}
+      .ui-menuitem-icon {}
+      .ui-submenu-icon {} // fold/unfold
+    }
+  }
+}
+
+/**
+ * Style overrides for PrimeNG Panel Menu (p-panelmenu)
+ */
+.ui-panelmenu {
+  
+  a {
+    text-align: left;
+  }
+  
+  .fa {
+    top: 25%;
+  }
+  
+  // Accordion menu item container
+  .ui-menuitem-panel {
+    
+    // Accordion header
+    .ui-panelmenu-header {
+      
+      outline: 0;
+      
+      a {
+        padding: .5em .5em .5em 2.2em;
+      }
+      
+      .ui-panelmenu-icon {
+        left: initial;
+        right: 0.5em;
+      }
+      
+      .ui-menuitem-icon {
+        left: 0.5em;
+      }
+    }
+    
+    // Accordion content
+    .ui-panelmenu-content {
+      overflow: hidden;
+    }
+    
+    .ui-menuitem,
+    .ui-menuitem-link {
+      
+      font-size: 0.9em;
+      padding-left: .5em;
+      
+      a {
+        padding: .5em .5em .5em 2.2em;
+      }
+      
+      .ui-menuitem-text {}
+      .ui-menuitem-icon {}
+    }
+  }
+  
+  .ui-menu-parent > .ui-menuitem-link {
+    
+    > .ui-panelmenu-icon {
+      left: initial;
+      right: 0.5em;
+    }
+    
+    > .ui-menuitem-icon {
+      left: 0.5em;
+    }
+  }
+}
+
+/**
+ * CheckBox
+ */
+.ui-chkbox {
+  
+  .ui-chkbox-box {
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 2px $left-nav-btn-color-hover;
+    border-radius: 50%;
+    background: #ffffff;
+    width: 15px;
+    height: 15px;
+    overflow: hidden;
+    
+    &.ui-state-active {
+      background-color: $left-nav-btn-color-hover;
+    }
+      
+    span.ui-chkbox-icon {
+      display: none;
+    }
+  }
+}
+
+/**
+ * Input- and (multi)-select fields
+ */
+.ui-inputtext-wrapper,
+.ui-multiselect-wrapper {
+  
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  position: relative;
+  
+  .ui-icon {
+    text-indent: 0;
+    display: inline-block;
+    padding-right: 5px;
+  }
+  
+  .ui-inputtext,
+  .ui-multiselect {
+    display: inline-block;
+    border: 0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 1px;
+    padding: 5px 0px;
+    min-width: 200px;
+    text-overflow: ellipsis;
+    transition: border 0.1s linear; 
+    -moz-transition: border 0.1s linear; 
+    -webkit-transition: border 0.1s linear;
+    
+    &.ui-state-focus,
+    &:focus {
+      outline: none;
+      margin-bottom: 0;
+      border-bottom: 2px solid $left-nav-btn-color-hover;
+      transition: border 0.1s linear; 
+      -moz-transition: border 0.1s linear; 
+      -webkit-transition: border 0.1s linear;
+    }
+    
+    &.ui-state-disabled {
+      cursor: not-allowed !important;
+      opacity: 0.5;
+    }
+  }
+}
+
+/**
+ * MultiSelect dropdown
+ */
+.ui-multiselect-wrapper {
+  
+  .ui-multiselect {
+    
+    .ui-multiselect-header .ui-chkbox {
+      top: 25%;
+    }
+        
+    .ui-multiselect-trigger {
+      border-color: #ffffff;
+    }
+
+    .ui-multiselect-panel {
+      background-color: #ffffff;
+      border: 1px solid #e5e5e5;
+      margin-top: 1px;
+    }
+
+    .ui-multiselect-label-container {
+      max-width: 100px;
+    }
+
+    .ui-multiselect-trigger {
+      height: auto;
+      top: 25%;
+      padding: 0;
+    }
+
+    label.ui-multiselect-label {
+      text-overflow: ellipsis;
+      padding: 0;
+      margin: 0;
+    }
+  }
+}
+
+/**
+ * Buttons
+ */
+.ui-button {
+  
+  border: 0;
+  border-radius: 15px;
+  background-color: $left-nav-btn-color-hover;
+  color: #fff;
+  outline: 0 none;
+  font-size: 0.9em;
+  position: relative;
+  transition: background-color 0.1s ease-out; 
+  -moz-transition: background-color 0.1s ease-out; 
+  -webkit-transition: background-color 0.1s ease-out;
+  
+  &.ui-state-disabled {
+    cursor: not-allowed !important;
+    opacity: 0.25;
+  }
+  
+  &.ui-state-hover {
+    background-color: #186ba0;
+    transition: background-color 0.1s ease-in; 
+    -moz-transition: background-color 0.1s ease-in; 
+    -webkit-transition: background-color 0.1s ease-in;
+  }
+  
+  &.ui-state-active {
+    background-color: #186ba0;
+  }
+  
+  &.ui-button-icon-only {
+    width: 2em;
+  }
+  
+  .ui-button-text {
+    font-weight: 400;
+  }
+}

@@ -1,0 +1,22 @@
+#system-message-header {
+  padding: 5px;
+  text-align: center;
+  overflow: hidden;
+
+  &.info {
+    background-color: #bbbbbb;
+  }
+
+  span, p {
+    display: inline;
+    margin: 0 5px;
+  }
+
+  span {
+    cursor: pointer;
+  }
+
+  span:hover {
+    color: red;
+  }
+}

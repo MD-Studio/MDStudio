@@ -1,0 +1,35 @@
+<!-- Top level application container -->
+<!-- Two flexbox columns: left side main nav, main view -->
+<div id="main-app" class="flex-container-rows valign-stretch nowrap">
+
+    <!-- Left-side menu: main application component menu -->
+    <aside id="aside-left" class="flex-item" [class.show]="aside_left_unfold">
+        <div id="logo" class="fa fa-connectdevelop"></div>
+        <nav id="leftside-nav-bar">
+            <p-panelMenu [model]="main_menu_items"></p-panelMenu>
+        </nav>
+        <div id="aside-left-toggle" (click)="aside_left_unfold = !aside_left_unfold;" class="fa"
+             [ngClass]="{'fa-caret-right': !aside_left_unfold, 'fa-caret-left': aside_left_unfold}"></div>
+    </aside>
+
+    <!-- Main application view: top menu, main view -->
+    <div id="main-view-container" class="flex-item flex-container-cols halign-stretch nowrap">
+
+        <!-- Top menu: user menu -->
+        <nav id="top-nav-bar" class="flex-item flex-container-rows">
+
+            <div class="flex-item vstretch">
+                <p class="app-title">LIE Studio</p>
+            </div>
+            
+            <!-- User menu -->
+            <p-menubar [model]="top_menu_items"></p-menubar>
+        </nav>
+
+        <!-- Main application component view -->
+        <div id="component-view" class="flex-item vstretch">
+            <router-outlet></router-outlet>
+        </div>
+
+    </div>
+</div>

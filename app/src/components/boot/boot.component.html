@@ -1,0 +1,12 @@
+<!-- Bootstrap HTML for the App. -->
+
+<!-- System messages for the user obtained at bootstrap stage.
+     e.g.: scheduled downtime, new features etc.
+     Close header using close icon, one-time close.
+     TODO: fold animate system-message-header on hide-->
+<div *ngIf="system_message" id='system-message-header' [hidden]="doHide" [ngClass]="message_level">
+    <p>{{system_message}}</p>
+    <span id="close-system-message" class="icon-close" (click)="doHide = ! doHide"></span>
+</div>
+
+<lie-app></lie-app>

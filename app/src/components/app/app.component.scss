@@ -1,0 +1,236 @@
+/**
+ * SASS CSS definitions for the main application view.
+ * - Layout of the main application views controlled using flexbox.css
+ * - Flex boxes are natively responsive.
+ */
+
+@import url(https://fonts.googleapis.com/css?family=Ubuntu:400,500);
+@import "../../shared/styles/theme_variables";
+
+// Flexbox overrides for main application views
+#main-app {
+  overflow: hidden;
+  height: 100%;
+  background-color: $body-bg;
+}
+
+#main-view-container {
+  width: 100%;
+  height: 100%;
+}
+
+#top-nav-bar {
+  height: 50px !important;
+}
+
+#component-view {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+// Top- and Left-side navigation bars
+#top-nav-bar {
+  background-color: $top-nav-btn-color-backg;
+  color: #fff;
+}
+
+#aside-left {
+  background-color: $left-nav-btn-color-backg;
+  color: #fff;
+  width: 50px;
+  overflow: hidden;
+  -webkit-transition: width ease-in-out 0.5s;
+  transition: width ease-in-out 0.5s;
+  -webkit-box-shadow: inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
+  -moz-box-shadow:    inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
+  box-shadow:         inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
+
+  &.show {
+    width: 200px;
+    -webkit-transition: width ease-in-out 0.5s;
+    transition: width ease-in-out 0.5s;
+  }
+  
+  #aside-left-toggle {
+    position: absolute;
+    display: block;
+    bottom: 0;
+    padding: 5px;
+    height: 30px;
+    text-align: right;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .show #aside-left-toggle {
+    color: #3b9bc4;
+  }
+  
+}
+
+.app-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 2em;
+  margin: 5px 10px;
+}
+
+#logo {
+  height: 50px;
+  width: 100%;
+  background-color: $left-nav-btn-color-hover;
+  font-size: 2em;
+  text-align: center;
+  padding: 10px;
+}
+
+#user-menu {
+
+  padding: 0px 20px;
+
+  p {
+    margin: 0;
+    padding: 0px 10px;
+    font-size: 0.75em;
+  }
+
+  #btn-user-menu {
+    width: 30px;
+    height: 30px;
+    padding: 3px 6px;
+  }
+
+  > * {
+    display: inline-block;
+  }
+}
+
+/**
+ * Top navigation menu bar
+ */
+.ui-menubar {
+  
+  padding: 0;
+  
+  ul:not(.ui-menu-child) {
+    
+    > li {
+      border-radius: 15px;
+      border: 1px solid #c0c0c0 !important;
+      margin: 10px;
+    }
+    
+    > li > a {
+      padding: .5em  1.2em !important;
+      font-size: 0.75em;
+      
+      .ui-menuitem-icon,
+      .ui-submenu-icon {
+        padding: 0.3em 0.5em;
+        width: auto;
+      }
+    }
+    
+    .ui-menuitem-notext {
+    
+      background-color: #c0c0c0;
+      
+      a {
+        padding: .4em .3em !important;
+        font-size: 0.8em;
+      }
+    }    
+  }
+}
+
+/**
+ * Left aside App main navigation menu
+ * - Customizes .ui-panelmenu
+ */
+.show #leftside-nav-bar {
+  
+  .ui-panelmenu-icon {
+    z-index: 0 !important;
+    -webkit-transition: all ease-in-out 0.5s;
+    transition: all ease-in-out 0.5s;
+  }  
+}
+
+#leftside-nav-bar {
+  
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  
+  // Hide the menu scrollbar. Works in webkit based browsers only
+  &::-webkit-scrollbar {
+      display: none;
+  }
+  
+  .ui-panelmenu {
+    
+    a {
+      padding: 0.9em;
+      color: $left-nav-btn-color-text;
+    }
+    
+    .ui-menuitem-panel {
+      border-bottom: 1px solid #39404C;
+      -webkit-box-shadow: inset 0 -1px 1px 0px #434753;
+      -moz-box-shadow: inset 0 -1px 1px 0px #434753;
+      box-shadow: inset 0 -1px 1px 0px #455065;
+      margin-bottom: 1em;
+      padding-bottom: 1em;
+    }
+    
+    .ui-panelmenu-header {
+      
+      a {
+        color: #8F9AAD;
+        padding-left: 1.1em;
+      }
+      
+      a.ui-panelmenu-headerlink-hasicon {
+        padding-left: 3.5em;
+      }
+      
+      .ui-panelmenu-icon {
+        z-index: -90;
+      }
+      
+      &.ui-state-active,
+      &.ui-state-hover {
+        background-color: $left-nav-btn-color-backg;
+        color: $left-nav-btn-color-text;
+      }
+    }
+    
+    .ui-menuitem {
+      background-color: transparent;
+      border-left: 4px solid $left-nav-btn-color-backg;
+      text-transform: uppercase;
+      padding-left: 0;
+      
+      &:hover,
+      &:focus {
+        border-left: 4px solid $left-nav-btn-color-hover;
+        background-color: #4E5E7A;
+        color: #fff;
+      }
+      
+      .ui-menuitem-link {
+        padding-left: 4em;
+        
+        &.ui-state-active,
+        &.ui-state-hover {
+          color: #fff;
+        }
+      }
+    }
+    
+    .ui-menuitem-icon {
+      left: 0.6em;
+      font-size: 1.5em;
+    }
+  }
+}
