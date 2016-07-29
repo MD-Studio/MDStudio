@@ -41,6 +41,7 @@
   
   padding: 0px;
   width: 0px;
+  border-left: 1px solid #F1F2F7;
   overflow: hidden;
   -webkit-transition: width ease-in-out 0.5s;
   transition: width ease-in-out 0.5s;
@@ -51,7 +52,89 @@
     transition: width ease-in-out 0.5s;
   }
   
+  .container {
+    border-top: 1px solid #F1F2F7;
+    margin: 20px 20px 0px 20px;
+    padding-top: 10px;
+  }
+  
+  .container:first-child{
+    border-top: none;
+  }
+  
+  .container:last-child{
+    margin: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #F1F2F7;
+  }
 }
+
+/**
+ * JQuery UI Slider
+ */
+.ui-slider {
+  position: relative;
+  text-align: left;
+  background: #838688;
+  border: none;
+  padding: 5px 0;
+  margin: 5px 0;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) inset;
+  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) inset;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) inset;
+
+  .ui-slider-handle {
+    position: absolute;
+    z-index: 2;
+    width: 17px !important;
+    height: 21px  !important;
+    cursor: default;
+    background: url("../../assets/slider_handles.png") 0 0 no-repeat;
+    outline: none;
+    border-radius: 0; border: none;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    
+    .ui-state-active {
+      background-position: -17px 0;
+    }
+  }
+  
+  .ui-slider-range {
+    position: absolute;
+    z-index: 1;
+    font-size: .7em;
+    display: block;
+    border: 0;
+    background: #14a4ff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.6) inset;
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.6) inset;
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.6) inset;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+  }
+}
+
+.ui-slider-horizontal { 
+  height: 6px;
+  
+  .ui-slider-handle { top: -3px !important; margin-left: -.6em; }
+  .ui-slider-range { top: 0; height: 100%; }
+  .ui-slider-range-min { left: 0; }
+  .ui-slider-range-max { right: 0; }  
+}
+
+.ui-slider-vertical {
+  width: .8em;
+  height: 100px;
+  
+  .ui-slider-handle { left: -.2em !important; margin-left: 0; margin-bottom: -.6em; }
+  .ui-slider-range { left: 0; width: 100%; }
+  .ui-slider-range-min { bottom: 0; }
+  .ui-slider-range-max { top: 0; }
+}
+
 
 /**
  * Data Table
@@ -183,6 +266,7 @@
 .ui-widget-bar {
   
   .ui-widget {
+    min-width: 26px;
     border-radius: 0;
     float: left;
     margin-left: 0;
