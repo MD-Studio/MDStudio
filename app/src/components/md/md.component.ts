@@ -10,7 +10,7 @@
 
 // Angular imports
 import {Component,
-        OnInit}               from '@angular/core';
+        ViewChild}            from '@angular/core';
 import {CORE_DIRECTIVES}      from '@angular/common';
 import {Http,
         HTTP_PROVIDERS,
@@ -24,6 +24,7 @@ import {InputText,
         Button,
         Dialog,
         Column,
+        Slider,
         SelectItem,
         MultiSelect}          from 'primeng/primeng';
 import {nvD3}                 from 'ng2-nvd3';
@@ -37,17 +38,120 @@ declare let d3: any;
 
 // MD data object interface defenition
 export interface MD {
-    id;
-    compound;
-    range;
-    pose;
-    start;
-    end;
+    id: Number;
+    compound: String;
+    pose: Number;
+    range: Number;
+    start: Number;
+    end: Number;
 }
 
+// MD details object used by MD details side panel
 class MDDetails implements MD {
+  
+  public traj_start_frame: Number = 0;
+  public traj_end_frame: Number = 2000;
+  
+  // TODO: these are now parsed as string by the .toFixed(2) function in
+  // the calculateStats function. This is used bacause Angular 2 Pipes are
+  // broken in Safari.
+  public ave_elec: String;
+  public std_elec: String;
+  public ave_vdw: String;
+  public std_vdw: String;
+  
+  public rangeSlider: Number[];
+   
+  constructor(public traj_data?: Array, public id?, public compound?, public pose?, 
+              public range?, public start?, public end?) {
+    
+    //Determine last trajectory frame number from trajectory data
+    if (this.traj_data) {
+      var elec_values = this.traj_data[0].values;
+      this.traj_end_frame = elec_values[elec_values.length - 1].x;
+    
+      //Calculate average and standard deviation of trajectory data keys
+      this.calculateStats();
+    }
+  }
+  
+  /**
+   * Calculate standard deviation of a values in array
+   */
+  private standardDeviation(values) {
+    var avg = this.average(values);
+  
+    var squareDiffs = values.map(function(value){
+      var diff = value - avg;
+      var sqrDiff = diff * diff;
+      return sqrDiff;
+    });
+  
+    var avgSquareDiff = this.average(squareDiffs);
 
-    constructor(public id?, public compound?, public pose?, public start?, public end?, public range?) {}
+    var stdDev = Math.sqrt(avgSquareDiff);
+    return stdDev;
+  }
+  
+  /**
+   * Calculate average of a values in array
+   */
+  private average(data) {
+    var sum = data.reduce(function(sum, value){
+      return sum + value;
+    }, 0);
+
+    var avg = sum / data.length;
+    return avg;
+  }
+  
+  /**
+   * Range slider 'slider stopped being adjusted' callback
+   * - Calculate trajectory data average and standard deviation for 
+   *   selected frame range (by default the electrostatic and Van der Waals)
+   * - Only calculate when the slider is no longer being adjusted to keep
+   *   the slider responsive.
+   */
+  public calculateStats() {
+    
+    for (var k of ['Elec','Vdw']) {
+      
+      for (var i in this.traj_data) {
+        if (this.traj_data[i].key == k) {
+          
+          var data = this.traj_data[i].values;
+          var col = [];
+          for (var d in data) {
+            if (data[d].x >= this.start && data[d].x <= this.end) {
+              col.push(data[d].y);
+            }
+          }
+          
+          if (k == 'Elec') {
+            this.std_elec = this.standardDeviation(col).toFixed(2);
+            this.ave_elec = this.average(col).toFixed(2);
+          }
+          
+          if (k == 'Vdw') {
+            this.std_vdw = this.standardDeviation(col).toFixed(2);
+            this.ave_vdw = this.average(col).toFixed(2);
+          }
+          
+        }
+      }
+    }
+  }
+  
+  /**
+   * Range slider 'slider is being adjusted' callback
+   * - Adjust start and end frame number and calculate frame range
+   * - Values are activly updated while the user is adjusting the slider
+   */ 
+  public rangeSliderAdjust() {
+    this.start = this.rangeSlider[0]; 
+    this.end = this.rangeSlider[1]; 
+    this.range = this.rangeSlider[1] - this.rangeSlider[0];
+  }
 }
 
 @Component({
@@ -55,12 +159,12 @@ class MDDetails implements MD {
   moduleId:      module.id,
   templateUrl:   'md.component.html',
   styleUrls:     ['md.component.css'],
-  directives:    [InputText, DataTable, ContextMenu, Button, Dialog, Column, nvD3, MultiSelect],
+  directives:    [InputText, DataTable, ContextMenu, Button, Dialog, Column, nvD3, Slider, MultiSelect],
   providers:     [HTTP_PROVIDERS],
 })
 
-export class MDComponent implements OnInit {
-  
+export class MDComponent {
+    
     // DataTable column selection
     public  availableColumns: SelectItem[];
     public  selectedColumns: [] = ['id','compound','pose','range']; // Default columns
@@ -70,15 +174,20 @@ export class MDComponent implements OnInit {
     public  mds: MD[];
     
     // MD details panel
-  	public  md_detail_unfold: boolean = false;
+  	public  data_has_changed: boolean = false;
+    public  md_detail_unfold: boolean = false;   // Fold/unfold MD details panel 
     public  md: MD = new MDDetails();
     public  items: MenuItem[];
     
     // Trajectory chart
-    public  options;
-    public  data;
+    public  chart_options: any;
+    public  chart_data: any;
     public  displayedTrajID: Number;
-
+    public  active_brush_extend: Number[];
+    
+    @ViewChild(nvD3)
+    nvD3: nvD3;
+    
     constructor(private http: Http) {
       this.initColumnMultiselect(this.selectedColumns);
     }
@@ -87,8 +196,10 @@ export class MDComponent implements OnInit {
      * Init component
      * - Retrieve information for the Molecular Dynamics runs for the current
      *   project from the server.
+     * - Add first MD data table row to selectedMD array and init MD details panel
      * - Load the Elec/VdW energy trajectory for the first MD run and display
      *   as a chart.
+     * - Update the column multiselect with data table columns names
      */
     public ngOnInit() {
       
@@ -96,7 +207,9 @@ export class MDComponent implements OnInit {
         this.loadProjectMDinfo()
           .then(mds => this.mds = mds)
           .then(mds => {
+            this.selectedMD = [mds[0]],
             this.loadMDenergyTrajectory(mds[0]),
+            this.md = this.cloneMD(mds[0]),
             this.initColumnMultiselect(Object.keys(mds[0]));
           });
         
@@ -105,6 +218,17 @@ export class MDComponent implements OnInit {
           {label: 'View', icon: 'fa-search'},
           {label: 'Delete', icon: 'fa-close'}
         ];
+    }
+    
+    /**
+     * User is leaving the component view
+     * - If unsaved data, send data back to server
+     */
+    public ngOnDestroy() {
+      
+      if (this.data_has_changed) {
+        console.log('TODO: implement data save on md.component exit');
+      }
     }
     
     /**
@@ -123,7 +247,7 @@ export class MDComponent implements OnInit {
           return series;
         }))
         .subscribe(
-          res => {this.data = res, this.updateChartInfo(md, res)},
+          res => {this.chart_data = res, this.updateChartInfo(md, res)},
           error => console.log('unable to update chart')
         );
     }
@@ -132,7 +256,7 @@ export class MDComponent implements OnInit {
      * Update the D3.js style chart information object to display the
      * new/updated trajectory chart.
      */
-    private updateChartInfo(md, res) {
+    private updateChartInfo(md: MD, res?) {
       
       // Set the brush range. Full x range if md.end not defined.
       var brushrange = [md.start, md.end];
@@ -146,6 +270,12 @@ export class MDComponent implements OnInit {
           type: 'lineWithFocusChart',
           useInteractiveGuideline: true,
           brushExtent: brushrange,
+          callback: function(chart){
+            chart.dispatch.on('brush', function (brushExtent) {
+              console.log(brushExtent.extent);
+              this.active_brush_extend = brushExtent.extent;
+            });
+          },
           margin: { top: 10, right: 75, bottom: 50, left: 75 },
           xAxis: {
             axisLabel: 'Frames',
@@ -164,11 +294,11 @@ export class MDComponent implements OnInit {
             tickFormat: function(d) {
               return d3.format(',f')(d);
             }
-          }
+          },
         }
       }
       
-      this.options = default_chart;
+      this.chart_options = default_chart;
       
       // Set MD ID for charted trajectory
       this.displayedTrajID = md.id;
@@ -198,16 +328,32 @@ export class MDComponent implements OnInit {
       }
     }
     
+    /**
+     * Return the index of the selected MD row in the 
+     * mds data array.
+     */
     private findSelectedMDIndex(md) {
-        return this.mds.indexOf(md);
+      return this.mds.indexOf(md);
     }
     
+    /**
+     * Clone the currently selected MD run and set the
+     * MD range slider
+     */
     private cloneMD(c: MD): MD {
-        let md = new MDDetails();
-        for(let prop in c) {
-            md[prop] = c[prop];
-        }
-        return md;
+      
+      let md = new MDDetails(this.chart_data);
+      for(let prop in c) {
+        md[prop] = c[prop];
+      }
+      
+      // Set MD frame range for range slider.
+      md.rangeSlider = [md.start, md.end];
+      
+      // Update statistics
+      md.calculateStats();
+      
+      return md;
     }
     
     /**
@@ -229,10 +375,11 @@ export class MDComponent implements OnInit {
      * Delete rows from the MD data table
      * - If first_selected == true, only delete the first entry in the 
      *   selectedMD array and load details of the next in line in case of
-     *   multiple selection. This option us used when deleting from the
+     *   multiple selection. This option is used when deleting from the
      *   MD details panel.
      * - If first_selected == false, remove all selected rows in the 
      *   selectedMD array.
+     * - If selection empty, fold MD details panel and disable details button.
      */
     public delete(first_selected: boolean = false) {
       
@@ -243,7 +390,7 @@ export class MDComponent implements OnInit {
       
       // Confirmation dialog
       var del_count = first_selected ? 1 : this.selectedMD.length;
-      if (!confirm('Delete ${del_count} trajectories?')) {
+      if (!confirm('Delete ' + del_count + ' trajectories?')) {
         return;
       }
       
@@ -260,24 +407,53 @@ export class MDComponent implements OnInit {
             this.mds.splice(this.findSelectedMDIndex(this.selectedMD[i]), 1);
         }
         this.selectedMD = [];
+        this.md_detail_unfold = false;
         this.md = null;
       }
     }
     
-    save() {
-        this.mds[this.findSelectedMDIndex(this.selectedMD[0])] = this.md;
-        this.md = null;
+    /**
+     * Save changes made to MD details and update chart
+     */
+    public save() {
+      
+      // Update MD data table
+      this.mds[this.findSelectedMDIndex(this.selectedMD[0])] = this.md;
+      
+      // Update chart
+      this.updateChartInfo(this.md);
+      this.nvD3.chart.update();
+      
+      // Tag the state of the data as changed
+      this.data_has_changed = true;
     }
     
-    update(dt: DataTable) {
-        dt.reset();
+    /**
+     * Reload table data only if data changed
+     */
+    public reload() {
+      
+      if (this.data_has_changed) {
+        if (confirm('Reload MD data? any changes will be lost.')) {
+          this.ngOnInit();
+          this.data_has_changed = false;
+        }
+      }
+    }
+    
+    /**
+     * Reset data table sorting and filter settings
+     */ 
+    public update(dt: DataTable) {
+      dt.reset();
     }
     
     /**
      * (Multi) row selection callback.
-     * - displays the trajectory graph for the first item in the selection
+     * - displays the trajectory graph for the first item in the selection.
+     * - Enable MD details panel unfold button. 
      */
-    onRowSelect(event) {
+    public onRowSelect(event) {
       
       if (this.selectedMD.length > 0) {
         
