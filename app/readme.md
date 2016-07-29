@@ -62,6 +62,11 @@ stylesheet on top of the primeui-ng-all.css.
       }
       return index != -1;
   };
+
+- PrimeNG: Changed menu bar positioning in 'primeng/components/menubar/menubar.js':
+ 
+  line 28 change: sublist.style.left = '0px'; 
+          to:     sublist.style.left = '-' + this.domHandler.getOuterWidth(item.children[0]) / 2 + 'px';
   
 - PrimeNG: Added class to p-menubarsub class of PrimeNG menubar component in 'primeng/components/menubar/menubar.js':
   
