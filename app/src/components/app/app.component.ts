@@ -40,8 +40,8 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   private main_menu_items: MenuItem[];
   private top_menu_items: MenuItem[];
-  public aside_left_unfold: Boolean = false;
-
+  public  aside_left_unfold: Boolean = false;
+  
   constructor(public router: Router, public http: Http, public user: UserService, public wamp: WampService) {
   }
   
@@ -84,7 +84,7 @@ export class AppComponent implements AfterViewInit, OnInit {
         {
           label: this.user.username,
           items: [
-            {label: 'Logout', icon: 'fa-power-off', command: (event) => {"onSubmitLogout()"}},
+            {label: 'Logout', icon: 'fa-power-off', command: (event) => {this.onSubmitLogout()}},
             {label: 'Profile'},
             {label: 'Contact'}
           ]
@@ -96,7 +96,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   ngAfterViewInit() {
     //componentHandler.upgradeDom();
   }
-
+  
   onSubmitLogout() {
 
     var that = this;

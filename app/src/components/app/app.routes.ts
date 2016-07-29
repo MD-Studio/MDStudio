@@ -12,33 +12,32 @@ import {Authorize}               from '../../shared/services/src/auth.service';
 // - TODO: rerouting undefined routes not working
 export const AppRoutes: RouterConfig = [
   {
-    path: '/dashboard',
+    path: 'dashboard',
     component: DashboardComponent,
     canActivate: [Authorize],
   },
   {
-    path: '/md',
+    path: 'md',
     component: MDComponent,
     canActivate: [Authorize]
   },
   {
-    path: '/analysis',
+    path: 'analysis',
     component: AnalysisComponent,
     canActivate: [Authorize]
   },
   {
-    path: '/log',
+    path: 'log',
     component: LoggingComponent,
     canActivate: [Authorize]
   },
   {
-    path: '/',
+    path: '',
     component: DashboardComponent,
     canActivate: [Authorize],
-    index: true
   },
   {
-    path: '/*',
+    path: '*',
     component: DashboardComponent,
     canActivate: [Authorize],
   }
