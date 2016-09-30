@@ -17,6 +17,7 @@ import sys
 import os
 import time
 import copy
+import io
 
 from   datetime import datetime
 
@@ -61,14 +62,16 @@ def init_application_logging(settings):
     :return:         true/false for successful bootstrap completion
     :rtype:          bool
     """
+    
     current_module = sys.modules[__name__]
-    for observer in settings:
-        if settings[observer].get('activate', False):
+    observers = settings['observers']
+    for observer in observers:
+        if observers[observer].get('activate', False):
             if hasattr(current_module, observer):
                 
                 # Add log filter predicates
                 filter_predicates = []
-                for predicate_name, predicate_function in settings[observer].get('filter_predicate', {}).items():
+                for predicate_name, predicate_function in observers[observer].get('filter_predicate', {}).items():
                     
                     # For log_level settings use Twisted LogLevelFilterPredicate observer
                     if predicate_name == 'log_level':
@@ -83,13 +86,14 @@ def init_application_logging(settings):
                 
                 obs_object = getattr(current_module, observer)
                 if len(filter_predicates):
-                    init_observer = FilteringLogObserver(observer=obs_object(**settings[observer]),
+                    init_observer = FilteringLogObserver(observer=obs_object(**observers[observer]),
                                                          predicates=filter_predicates)
                 else:
-                    init_observer = obs_object(**settings[observer])
+                    init_observer = obs_object(**observers[observer])
                 
                 # Same observer can be added multiple times with different settings
-                globalLogPublisher.addObserver(init_observer)        
+                globalLogPublisher.addObserver(init_observer)
+                logging.debug('Init {0} logging observer'.format(observer)) 
             else:
                 raise InvalidObserverError(observer)
                 raise Exception('Unknown log observer defined in logging settings: {0}'.format(observer))
@@ -122,7 +126,7 @@ def exit_application_logging(settings):
     """
     # Flush log messages to database before shutdown
     for observer in globalLogPublisher._observers:
-        if type(observer).__name__ == 'ExportToMongodbObserver':
+        if type(observer).__name__ in ('ExportToMongodbObserver','RotateFileLogObserver'):
             observer.flush()
     
     return True
@@ -326,6 +330,22 @@ class RotateFileLogObserver(object):
     
         self._create_logfile()
     
+    def __call__(self, event):
+        """
+        Evaluate event dictionary, format the log message and
+        write to logfile.
+        Check if the file rotation time has been passed and rotate
+        the logfile if so.
+        
+        :param event: Twisted logger event
+        :type event:  dict
+        """       
+        if time.time() >= self._logfile_ctime + self._rotation_time:
+            self._rotate_logfile()
+        
+        event = _format_logger_event(event, datefmt=self._datefmt)
+        self._logfile.write(self._format_event.format(**event))
+        
     def _get_logfile_ctime(self):
         """
         Unix based systems do often not store the file creation timestamp as
@@ -363,34 +383,25 @@ class RotateFileLogObserver(object):
         Store the file creation time stamp in the first line of the file.
         """       
         if not os.path.isfile(self._logfile_path):
-            self._logfile = open(self._logfile_path, 'a+')
+            self._logfile = io.open(self._logfile_path, mode='a+', encoding=self._logfile_encoding)
             self._logfile_ctime = int(time.time())
-            self._logfile.write('{0}\n'.format(self._logfile_ctime))
+            self._logfile.write(u'{0}\n'.format(self._logfile_ctime))
             logging.debug('Create new logfile at: {0}'.format(self._logfile_path))
             return
         
-        self._logfile = open(self._logfile_path, 'a+', encoding=self._logfile_encoding)
+        self._logfile = io.open(self._logfile_path, mode='a+', encoding=self._logfile_encoding)
         self._get_logfile_ctime()
         
         if time.time() >= self._logfile_ctime + self._rotation_time:
             self._rotate_logfile()
-        
-    def __call__(self, event):
+            
+    def flush(self):
+      
         """
-        Evaluate event dictionary, format the log message and
-        write to logfile.
-        Check if the file rotation time has been passed and rotate
-        the logfile if so.
+        Flush buffer to file.
+        """
+        self._logfile.flush()
         
-        :param event: Twisted logger event
-        :type event:  dict
-        """       
-        if time.time() >= self._logfile_ctime + self._rotation_time:
-            self._rotate_logfile()
-        
-        event = _format_logger_event(event, datefmt=self._datefmt)
-        self._logfile.write(self._format_event.format(**event))
-
         
 @provider(ILogObserver)
 class ExportToMongodbObserver(object):

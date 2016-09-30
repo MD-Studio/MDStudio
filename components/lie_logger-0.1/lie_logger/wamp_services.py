@@ -45,7 +45,7 @@ class LoggerWampApi(ApplicationSession):
         """
         Retrieve structured log events from the database
         """
-        user = "mvdijk"
+        
         posts = []
         for post in self.log.find({"lie_user": user}, {'_id': False}):
             posts.append(post)
