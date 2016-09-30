@@ -1,0 +1,60 @@
+{
+    "system": {
+        "app_path": "",
+        "app_config": "{system.app_path}/data/settings.json",
+        "bootstrap_order": [
+            "lie_db",
+            "lie_logger",
+            "lie_user"
+        ],
+        "shutdown_order": [
+            "lie_user",
+            "lie_config",
+            "lie_logger",
+            "lie_db"
+        ]
+    },
+    "crossbar": {
+        "start": {
+            "cbdir": "{system.app_path}/.crossbar/",
+            "config": "{crossbar.start.cbdir}config.json",
+            "logdir": "{system.app_path}/data/logs",
+            "logtofile": true,
+            "loglevel": "info"
+        }
+    },
+    "lie_db": {
+        "dbpath": "{system.app_path}/data/liedb",
+        "dbname": "liestudio",
+        "dblog": "{system.app_path}/data/logs/mongodb.log",
+        "port": 27017,
+        "host": "localhost",
+        "create_db": true,
+        "terminate_mongod_on_exit": false
+    },
+    "lie_logger": {
+        "global_log_level": "info",
+        "observers": {
+            "PrintingObserver": {
+                "activate": true,
+                "datefmt": "%m/%d/%Y %H:%M:%S",
+                "format_event": "{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n",
+                "filter_predicate": {
+                    "log_level": "{lie_logger.global_log_level}",
+                    "app_namespace": " > 5"
+                }
+            },
+            "ExportToMongodbObserver": {
+                "activate": true,
+                "log_cache_size": 50
+            },
+            "RotateFileLogObserver": {
+                "activate": true,
+                "datefmt": "%m/%d/%Y %H:%M:%S",
+                "format_event": "{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n",
+                "logfile_path": "{system.app_path}/data/logs/lielog.log",
+                "rotation_time": 86400
+            }
+        }
+    }
+}
