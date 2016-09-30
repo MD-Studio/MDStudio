@@ -1,6 +1,6 @@
 ###LIEStudio
 
-This is the read me of LIEStudio
+This is the read me for the LIEStudio Angular based web application
 
 ####Installation
 1) Install NodeJs (use NodeJS installer: https://nodejs.org/en/download/)
@@ -84,5 +84,12 @@ stylesheet on top of the primeui-ng-all.css.
    </a>\n <p-menubarSub class=\"ui-submenu\" [item]=\"child\" *ngIf=\"child.items\"></p-menubarSub>\n
   </li>\n            </template>\n        </ul>\n    ",
 
+- PrimeNG: Changed InputSwitch ui px width calculation to match rounded corner switcher in 'primeng/components/inputswitch/inputswitch.js':
+  
+  Line 81 from: this.onContainer.style.width = this.offset + 'px';
+  Line 81 to: this.onContainer.style.width = this.offset + 4 + 'px';
+  Line 84 from: this.handle.style.left = this.offset + 'px';
+  Line 84 to: this.handle.style.left = this.offset - 4 + 'px';
+  
 ####TODO
 - Upon app init, check browser compatibility with respect to enabled javascript, flexbox support.
