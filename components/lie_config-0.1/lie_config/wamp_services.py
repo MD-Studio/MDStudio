@@ -7,34 +7,75 @@ WAMP service methods the module exposes.
 """
 
 import time
+import json
 
-from   twisted import logger 
-from   twisted.internet.defer import inlineCallbacks
 from   autobahn               import wamp
 from   autobahn.twisted.wamp  import ApplicationSession
+from   twisted.logger         import Logger
+from   twisted.internet.defer import inlineCallbacks
 
-# from settings               import SETTINGS
+from   lie_config import get_config
 
-class ConfigBackend(ApplicationSession):
-
+class ConfigWampApi(ApplicationSession):
+  """
+  Configuration management WAMP methods.
+  """
+  
+  logging = Logger()
+  appconfig  = None
+  
   def __init__(self, config):
     ApplicationSession.__init__(self, config)
-    self.config = []
+    
+    extra = config.extra
+    if 'config' in extra:
+      self.appconfig = get_config()
+      with open(extra['config']) as settingsfile:
+          settings = json.loads(settingsfile.read())
+          self.appconfig.load(settings)
   
   @wamp.register(u'liestudio.config.get')
-  def checkCredentials(self, username, password):
+  def getConfig(self, key, config='default'):
+    """
+    Retrieve application configuration.
     
-    time.sleep(5) # TEMP: just to check login screen progress bar
-    if self.usermanager.validate_user_login(username, password):
-      user_settings = self.usermanager.get_user(username)
-    else:
-      return False
-  
-  @wamp.register(u'liestudio.config.retrieve')
-  def retrievePassword(self, email):
-    return self.usermanager.retrieve_password(email)
-  
+    Search for `key` anywhere in a globally accessible 
+    configuration store. 
+    Returns query results in JSON format
+    """
+    
+    settings = self.appconfig.search('*{0}*'.format(str(key)))
+    return settings.dict()
+    
   @inlineCallbacks
   def onJoin(self, details):
     res = yield self.register(self)
-    logger.debug("UserBackend: {} procedures registered!".format(len(res)))
+    self.logging.debug("ConfigBackend: {} procedures registered!".format(len(res)))
+
+def make(config):
+    """
+    Component factory
+  
+    This component factory creates instances of the
+    application component to run.
+    
+    The function will get called either during development
+    using the ApplicationRunner below, or as  a plugin running
+    hosted in a WAMPlet container such as a Crossbar.io worker.
+    """
+    
+    if config:
+        return ConfigWampApi(config)
+    else:
+        # if no config given, return a description of this WAMPlet ..
+        return {'label': 'LIEStudio configuration management WAMPlet',
+                'description': 'WAMPlet proving LIEStudio configuration management endpoints'}
+
+if __name__ == '__main__':
+    
+    # test drive the component during development ..
+    runner = ApplicationRunner(
+        url="wss://localhost:8083/ws",
+        realm="liestudio")
+
+    runner.run(make)

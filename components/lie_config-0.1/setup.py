@@ -41,6 +41,9 @@ setup(
     packages=find_packages(),
     py_modules=[distribution_name],
     install_requires=['twisted','autobahn'],
+    extras_require={
+      ":python_version<'3.3'": ['funcsigs'],
+    },
     include_package_data=True,
     zip_safe=True,
     entry_points={
