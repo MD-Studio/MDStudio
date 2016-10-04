@@ -16,29 +16,26 @@ from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from twisted.logger import Logger
 from twisted.internet.defer import inlineCallbacks
 
-class DockingWampApi(ApplicationSession):
+class StructuresWampApi(ApplicationSession):
 
     """
-    Docking WAMP methods.
+    Structure database WAMP methods.
     """
     
     logging = Logger()
    
     @inlineCallbacks
     def onJoin(self, details):
-        self._ident = "DockingWampApi (PID {}, Session {})".format(os.getpid(), details.session)
-        yield self.register(self.docking_run, u'liestudio.docking.run', options=RegisterOptions(invoke=u'roundrobin'))
-        self.logging.info("DockingWampApi: docking_run() registered!")
+        self._ident = "StructureWampApi (PID {}, Session {})".format(os.getpid(), details.session)
+        yield self.register(self.get_structure, u'liestudio.structures.get_structure', options=RegisterOptions(invoke=u'roundrobin'))
+        self.logging.info("DockingWampApi: get_structure() registered!")
     
-    def docking_run(self, structure):
+    def get_structure(self, structure):
         
-        sl = 2
-        self.logging.info("Running docking for structure {0} Simulate by sleep for {1} sec.".format(structure, sl),
-            lie_user='mvdijk', lie_session=338776455, lie_namespace='docking')
-        time.sleep(sl)
-        self.logging.info("Finished docking", lie_user='mvdijk', lie_session=338776455, lie_namespace='docking')
+        self.logging.info("Return structure: {0}".format(structure),
+            lie_user='mvdijk', lie_session=338776455, lie_namespace='structures')
         
-        return {'result': '{0}_docked'.format(structure)}
+        return {'result': structure}
 
 def make(config):
     ##
@@ -50,7 +47,7 @@ def make(config):
     # hosted in a WAMPlet container such as a Crossbar.io worker.
     ##
     if config:
-        return DockingWampApi(config)
+        return StructuresWampApi(config)
     else:
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'Awesome WAMPlet 1',

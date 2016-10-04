@@ -16,7 +16,7 @@ from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from twisted.logger import Logger
 from twisted.internet.defer import inlineCallbacks
 
-class DockingWampApi(ApplicationSession):
+class MDWampApi(ApplicationSession):
 
     """
     Docking WAMP methods.
@@ -26,19 +26,19 @@ class DockingWampApi(ApplicationSession):
    
     @inlineCallbacks
     def onJoin(self, details):
-        self._ident = "DockingWampApi (PID {}, Session {})".format(os.getpid(), details.session)
-        yield self.register(self.docking_run, u'liestudio.docking.run', options=RegisterOptions(invoke=u'roundrobin'))
-        self.logging.info("DockingWampApi: docking_run() registered!")
+        self._ident = "MDWampApi (PID {}, Session {})".format(os.getpid(), details.session)
+        yield self.register(self.md_run, u'liestudio.md.run', options=RegisterOptions(invoke=u'roundrobin'))
+        self.logging.info("MDWampApi: md_run() registered!")
     
-    def docking_run(self, structure):
+    def md_run(self, structure):
         
         sl = 2
-        self.logging.info("Running docking for structure {0} Simulate by sleep for {1} sec.".format(structure, sl),
-            lie_user='mvdijk', lie_session=338776455, lie_namespace='docking')
+        self.logging.info("Running md for structure {0} Simulate by sleep for {1} sec.".format(structure, sl),
+            lie_user='mvdijk', lie_session=338776455, lie_namespace='md')
         time.sleep(sl)
-        self.logging.info("Finished docking", lie_user='mvdijk', lie_session=338776455, lie_namespace='docking')
+        self.logging.info("Finished MD", lie_user='mvdijk', lie_session=338776455, lie_namespace='md')
         
-        return {'result': '{0}_docked'.format(structure)}
+        return {'result': '{0}_md'.format(structure)}
 
 def make(config):
     ##
@@ -50,7 +50,7 @@ def make(config):
     # hosted in a WAMPlet container such as a Crossbar.io worker.
     ##
     if config:
-        return DockingWampApi(config)
+        return MDWampApi(config)
     else:
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'Awesome WAMPlet 1',
