@@ -3,9 +3,9 @@
 ### LIEStudio specific
 app/typings/
 app/dist/
-data/logs
-data/liedb
-docs/html
+data/logs/
+data/liedb/
+docs/html/
 
 ### Python files
 # Byte-compiled / optimized / DLL files

@@ -1,168 +1,172 @@
 @import url(https://fonts.googleapis.com/css?family=Ubuntu:400,500);
 
-$text-color: #fff;
-$btn-hover-color: #4EACC1;
-$btn-disabled-color: #C4C4C4;
-
-#login {
-  width: 100%;
-  height: 100%;
-  background-image: url('../../assets/login-background.jpg');
-  background-size: cover;
+:host(.LoginComponent.ng-enter) {
+  -webkit-transition: all ease-in 0.5s;
+  transition: all ease-in 0.5s;
+  opacity: 0;
 }
 
-.login-logo {
-  max-width: 150px;
-  margin: 0 auto;
+:host(.LoginComponent.ng-enter-active) {
+  opacity: 1;
 }
 
-.login-title {
-  color: $text-color;
-  text-align: center;
-  margin-bottom: 30px;
-  
-  h2 {
-    font-family: 'Ubuntu', sans-serif;
-    font-size: 4.2em;
-    letter-spacing: 2px;
-    margin: 10px 0px;
-  }
-  
-  p {
-    font-size: 1.15em;
-    letter-spacing: 1px;
-    margin: 0;
-  }
-  
-  &.error p {
-    color: #A94442;
-  }
-}
-
-.input-group {
-  margin: 15px 0px;
-  
-  &.error {
-    border: 2px solid #A94442;
-  }
-}
-
-.btn {
-  background-color: #ffffff;
-  border: none;
-}
-
-.btn-default {
-  width: 100%;
-  font-weight: bold;
-  
-  &:hover,
-  &:focus,
-  &.focus {
-    background-color: $btn-hover-color;
-    color: $text-color;
-  }
-  
-  &[disabled] {
-    background-color: $btn-disabled-color;
-  }
-  
-  &[disabled]:hover,
-  &[disabled]:focus,
-  &[disabled].focus {
-    background-color: $btn-disabled-color;
-    color: #333;
-  }
-}
-
-.btn-circle {
-  background-color: transparent;
-  border: 1px solid $text-color;
-  color: $text-color;
-  font-size: 1.2em;
-  
-  &:hover,
-  &:focus,
-  &.focus {
-    border-color: $btn-hover-color;
-    color: $btn-hover-color;
-  }
-}
-
-.input-group-addon,
-.form-control {
-  border: 0;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: $text-color;
-}
-
-.input-group-addon {
-  border-right: 1px solid #fff;
-  color: #d6d6d6;
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-/* The starting CSS styles for the enter animation */
-.fade.ng-hide {
+.ui-dialog-mask {
+  background-color: #22313E;
   transition:0.5s linear all;
-  opacity:0;
 }
 
-.mdl-tooltip.is-active {
-  -webkit-animation: pulse 400ms cubic-bezier(0, 0, 0.2, 1) forwards;
-          animation: pulse 400ms cubic-bezier(0, 0, 0.2, 1) forwards; 
-  -webkit-animation-delay: 1s;
-          animation-delay: 1s;
-}
-
-.mdl-progress {
-  width: 280px;
-  margin: 10px;
+.ui-dialog {
   
-  .bufferbar {
-    background: none;
+  .ui-progress-bar {
+    position: absolute;
+    z-index: 1010;
+    bottom: 0;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    background-color: #EA5323;
   }
   
-  .progressbar,
-  .bar.bar1 {
-    background-color: $btn-hover-color;
-  }
-}
-
-//Carousel slider
-.carousel-wrapper {
-  width:300px;
-  overflow:hidden;
-  margin:0 auto;
-  padding-bottom: 10px;
-  
-  .carousel-container {
-    width: 1200px;
-    
-    -webkit-transition:all 1.0s ease-in-out;
-    -moz-transition:all 1.0s ease-in-out;
-    -o-transition:all 1.0s ease-in-out;
-    transition:all 1.0s ease-in-out;
+  .ui-dialog-titlebar {
+    display: none;
   }
   
-  .carousel-container > div {
-    padding: 0px 10px;
-    margin: 0;
-    width: 300px;
-    float: left;
+  .ui-dialog-content {
+    padding: 0;
   }
-}
-
-@media screen and (max-width: 480px) {
-  .login-logo {
-    max-width: 100px;
+  
+  header, footer {
+    width: 100%;
+    text-align: center;
+    background-color: #eaeaea;
+    padding: 10px 30px;
+    color: #666;
+  }  
+  
+  footer {
+    padding: 10px 30px 15px 30px;
   }
-
-  .login-title {
+  
+  header {
     
     h2 {
-      font-size: 3em;
-      letter-spacing: 1px;
+      font-family: 'Ubuntu', sans-serif;
+      font-size: 2em;
+      margin: 0;
+      letter-spacing: 2px;
+    }
+
+    p {
+      font-size: 0.9em;
+      margin: 0;
+    }
+    
+    p.icon {
+      font-size: 2.2em;
+      padding: 8px;
+      color: #EA5323;
+    }
+
+    &.error p {
+      color: #A94442;
+    }
+  }
+}
+
+.status-message {
+  padding: 0px 30px;
+  text-align: center;
+}
+
+.instructions {
+  padding: 10px 30px 0px 30px;
+  
+  ul {
+    padding-left: 15px;
+  }
+  
+  li {
+    color: #666;
+    margin: 3px;
+    font-size: 0.8em;
+  }
+}
+
+.input-form-group {
+  padding: 10px 30px;
+  
+  .ui-inputswitch-on {
+    background: #EA5323 !important;
+  }
+  
+  span.ui-inputswitch-onlabel,
+  span.ui-inputswitch-offlabel {
+    color: transparent;
+  }
+  
+  .input-group {
+    margin: 15px 0px;
+    height: 40px;
+    width: 100%;
+    padding-left: 40px;
+    position: relative;
+    
+    span, input {
+      border: 1px solid #eaeaea;
+      height: 100%;
+    }
+    
+    span {
+      background-color: #eaeaea;
+      display: block;
+      position: absolute;
+      left: 0;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 1.1em;
+      color: #666;
+      width: 40px;
+      
+      &.invalid {
+        background-color: #FF625E;
+        color: #fff;
+      }
+      
+      &.valid {
+        background-color: #26CD42;
+        color: #fff;
+      }
+    }
+    
+    input {
+      padding: 0 14px;
+      width: 100%;
+    }
+  }
+}
+
+p.inline {
+  margin: 0;
+  padding: 2px 5px 0px 5px;
+  font-size: 0.9em;
+}
+
+#auth-buttons {
+  padding: 0px 30px 10px 30px;
+  
+  .ui-button {
+    background-color: #EA5323;
+    
+    &.ui-button-icon-only {
+      width: 2.4em;
+    }
+  
+    .ui-button-text {
+      padding: .5em;
+    }
+    
+    &.ui-state-hover {
+      background-color: #C6451C;
     }
   }
 }

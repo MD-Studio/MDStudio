@@ -21,7 +21,6 @@ export class Authorize implements CanActivate {
   
   canActivate(next:  ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     
-    console.log('check login');
     if (this.userService.isLoggedIn) {
       return true;
     }

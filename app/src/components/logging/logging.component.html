@@ -1,4 +1,79 @@
 <!-- Top level logging component container div -->
-<div id="loggin" class="flex-container-rows valign-stretch halign-stretch nowrap" style="height: 100%">
-    <p>Log</p>
+<div id="loggin" class="flex-container-rows valign-stretch halign-stretch nowrap">
+    
+    <!-- Log general stats -->
+    <div id="log-statistics" class="flex-item">
+        <h3>Project log messages</h3>
+        
+        <div class="flex-container-rows">
+          
+          <!-- Total number of log messages -->
+          <div class="flex-item ui-stats-display">
+            <p class="title"><span class="fa fa-calculator"></span>Total messages</p>
+            <p class="stats">{{total_log_message_count}}</p>
+          </div>
+          
+          <!-- Number of warning messages -->
+          <div class="flex-item ui-stats-display">
+            <p class="title"><span class="fa fa-warning"></span>Warning messages</p>
+            <p class="stats warn">{{warn_log_message_count}}</p>
+          </div>
+          
+          <!-- Number of error messages -->
+          <div class="flex-item ui-stats-display">
+            <p class="title"><span class="fa fa-times-circle"></span>Error messages</p>
+            <p class="stats error">{{error_log_message_count}}</p>
+          </div>
+          
+        </div>
+        
+    <div>  
+    
+    <!-- Table with log data -->
+    <div id="log-table" class="flex-item ui-component-container">
+    
+        <div class="header">
+        
+            <!-- data table menu -->
+            <div class="ui-menu-bar flex-container-rows valign-center">
+                
+                <!-- DataTable Global Filter -->
+                <div class="ui-inputtext-wrapper flex-item">
+                    <span class="ui-icon fa fa-search"></span>
+                    <input #gb type="text" pInputText placeholder="Global Filter..." class="flex-item">
+                </div>
+
+                <!-- <div class="ui-multiselect-wrapper flex-item">
+                    <p-multiSelect [options]="availableColumns" [(ngModel)]="selectedColumns"
+                     (onChange)="sortSelectedColumns()"></p-multiSelect>
+                </div> -->
+            
+                <div class="spacer flex-item stretch"></div>
+                
+                <button type="button" pButton (click)="log_custom_filter_unfold = !log_custom_filter_unfold;"
+                    [class.ui-state-active]="log_custom_filter_unfold" icon="fa-filter" title="Filter columns"></button>
+                <button type="button" pButton (click)="retrieveLogMessagesFromServer()" icon="fa-refresh" title="Refresh"></button>
+            </div>
+        
+        </div>
+    
+        <div class="inner" [ngClass]="{'log_custom_filter_fold': !log_custom_filter_unfold, 'log_custom_filter_unfold': log_custom_filter_unfold}">
+        
+            <!-- data table -->
+            <p-dataTable #dt [value]="logs" [globalFilter]="gb" [responsive]="true" [reorderableColumns]="true" sortMode="multiple">
+                         
+                <!-- Add the data columns -->
+                <p-column field="log_level" header="Level" sortable="true" [filter]="true" filterMatchMode="contains" styleClass="log-level">
+                  <template let-col let-rowTenant="rowData">
+                    <span class="log-level-label {{rowTenant[col.field]}}">{{rowTenant[col.field]}}</span>
+                  </template>
+                </p-column>
+                <p-column field="log_time" header="Date" sortable="true" [filter]="true" filterMatchMode="contains"></p-column>
+                <p-column field="message" header="Message" sortable="true" [filter]="true" filterMatchMode="contains"></p-column>
+                
+            </p-dataTable>
+            
+        </div>
+    </div>
+    
 </div>

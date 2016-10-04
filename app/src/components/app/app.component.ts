@@ -34,6 +34,7 @@ declare var componentHandler: any;
   styleUrls :    ['app.component.css'],
   encapsulation: ViewEncapsulation.None,
   directives:    [CORE_DIRECTIVES, ROUTER_DIRECTIVES, Button, PanelMenu, Menubar],
+  host:          {'class' : 'ng-animate AppComponent'}, 
 })
 
 export class AppComponent implements AfterViewInit, OnInit {

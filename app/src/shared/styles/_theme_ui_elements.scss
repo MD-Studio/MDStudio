@@ -1,5 +1,9 @@
 @import "../../shared/styles/theme_variables";
 
+*:focus {
+    outline: none;
+}
+
 /**
  * General widget style
  */
@@ -32,6 +36,13 @@
   }
   
   .footer { }
+}
+
+/**
+ * Dialogs
+ */
+.ui-dialog {
+  background-color: #ffffff;
 }
 
 /**
@@ -580,3 +591,136 @@
     font-weight: 400;
   }
 }
+
+/**
+ * Input switch
+ */
+.ui-inputswitch {
+  border: 2px solid #D5D5D5;
+  border-radius: 2em;
+  
+  .ui-inputswitch-handle {
+    border-radius: 10px;
+    background-color: #D5D5D5;
+    height: 20px !important;
+    width: 20px !important;
+  }
+  
+  .ui-inputswitch-on {
+    background: #186ba0 !important;
+    color: #ffffff !important;
+  }
+}
+
+/**
+ * Continues progress bar
+ */
+
+.ui-progress-bar {
+  height: 8px;
+  background-color: $left-nav-btn-color-hover;
+  
+  span {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  span.animate {
+    display:inline-block;
+  	background-color: #eaeaea;
+  	-webkit-box-sizing:border-box;
+  	-moz-box-sizing:border-box;
+  	-ms-box-sizing:border-box;
+  	box-sizing:border-box;
+  	background-image:
+  		-webkit-linear-gradient(
+  		-45deg,
+  		rgba(234, 83, 35, 1) 25%,
+  		transparent 25%,
+  		transparent 50%,
+  		rgba(234, 83, 35, 1) 50%,
+  		rgba(234, 83, 35, 1) 75%,
+  		transparent 75%,
+  		transparent
+  	);
+  	background-image:
+  		-moz-linear-gradient(
+  		-45deg,
+  		rgba(234, 83, 35, 1) 25%,
+  		transparent 25%,
+  		transparent 50%,
+  		rgba(234, 83, 35, 1) 50%,
+  		rgba(234, 83, 35, 1) 75%,
+  		transparent 75%,
+  		transparent
+  	);
+  	background-image:
+  		-ms-linear-gradient(
+  		-45deg,
+  		rgba(234, 83, 35, 1) 25%,
+  		transparent 25%,
+  		transparent 50%,
+  		rgba(234, 83, 35, 1) 50%,
+  		rgba(234, 83, 35, 1) 75%,
+  		transparent 75%,
+  		transparent
+  	);
+  	background-image:
+  		linear-gradient(
+  		-45deg,
+  		rgba(234, 83, 35, 1) 25%,
+  		transparent 25%,
+  		transparent 50%,
+  		rgba(234, 83, 35, 1) 50%,
+  		rgba(234, 83, 35, 1) 75%,
+  		transparent 75%,
+  		transparent
+  	);
+  	-webkit-background-size:50px 50px;
+  	-moz-background-size:50px 50px;
+  	-ms-background-size:50px 50px;
+  	background-size:50px 50px;
+  	-webkit-animation:move 2s linear infinite;
+  	-moz-animation:move 2s linear infinite;
+  	-ms-animation:move 2s linear infinite;
+  	animation:move 2s linear infinite;
+  	-webkit-box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
+  	-moz-box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
+  	-ms-box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
+  	box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
+  }
+}
+
+@-webkit-keyframes move{
+  0% {
+  	background-position: 0 0;
+  }
+  100% {
+  	background-position: 50px 50px;
+  }
+}	
+@-moz-keyframes move{
+  0% {
+  	background-position: 0 0;
+  }
+  100% {
+  	background-position: 50px 50px;
+  }
+}	
+@-ms-keyframes move{
+  0% {
+  	background-position: 0 0;
+  }
+  100% {
+  	background-position: 50px 50px;
+  }
+}	
+@keyframes move{
+  0% {
+  	background-position: 0 0;
+  }
+  100% {
+  	background-position: 50px 50px;
+  }
+}	

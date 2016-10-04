@@ -8,6 +8,7 @@
 
 // Angular imports
 import {bootstrap}            from '@angular/platform-browser-dynamic';
+import {enableProdMode}       from '@angular/core';
 import {HTTP_PROVIDERS}       from '@angular/http';
 
 // App imports
@@ -18,7 +19,7 @@ import {APP_ROUTER_PROVIDERS} from './shared/services/src/router.service';
 
 import 'rxjs/Rx';
 
-//enableProdMode();
+enableProdMode();
 bootstrap(
   AppComponent,
   [

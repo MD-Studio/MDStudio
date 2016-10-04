@@ -7,6 +7,16 @@
 @import url(https://fonts.googleapis.com/css?family=Ubuntu:400,500);
 @import "../../shared/styles/theme_variables";
 
+:host(.AppComponent.ng-enter) {
+  -webkit-transition: all ease-in 1s;
+  transition: all ease-in 1s;
+  opacity: 0;
+}
+
+:host(.AppComponent.ng-enter-active) {
+  opacity: 1;
+}
+
 // Flexbox overrides for main application views
 #main-app {
   overflow: hidden;

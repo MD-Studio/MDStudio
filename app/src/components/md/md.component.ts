@@ -180,6 +180,8 @@ export class MDComponent {
     public  items: MenuItem[];
     
     // Trajectory chart
+    // TODO: Define callback in nvD3 chart to get active brush extend after graph update
+    //       and set active_brush_extend
     public  chart_options: any;
     public  chart_data: any;
     public  displayedTrajID: Number;
@@ -215,8 +217,8 @@ export class MDComponent {
         
         // Initiate contextual menu for the DataTable
         this.items = [
-          {label: 'View', icon: 'fa-search'},
-          {label: 'Delete', icon: 'fa-close'}
+            {label: 'View', icon: 'fa-search', command: (event) => this.delete(this.selectedMD)},
+            {label: 'Delete', icon: 'fa-close', command: (event) => this.delete(this.selectedMD)}
         ];
     }
     
@@ -236,7 +238,6 @@ export class MDComponent {
      * json format suitable for display with D3 chart.
      */
     private loadMDenergyTrajectory(md) {
-      
       
       // Retrieve the new data. This will automatically update the chart.  
       this.http.get('assets/data/md-traj-' + md.id + '.json')
@@ -270,12 +271,6 @@ export class MDComponent {
           type: 'lineWithFocusChart',
           useInteractiveGuideline: true,
           brushExtent: brushrange,
-          callback: function(chart){
-            chart.dispatch.on('brush', function (brushExtent) {
-              console.log(brushExtent.extent);
-              this.active_brush_extend = brushExtent.extent;
-            });
-          },
           margin: { top: 10, right: 75, bottom: 50, left: 75 },
           xAxis: {
             axisLabel: 'Frames',

@@ -6,6 +6,7 @@
     'angular2-in-memory-web-api': 'node_modules/angular2-in-memory-web-api',
     '@angular':                   'node_modules/@angular',
     '@angular/router':            'node_modules/@angular/router',
+    'angular2-cookie':            'node_modules/angular2-cookie',
     'primeng':                    'node_modules/primeng',
     'ng2-nvd3':                   'node_modules/ng2-nvd3/build/lib/ng2-nvd3',
   };
@@ -14,6 +15,7 @@
   var packages = {
     'rxjs':                       { defaultExtension: 'js' },
     'angular2-in-memory-web-api': { defaultExtension: 'js' },
+    'angular2-cookie':            { main: 'core.js',  defaultExtension: 'js' },
     'primeng':                    { defaultExtension: 'js' },
   };
 

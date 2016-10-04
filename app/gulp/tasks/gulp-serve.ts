@@ -13,7 +13,8 @@ function init(){
             routes: {
                 "/node_modules": "node_modules"
             }
-        }
+        },
+        port: 8083
     });
 }
 
