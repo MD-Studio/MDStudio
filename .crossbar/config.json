@@ -46,11 +46,11 @@
                     "paths": {
                         "/": {
                             "type": "static",
-                            "directory": "/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/app/dist"
+                            "directory": "../app/dist"
                         },
                         "help": {
                             "type": "static",
-                            "directory": "/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/docs/html"
+                            "directory": "../docs/html"
                         },
                         "ws": {
                             "type": "websocket"
@@ -88,7 +88,7 @@
                 "realm": "liestudio",
                 "entrypoint": "wamp_services",
                 "extra": {
-                  "config": "/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/data/settings.json"
+                  "config": "../data/settings.json"
                 },
                 "transport": {
                   "type": "websocket",
@@ -118,6 +118,156 @@
               {
                 "type": "wamplet",
                 "package": "lie_docking",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              },
+              {
+                "type": "wamplet",
+                "package": "lie_structures",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              },
+              {
+                "type": "wamplet",
+                "package": "lie_md",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              }
+            ]
+        },
+        {
+            "type": "container",
+            "options": {
+                "pythonpath": [
+                    ".."
+                ]
+            },
+            "components": [
+              {
+                "type": "wamplet",
+                "package": "lie_docking",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              },
+              {
+                "type": "wamplet",
+                "package": "lie_md",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              }
+            ]
+        },
+        {
+            "type": "container",
+            "options": {
+                "pythonpath": [
+                    ".."
+                ]
+            },
+            "components": [
+              {
+                "type": "wamplet",
+                "package": "lie_docking",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              },
+              {
+                "type": "wamplet",
+                "package": "lie_md",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              }
+            ]
+        },
+        {
+            "type": "container",
+            "options": {
+                "pythonpath": [
+                    ".."
+                ]
+            },
+            "components": [
+              {
+                "type": "wamplet",
+                "package": "lie_docking",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host": "127.0.0.1",
+                     "port": 8080
+                  },
+                  "url": "ws://127.0.0.1:8080/ws"
+                }
+              },
+              {
+                "type": "wamplet",
+                "package": "lie_md",
                 "realm": "liestudio",
                 "entrypoint": "wamp_services",
                 "transport": {
