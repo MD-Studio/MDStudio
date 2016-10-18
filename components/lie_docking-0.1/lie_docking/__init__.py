@@ -19,12 +19,9 @@ __url__       = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__  = os.path.dirname(__file__)
 
+# Load global configuration or init from local settings
 from .settings import SETTINGS
-from .wamp_services import DockingWampApi
-from .docking import init_docking, exit_docking
-
-# Define module public API
-settings = SETTINGS
-wampapi  = DockingWampApi
-oninit   = init_docking
-onexit   = exit_docking
+from lie_config import get_config
+settings = get_config()
+if not settings:
+    settings.load(SETTINGS)

@@ -40,7 +40,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['twisted','autobahn'],
+    install_requires=['twisted','autobahn', 'scipy'],
     include_package_data=True,
     zip_safe=True,
     entry_points={
