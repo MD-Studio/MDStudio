@@ -17,40 +17,39 @@ from   twisted.internet.defer import inlineCallbacks
 from   lie_config import get_config
 
 class ConfigWampApi(ApplicationSession):
-  """
-  Configuration management WAMP methods.
-  """
-  
-  logging = Logger()
-  appconfig  = None
-  
-  def __init__(self, config):
-    ApplicationSession.__init__(self, config)
-    
-    extra = config.extra
-    if 'config' in extra:
-      self.appconfig = get_config()
-      with open(extra['config']) as settingsfile:
-          settings = json.loads(settingsfile.read())
-          self.appconfig.load(settings)
-  
-  @wamp.register(u'liestudio.config.get')
-  def getConfig(self, key, config='default'):
     """
-    Retrieve application configuration.
-    
-    Search for `key` anywhere in a globally accessible 
-    configuration store. 
-    Returns query results in JSON format
+    Configuration management WAMP methods.
     """
+
+    logging = Logger()
+    appconfig = get_config()
+  
+    def __init__(self, config):
+        ApplicationSession.__init__(self, config)
     
-    settings = self.appconfig.search('*{0}*'.format(str(key)))
-    return settings.dict()
+        extra = config.extra
+        if extra and 'config' in extra:
+            with open(extra['config']) as settingsfile:
+                settings = json.loads(settingsfile.read())
+                self.appconfig.load(settings)
     
-  @inlineCallbacks
-  def onJoin(self, details):
-    res = yield self.register(self)
-    self.logging.debug("ConfigBackend: {} procedures registered!".format(len(res)))
+    @wamp.register(u'liestudio.config.get')
+    def getConfig(self, key, config='default'):
+        """
+        Retrieve application configuration.
+    
+        Search for `key` anywhere in a globally accessible 
+        configuration store. 
+        Returns query results in JSON format
+        """
+    
+        settings = self.appconfig.search('*{0}*'.format(str(key)))
+        return settings.dict()
+    
+    @inlineCallbacks
+    def onJoin(self, details):
+        res = yield self.register(self)
+        self.logging.debug("ConfigBackend: {} procedures registered!".format(len(res)))
 
 def make(config):
     """
