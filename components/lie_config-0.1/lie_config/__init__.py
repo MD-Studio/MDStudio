@@ -50,7 +50,7 @@ __licence__   = 'Apache Software License 2.0'
 __url__       = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__  = os.path.dirname(__file__)
-__all__       = ['get_config','ConfigHandler','configwrapper']
+__all__       = ['get_config','ConfigHandler','configwrapper','config_to_json']
 
 # For Python => 3.3, import inspect.signature
 # else import funcsigs backport.
@@ -61,12 +61,12 @@ except:
 
 # Component imports
 from .config_handler import ConfigHandler
-from .config_io      import exit_config
+from .config_io      import exit_config, config_to_json
 
 # Define module public API
 settings = None
 oninit   = None
-onexit   = None
+onexit   = exit_config
 
 # Runtime wide configuration store
 configurations = {}

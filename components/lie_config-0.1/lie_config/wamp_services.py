@@ -32,7 +32,7 @@ class ConfigWampApi(ApplicationSession):
             with open(extra['config']) as settingsfile:
                 settings = json.loads(settingsfile.read())
                 self.appconfig.load(settings)
-    
+        
     @wamp.register(u'liestudio.config.get')
     def getConfig(self, key, config='default'):
         """
@@ -69,12 +69,3 @@ def make(config):
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'LIEStudio configuration management WAMPlet',
                 'description': 'WAMPlet proving LIEStudio configuration management endpoints'}
-
-if __name__ == '__main__':
-    
-    # test drive the component during development ..
-    runner = ApplicationRunner(
-        url="wss://localhost:8083/ws",
-        realm="liestudio")
-
-    runner.run(make)

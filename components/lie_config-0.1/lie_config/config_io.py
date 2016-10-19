@@ -3,7 +3,7 @@
 import collections
 import json
 
-from   twisted.logger import Logger 
+from   twisted.logger import Logger
 
 logging = Logger()
 
@@ -107,15 +107,40 @@ def _nest_flattened_dict(config, sep='.'):
   
   return nested_dict
 
+def config_to_json(config, tofile=None):
+    """
+    Export the setting in a ConfigHandler instance to JSON format.
+    Optionally write the JSON construct to file
+    
+    :param config: configuration to export
+    :type config:  ConfigHandler
+    :param tofile: filepath to write exported JSON to
+    :type tofile:  str
+    """
+    
+    nested_dict = _nest_flattened_dict(config())
+    jsonconfig = json.dumps(nested_dict, indent=4, sort_keys=True)
+    
+    if tofile:
+        with open(tofile, 'w') as cf:
+            cf.write(jsonconfig)
+    else:
+        return jsonconfig    
+
 def exit_config(settings):
-  
-  app_config = settings.get('app_config')
-  if app_config:
+    """
+    Config component bootstrap routines
+    
+    Save the updated global configuration back to the settings.json file
+    
+    :param settings: global and module specific settings
+    :type settings:  dict or dict like object
+    """
     
     from lie_config import get_config
+  
     config = get_config()
-    settings = json.dumps(config.dict())
-    
-    with open(app_config) as app_settings:
-      app_settings.write(settings)
+    app_config = config.get('system.app_config')
+    if app_config:
+        config_to_json(config, app_config)
     

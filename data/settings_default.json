@@ -3,6 +3,7 @@
     "app_path": "",
     "app_config": "{system.app_path}/data/settings.json",
     "bootstrap_order": ["lie_config", "lie_logger", "lie_db", "lie_user"],
-    "shutdown_order": ["lie_user", "lie_config", "lie_logger", "lie_db"]
+    "shutdown_order": ["lie_user", "lie_config", "lie_logger", "lie_db"],
+    "platform": "linux"
   }
 }

@@ -37,7 +37,7 @@ if venvpath not in sys.path:
 
 # Import required system packages
 from  lie_system     import ComponentManager
-from  lie_config     import get_config
+from  lie_config     import get_config, config_to_json
 from  twisted.logger import Logger
 
 logging = Logger()
@@ -81,6 +81,7 @@ def _format_crossbar_cliargs(args):
     
     return options
 
+
 def bootstrap_app(args):
     
     # If custom configuration file does not exists, exit.
@@ -108,6 +109,7 @@ def bootstrap_app(args):
 
     # Update some global configuration settings
     config['system.app_path'] = __rootpath__
+    config['system.platform'] = sys.platform
     config['lie_logger.global_log_level'] = args.loglevel
 
     # Initiate ComponentManager with component search paths
@@ -134,6 +136,9 @@ def bootstrap_app(args):
     # format crossbar configuration to a sys.argv list that can be
     # parsed by the crossbar cli argparser.
     crossbar_cliargs = _format_crossbar_cliargs(config.crossbar)
+    
+    # Save the updated global configuration back to the settings.json file
+    config_to_json(config, app_settings)
     
     # Import crossbar and start main event loop
     from crossbar.controller.cli import run
