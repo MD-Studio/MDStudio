@@ -1,7 +1,7 @@
 {
     "version": 2,
     "controller": {
-      "id": "lienode1",
+      "id": "lienode01",
       "options": {
          "title": "liestudio-controller"
       }
@@ -14,7 +14,7 @@
                     "name": "liestudio",
                     "roles": [
                         {
-                            "name": "anonymous",
+                            "name": "public",
                             "permissions": [
                                 {
                                     "uri": "",
@@ -41,19 +41,34 @@
                     "type": "web",
                     "endpoint": {
                         "type": "tcp",
-                        "port": 8080
+                        "port": 8083,
+                        "tls": {
+                            "certificate": "server.crt",
+                            "key": "server.key",
+                            "dhparam": "dhparam",
+                            "ca_certificates": [
+                                "intermediate.cert.pem",
+                                "ca.cert.pem"
+                            ]
+                        }
                     },
                     "paths": {
                         "/": {
                             "type": "static",
-                            "directory": "../app/dist"
+                            "directory": "../../app/dist"
                         },
                         "help": {
                             "type": "static",
-                            "directory": "../docs/html"
+                            "directory": "../../docs/html"
                         },
                         "ws": {
-                            "type": "websocket"
+                            "type": "websocket",
+                            "auth": {
+                                "anonymous": {
+                                    "type": "static",
+                                    "role": "public"
+                                }
+                            }
                         }
                     }
                 }
@@ -76,10 +91,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -88,16 +112,25 @@
                 "realm": "liestudio",
                 "entrypoint": "wamp_services",
                 "extra": {
-                  "config": "../data/settings.json"
+                  "config": "../settings.json"
                 },
                 "transport": {
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -109,10 +142,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -124,10 +166,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -139,10 +190,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -154,10 +214,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               }
             ]
@@ -179,10 +248,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -194,10 +272,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               }
             ]
@@ -219,10 +306,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -234,10 +330,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               }
             ]
@@ -259,10 +364,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               },
               {
@@ -274,10 +388,19 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host": "127.0.0.1",
-                     "port": 8080
+                     "host": "localhost",
+                     "port": 8083,
+                     "tls": {
+                         "hostname": "localhost",
+                         "certificate": "client.crt",
+                         "key": "client.key",
+                         "ca_certificates": [
+                             "intermediate.cert.pem",
+                             "ca.cert.pem"
+                         ]
+                     }
                   },
-                  "url": "ws://127.0.0.1:8080/ws"
+                  "url": "wss://localhost:8083/ws"
                 }
               }
             ]
