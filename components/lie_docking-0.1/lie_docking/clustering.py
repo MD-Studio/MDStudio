@@ -9,7 +9,7 @@ from   twisted.logger           import Logger
 from   scipy.spatial.distance   import pdist, squareform
 from   scipy.cluster.hierarchy  import linkage, fcluster, leaders, dendrogram
 
-#import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt 
 
 def coords_from_mol2(mol2_files):
     """
@@ -35,9 +35,9 @@ def coords_from_mol2(mol2_files):
             line = line.split()
             coords.append(map(float, line[2:5]))
         if coords:
-          sets.append(numpy.array(coords))
+          sets.append(coords)
     
-    return sets
+    return numpy.array(sets)
 
 def _rotate(c1, c2):
     """
@@ -279,7 +279,7 @@ class ClusterStructures(object):
             return fig
             
         fig.savefig(to_file)
-    
+            
     def cluster(self, t=5, method='single', criterion='distance', min_cluster_count=1):
         """
         Cluster the structures using hierarchical clustering methods on 
@@ -289,8 +289,16 @@ class ClusterStructures(object):
         
         :param method:            hierarchical clustering methods as defined in
                                   the scipy.cluster.hierarchy.linkage method.
+                                  Options are: single, complete, average, weighted,
+                                  centroid, median and ward.
         :type method:             str
-        :param distance:          maximum rmsd difference between
+        :param criterion:         method to use for flattening clusters from the
+                                  hierarchical clustering as defined in the
+                                  scipy.cluster.hierarchy.fcluster method.
+                                  Options are: inconsistent, distance, maxclust
+                                  monocrit and maxclust_monocrit. t is used as 
+                                  threshold for each of these methods
+        :type criterion:          str
         :param min_cluster_count: minimal number of structures in a cluster
         :type min_cluster_count:  int
         
@@ -340,7 +348,6 @@ if __name__ == '__main__':
     s = glob.glob('/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/components/lie_docking-0.1/tests/cluster/*.mol2')
     xyz = coords_from_mol2(s)
     c = ClusterStructures(xyz, labels=[os.path.basename(n).replace('_entry_00001_conf_','lig_').split('.')[0] for n in s])
-    c.cluster(4, min_cluster_count=2)
-    #c.plot()
+    c.cluster(4, method='single', min_cluster_count=2)
     
     print(c)

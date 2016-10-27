@@ -18,7 +18,6 @@ __rootpath__ = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
 from   twisted.logger import Logger
-
 from   lie_docking.plants_docking import PlantsDocking
 
 logging = Logger()

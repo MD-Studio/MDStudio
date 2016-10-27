@@ -14,13 +14,13 @@ import csv
 import json
 import textwrap
 
-from   twisted.logger import Logger
-from   lie_config     import configwrapper
+from   twisted.logger   import Logger
+from   lie_config       import configwrapper
 
-from   settings       import SETTINGS
-from   docking_base   import DockingBase
-from   utils          import prepaire_work_dir, cmd_runner
-from   clustering     import coords_from_mol2, ClusterStructures
+from   docking_settings import SETTINGS
+from   docking_base     import DockingBase
+from   utils            import prepaire_work_dir, cmd_runner
+from   clustering       import coords_from_mol2, ClusterStructures
 
 PLANTS_CONF_FILE_TEMPLATE = textwrap.dedent("""
     # Scoring function and search settings

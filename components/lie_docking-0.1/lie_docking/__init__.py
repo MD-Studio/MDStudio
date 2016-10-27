@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 
 """
-package:  lie_docking
-
 LIEStudio docking component
+
+This module performs molecular docking with the focus on docking
+small molecular weight compounds (e.a. ligand) in protein
+functional sites.
+
+The module configures a docking run in the the context of LIEStudio
+to be carried out by one of the following dedicated docking
+software packages:
+
+- PLANTS: Protein-Ligand ANT System.
 """
 
 import os
@@ -20,8 +28,4 @@ __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__  = os.path.dirname(__file__)
 
 # Load global configuration or init from local settings
-from .settings import SETTINGS
-from lie_config import get_config
-settings = get_config()
-if not settings:
-    settings.load(SETTINGS)
+from .docking_settings import SETTINGS as settings

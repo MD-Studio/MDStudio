@@ -1,9 +1,11 @@
+import sys
 import unittest
+
 import tests.module_test
 
 def module_test_suite():
     
-    print('Running lie_user unittests')
+    print('Running lie_user module unittests')
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromModule(tests.module_test)
     runner = unittest.TextTestRunner(verbosity=2)

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 """
-file: system_logger.py
-
 Twisted Logging logger classes
 """
 

@@ -27,7 +27,7 @@ except:
   pass
 
 from   lie_user.management import generate_password, hash_password, check_password, UserManager
-from   lie_user.settings import SETTINGS
+from   lie_user.settings   import SETTINGS
 
 @unittest.skipIf(dbenabled == False, "Not supported, no active LIE MongoDB.")
 class UserDatabaseTests(unittest.TestCase):
@@ -68,7 +68,7 @@ class UserDatabaseTests(unittest.TestCase):
           {'username':'test3', 'email':'test3@email.com', 'password':hash_password('test3'), 'role':'default', 'uid':2, 'session_id':None},
           {'username':'test4', 'email':'test4@email.com', 'password':hash_password('test4'), 'role':'default', 'uid':3, 'session_id':None},
         ])
-
+    
     @classmethod
     def tearDownClass(cls):
         """
@@ -78,14 +78,14 @@ class UserDatabaseTests(unittest.TestCase):
         * Stop mongod process
         * Remove MongoDB test database and logfiles
         """
-
-        cls.db.stop(terminate_mongod_on_exit=True)
         
+        cls.db.stop(terminate_mongod_on_exit=True)
+
         if os.path.exists(cls._dbpath):
             shutil.rmtree(cls._dbpath)
         if os.path.exists(cls._dblog):
             os.remove(cls._dblog)
-    
+                
     def test_create_user_unsufficient_data(self):
         """
         Unable to create a new user if not at least a username

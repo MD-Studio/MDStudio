@@ -7,22 +7,19 @@ WAMP service methods the module exposes.
 """
 
 from autobahn import wamp
-from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from pymongo import MongoClient
-from twisted.logger import Logger, LogLevel
 from twisted.internet.defer import inlineCallbacks
 
-from .management import UserManager
+from lie_system import LieApplicationSession
+from management import UserManager
 
-class UserWampApi(ApplicationSession):
+class UserWampApi(LieApplicationSession):
     """
     User management WAMP methods.
     """
     
-    logging = Logger()
-
-    def __init__(self, config):
-        ApplicationSession.__init__(self, config)
+    def __init__(self, config, **kwargs):
+        LieApplicationSession.__init__(self, config, **kwargs)
         self.usermanager = UserManager()
     
     @wamp.register(u'liestudio.user.sso')
@@ -50,7 +47,7 @@ class UserWampApi(ApplicationSession):
             return False
     
     @wamp.register(u'liestudio.user.login')
-    def user_login(self, username, password):
+    def user_login(self, realm, authid, details):
         """
         Handles the user login process by:
         - Verify user credentials
@@ -64,7 +61,11 @@ class UserWampApi(ApplicationSession):
         :return:         user data
         :rtype:          dict to JSON
         """
-
+        
+        print("WAMP-Ticket dynamic authenticator invoked: realm='{0}', authid='{1}', details={2}".format(realm, authid, details))
+        return {'secret': 'secret2', 'role': 'public'}
+        
+        
         if self.usermanager.validate_user_login(username, password):
             self.usermanager.set_session_key()
             user_settings = self.usermanager.get_safe_user({'username': username})
@@ -101,11 +102,6 @@ class UserWampApi(ApplicationSession):
 
         return self.usermanager.retrieve_password(email)
 
-    @inlineCallbacks
-    def onJoin(self, details):
-        res = yield self.register(self)
-        self.logging.debug("UserBackend: {0} procedures registered!".format(len(res)))
-
 def make(config):
     """
     Component factory
@@ -123,12 +119,3 @@ def make(config):
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'LIEStudio user management WAMPlet',
                 'description': 'WAMPlet proving LIEStudio user management endpoints'}
-
-if __name__ == '__main__':
-    
-    # test drive the component during development ..
-    runner = ApplicationRunner(
-        url="wss://localhost:8083/ws",
-        realm="liestudio")
-
-    runner.run(make)

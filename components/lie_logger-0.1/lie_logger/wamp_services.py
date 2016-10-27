@@ -7,23 +7,20 @@ WAMP service methods the module exposes.
 """
 
 from   autobahn import wamp
-from   autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from   pymongo import MongoClient
-from   twisted.logger import Logger, LogLevel
+from   twisted.logger import LogLevel
 from   twisted.internet.defer import inlineCallbacks
 
-class LoggerWampApi(ApplicationSession):
+from   lie_system  import LieApplicationSession
+
+class LoggerWampApi(LieApplicationSession):
     """
     Logger management WAMP methods.
     """
-    logging = Logger()
-
-    def __init__(self, config):
-        ApplicationSession.__init__(self, config)
-        
-        client = MongoClient(host='localhost', port=27017)
-        db = client['liestudio']
-        self.log = db['log']
+  
+    client = MongoClient(host='localhost', port=27017)
+    db = client['liestudio']
+    log = db['log']
     
     @wamp.register(u'liestudio.logger.log')
     def log_event(self, event, default_log_level='info'):
@@ -74,12 +71,3 @@ def make(config):
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'LIEStudio logging WAMPlet',
                 'description': 'WAMPlet proving LIEStudio logging endpoint'}
-
-if __name__ == '__main__':
-    
-    # test drive the component during development ..
-    runner = ApplicationRunner(
-        url="wss://localhost:8083/ws",
-        realm="liestudio")  # app-level debugging
-
-    runner.run(make)

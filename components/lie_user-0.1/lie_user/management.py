@@ -17,8 +17,8 @@ from   pymongo import MongoClient
 from   werkzeug.security import generate_password_hash, check_password_hash
 from   twisted.logger import Logger
 
-from   .settings import USER_TEMPLATE, PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
-from   .sendmail import Email
+from   settings import USER_TEMPLATE, PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
+from   sendmail import Email
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly

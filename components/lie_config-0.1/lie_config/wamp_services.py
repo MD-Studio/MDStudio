@@ -10,29 +10,16 @@ import time
 import json
 
 from   autobahn               import wamp
-from   autobahn.twisted.wamp  import ApplicationSession
-from   twisted.logger         import Logger
 from   twisted.internet.defer import inlineCallbacks
 
+from   lie_system import LieApplicationSession
 from   lie_config import get_config
 
-class ConfigWampApi(ApplicationSession):
+class ConfigWampApi(LieApplicationSession):
     """
     Configuration management WAMP methods.
     """
-
-    logging = Logger()
-    appconfig = get_config()
-  
-    def __init__(self, config):
-        ApplicationSession.__init__(self, config)
-    
-        extra = config.extra
-        if extra and 'config' in extra:
-            with open(extra['config']) as settingsfile:
-                settings = json.loads(settingsfile.read())
-                self.appconfig.load(settings)
-        
+       
     @wamp.register(u'liestudio.config.get')
     def getConfig(self, key, config='default'):
         """
@@ -43,7 +30,7 @@ class ConfigWampApi(ApplicationSession):
         Returns query results in JSON format
         """
     
-        settings = self.appconfig.search('*{0}*'.format(str(key)))
+        settings = self.package_config.search('*{0}*'.format(str(key)))
         return settings.dict()
     
     @inlineCallbacks

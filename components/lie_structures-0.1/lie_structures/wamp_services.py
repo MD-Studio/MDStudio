@@ -10,20 +10,18 @@ import os
 import sys
 import time
 
-from autobahn import wamp
-from autobahn.wamp.types import RegisterOptions
-from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
-from twisted.logger import Logger
-from twisted.internet.defer import inlineCallbacks
+from   autobahn import wamp
+from   autobahn.wamp.types import RegisterOptions
+from   twisted.internet.defer import inlineCallbacks
 
-class StructuresWampApi(ApplicationSession):
+from   lie_system  import LieApplicationSession
+
+class StructuresWampApi(LieApplicationSession):
 
     """
     Structure database WAMP methods.
     """
     
-    logging = Logger()
-   
     @inlineCallbacks
     def onJoin(self, details):
         self._ident = "StructureWampApi (PID {}, Session {})".format(os.getpid(), details.session)
@@ -32,10 +30,17 @@ class StructuresWampApi(ApplicationSession):
     
     def get_structure(self, structure):
         
-        self.logging.info("Return structure: {0}".format(structure),
+        result = ''
+        currpath = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/components/lie_structures-0.1/lie_structures'
+        structure_file = os.path.join(currpath, '{0}.mol2'.format(structure))
+        if os.path.exists(structure_file):
+            with open(structure_file, 'r') as sf:
+                result = sf.read()
+        
+        self.logging.info("Return structure: {0}".format(structure_file),
             lie_user='mvdijk', lie_session=338776455, lie_namespace='structures')
         
-        return {'result': structure}
+        return {'result': result}
 
 def make(config):
     ##
@@ -52,12 +57,3 @@ def make(config):
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'Awesome WAMPlet 1',
                 'description': 'This is just a test WAMPlet that provides some procedures to call.'}
-
-if __name__ == '__main__':
-    
-    # test drive the component during development ..
-    runner = ApplicationRunner(
-        url="wss://localhost:8083/ws",
-        realm="liestudio")  # app-level debugging
-
-    runner.run(make)
