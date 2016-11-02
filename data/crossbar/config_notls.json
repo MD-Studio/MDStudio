@@ -21,6 +21,46 @@
                                     "match": "prefix",
                                     "allow": {
                                         "call": true,
+                                        "register": false,
+                                        "publish": false,
+                                        "subscribe": true
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        },
+                        {
+                            "name": "authenticator",
+                            "permissions": [
+                                {
+                                    "uri": "liestudio.user.login",
+                                    "match": "exact",
+                                    "allow": {
+                                        "call": false,
+                                        "register": true,
+                                        "publish": false,
+                                        "subscribe": false
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        },
+                        {
+                            "name": "admin",
+                            "permissions": [
+                                {
+                                    "uri": "",
+                                    "match": "prefix",
+                                    "allow": {
+                                        "call": true,
                                         "register": true,
                                         "publish": true,
                                         "subscribe": true
@@ -58,12 +98,28 @@
                                 "anonymous": {
                                     "type": "static",
                                     "role": "public"
+                                },
+                                "ticket": {
+                                    "type": "dynamic",
+                                    "authenticator": "liestudio.user.login"
+                                },
+                                "wampcra": {
+                                    "type": "dynamic",
+                                    "authenticator": "liestudio.user.login"
                                 }
                             }
                         }
                     }
                 }
-            ]
+            ],
+            "components": [
+                {
+                    "type": "class",
+                    "classname": "lie_user.wamp_services.UserWampApi",
+                    "realm": "liestudio",
+                    "role": "authenticator"
+                }
+            ]   
         },
         {
             "type": "container",
@@ -73,6 +129,27 @@
                 ]
             },
             "components": [
+              {
+                "type": "wamplet",
+                "package": "lie_config",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "extra": {
+                  "package_config": "../settings.json",
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
+                },
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host":"localhost",
+                     "port": 8080
+                  },
+                  "url": "ws://localhost:8080/ws"
+                }
+              },
               {
                 "type": "wamplet",
                 "package": "lie_user",
@@ -86,24 +163,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
-                }
-              },
-              {
-                "type": "wamplet",
-                "package": "lie_config",
-                "realm": "liestudio",
-                "entrypoint": "wamp_services",
-                "extra": {
-                  "config": "../settings.json"
                 },
-                "transport": {
-                  "type": "websocket",
-                  "endpoint": {
-                     "type": "tcp",
-                     "host":"localhost",
-                     "port": 8080
-                  },
-                  "url": "ws://localhost:8080/ws"
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               },
               {
@@ -119,6 +183,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               },
               {
@@ -134,6 +203,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               }
             ]
@@ -159,6 +233,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               },
               {
@@ -174,6 +253,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               }
             ]
@@ -199,6 +283,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               },
               {
@@ -214,6 +303,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               }
             ]
@@ -239,6 +333,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               },
               {
@@ -254,6 +353,11 @@
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "auth_method": "ticket"  
                 }
               }
             ]

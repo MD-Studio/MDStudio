@@ -1,54 +1,38 @@
 import sys
+import os
 
-from   autobahn.twisted.wamp  import ApplicationRunner
-from   twisted.internet.defer import inlineCallbacks, returnValue
-from   twisted.internet       import reactor
+from   OpenSSL                     import crypto
+from   autobahn.twisted.wamp       import ApplicationRunner
+from   twisted.internet.defer      import inlineCallbacks, returnValue
+from   twisted.internet            import reactor
+from   twisted.internet._sslverify import OpenSSLCertificateAuthorities
+from   twisted.internet.ssl        import CertificateOptions
 
-from   lie_system             import LieApplicationSession
+from   lie_system                  import LieApplicationSession
 
 class LIEWorkflow(LieApplicationSession):
     
-    _isauthenticated = False
-    
     @inlineCallbacks
-    def authenticate(self, username, password):
+    def onRun(self, details):
         
-        authentication = yield self.call(u'liestudio.user.login', username, password)
-        if authentication:
-            self._isauthenticated = True
-        self.logging.info('Authentication of user: {0}, {1}'.format(username, self._isauthenticated))
+        self.log.info("Simulating a LIE workflow")
         
-        returnValue(self._isauthenticated)
-        
-    @inlineCallbacks
-    def onJoin(self, details):
-        
-        self.logging.info("Simulating a LIE workflow")
-        print(self.config)
-        
-        #Try to login
-        # print(yield self.authenticate('lieadmin','liepw@#'))
-        # reactor.stop()
-        # return
-        #
-        # if not isauthenticated:
-        #   raise('Unable to authenticate')
-          
         #Get a number of ligand structures
         lig_cids = ['cid001', 'cid002', 'cid003', 'cid004', 'cid005']      
-        self.logging.info('Retrieve structures by cid for {0} compounds'.format(len(lig_cids)))
+        self.log.info('Retrieve structures by cid for {0} compounds'.format(len(lig_cids)))
         protein  = yield self.call(u'liestudio.structures.get_structure', 'protein')
         ligands  = [self.call(u'liestudio.structures.get_structure', cid) for cid in lig_cids]
         
         #Dock structures
-        self.logging.info('Dock {0} structures'.format(len(ligands)))
+        self.log.info('Dock {0} structures'.format(len(ligands)))
         docked = []
         for structure in ligands:
           b = yield structure
-          docked.append(self.call(u'liestudio.docking.run', protein['result'], b['result']))
+          docked.append(self.call(u'liestudio.docking.run', 
+              protein['result'], b['result'], bindingsite_center=[7.79934,9.49666,3.39229]))
         
         #Simulating a MD run
-        self.logging.info('Running MD for {0} structures'.format(len(docked)))
+        self.log.info('Running MD for {0} structures'.format(len(docked)))
         md = []
         for result in docked:
           k = yield result
@@ -58,14 +42,24 @@ class LIEWorkflow(LieApplicationSession):
           f = yield(n)
           print(f)
         
-        self.logging.info('Finished workflow')
+        self.log.info('Finished workflow')
         reactor.stop()
+        return
 
 if __name__ == '__main__':
-   
+    
+    # load the self-signed cert the server is using
+    certpath = os.path.join(os.path.dirname(__file__), '../data/crossbar/server_cert.pem')
+    cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(certpath, 'r').read())
+    
+    # tell Twisted to use just the one certificate we loaded to verify connections
+    options = CertificateOptions(trustRoot=OpenSSLCertificateAuthorities([cert]))
+        
     runner = ApplicationRunner(
-        u"ws://localhost:8080/ws",
+        u"wss://localhost:8080/ws",
         u"liestudio",
+        extra={'authid':u'lieadmin', 'password':u'liepw@#', 'auth_method':u'ticket'},
+        ssl=options
     )
-    runner.run(LIEWorkflow)
+    runner.run(LIEWorkflow, auto_reconnect=True)
     
