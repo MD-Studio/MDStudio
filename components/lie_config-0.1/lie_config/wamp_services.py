@@ -29,25 +29,26 @@ class ConfigWampApi(LieApplicationSession):
         configuration store. 
         Returns query results in JSON format
         """
-    
+        
         settings = self.package_config.search('*{0}*'.format(str(key)))
-        return settings.dict()
-    
-    @inlineCallbacks
-    def onJoin(self, details):
-        res = yield self.register(self)
-        self.logging.debug("ConfigBackend: {} procedures registered!".format(len(res)))
+        return settings.dict(nested=True)
 
 def make(config):
     """
     Component factory
   
-    This component factory creates instances of the
-    application component to run.
+    This component factory creates instances of the application component
+    to run.
     
-    The function will get called either during development
-    using the ApplicationRunner below, or as  a plugin running
-    hosted in a WAMPlet container such as a Crossbar.io worker.
+    The function will get called either during development using an 
+    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
+    a Crossbar.io worker.
+    The LieApplicationSession class is initiated with an instance of the
+    ComponentConfig class by default but any class specific keyword arguments
+    can be consument as well to populate the class session_config and
+    package_config dictionaries.
+    
+    :param config: Autobahn ComponentConfig object
     """
     
     if config:

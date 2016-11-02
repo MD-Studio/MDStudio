@@ -110,8 +110,6 @@ class PlantsDocking(DockingBase):
     
     :param workdir:     working directory for PLANTS to perform docking in
     :type workdir:      str
-    :param exec_path:   path to PLANTS executable file
-    :type exec_path:    str
     :param kwargs:      additional keyword arguments are considered as
                         PLANTS configuration options
     :type kwargs:       dict
@@ -121,10 +119,9 @@ class PlantsDocking(DockingBase):
     allowed_config_options = SETTINGS.get(method,{})
     logging = Logger()
     
-    def __init__(self, workdir, exec_path=None, **kwargs):
+    def __init__(self, workdir, **kwargs):
         
         # Class internal attributes
-        self._exec = exec_path
         self._workdir = workdir
         self._config = kwargs
         
@@ -214,8 +211,9 @@ class PlantsDocking(DockingBase):
             return False
         
         # Check if executable is available
-        if not os.path.exists(self._exec):
-            self.logging.error('{0} executable not available at: {1}'.format(self.method, self._exec))
+        exec_path = self._config.get('exec_path')
+        if not os.path.exists(exec_path):
+            self.logging.error('{0} executable not available at: {1}'.format(self.method, exec_path))
             return False
         
         # Copy files to working directory
@@ -229,7 +227,7 @@ class PlantsDocking(DockingBase):
         with open(os.path.join(self._workdir, 'ligand.mol2'), 'w') as ligand_file:
             ligand_file.write(ligand)
             
-        cmd = [self._exec, '--mode', mode, 'plants.config']
+        cmd = [exec_path, '--mode', mode, 'plants.config']
         output, error = cmd_runner(cmd, self._workdir)
                
         return True

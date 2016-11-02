@@ -24,13 +24,10 @@ class DockingWampApi(LieApplicationSession):
     """
        
     @inlineCallbacks
-    def onJoin(self, details):
+    def onRun(self, details):
         
-        self.logging.info("Init docking component", lie_user='mvdijk', lie_session=338776455, lie_namespace='docking')
-        self._ident = "DockingWampApi (PID {}, Session {})".format(os.getpid(), details.session)
         yield self.register(self.docking_run, u'liestudio.docking.run', options=RegisterOptions(invoke=u'roundrobin'))
-        self.logging.info("DockingWampApi: docking_run() registered!")
-    
+        
     def docking_run(self, protein, ligand, method='plants', **kwargs):
         """
         Perform a docking run using one of the available methods
@@ -43,34 +40,45 @@ class DockingWampApi(LieApplicationSession):
         :type method:   str
         """
         
-        self.logging.info('Initiate docking. method: {0}'.format(method),
-            lie_user='lieadmin', lie_session=338776455, lie_namespace='docking')
+        self.log.info('Initiate docking. method: {method}', method=method, **self.session_config)
         
         if method == "plants":
             from plants_docking import PlantsDocking
-            print(kwargs)
+            
+            # TODO: lie_docking should not be the toplevel dictionary attribute
+            plants_config = self.package_config.lie_docking.plants.dict()
+            plants_config.update(kwargs)
+            
             workdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/docking_{0}'.format(random.randint(1,1000))
-            _exec = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/plants_darwin'
-            docking = PlantsDocking(workdir, exec_path=_exec)
-            docking['bindingsite_center'] = [7.79934,9.49666,3.39229]
+            docking = PlantsDocking(workdir, **plants_config)
             docking.run(protein, ligand)
             results = docking.results()
         
-        self.logging.info("Finished docking", lie_user='lieadmin', lie_session=338776455, lie_namespace='docking')
+        self.log.info('Finished docking. method: {method}', method=method, **self.session_config)
+            
         return {'result': results}
 
 def make(config):
-    ##
-    # This component factory creates instances of the
-    # application component to run.
-    ##
-    # The function will get called either during development
-    # using the ApplicationRunner below, or as  a plugin running
-    # hosted in a WAMPlet container such as a Crossbar.io worker.
-    ##
+    """
+    Component factory
+  
+    This component factory creates instances of the application component
+    to run.
+    
+    The function will get called either during development using an 
+    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
+    a Crossbar.io worker.
+    The LieApplicationSession class is initiated with an instance of the
+    ComponentConfig class by default but any class specific keyword arguments
+    can be consument as well to populate the class session_config and
+    package_config dictionaries.
+    
+    :param config: Autobahn ComponentConfig object
+    """
+    
     if config:
-        return DockingWampApi(config)
+        return DockingWampApi(config, package_config=settings)
     else:
         # if no config given, return a description of this WAMPlet ..
-        return {'label': 'Awesome WAMPlet 1',
-                'description': 'This is just a test WAMPlet that provides some procedures to call.'}
+        return {'label': 'LIEStudio docking management WAMPlet',
+                'description': 'WAMPlet proving LIEStudio docking management endpoints'}

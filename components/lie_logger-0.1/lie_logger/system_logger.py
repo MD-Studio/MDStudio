@@ -431,7 +431,8 @@ class ExportToMongodbObserver(object):
         
         :param event: Twisted logger event
         :type event:  dict
-        """       
+        """
+        
         self._log_cache.append(_serialize_logger_event(event))
         if len(self._log_cache) == self._log_cache_size:
             self.flush()

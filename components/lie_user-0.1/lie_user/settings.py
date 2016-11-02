@@ -20,14 +20,16 @@ SETTINGS = {
   'email_smtp_port':        587,
   'email_smtp_username':    'marcvdijk@gmail.com',
   'email_smtp_password':    '<password>',
-  'email_smtp_usetls':      None
+  'email_smtp_usetls':      None,
+  'only_localhost_access':  False,
+  'domain-blacklist':       []
 }
 
 USER_TEMPLATE = {
   'username': None,
   'email': None,
   'password': None,
-  'role': 'default',
+  'role': 'user',
   'uid': 0,
   'session_id': None
 }

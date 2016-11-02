@@ -1,11 +1,12 @@
-Welcome to LIEStudio's documentation!
-=====================================
+Welcome to the LIEStudio documentation!
+=======================================
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
-
+   
+   about
+   development
    modules
 
 Indices and tables

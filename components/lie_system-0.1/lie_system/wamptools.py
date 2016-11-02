@@ -7,13 +7,8 @@ import time
 from   autobahn.wamp          import auth, cryptosign
 from   autobahn.twisted.wamp  import ApplicationSession
 from   twisted.internet.defer import inlineCallbacks
-from   twisted.logger         import Logger
 
-try:
-    from   lie_config import get_config, ConfigHandler
-    LIECONFIG = True
-except:
-    LIECONFIG = False
+from   lie_config             import get_config, ConfigHandler
 
 # LieApplicationSession variables names defined in os.envrion
 ENVIRON = {'_LIE_WAMP_REALM':'realm',
@@ -21,79 +16,155 @@ ENVIRON = {'_LIE_WAMP_REALM':'realm',
            '_LIE_AUTH_USERNAME':'username',
            '_LIE_AUTH_PASSWORD':'password'}
 
-def _load_settings_from_config_extra(config):
+def _resolve_package_config(package_config):
+    """
+    Resolve the package_config as dictionary
     
-    if config.extra:
-        
-        # Check if extra is file path and try load as JSON
-        if type(config.extra) == str and os.path.isfile(config.extra):
-            settings = {}
-            with open(config.extra) as cf:
-                try:
-                    settings = json.loads(cf.read()).decode('utf-8')
-                except:
-                    pass
-            return settings
-        
-        # Check if extra is a dict, return
-        if type(config.extra) == dict:
-            return config.extra
+    Check if input type is a dictionary, return.
+    Check if the input type is a valid file path to a JSON configuration file,
+    load as dictionary.
     
-    return {}
+    This function always returns a dictionary, empty or not.
+    
+    :param package_config: package configuration to resolve
+    :type package_config:  mixed
+    :return:               package_configuration
+    :rtype:                dict
+    """
+    
+    settings = {}
+    if package_config:
+        
+        if type(package_config) in (dict, ConfigHandler):
+            return package_config
+        
+        if type(package_config) in (str, unicode):
+            package_config = os.path.abspath(package_config)
+            if os.path.isfile(package_config):
+            
+                with open(package_config) as cf:
+                    try:
+                        settings = json.load(cf)
+                    except:
+                        pass
+    
+    return settings
+            
 
 class LieApplicationSession(ApplicationSession):
-
-    logging = Logger()
+    """
+    LieApplicationSession class
     
-    def __init__(self, config=None, **kwargs):
+    Inherits from the Autobahn Twisted based `ApplicationSession <http://autobahn.ws/python/reference/autobahn.twisted.html#autobahn.twisted.wamp.ApplicationSession>`_
+    and extends it with methods to ease the process of automatic authentication,
+    authorization and WAMP API configuration.
+    
+    It does so by overriding the five `placeholder methods <http://autobahn.ws/python/wamp/programming.html>`_ 
+    that the ApplicationSession calls over the course of the session life cycle:
+    
+    * onConnect: first stage in establishing connection with the WAMP router
+      (Crossbar). Define the rules of engagement; realm to join, authentication
+      method to use.
+    * onChallenge: authenticate using any of the Crossbar supported `methods <http://crossbar.io/docs/Authentication/>`_.
+    * onJoin: register the API methods with the WAMP router and update local
+      API configuration with settings retrieved by calling liestudio.config.get
+    * onLeave: cleanup methods when leaving the realm
+    * onDisconnect: cleanup methods when disconnecting from the WAMP router
+    
+    To enable custom events during the application life cycle, the 
+    LieApplicationSession defines it's own placeholder methods. Do not override
+    the five methods mentioned above but use these instead:
+    
+    * onInit: called at the end of the class constructor.
+    * onRun: implement custom code to be called automatically when the WAMP 
+      session joins the realm. Called from the onJoin method.
+    * onExit: cleanup methods called from the onLeave method.
+    
+    Logging: the Autobahn ApplicationSession initiates an instance of the 
+    Twisted logger as self.log
+    """
+    
+    def __init__(self, config, package_config={}, **kwargs):
         """
         Class constructor
 
-        Extending the ApplicationSession constructor with variable initiation
-        routines to enable WAMP session authentication and authorization.
-        These variables may be defined in three different ways depending on
-        the context in which the LieApplicationSession is being used:
+        Extending the Autobahn ApplicationSession constructor with variable 
+        initiation routines for WAMP session authentication, authorization
+        and API configuration. These variables are stored in two dictionaries:
+        
+        * session_config: stores all variables related to the current session
+        * package_config: stores all variables needed to run the package
+          specific methods the API exposes.
+        
+        The variables that populate these two dictionaries may be defined in
+        three different ways depending on the context in which the 
+        LieApplicationSession is being used:
 
         * Application session configuration using the config object. This is
           the default way of configuration used when starting a session
           with the autobahn ApplicationRunner or when starting components
           using the Crossbar router with configuration defined in the
-          config.json file. Custom settings can be define using the
-          config.extra attribute.
+          config.json file. The `extra` argument defined in the config
+          object is reserved for custom data to be passed to the
+          ApplicationSession constructor.
+          
+          If the `extra` argument is a dictionary you may define a
+          package_config variable as dictionary of file path to a JSON file
+          containing the package configuration in there that will be used to 
+          update the class package_config. All other key/value pairs will be 
+          used to update the session_config dictionary. If the `extra` argument
+          is not a dictionary it will remain available in the config object
+          accessible as self.config.
+        
         * Arguments provided directly to the class constructor. Usefull when
           starting an application session using a a WAMP component factory.
+          Default keyword argument is `package_config` to update the class
+          package_config dictionary in a similar way as defined above. 
+          Any other keyword arguments are used to update the session_config
+          dictionary.
+        
         * Arguments defined using system environment variables parsed using
-          os.environ:
+          os.environ are used to update session_config. Available variables:
           - _LIE_WAMP_REALM = Crossbar WAMP realm to join
           - _LIE_AUTH_METHOD = WAMP authentication method to use
           - _LIE_AUTH_USERNAME = username for authentication
           - _LIE_AUTH_PASSWORD = password for authentication
 
         The constructor checks all of these configuration options in sequence.
-
+        
         Optional keyword arguments:
         :param package_config: package or module specific configuration
-        :type package_config:  dict
+        :type package_config:  dict or file path
         :param package_name:   name of the package exposing WAMP API methods.
                                is used for identification and retrieval of
                                configuration from the configuration server.
                                Defaults to the first element of the canonical
                                __module__ variable.
         :type package_name:    str
-        :param username:       username for authentication
-        :type username:        str
+        :param authid:         username or ID for authentication
+        :type authid:          str
         :param password:       password for authentication
         :type password:        str
         """
         
-        #Set session_config: first ApplicationSessio config, then kwargs then os.environ
-        self.session_config = config.extra if type(config.extra) == dict else {}
+        # Init session_config with default values
+        self.session_config = {
+            'realm': config.realm,
+            'package_name': self.__module__.split('.')[0],
+            'class_name': type(self).__name__
+        }
+        
+        # Update session_config with key/value pairs in config.extra except
+        # for package config
+        extra = config.extra if type(config.extra) == dict else {}
+        for key, value in extra.items():
+            if key != 'package_config':
+                self.session_config[key] = value
+        
+        # Update session_config with kwargs and environmental variables
         self.session_config.update(kwargs)
         self.session_config.update(dict([(ENVIRON[k],os.environ[k]) for k in ENVIRON if k in os.environ]))
         
-        # Component vars
-        self._package_name = self.session_config.get('package_name', self.__module__.split('.')[0])
-
         # Configure config object
         config.realm = self.session_config.get('realm', config.realm)
 
@@ -105,15 +176,14 @@ class LieApplicationSession(ApplicationSession):
         if u'key' in self.session_config:
             self._load_public_key(self.session_config[u'key'])
         
-        # Init package specific configuration
-        if LIECONFIG:
-            self.package_config = get_config(self._package_name)
-            self.package_config.update(self.session_config.get('package_config',{}))
-        else:
-            self.package_config = self.session_config.get('package_config',{})
-
-        # Update package configuration with configuration extra's if defined.
-        self.package_config.update(_load_settings_from_config_extra(config))
+        # Set package_config: first global package config, the package_config
+        # argument and finaly config.extra
+        self.package_config = get_config()
+        self.package_config.update(_resolve_package_config(package_config))
+        self.package_config.update(_resolve_package_config(extra.get('package_config')))
+        
+        # Call onInit hook
+        self.onInit()
     
     def _load_public_key(self, key):
         """
@@ -127,15 +197,15 @@ class LieApplicationSession(ApplicationSession):
         try:
             self._key = cryptosign.SigningKey.from_raw_key(key)
         except Exception as e:
-            self.logging.error("could not load client private key: {log_failure}", log_failure=e)
+            self.log.error("could not load client private key: {log_failure}", log_failure=e)
             self.leave()
         else:
-            self.logging.debug("client public key loaded: {}".format(self._key.public_key()))
+            self.log.debug("client public key loaded: {}".format(self._key.public_key()))
     
     @property
     def auth_method(self):
         """
-        Returns the Crossbar WAMP authentication method to use
+        Returns the Crossbar WAMP authentication method to use.
         A WAMP connection can possibly allow for multiple authentication
         methods.
         
@@ -150,22 +220,6 @@ class LieApplicationSession(ApplicationSession):
             return [auth_method]
 
         return [auth_method]
-
-    @property
-    def username(self):
-        """
-        Return username, utf-8 unicode encoded.
-        """
-        
-        return self.session_config.get('username', None)
-        
-    @property
-    def password(self):
-        """
-        Return password, utf-8 unicode encoded.
-        """
-        
-        return self.session_config.get('password', None)
     
     @inlineCallbacks
     def onConnect(self):
@@ -195,7 +249,8 @@ class LieApplicationSession(ApplicationSession):
         # Establish transport layer
         self.join(self.config.realm,
                   authmethods=self.auth_method,
-                  authid=self.username,
+                  authid=self.session_config.get('authid', None),
+                  authrole=None,
                   authextra=extra)
     
     def onChallenge(self, challenge):
@@ -238,25 +293,24 @@ class LieApplicationSession(ApplicationSession):
         :type challenge:  obj
         """
 
-        self.logging.debug("Recieved WAMP authentication challenge type '{0}'".format(challenge.method))
-
+        self.log.debug("Recieved WAMP authentication challenge type '{0}'".format(challenge.method))
+        
         # WAMP-Ticket based authentication
         if challenge.method == u"ticket":
-            return self.password
+            return self.session_config.get('password', None)
 
         # WAMP-CRA based authentication
         elif challenge.method == u"wampcra":
-
+            
             # Salted password
             if u'salt' in challenge.extra:
-                key = auth.derive_key(self.password,
+                key = auth.derive_key(self.session_config.get('password', None),
                                       challenge.extra['salt'],
                                       challenge.extra['iterations'],
                                       challenge.extra['keylen'])
-
             else:
-                key = self.password
-
+                key = self.session_config.get('password', None)
+            
             signature = auth.compute_wcs(key, challenge.extra['challenge'])
             return signature
 
@@ -269,14 +323,97 @@ class LieApplicationSession(ApplicationSession):
         # Unknow challenge type, exit.
         else:
             raise Exception("don't know how to handle authmethod {}".format(challenge.method))
-
+    
     @inlineCallbacks
     def onJoin(self, details):
         """
-        Report the methods that this application interface registers with
-        the Crossbar router.
+        Autobahn onJoin handler
+        
+        When the WAMP session is initiated and the client joins the realm, this
+        function is called to register methods and retrieve configuration from 
+        the config module.
+        When done, the method calls the onRun hook responsible for custom tasks
+        that need to be run automatically at client startup. 
+        
+        .. caution::
+           onJoin overrides the Autobahn ApplicationSession onJoin method with 
+           a few vital methods for the LIEStudio application. Do not overload it
+           but put custom code in the onRun method instead!
+        
+        :param details: Session details
+        :type details:  Autobahn SessionDetails object
+        """
+        
+        # Register methods
+        res = yield self.register(self)
+        self.log.info("{class_name}: {procedures} procedures registered", procedures=len(res), **self.session_config)
+        
+        # Update session_config, they may have been changed by the application
+        # authentication method
+        for session_param in ('authid','session','authrole','authmethod'):
+            self.session_config[session_param] = getattr(details,session_param)
+        
+        # Retrieve package configuration based on package_name and update package_config
+        def handle_retrieve_config_error(failure):
+            self.log.warn('Unable to retrieve configuration for {0}'.format(self.session_config.get('package_name')))
+        
+        server_config = self.call(u'liestudio.config.get', self.session_config.get('package_name'))
+        server_config.addCallback(self.package_config.update)
+        server_config.addErrback(handle_retrieve_config_error)
+        
+        # Call onRun hook.
+        self.onRun(details)
+        
+    def onLeave(self, details):
+        """
+        Autobahn onLeave handler
+
+        Called when the ApplicationSession is about to leave the Crossbar
+        WAMP realm.
+        When done, the method calls the onExit hook responsible for custom
+        tasks that need to be run automatically at realm leave.
+
+        :param details: Session details
+        :type details:  Autobahn SessionDetails object
         """
 
-        # Fetch the module configuration from the server
-        res = yield self.register(self)
-        self.logging.debug("{0}: {1} procedures registered".format(type(self).__name__, len(res)))
+        self.log.debug('{class_name} of {package_name} is leaving realm {realm}', **self.session_config)
+
+        # Call onExit hook
+        self.onExit(details)
+    
+    # Class placeholder methods. Override these for custom events during 
+    # application life cycle
+    def onInit(self):
+        """
+        Implement custom code to be called when the application class is
+        initiated.
+        """
+        
+        return
+    
+    def onRun(self, details):
+        """
+        Implement custom code to be called when the WAMP session joins the
+        realm. Called from the onJoin method.
+        
+        .. note::
+           do not forget to use the @inlineCallbacks decorator on the method
+           in case it returns a generator
+        
+        :param details: Session details
+        :type details:  Autobahn SessionDetails object
+        """
+        
+        return
+    
+    def onExit(self, details):
+        """
+        Implement custom code to be called when the application leaves the
+        WAMP realm.
+        
+        :param details: Session details
+        :type details:  Autobahn SessionDetails object
+        """
+        
+        return

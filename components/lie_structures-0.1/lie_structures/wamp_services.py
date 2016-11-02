@@ -24,9 +24,8 @@ class StructuresWampApi(LieApplicationSession):
     
     @inlineCallbacks
     def onJoin(self, details):
-        self._ident = "StructureWampApi (PID {}, Session {})".format(os.getpid(), details.session)
         yield self.register(self.get_structure, u'liestudio.structures.get_structure', options=RegisterOptions(invoke=u'roundrobin'))
-        self.logging.info("DockingWampApi: get_structure() registered!")
+        self.log.info("DockingWampApi: get_structure() registered!")
     
     def get_structure(self, structure):
         
@@ -37,23 +36,31 @@ class StructuresWampApi(LieApplicationSession):
             with open(structure_file, 'r') as sf:
                 result = sf.read()
         
-        self.logging.info("Return structure: {0}".format(structure_file),
-            lie_user='mvdijk', lie_session=338776455, lie_namespace='structures')
+        self.log.info("Return structure: {structure}", structure=structure_file, **self.session_config)
         
         return {'result': result}
 
 def make(config):
-    ##
-    # This component factory creates instances of the
-    # application component to run.
-    ##
-    # The function will get called either during development
-    # using the ApplicationRunner below, or as  a plugin running
-    # hosted in a WAMPlet container such as a Crossbar.io worker.
-    ##
+    """
+    Component factory
+  
+    This component factory creates instances of the application component
+    to run.
+    
+    The function will get called either during development using an 
+    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
+    a Crossbar.io worker.
+    The LieApplicationSession class is initiated with an instance of the
+    ComponentConfig class by default but any class specific keyword arguments
+    can be consument as well to populate the class session_config and
+    package_config dictionaries.
+    
+    :param config: Autobahn ComponentConfig object
+    """
+    
     if config:
         return StructuresWampApi(config)
     else:
         # if no config given, return a description of this WAMPlet ..
-        return {'label': 'Awesome WAMPlet 1',
-                'description': 'This is just a test WAMPlet that provides some procedures to call.'}
+        return {'label': 'LIEStudio structure management WAMPlet',
+                'description': 'WAMPlet proving LIEStudio structure management endpoints'}

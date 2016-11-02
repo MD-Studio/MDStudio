@@ -8,5 +8,7 @@ Components
    lie_db
    lie_docking
    lie_logger
+   lie_md
+   lie_structures
    lie_system
    lie_user
