@@ -15,10 +15,11 @@ SETUP=0
 UPDATE=0
 TEST=0
 COMPILE_DOCS=0
-VERBOSITY='debug'
-PYTHON='python3.4'
-VENVTOOL=
 FORCE=0
+CERTIFICATE=0
+VERBOSITY='debug'
+PYTHON='python2.7'
+VENVTOOL=
 
 # Internal variables
 _PYTHON_PATH=
@@ -34,10 +35,8 @@ This script installes or updates the LIEStudio
 software on your system.
 
 Main options:
--s|--setup:         Install LIE Software package by executing the subroutines (below)
-                    with default values.
--u|--update:        Update LIE Software package by executing the subroutines (below)
-                    with default values.     
+-s|--setup:         Install LIE Software package. Includes subroutines: -d, -c
+-u|--update:        Update LIE Software package.
             
 Subroutines:
 -f|--force:         Force reinstall or update.
@@ -47,6 +46,9 @@ Subroutines:
 -d|--documentation: Compile HTML documentation for the software and API.
                     documentation of the Python modules.
                     Default = $COMPILE_DOCS
+-c|--certificate:   Create self-signed certificate for secure TLS transport.
+                    Uses packaged certificate by default.
+                    Default = $CERTIFICATE
 
 Installation/update variables:
 -p|--python:        Python version to use.
@@ -73,6 +75,7 @@ for i in "$@"; do
     ;;
     -s|--setup)
     SETUP=1
+    COMPILE_DOCS=1
     shift # past argument with no value
     ;;
     -u|--update)
@@ -106,49 +109,102 @@ for i in "$@"; do
   esac
 done
 
+# Check if array contains element
+function containsElement () {
+  local e
+  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
+}
 
-# Check Python version
-# - Check for prefered python version, default $PYTHON
-# - Check CLI defined python path or name
-# - Check Python version in users path
-function _resolve_python_version () {
+# Check if string is a valid path
+# - actual path should contain at least one forward slash
+# - path should exists
+# - optionally check if file is executable
+function _is_valid_path () {
   
-  # Check if $PYTHON is a path to Python exec.
-  # If not, check if we can find using which
-  if [[ -f $PYTHON ]]; then
-    _PYTHON_PATH=$PYTHON
+  local FILE_TYPE=${2:-f}
+  local IS_PATH=1
+  [[ $( grep -o '/' <<<  $1 | wc -l ) -ne 0 ]] && $IS_PATH=0
+  
+  if [[ "$FILE_TYPE" == "-x" ]]; then
+    if [[ $IS_PATH && -x $1 ]]; then
+      return 0
+    fi
   else
-    _PYTHON_PATH=$( which ${PYTHON##*/} )
+    if [[ $IS_PATH && -f $1 ]]; then
+      return 0
+    fi
   fi
   
-  # Unable to find $PYTHON. Check python version in 
-  # users path against supported versions.
-  if [[ -z $_PYTHON_PATH ]]; then
-    _PYV=$( python --version 2>&1 | awk '{print $2}')
-    
-    if [[ -z $_PYV ]]; then
-      echo "ERROR: Unable to detect any 'python' executable in your path"
+  [[ $IS_PATH -eq 0 ]] && echo "ERROR: $1 seems to be a path but it is not valid"
+  return 1
+}
+
+# Create a self-signed certificate to get basic TLS transport to work
+# - Needs OpenSSL
+# - Should be replaced by CA signed cert
+function _create_self_signed_cert () {
+  
+  if [[ -z $( which openssl ) ]]; then
+    CBDIR=${ROOTDIR}'/data/crossbar'
+    openssl req -nodes -new -x509 -keyout ${CBDIR}/server_key.pem \
+            -subj '/C=NL/ST=ZH/L=Amsterdam/O=VU/CN=LIEStudio/' \
+            -out ${CBDIR}/server_cert.pem
+  else
+    echo "WARN: no 'openssl' implementation found. Unable to create basic self-signed certificate for TLS."
+    echo "      If you wish to use secure communication over TLS, define your own certificate pair in ${CBDIR}/data/crossbar"    
+  fi
+}
+
+# Check Python version
+# - Check for prefered version, default $PYTHON
+# - Check CLI defined python path or name
+# - Check python version in users path
+function _resolve_python_version () {
+  
+  # Check if $PYTHON is a known executable by name
+  # else check if it is a valid path and is executable.
+  _PYTHON_PATH=$( which ${PYTHON##*/} )
+  if [[ -z $_PYTHON_PATH ]]; then 
+    if _is_valid_path $PYTHON '-x'; then
+      _PYTHON_PATH=$PYTHON
+    else
+      echo "ERROR: Python executable $PYTHON could not be resolved"
       exit 1
     fi
+  fi
+  echo "INFO: Python executable $PYTHON resolved to $_PYTHON_PATH"
+  
+  # Check if _PYTHON_PATH is actually Python.
+  local IS_PYTHON="$( $_PYTHON_PATH --version 2>&1 | head -1 | awk '{print tolower($1)}' )"
+  if [[ "$IS_PYTHON" != "python" ]]; then
+    echo "ERROR: Executable does not seem to be python, $_PYTHON_PATH" 
+    exit 1
+  fi
+  
+  # Check if the python version is supported
+  local SUPPORT_PYV=1
+  if [[ "$IS_PYTHON" == "python" ]]; then
     
+    _PYV=$( $_PYTHON_PATH --version 2>&1 | head -1 | awk '{print $2}')
     for pyv in "${_PY_SUPPORTED[@]}"; do
       if [[ $_PYV == $pyv ]]; then
-        _PYTHON_PATH=$( which python )
-        echo "INFO: Using supported python version $_PYV in path"
+        echo "INFO: Python version $_PYV supported"
+        SUPPORT_PYV=0
         break
       fi
     done
     
-    if [[ -z $_PYTHON_PATH ]]; then
-      echo "ERROR: LIEStudio supports python version "${_PY_SUPPORTED[@]}". Found: $_PYV"
-      echo "ERROR: If you have one of the supported Python versions installed, supply the path using the -p/--python argument"
-      exit 1
-    fi
-  
-  else
-    _PYV=$( $_PYTHON_PATH --version 2>&1 | awk '{print $2}')
-    echo "INFO: Using Python version $_PYV at $_PYTHON_PATH"     
   fi
+  
+  if [[ $SUPPORT_PYV -eq 1 ]]; then
+    echo "ERROR: LIEStudio supports python version: "${_PY_SUPPORTED[@]}". Found: $_PYV"
+    echo "ERROR: If you have one of the supported Python versions installed, supply the path using the -p/--python argument"
+    exit 1
+  fi
+  
+  echo "INFO: Using Python version $_PYV at $_PYTHON_PATH"
+  return 0
 }
 
 # Check Python virtual environment options
@@ -163,7 +219,6 @@ function _resolve_python_venv () {
   
   # Python 2.x look for virtualenv tool
   else
-    #IFS='.' read -ra _pyv_split <<< $_PYV
     
     # If user provided path to virtualenv tool (-e/-venv), check
     if [[ -f $VENVTOOL ]]; then
@@ -192,7 +247,10 @@ function _resolve_python_venv () {
     fi
   fi
   
+  [[ -z $_PY_VENV ]] && echo "ERROR: no Python venv tools defined", exit 1
+  
   echo "INFO: Setup Python virtual environment using $_PY_VENV"
+  return 0
 }
 
 # Check the directory structure
@@ -206,7 +264,24 @@ function _check_dir_structure () {
   done
 }
 
+# Check if virtual environment is installed and activate
+function _activate_py_venv () {
+  
+  if [[ ! -e ${_VENVPATH}'/bin/activate' ]]; then
+    echo "ERROR: Python virtual environment not installed (correctly)"
+    echo "ERROR: Unable to activate it, not activation script at ${_VENVPATH}/bin/activate"
+    exit 1
+  fi
+  
+  if [[ $_PY_VENV_ACTIVE -eq 0 ]]; then
+    source ${_VENVPATH}'/bin/activate'
+    _PY_VENV_ACTIVE=1
+  fi
+}
+
 # Setup the Python virtual environment
+# - No virtual environment path yet, create it
+# - Already there, optionally force reinstall
 function _setup_venv () {
   
   # Create or upgrade the Python virtual environment
@@ -232,34 +307,60 @@ function _setup_venv () {
     chmod +x $file
   done
   
+  return 0
+}
+
+# Install python packages in virtual environment
+function _install_update_packages () {
+    
   # Activate venv
   _activate_py_venv
-  
+
   # Check if pip is in virtual environment
   PIPPATH=$( which pip )
   if [[ ! "$PIPPATH" == "${_VENVPATH}/bin/pip" ]]; then
-    echo "ERROR: unable to activate Python virtual environment"
+    echo "ERROR: unable to activate Python virtual environment. pip not found"
     exit 1
   fi
+  
+  # We need the latest release of Crossbar, not the one from pip
+  echo "INFO: retrieving the lastest github release of crossbar"
+  cd ${ROOTDIR}/components
+  wget https://github.com/crossbario/crossbar/archive/master.zip
+  if [[ -f 'master.zip' ]]; then
+    unzip 'master.zip'
+    if [[ -d 'crossbar-master' ]]; then
+      pip install $_force_reinstall "${ROOTDIR}/components/crossbar-master/"
+      \rm -rf 'crossbar-master'
+    fi
+    \rm -f 'master.zip'  
+  fi
+  
+  # No crossbar then do not continue
+  [[ -z "$( pip freeze | grep crossbar )" ]] && echo "ERROR: Latest GitHub version of Crossbar not installed", exit 1
   
   # Update virtual environment
   if [[ $UPDATE -eq 1 ]]; then
     echo "INFO: Update Python virtual environment at $_VENVPATH"
-    echo "TODO: Check Git for newer LIEStudio version and associated python_default_requirements.txt"
+    pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+  # Download and install requirements in python_default_requirements.txt
   else
-    # Download and install requirements in python_default_requirements.txt
     pip install -r ${ROOTDIR}/data/python_default_requirements.txt
   fi
-  
+
   # Install all LIEStudio component packages and their dependencies using pip
   local _force_reinstall=''
   [[  $UPDATE -eq 1 ]] && _force_reinstall='--upgrade'
+  
+  # Install LIEStudio components using pip
   for package in $( ls -d ${ROOTDIR}/components/*/ ); do
-    if [[ -e ${package}setup.py ]]; then
+    if [[ -e ${package}/setup.py ]]; then
       echo "INFO: Install LIEStudio Python component ${package}"
       pip install $_force_reinstall $package
     fi
   done
+  
+  return 0
 }
 
 # Compile LIEStudio and API documentation as HTML using Sphinx
@@ -301,29 +402,14 @@ function _compile_python_sphinx_docs () {
   fi
 }
 
-# Check if virtual environment is installed and activate
-function _activate_py_venv () {
-  
-  if [[ ! -e ${_VENVPATH}'/bin/activate' ]]; then
-    echo "ERROR: Python virtual environment not installed (correctly)"
-    echo "ERROR: Unable to activate it, not activation script at ${_VENVPATH}/bin/activate"
-    exit 1
-  fi
-  
-  if [[ $_PY_VENV_ACTIVE -eq 0 ]]; then
-    source ${_VENVPATH}'/bin/activate'
-    _PY_VENV_ACTIVE=1
-  fi
-}
-
 # ========== MAIN ========== 
 
 echo ""
-echo "==== LIEStudio installer script ===="
+echo "==================== LIEStudio installer script ====================="
 echo "Date: $( date )"
 echo "User: $( whoami )"
-echo "System: $( uname -a )"
-echo "===================================="
+echo "System: $( uname -mpnsr )"
+echo "====================================================================="
 echo ""
 
 cd $ROOTDIR
@@ -335,28 +421,41 @@ _resolve_python_venv
 # 2) Check directory structure
 _check_dir_structure
 
-# 3) Run package install and setup
-[[ -z $_PY_VENV ]] && echo "ERROR: no Python venv tools defined", exit 1
+# 3) Install virtual environment
 if [[ $SETUP -eq 1 ]]; then
   _setup_venv
 fi
 
-# 4) Compile software documentation
+# 4) Install/update python packages
+if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then
+  _install_update_packages
+fi
+
+# 5) Create self-signed certificate
+if [[ $CERTIFICATE -eq 1 ]]; then
+  _create_self_signed_cert
+else
+  echo "INFO: use default certificate key pair for TLS"
+  echo "      If you wish to use secure communication over TLS, define your own certificate pair in ${CBDIR}/data/crossbar"
+fi
+
+# 6) Compile software documentation
 if [[ $COMPILE_DOCS -eq 1 ]]; then
   _activate_py_venv
   _compile_python_sphinx_docs
 fi
 
-# 5) Run Python unittests
+# 7) Run Python unittests
 if [[ $TEST -eq 1 ]]; then
   
   _activate_py_venv
   
-  for component in $( ls -d components/*/ ); do
-    if [[ -e ${component}test.py ]]; then
+  for component in $( ls -d ${ROOTDIR}/components/*/ ); do
+    echo ${component}tests/
+    if [[ -d "${component}tests/" ]]; then
       
       echo "INFO: Run Python unittest for component: $component"
-      $_PYTHON_PATH -m unittest -v ${component}test.py
+      $_PYTHON_PATH ${component}tests/
       
     fi
   done

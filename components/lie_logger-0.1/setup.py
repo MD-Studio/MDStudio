@@ -24,19 +24,16 @@
 from setuptools import setup, find_packages
 
 distribution_name = 'lie_logger'
-main_module = __import__(distribution_name)
-main_module_doc = main_module.__doc__
 
 setup(
     name=distribution_name,
-    version=main_module.__version__,
+    version=0.1,
     description='Twisted logging based logger functions for the LIEStudio application',
     author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
     author_email='m4.van.dijk@vu.nl',
-    url=main_module.__url__,
-    license=main_module.__licence__,
+    url='https://github.com/NLeSC/LIEStudio',
+    license='Apache Software License 2.0',
     keywords='LIEStudio logging',
-    long_description=main_module_doc,
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
