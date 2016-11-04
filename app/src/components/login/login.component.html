@@ -19,7 +19,8 @@
   <div class="input-form-group">    
     <div id="auth-email" class="input-group">
       <span class="fa fa-envelope-o {{email_is_valid}}"></span>
-      <input type="text" [(ngModel)]="email" (ngModelChange)="validateInput($event)" placeholder="your email">
+      <input type="text" [(ngModel)]="email" (ngModelChange)="validateInput($event)" placeholder="your email"
+      (keyup.enter)="onSubmitRetrieve()">
     </div>
     
     <div id="auth-username" class="input-group">
@@ -29,7 +30,8 @@
   
     <div id="auth-password" class="input-group">
       <span class="fa fa-lock"></span>
-      <input type="password" [(ngModel)]="password" (ngModelChange)="validateInput($event)" placeholder="your password">
+      <input type="password" [(ngModel)]="password" (ngModelChange)="validateInput($event)" placeholder="your password"
+      (keyup.enter)="onSubmitSignin()">
     </div>
     
     <div id="remember-login" class="flex-container-rows">

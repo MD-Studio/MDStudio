@@ -202,7 +202,7 @@ export class LoginComponent {
     connection.onopen = function (session) {
 
       // Need to call zone.run to update statusmessage immediately
-      session.call('liestudio.user.login', [that.username, that.password]).then(
+      session.call('liestudio.user.login', ['liestudio', that.username, {'ticket': that.password, 'authmethod': 'ticket'}]).then(
         function(result) {
           that.zone.run(() => {
             if (result) {

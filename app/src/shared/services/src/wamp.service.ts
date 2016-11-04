@@ -15,6 +15,20 @@ export class WampService {
   
   constructor() {
   }
+  
+  // this callback is fired during Ticket-based authentication
+  //
+  onchallenge (session, method, extra) {
+
+     console.log("onchallenge", method, extra);
+
+     if (method === "ticket") {
+        return 'liepw@#';
+
+     } else {
+        throw "don't know how to authenticate using '" + method + "'";
+     }
+  }
 
   connect() {
     
@@ -22,10 +36,12 @@ export class WampService {
     
     return new autobahn.Connection({
       transports: [
-        { 'type': 'websocket', 'url': 'wss://localhost:8083/ws' },
-        { 'type': 'longpoll', 'url': 'https://localhost:8083/lp' }
+        { 'type': 'websocket', 'url': 'wss://localhost:8080/ws' },
+        { 'type': 'longpoll', 'url': 'https://localhost:8080/lp' }
       ],
-      realm: 'liestudio'
+      realm: 'liestudio',
+      authid: 'lieadmin',
+      onchallenge: this.onchallenge
     });
   }
 

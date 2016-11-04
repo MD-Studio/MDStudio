@@ -13,7 +13,7 @@ export class UserService {
   public username: String;
   public email: String;
   public session_id: any;
-  public isLoggedIn: Boolean = true;
+  public isLoggedIn: Boolean = false;
   public initTime: Number = Date.now() / 1000 | 0;
   
   constructor() {
@@ -22,7 +22,7 @@ export class UserService {
   
   private initDefaults() {
     this.uid = null;
-    this.username = 'anonymous';
+    this.username = 'lieadmin';
     this.email = null;
     this.session_id = null;
   }

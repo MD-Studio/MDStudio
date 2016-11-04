@@ -14,7 +14,7 @@ function init(){
                 "/node_modules": "node_modules"
             }
         },
-        port: 8083
+        port: 5000
     });
 }
 
