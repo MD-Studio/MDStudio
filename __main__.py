@@ -9,6 +9,7 @@ import sys
 import json
 import atexit
 import shutil
+import fnmatch
 
 try:
   import _preamble
@@ -31,8 +32,12 @@ __rootpath__  = os.path.dirname(os.path.abspath(__file__))
 __pyv__       = sys.version_info[0:2]
 
 # Check if Python virtual environment is in sys.path
-venvpath = os.path.join(__rootpath__, 'lie_venv/lib/python{0}.{1}/site-packages'.format(*__pyv__))
-if venvpath not in sys.path:
+venv_active=False
+for path in sys.path:
+    if fnmatch.fnmatch(path, '*/lie_venv/*site-packages'):
+        venvpath = path
+        venv_active = True
+if not venv_active:
     raise Exception('Python virtual environment not active')
 
 # Import required system packages
