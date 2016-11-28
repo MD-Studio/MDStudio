@@ -25,6 +25,7 @@ VENVTOOL=
 _PYTHON_PATH=
 _PYV=
 _PY_SUPPORTED=( 2\.7\* 3\.4\* 3\.5\* )
+_PY_PACKAGES=( )
 _PY_VENV=
 _PY_VENV_ACTIVE=0
 _VENVPATH=${ROOTDIR}'/lie_venv'
@@ -323,22 +324,22 @@ function _install_update_packages () {
     exit 1
   fi
   
-  # We need the latest release of Crossbar, not the one from pip
-  echo "INFO: retrieving the lastest github release of crossbar"
+  # Download python packages not in pip
   cd ${ROOTDIR}/components
-  wget https://github.com/crossbario/crossbar/archive/master.zip
-  if [[ -f 'master.zip' ]]; then
-    unzip 'master.zip'
-    if [[ -d 'crossbar-master' ]]; then
-      pip install $_force_reinstall "${ROOTDIR}/components/crossbar-master/"
-      \rm -rf 'crossbar-master'
+  for py_package in "${_PY_PACKAGES[@]}"; do
+    echo "INFO: download Python package: " $py_package
+    wget $py_package
+    if [[ -f 'master.zip' ]]; then
+      unzip 'master.zip'
+      if [[ -d 'crossbar-master' ]]; then
+        pip install $_force_reinstall "${ROOTDIR}/components/crossbar-master/"
+        \rm -rf 'crossbar-master'
+      fi
+      \rm -f 'master.zip'  
     fi
-    \rm -f 'master.zip'  
-  fi
-  
-  # No crossbar then do not continue
-  [[ -z "$( pip freeze | grep crossbar )" ]] && echo "ERROR: Latest GitHub version of Crossbar not installed", exit 1
-  
+  done
+  cd ${ROOTDIR}
+    
   # Update virtual environment
   if [[ $UPDATE -eq 1 ]]; then
     echo "INFO: Update Python virtual environment at $_VENVPATH"
