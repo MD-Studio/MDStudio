@@ -6,14 +6,15 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import os
 import time
 import json
 
 from   autobahn               import wamp
 from   twisted.internet.defer import inlineCallbacks
 
-from   lie_system import LieApplicationSession
-from   lie_config import get_config
+from   lie_system             import LieApplicationSession
+from   lie_config.config_io   import config_to_json
 
 class ConfigWampApi(LieApplicationSession):
     """
@@ -32,6 +33,20 @@ class ConfigWampApi(LieApplicationSession):
         
         settings = self.package_config.search('*{0}*'.format(str(key)))
         return settings.dict(nested=True)
+    
+    def onExit(self, details):
+        """
+        Config component exit routine
+    
+        Save the updated global configuration back to the settings.json file
+    
+        :param settings: global and module specific settings
+        :type settings:  dict or dict like object
+        """
+        
+        app_config = self.package_config.get('system.app_config')
+        if app_config and os.path.isfile(app_config):
+            config_to_json(self.package_config, app_config)
 
 def make(config):
     """

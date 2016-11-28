@@ -61,12 +61,12 @@ except:
 
 # Component imports
 from .config_handler import ConfigHandler
-from .config_io      import exit_config, config_to_json
+from .config_io      import config_to_json
 
 # Define module public API
 settings = None
 oninit   = None
-onexit   = exit_config
+onexit   = None
 
 # Runtime wide configuration store
 configurations = {}
@@ -79,7 +79,6 @@ def get_config(name='default'):
   return configurations.get(name, None)
 
 class configwrapper(object):
-  
   """
   configwrapper class
   

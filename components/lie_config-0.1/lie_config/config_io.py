@@ -125,22 +125,4 @@ def config_to_json(config, tofile=None):
         with open(tofile, 'w') as cf:
             cf.write(jsonconfig)
     else:
-        return jsonconfig    
-
-def exit_config(settings):
-    """
-    Config component bootstrap routines
-    
-    Save the updated global configuration back to the settings.json file
-    
-    :param settings: global and module specific settings
-    :type settings:  dict or dict like object
-    """
-    
-    from lie_config import get_config
-  
-    config = get_config()
-    app_config = config.get('system.app_config')
-    if app_config:
-        config_to_json(config, app_config)
-    
+        return jsonconfig
