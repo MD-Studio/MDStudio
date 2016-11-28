@@ -8,7 +8,7 @@ from   autobahn.wamp          import auth, cryptosign
 from   autobahn.twisted.wamp  import ApplicationSession
 from   twisted.internet.defer import inlineCallbacks
 
-from   lie_config             import get_config, ConfigHandler
+from   lie_config             import ConfigHandler
 
 # LieApplicationSession variables names defined in os.envrion
 ENVIRON = {'_LIE_WAMP_REALM':'realm',
@@ -178,7 +178,7 @@ class LieApplicationSession(ApplicationSession):
         
         # Set package_config: first global package config, the package_config
         # argument and finaly config.extra
-        self.package_config = get_config()
+        self.package_config = ConfigHandler()
         self.package_config.update(_resolve_package_config(package_config))
         self.package_config.update(_resolve_package_config(extra.get('package_config')))
         
