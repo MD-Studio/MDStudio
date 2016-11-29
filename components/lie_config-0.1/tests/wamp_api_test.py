@@ -16,13 +16,9 @@ from   twisted.trial            import unittest
 from   twisted.internet         import defer
 from   twisted.application      import service
 
-from   lie_config.wamp_services import ConfigWampApi
-
-class CaseComponent(wamp.ApplicationSession):
+class WAMPUnitTestBase(wamp.ApplicationSession):
     """
-    Application code goes here. This is an example component that calls
-    a remote procedure on a WAMP peer, subscribes to a topic to receive
-    events, and then stops the world after some events.
+    Base class for WAMP API unit tests
     """
 
     def __init__(self, config):
@@ -47,22 +43,68 @@ class CaseComponent(wamp.ApplicationSession):
         else:
             print("already finished")
 
-class GetConfig(CaseComponent):
+
+class GetSingleConfig(WAMPUnitTestBase):
     """
-    Autobahn WAMP ApplicationSession testing configuration handling
+    Autobahn WAMP ApplicationSession test session.
+    
+    Test retrieval of configuration based on a single configuration key.
     """
     
     @defer.inlineCallbacks
     def onJoin(self, details):
         
-        # Test correct test user login
         res = yield self.call(u'liestudio.config.get', 'lie_logging')
-        testpass = type(res) == dict
-        self.log("logging config: {0}".format(res), testpass=testpass)
         
+        returndict = type(res) == dict
+        returnsingle = len(res) == 1 and 'lie_logging' in res
+        
+        self.log("logging config: {0}".format(res), testpass=all([returndict, returnsingle]))
         self.finish()
 
+
+class GetMultipleConfig(WAMPUnitTestBase):
+    """
+    Autobahn WAMP ApplicationSession test session.
+    
+    Test retrieval of configuration based on multiple configuration keys.
+    """
+    
+    @defer.inlineCallbacks
+    def onJoin(self, details):
+        
+        res = yield self.call(u'liestudio.config.get', ['lie_logging','system'])
+        
+        returndict = type(res) == dict
+        returnmult = len(res) == 2 and set(res.keys()) == set([u'system', u'lie_logging'])
+        
+        self.log("logging config: {0}".format(res), testpass=all([returndict, returnmult]))
+        self.finish()
+
+
+class GetNonexistingConfig(WAMPUnitTestBase):
+    """
+    Autobahn WAMP ApplicationSession test session.
+    
+    Test retrieval of non-existing configuration key.
+    """
+    
+    @defer.inlineCallbacks
+    def onJoin(self, details):
+        
+        res = yield self.call(u'liestudio.config.get', 'notexisting')
+        
+        returndict = type(res) == dict
+        returnempty = len(res) == 0
+        
+        self.log("logging config: {0}".format(res), testpass=all([returndict, returnempty]))
+        self.finish()
+        
+
 class ConfigWAMPTests(unittest.TestCase):
+    """
+    Run lie_config module WAMP API tests using a Crossbar test router
+    """
     
     def setUp(self):
         self.url = 'ws://localhost:8080/ws'
@@ -86,6 +128,16 @@ class ConfigWAMPTests(unittest.TestCase):
         app.stopService()
 
     @defer.inlineCallbacks
-    def test_case1(self):
+    def test_get_single(self):
         
-       yield self.runOneTest([GetConfig])
+       yield self.runOneTest([GetSingleConfig])
+    
+    @defer.inlineCallbacks
+    def test_get_multiple(self):
+        
+       yield self.runOneTest([GetMultipleConfig])
+    
+    @defer.inlineCallbacks
+    def test_get_nonexisting(self):
+        
+       yield self.runOneTest([GetNonexistingConfig])

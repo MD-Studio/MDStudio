@@ -1,6 +1,7 @@
-Crossbar.io private key for node authentication - KEEP THIS SAFE!
+Crossbar.io node private key - KEEP THIS SAFE!
 
-creator: mvdijk@MacBook-Pro-2.fritz.box
-created-at: 2016-10-18T09:23:50.875Z
-public-key-ed25519: 5cf7089ecdac05fd9ab3a456ad2dc747b4bdc84ef5bf6a99921e723fc974d0a6
-private-key-ed25519: 569ff8cf90c850d8ebb47c77d0e01e5cc7d984cfd22074f7e532a6eff4f0a475
+creator: mvdijk@MacBook-Pro-2.local
+created-at: 2016-11-29T08:11:16.290Z
+machine-id: MacBook-Pro-2.local
+public-key-ed25519: 320f7d986f17dc0a27276d52d634f85e776091c23f4d515f9fb9dd8c50e60205
+private-key-ed25519: e66b651b70367ee431976c34963d6d251f01a56a3bc0b6bf00c9430c71d6c74c

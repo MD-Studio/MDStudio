@@ -38,8 +38,6 @@
                         "type": "tcp",
                         "port": 8080
                     },
-                    "rawsocket": {
-                    },
                     "websocket": {
                         "ws": {
                             "type": "websocket"
@@ -64,7 +62,7 @@
                    "realm": "wamp_test",
                    "classname": "lie_config.wamp_services.ConfigWampApi",
                    "extra": {
-                     "config": "../config_handler_test.json"
+                     "package_config": "../config_handler_test.json"
                    }
                 }
              ]
