@@ -19,7 +19,7 @@ from   lie_config       import configwrapper
 
 from   docking_settings import SETTINGS
 from   docking_base     import DockingBase
-from   utils            import prepaire_work_dir, cmd_runner
+from   utils            import cmd_runner
 from   clustering       import coords_from_mol2, ClusterStructures
 
 PLANTS_CONF_FILE_TEMPLATE = textwrap.dedent("""
@@ -108,8 +108,6 @@ class PlantsDocking(DockingBase):
     Support is available for all of PLANTS default configuration options
     described in sections 1.0 of the manual.
     
-    :param workdir:     working directory for PLANTS to perform docking in
-    :type workdir:      str
     :param kwargs:      additional keyword arguments are considered as
                         PLANTS configuration options
     :type kwargs:       dict
@@ -119,11 +117,11 @@ class PlantsDocking(DockingBase):
     allowed_config_options = SETTINGS.get(method,{})
     logging = Logger()
     
-    def __init__(self, workdir, **kwargs):
+    def __init__(self, **kwargs):
         
         # Class internal attributes
-        self._workdir = workdir
         self._config = kwargs
+        self._workdir = self._config.get('workdir', None)
         
     def results(self):
         """
@@ -206,8 +204,8 @@ class PlantsDocking(DockingBase):
         :type mode:     str
         """
         
-        # Prepair working directory
-        if not prepaire_work_dir(self._workdir):
+        # Working directory needs to be defined
+        if not self._workdir:
             return False
         
         # Check if executable is available

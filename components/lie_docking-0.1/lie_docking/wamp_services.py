@@ -9,13 +9,14 @@ WAMP service methods the module exposes.
 import os
 import sys
 import time
-import random
 
-from   autobahn.wamp.types import RegisterOptions
-from   twisted.internet.defer import inlineCallbacks, returnValue
+from   autobahn.wamp.types          import RegisterOptions
+from   twisted.internet.defer       import inlineCallbacks, returnValue
 
-from   lie_docking import settings
-from   lie_system  import LieApplicationSession
+from   lie_docking                  import settings
+from   lie_docking.plants_docking   import PlantsDocking
+from   lie_docking.utils            import prepaire_work_dir
+from   lie_system                   import LieApplicationSession
 
 class DockingWampApi(LieApplicationSession):
 
@@ -26,37 +27,38 @@ class DockingWampApi(LieApplicationSession):
     @inlineCallbacks
     def onRun(self, details):
         
-        yield self.register(self.docking_run, u'liestudio.docking.run', options=RegisterOptions(invoke=u'roundrobin'))
-        
-    def docking_run(self, protein, ligand, method='plants', **kwargs):
+        yield self.register(self.plants_docking, u'liestudio.docking.plants', options=RegisterOptions(invoke=u'roundrobin'))
+    
+    def plants_docking(self, protein, ligand, config={}):
         """
-        Perform a docking run using one of the available methods
+        Perform a PLANTS based docking run
         
         :param protein: protein 3D structure file
         :type protein:  str
         :param ligand:  ligand 3D structure file
         :type ligand:   str
-        :param method:  docking method to use
-        :type method:   str
+        :param config:  docking method configuration options
+        :type config:   dict
         """
         
-        self.log.info('Initiate docking. method: {method}', method=method, **self.session_config)
+        self.log.info('Initiate docking. method: {method}', method='plants', **self.session_config)
         
-        if method == "plants":
-            from plants_docking import PlantsDocking
-            
-            # TODO: lie_docking should not be the toplevel dictionary attribute
-            plants_config = self.package_config.lie_docking.plants.dict()
-            plants_config.update(kwargs)
-            
-            workdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/docking_{0}'.format(random.randint(1,1000))
-            docking = PlantsDocking(workdir, **plants_config)
-            docking.run(protein, ligand)
-            results = docking.results()
+        plants_config = self.package_config.plants.dict()
+        plants_config.update(config)
         
-        self.log.info('Finished docking. method: {method}', method=method, **self.session_config)
+        # Prepaire docking directory
+        plants_config['workdir'] = prepaire_work_dir(plants_config.get('workdir', None), create=True)
+        if not plants_config['workdir']:
+            self.log.error('No valid work directory defined')
+            return {}
+        
+        docking = PlantsDocking(**plants_config)
+        docking.run(protein, ligand)
+        results = docking.results()
+        
+        self.log.info('Finished docking. method: {method}', method='plants', **self.session_config)
             
-        return {'result': results}
+        return {'result': results, 'dir': plants_config['workdir']}
 
 def make(config):
     """
