@@ -255,14 +255,18 @@ function _resolve_python_venv () {
 }
 
 # Check the directory structure
+# - Create logs and temporary files directory
+# - Change permissions /tmp to 
 function _check_dir_structure () {
   
-  for path in '/data/logs' '/docs'; do
+  for path in '/data/logs' '/tmp'; do
     if [ ! -d ${ROOTDIR}$path ]; then
       echo "INFO: Create directory ${ROOTDIR}$path"
       mkdir ${ROOTDIR}$path
     fi
   done
+  
+  chmod 755 ${ROOTDIR}/tmp
 }
 
 # Check if virtual environment is installed and activate
