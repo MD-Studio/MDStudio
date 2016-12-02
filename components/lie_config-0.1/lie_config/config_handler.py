@@ -637,7 +637,7 @@ class ConfigHandler(object):
                              level=level)
     
     def update(self, other):
-        print('UPDATING')
+        
         if isinstance(other, ConfigHandler):
             add_count = 0
             for k,v in other._keys.items():
