@@ -18,16 +18,17 @@ import copy
 import io
 
 from   datetime import datetime
-
 from   pymongo import MongoClient
 from   zope.interface import provider, implementer
 from   twisted.logger import (ILogObserver, ILogFilterPredicate, PredicateResult, LogLevel, 
                               globalLogPublisher, Logger, FilteringLogObserver, LogLevelFilterPredicate)
 
+from   lie_logger.log_serializer import LogSerializer
+
 logging = Logger()
 
-# Python primitive types for serialization
-primitiveTypes = (str, int, float, bool, list, dict, set)
+# Make an instance of the log serializer for log storage in MongoDB
+log_serializer = LogSerializer(max_depth=2)
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
@@ -186,14 +187,15 @@ def _serialize_logger_event(event, discard=['log_source','log_logger']):
     and:
     - discard keys in discard list
     - store log_level name from object 
-    - store string representation of value objects not in primitiveTypes list
-    - remaining key,value pairs are processed unaltered
+    - serialize dictionary using LogSerializer, discard all nested elements
+      below depth level 2.
     
     :param discard: event keys discarded in the serialized event dict 
     :type discard:  list
     :return:        copy of event dict suitable for PyMongo BSON serialization
     :rtype:         dict
     """ 
+    
     event = _format_logger_event(event)
     
     new_event = {}  
@@ -210,12 +212,10 @@ def _serialize_logger_event(event, discard=['log_source','log_logger']):
         # Store log_time as int
         elif key == 'log_time':
             new_event[key] = int(value)
-        elif not isinstance(value, primitiveTypes):
-            new_event[key] = str(value)
         else:
             new_event[key] = value
     
-    return new_event
+    return log_serializer.encode(new_event)
     
  
 @implementer(ILogFilterPredicate)
@@ -440,7 +440,8 @@ class ExportToMongodbObserver(object):
     def flush(self):
         """
         Flush all log_cache to MongoDB        
-        """      
+        """
+        
         # Add cached log records to database
         if len(self._log_cache):
             result = self._log_db.insert_many(self._log_cache)
