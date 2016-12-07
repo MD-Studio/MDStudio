@@ -1,0 +1,28 @@
+version: '2'
+services:
+    applications:
+        image: tianon/true
+        volumes:
+            - ./:/app
+
+    workspace:
+        build: .
+        ports:
+            - "5000:5000"
+        volumes_from:
+            - applications
+        links:
+            - mongo
+        tty: true
+
+    mongo:
+        image: mongo:latest
+        ports:
+            - "27017:27017"
+        command: mongod  --noauth
+        volumes:
+            - mongo:/data/db
+
+volumes:
+    mongo:
+        driver: "local"
