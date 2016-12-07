@@ -14,7 +14,7 @@
         "dblog": "{system.app_path}/data/logs/mongodb.log", 
         "dbname": "liestudio", 
         "dbpath": "{system.app_path}/data/liedb", 
-        "host": "localhost", 
+        "host": "mongo", 
         "port": 27017, 
         "terminate_mongod_on_exit": false
     }, 

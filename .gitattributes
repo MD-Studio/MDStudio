@@ -1,0 +1,3 @@
+
+# .sh is for unix systems
+*.sh -lf

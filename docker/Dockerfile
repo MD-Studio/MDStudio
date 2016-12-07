@@ -8,6 +8,4 @@ ARG PGID=1000
 RUN groupadd -g $PGID liestudio && \
     useradd -u $PUID -g liestudio -m liestudio
 
-USER liestudio
-
-RUN bash installer.sh --setup
+ENTRYPOINT ["bash", "docker/docker-entrypoint.sh"]

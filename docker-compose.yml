@@ -1,25 +1,31 @@
 version: '2'
 services:
+
+
     applications:
         image: tianon/true
         volumes:
-            - ./:/app
+            - .:/app
+
 
     workspace:
-        build: .
-        ports:
-            - "5000:5000"
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
         volumes_from:
             - applications
         links:
             - mongo
+        ports:
+            - "5000:5000"
+        stdin_open: true
         tty: true
 
     mongo:
         image: mongo:latest
+        command: mongod  --noauth
         ports:
             - "27017:27017"
-        command: mongod  --noauth
         volumes:
             - mongo:/data/db
 
