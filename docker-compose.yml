@@ -12,13 +12,14 @@ services:
         build:
             context: .
             dockerfile: docker/Dockerfile
+            args:
+                - INSTALL_WORKSPACE_SSH=true
         volumes_from:
             - applications
         links:
             - mongo
         ports:
-            - "5000:5000"
-        stdin_open: true
+            - "65432:22"
         tty: true
 
     mongo:

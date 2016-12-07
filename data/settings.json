@@ -120,13 +120,13 @@
     }, 
     "system": {
         "app_config": "{system.app_path}/data/settings.json", 
-        "app_path": "/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio", 
+        "app_path": "/app", 
         "bootstrap_order": [
             "lie_db", 
             "lie_logger", 
             "lie_user"
         ], 
-        "platform": "darwin", 
+        "platform": "linux2", 
         "shutdown_order": [
             "lie_user", 
             "lie_config", 
