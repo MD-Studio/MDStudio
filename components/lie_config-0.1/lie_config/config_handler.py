@@ -194,8 +194,8 @@ class ConfigHandler(object):
         """
         
         if not key in self.__dict__:
-            query = self.get(key)
-            if query:
+            query = self.get(key, '<not resolved>')
+            if query != '<not resolved>':
                 return query
         
         return object.__getattribute__(self, key)
@@ -218,8 +218,8 @@ class ConfigHandler(object):
         :return:     subdirectory for nested keys, value for unique keys.
         """
         
-        query = self.get(key)
-        if query:
+        query = self.get(key, '<not resolved>')
+        if query != '<not resolved>':
             return query
         
         return self.__dict__[key]
