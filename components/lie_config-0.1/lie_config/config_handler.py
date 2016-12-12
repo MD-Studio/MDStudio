@@ -275,8 +275,12 @@ class ConfigHandler(object):
         :param value: attribute value
         """
         
+        propobj = getattr(self.__class__, key, None)
+        
         if not '_initialised' in self.__dict__:
             return dict.__setattr__(self, key, value)
+        elif isinstance(propobj, property) and propobj.fset:
+            propobj.fset(self, value)
         elif key in self._keys:
             self.set(key, value)
         else:
