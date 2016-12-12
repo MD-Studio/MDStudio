@@ -21,7 +21,7 @@ __rootpath__  = os.path.dirname(__file__)
 
 # Import settings
 from .settings import SETTINGS
-from .db_methods import init_mongodb, exit_mongodb, BootstrapMongoDB
+from .db_methods import init_mongodb, exit_mongodb, BootstrapMongoDB, mongodb_connect
 
 # Define component public API
 settings = SETTINGS
