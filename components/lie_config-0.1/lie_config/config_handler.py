@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import re
 import copy
@@ -20,13 +20,14 @@ class ConfigHandler(object):
     """
     TODO: harmonize difference in dictionary methods between Python 2.x and 3.x
         Perhaps inherit from 2.x, 3.x specific dict method class.
-    TODO: __getitem__ and get for multiple keys at once
     """
     
     def __init__(self, config={}, keys=None, freeze=False, format_value=ConfigFormatter, level=0):
         """
         Implement class __init__ method
         
+        :param config:       dictionary to manage
+        :type config:        dict
         :param freeze:       allow addition of new keys or removal of keys
         :type freeze:        bool
         :param format_value: parse the value through the custom ConfigFormatter string
@@ -34,13 +35,8 @@ class ConfigHandler(object):
         :type format_value:  bool
         """
         
-        # If this is the root instance of the config dict
-        # setup a weak reference to it.
-        if not isinstance(config, DictWrapper):
-            wrapped_config = DictWrapper(config)
-            self.config = weakref.ref(wrapped_config)()
-        else:
-            self.config = config
+        self._config = None
+        self._weakref_config(config)
         
         # Instantiate format class if needed
         if type(format_value).__name__ == 'type':
@@ -73,106 +69,177 @@ class ConfigHandler(object):
         """
         Deepcopy directives for this class
         
-        All __dict__ attributes except the config dictionary
-        are deepcopied.
-        For the config dictionary a copy is made for only
-        those keys that reflect the (sub)dictionary of the
-        class instance.
+        All __dict__ attributes except the _config dictionary are deepcopied.
+        For the _config dictionary a copy is made for only those keys that 
+        reflect the (sub)dictionary of the class instance.
         """
         
         new = ConfigHandler.__new__(ConfigHandler)
         memo[id(self)] = new
         
         for n, v in self.__dict__.items():
-            if not n == 'config':
+            if not n == '_config':
                 setattr(new, n, copy.deepcopy(v, memo))
-        new.config = self.dict()
+        
+        new._weakref_config(dict([(v,self._config[v]) for k,v in self._keys.items()]))
         
         return new
     
     def __contains__(self, key):
         """
         Implement class __contains__ method
-        This is the equivilent of the dict __contains__ method in that it only
+        This is the equivalent of the dict __contains__ method in that it only
         checks the first level of a nested dictionary for the key.
         
-        :return: if the dictionary contains the key
+        :return: if the dictionary contains the key at the first level
         :rtype:  bool
         """
         
-        for k in self._keys:
-            if k.startswith(key):
-                return True
-        
-        return False
+        return self.has_key(key)
     
     def __eq__(self, other):
+        """
+        Test equality (==) in dictionary keys between two ConfigHandler
+        instances
+        
+        :param other: other ConfigHandler instance to test for
+        :type other:  ConfigHandler instance
+        """
         
         if isinstance(other, ConfigHandler):
             return self.keys() == other.keys()
     
     def __ne__(self, other):
+        """
+        Test inequality (!=) in dictionary keys between two ConfigHandler
+        instances
+        
+        :param other: other ConfigHandler instance to test for
+        :type other:  ConfigHandler instance
+        """
         
         if isinstance(other, ConfigHandler):
             return self.keys() != other.keys()
     
     def __lt__(self, other):
+        """
+        Test if current ConfigHandler contains less (<) keys than other
+        ConfigHandler.
+        
+        :param other: other ConfigHandler instance to test for
+        :type other:  ConfigHandler instance
+        """
         
         if isinstance(other, ConfigHandler):
             return len(self) < len(other)
     
     def __gt__(self, other):
+        """
+        Test if current ConfigHandler contains more (>) keys than other
+        ConfigHandler.
+        
+        :param other: other ConfigHandler instance to test for
+        :type other:  ConfigHandler instance
+        """
         
         if isinstance(other, ConfigHandler):
             return len(self) > len(other)
     
     def __le__(self, other):
+        """
+        Test if current ConfigHandler contains equal or less (<=) keys
+        than other ConfigHandler.
+        
+        :param other: other ConfigHandler instance to test for
+        :type other:  ConfigHandler instance
+        """
         
         if isinstance(other, ConfigHandler):
             return len(self) <= len(other)
     
     def __ge__(self, other):
+        """
+        Test if current ConfigHandler contains equal or more (>=) keys
+        than other ConfigHandler.
+        
+        :param other: other ConfigHandler instance to test for
+        :type other:  ConfigHandler instance
+        """
         
         if isinstance(other, ConfigHandler):
             return len(self) >= len(other)
     
     def __add__(self, other):
         """
-        Implements addition.
+        Implements addition (+).
         
-        Add (sub)dictionary keys from other to self.
-        Check if corresponding other.config key,value
-        pairs are in self.config and add if needed.
+        Add (sub)dictionary keys from other to self using the add method.
+        Addition equals dictionary updating but without replacement of 
+        equal keys in self.
+        
+        :param other: other ConfigHandler instance
+        :type other:  ConfigHandler instance
+        
+        :return:      New ConfigHandler instance with added keys
+        :rtype:       ConfigHandler instance
+        """
+        
+        addition = copy.deepcopy(self)
+        addition.add(other)
+        
+        return addition
+    
+    def __iadd__(self, other):
+        """
+        Implements inplace addition (+=).
+        
+        Add (sub)dictionary keys from other to self using the add method.
+        Addition equals dictionary updating but without replacement of 
+        equal keys in self.
         
         :param other: other ConfigHandler instance
         :type other:  ConfigHandler instance
         """
         
-        self.update(other)
-    
+        self.add(other)
+        return self
+        
     def __sub__(self, other):
         """
-        Implements subtraction.
+        Implements subtraction (-).
         
         Subtract (sub)dictionary keys of other from
         self. Does not remove key,value pairs in
-        self.config.
+        self._config.
         
         :param other: other ConfigHandler instance
         :type other:  ConfigHandler instance
         """
         
-        if isinstance(other, ConfigHandler):
-            sub_count = 0
-            for k,v in other._keys.items():
-                if k in self._keys:
-                    self._keys.remove(k)
-                sub_count += 1
+        subtract = copy.deepcopy(self)
+        subtract.sub(other)
+        
+        return subtract
     
+    def __isub__(self, other):
+        """
+        Implements implace subtraction (-=).
+        
+        Subtract (sub)dictionary keys of other from
+        self. Does not remove key,value pairs in
+        self._config.
+        
+        :param other: other ConfigHandler instance
+        :type other:  ConfigHandler instance
+        """
+        
+        subtract = copy.deepcopy(self)
+        subtract.sub(other)
+        
+        return subtract
+         
     __radd__ = __add__
     __rsub__ = __sub__
-    __iadd__ = __add__
-    __isub__ = __sub__
     
     def __delattr__(self, key):
         
@@ -194,12 +261,12 @@ class ConfigHandler(object):
         """
         
         if not key in self.__dict__:
-            query = self.get(key, '<not resolved>')
-            if query != '<not resolved>':
+            query = self.get(key)
+            if query:
                 return query
-        
+
         return object.__getattribute__(self, key)
-    
+        
     def __getitem__(self, key):
         """
         __getitem__ overload.
@@ -218,8 +285,8 @@ class ConfigHandler(object):
         :return:     subdirectory for nested keys, value for unique keys.
         """
         
-        query = self.get(key, '<not resolved>')
-        if query != '<not resolved>':
+        query = self.get(key)
+        if query:
             return query
         
         return self.__dict__[key]
@@ -298,7 +365,11 @@ class ConfigHandler(object):
         :param value: attribute value
         """
         
-        if key in self._keys:
+        propobj = getattr(self.__class__, key, None)
+        
+        if isinstance(propobj, property) and propobj.fset:
+            propobj.fset(self, value)
+        elif key in self._keys:
             self.set(key, value)
         else:
             dict.__setattr__(self, key, value)
@@ -307,15 +378,40 @@ class ConfigHandler(object):
         """
         Implement class __str__ method.
         
-        :return: print friendly overview of settings
+        Return a print friendly overview of the current settings.
+        Parameter placeholders are not resolved.
+        
+        :return: print friendly overview of settings.
         :rtype:  str
         """
         
         overview = []
-        for k in sorted(self._keys.keys()):
-            overview.append('{0}: {1}\n'.format(k,self.config[self._keys[k]]))
+        for k in sorted(self.keys()):
+            if self._keys[k] in self._config:
+                value = self._config[self._keys[k]]
+            
+                # Encode strings to UTF-8
+                if type(value) in (str, unicode):
+                    value = value.encode('utf-8')
+            
+                overview.append('{0}: {1}\n'.format(k, value))
         
         return ''.join(overview)
+    
+    def _weakref_config(self, config):
+        """
+        Setup a weak reference to the root instance of the 
+        config dict if not done so already.
+        
+        :param config:       dictionary to make a weak reference to
+        :type config:        dict
+        """
+        
+        if not isinstance(config, DictWrapper):
+            wrapped_config = DictWrapper(config)
+            self._config = weakref.ref(wrapped_config)()
+        else:
+            self._config = config
     
     def _resolve_config_level(self, keys=None):
         """
@@ -324,7 +420,7 @@ class ConfigHandler(object):
         overloading similar attributes.
         """
         
-        for key in keys or self.config.keys():
+        for key in keys or self._config.keys():
             splitted = key.split('.')
             if self.level >= len(splitted):
                 self._keys[splitted[-1]] = key
@@ -332,30 +428,30 @@ class ConfigHandler(object):
                 self._keys['.'.join(splitted[self.level:])] = key
     
     def _leveled_dict_copy(self):
+        """
+        Return a copy of the (sub)dictionary the ConfigHandler object
+        represents
         
-        return dict([ (key,self.config[value]) for key,value in self._keys.items() ])
+        :rtype: dict
+        """
+        
+        return dict([ (key,self._config[value]) for key,value in self._keys.items() ])
     
     def _format(self, value):
+        """
+        Format values that have Python .format minilaguage placeholders.
+        
+        :param value: value to format
+        :type value:  string
+        
+        :rtype:       string
+        """
         
         try:
             return self.format_value.format(value)
         except:
             return value
-    
-    def clear(self):
-        """
-        Clear the dictionary of all key,value pairs
         
-        Do not allow clearance of key,value pairs if the
-        dictionary is freezed
-        """
-        
-        if self.freeze:
-            raise KeyError('Unable to clear freezed dictionary'.format(key))
-        
-        self._keys = []
-        self.config.clear()
-    
     def dict(self, nested=False):
         """
         Return a copy of the (nested) (sub)dictionary represented
@@ -382,6 +478,20 @@ class ConfigHandler(object):
             nested_dict = dict([(k,self.get(k)) for k in self._keys])
         
         return nested_dict
+    
+    def contains(self, key):
+        """
+        Check if key is in dictionary at any level
+        
+        :return: if the dictionary contains the key
+        :rtype:  bool
+        """
+        
+        for k in self._keys:
+            if key in k:
+                return True
+        
+        return False 
     
     def flatten(self, resolve_order=None, level=1):
         """
@@ -420,7 +530,7 @@ class ConfigHandler(object):
                 else:
                     flattened['.'.join(splitted[level:])] = v
         
-        fl = ConfigHandler(self.config, level=level, freeze=self.freeze)
+        fl = ConfigHandler(self._config, level=level, freeze=self.freeze)
         fl._keys = flattened
         
         return fl
@@ -443,7 +553,7 @@ class ConfigHandler(object):
         """
         
         if key in self._keys:
-            value = self.config.get(self._keys[key], default)
+            value = self._config.get(self._keys[key], default)
             return self._format(value)
         
         query = self.search('^{0}(?=.|$)'.format(key), regex=True, level=self.level+1)
@@ -511,23 +621,15 @@ class ConfigHandler(object):
         
         return any('.' in key for key in self.keys())
     
-    def items(self):
+    def levels(self):
         """
-        :return: list of key,value pairs
-        :rtype:  list of tuples
+        Return number of levels in a nested dictionary
+        
+        :return: number of dictionary levels
+        :rtype:  int
         """
         
-        return [(k, self._format(self.config[v])) for k,v in self._keys.items()]
-    
-    def keys(self):
-        """
-        Return a set of the dictionary keys
-        
-        :return: dictionary keys
-        :rtype:  set
-        """
-        
-        return set(self._keys.keys())
+        return max([len(n.split('.')) for n in self.keys()])
     
     def load(self, config):
         """
@@ -544,23 +646,28 @@ class ConfigHandler(object):
         assert isinstance(config, dict), 'config attribute needs to be of type dict'
         
         # Clear current config
-        self.config.clear()
+        self._config.clear()
         self._keys.clear()
         
-        self.config.update(_flatten_nested_dict(config))
+        self._config.update(_flatten_nested_dict(config))
         self._resolve_config_level(self._reskeys)
     
     def remove(self, key):
         """
         Remove a key,value pair from the dictionary
         
-        The target key is removed from self._keys by default
-        effectively removing it from the (sub)dictionary
-        representation leaving the source configuration dictionary
-        untouched.
+        The target key is removed from self._keys by default effectively
+        removing it from the active (sub)dictionary representation leaving
+        the source configuration dictionary untouched.
         
-        If the ConfigHandler instance is not frozen, the key/value
-        pair will also be removed from the source configuration
+        If the ConfigHandler instance is not frozen, the key/value pair will
+        also be removed from the source configuration.
+        
+        ..  note:: When using chained attribute access (dot notation)
+                   to remove a nested parameter in a frozen dictionary, the
+                   last (sub)dictionary in the chain is the active one
+                   resulting in the key,value pair still being available in 
+                   the other ones.
         
         :param key:   dictionary key to remove
         :type key:    str
@@ -569,7 +676,7 @@ class ConfigHandler(object):
         assert key in self._keys, KeyError('Key "{0}" not in dictionary'.format(key))
         
         if not self.freeze:
-            del self.config[self._keys[key]]
+            del self._config[self._keys[key]]
         
         del self._keys[key]
     
@@ -624,7 +731,7 @@ class ConfigHandler(object):
         if key not in self._keys and self.freeze:
             raise KeyError('Unable to add new key "{0}" to frozen dictionary'.format(key))
         
-        self.config[self._keys.get(key,key)] = value
+        self._config[self._keys.get(key,key)] = value
     
     def subdict(self, keys, level=0):
         """
@@ -634,35 +741,127 @@ class ConfigHandler(object):
         :type keys:  list
         """
         
-        return ConfigHandler(self.config,
+        return ConfigHandler(self._config,
                              keys,
                              freeze=self.freeze,
                              format_value=self.format_value,
                              level=level)
     
-    def update(self, other):
+    # Python dictionary methods
+    def clear(self):
+        """
+        Clear the dictionary of all key,value pairs
+        
+        Do not allow clearance of key,value pairs if the
+        dictionary is freezed
+        """
+        
+        if self.freeze:
+            raise KeyError('Unable to clear freezed dictionary'.format(key))
+        
+        self._keys = []
+        self._config.clear()
+    
+    def has_key(self, key):
+        """
+        Checks the first level of a nested dictionary for the key.
+        
+        Both self._keys and self._config are checked for the key to ensure that
+        local changes to self._keys do not run "out of sync" with self._config
+        
+        This method is deprecated in Python 3 in favor of `key in d`.
+        In the ConfigHandler class this method is used by the __contains__
+        magic method.
+        
+        :return: if the dictionary contains the key at the first level
+        :rtype:  bool
+        """
+        
+        for k in self._keys:
+            if k.startswith(key) and self._keys[k] in self._config:
+                return True
+        
+        return False
+            
+    def items(self):
+        """
+        :return: list of key,value pairs
+        :rtype:  list of tuples
+        """
+        
+        return [(k, self._format(self._config[v])) for k,v in self._keys.items()]
+    
+    def keys(self):
+        """
+        Return dictionary keys in the active (sub)dictionary
+        
+        :return: dictionary keys
+        :rtype:  set
+        """
+        
+        return [key for key,value in self._keys.items() if value in self._config]
+    
+    def add(self, other):
+        """
+        Add unique keys from other to self
+        
+        :param other: other ConfigHandler instance
+        :type other:  ConfigHandler instance
+        """
+        
+        self.update(other, replace=False)
+    
+    def sub(self, other):
+        """
+        Remove keys in other from self
+        
+        :param other: other ConfigHandler instance
+        :type other:  ConfigHandler instance
+        """
         
         if isinstance(other, ConfigHandler):
-            add_count = 0
+            toremove1 = [k for k in other._keys.values() if k in self._keys.values()]
+            toremove2 = [k for k,v in self._keys.items() if v in toremove1]
+            for key in toremove2:
+                del self._keys[key]
+    
+    def update(self, other, replace=True):
+        """
+        Update self with unique keys from other not in self
+        
+        :param other:   other ConfigHandler instance
+        :type other:    ConfigHandler instance
+        :param replace: in case of equal keys between self and other, replace
+                        value of self with other.
+        :type replace:  bool
+        """
+        
+        if isinstance(other, ConfigHandler):
             for k,v in other._keys.items():
-                print(k,v)
-                if not k in self._keys:
-                    self._keys[k] = v
-                    add_count += 1
-                if not v in self.config:
-                    self.config[v] = other.config[v]
+                
+                if k in self._keys and not replace:
+                    pass
+                else:
+                    self._keys[k] = copy.deepcopy(v)
+                
+                # Update self_config if needed
+                if not v in self._config:
+                    self._config[v] = other._config[v]
+                    
         elif isinstance(other, dict):
             other = _flatten_nested_dict(other)
-            self.config.update(other)
+            self._config.update(other)
         else:
-            logging.error('Attribute not an instance of ConfigHandler or dict')
+            raise TypeError('Attribute not an instance of ConfigHandler or dict')
         
-        self._resolve_config_level()
-    
     def values(self):
         """
+        Implementation of dict `values` method.
+        
+        Returns values for all keys at every level of a nested dictionary
+        
         :return: dictionary values
         :rtype:  list
         """
         
-        return [self._format(self.config[key]) for key in self._keys.values()]
+        return [self._format(self._config[key]) for key in self._keys.values()]

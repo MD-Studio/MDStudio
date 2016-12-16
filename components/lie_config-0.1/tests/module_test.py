@@ -4,13 +4,13 @@
 file: test.py
 
 Unit tests for the lie_config component
-
-TODO: Add wamp_services unittests
 """
 
-import os, sys
+import os
+import sys
 import unittest
 import json
+import copy
 
 # Add modules in package to path so we can import them
 currpath = os.path.dirname(__file__)
@@ -24,26 +24,27 @@ from lie_config           import *
 from lie_config.config_io import _flatten_nested_dict
 
 formatted_example_config = {
-  'system.port': 50000,
-  'lie_logging.PrintingObserver.datefmt': '%m/%d/%Y %I:%M:%S',
-  'lie_db.port': 27017,
-  'lie_db.create_db': True,
-  'lie_logging.LogObserver.datefmt': '%m/%d/%Y %I:%M:%S',
-  'lie_db.dblog': '/usr/app/data/logs/mongodb.log',
-  'lie_logging.PrintingObserver.format_event': '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n',
-  'user.dbpath': '/usr/app/data/user',
-  'system.app_path': '/usr/app',
-  'lie_logging.LogObserver.activate': False,
-  'lie_db.dbname': 'liestudio',
-  'lie_db.terminate_mongod_on_exit': False,
-  'lie_logging.PrintingObserver.activate': True,
-  'lie_db.dbpath': '/usr/app/data/liedb',
-  'lie_db.host': 'localhost',
-  'lie_logging.PrintingObserver.filter_predicate.log_level': 'debug',
-  'lie_logging.PrintingObserver.filter_predicate.app_namespace': ' > 5',
-  'lie_logging.LogObserver.filter_predicate.log_level': 'infp',
-  'lie_logging.LogObserver.filter_predicate.app_namespace': ' > 3',
-  'lie_logging.LogObserver.format_event': '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n'
+    'entry1_level1.param1': '/usr/app/data/liedb',
+    'entry1_level1.param2': 'liestudio',
+    'entry1_level1.param3': 100,
+    'entry1_level1.param4': 12.45,
+    'entry1_level1.param5': True,
+    'entry1_level1.param6': '%m/%d/%Y %I:%M:%S',
+    'entry1_level1.param7': u'ইউনিকোড কী?',
+    'entry2_level1.level2.param1': True,
+    'entry2_level1.level2.param2': '%m/%d/%Y %I:%M:%S',
+    'entry2_level1.level2.param3': '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n', 
+    'entry2_level1.level2.param4.log_level': 'debug',
+    'entry2_level1.level2.param4.app_namespace': ' > 5',
+    'entry2_level1.level2_1.param1': False,
+    'entry2_level1.level2_1.param2': '%m/%d/%Y %I:%M:%S',
+    'entry2_level1.level2_1.param3': '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n',
+    'entry2_level1.level2_1.param4.app_namespace': ' > 3',
+    'entry2_level1.level2_1.param4.log_level': 'infp',
+    'entry3_level1.param1': '/usr/app',
+    'entry3_level1.param2': 5000,
+    'entry3_level1.param3': 'SYSTEM_STATUS',
+    'entry4_level1.param1': '/usr/app/data/user'
 }
 
 class ConfigDecoratorTests(unittest.TestCase):
@@ -155,16 +156,16 @@ class ConfigHandlerTests(unittest.TestCase):
     
     def test_config_magicmethod(self):
         """
-        Test default 'dict' class magic methods
+        Test truth testing magic methods.
         """
         
-        self.assertEqual(len(self.settings), 20)
-        self.assertTrue('user.dbpath' in self.settings)
-        self.assertFalse('dbpath' in self.settings)
+        self.assertEqual(len(self.settings), 21)
+        self.assertTrue('entry1_level1.param1' in self.settings)
+        self.assertFalse('param1' in self.settings)
         self.assertIsNotNone(self.settings)
         
-        subset = self.settings.lie_db
-        subset2 = self.settings.lie_logging
+        subset = self.settings.entry1_level1
+        subset2 = self.settings.entry2_level1
         self.assertEqual(subset, subset)
         self.assertNotEqual(self.settings, subset)
         self.assertGreater(self.settings, subset)
@@ -172,6 +173,67 @@ class ConfigHandlerTests(unittest.TestCase):
         self.assertLess(subset, self.settings)
         self.assertLessEqual(subset, subset2)
     
+    def test_config_addition(self):
+        """
+        Test addition of ConfigHandeler objects
+        """
+        
+        # Test addition using magic method, add unique keys in 
+        # other to self
+        subset = copy.deepcopy(self.settings.entry3_level1)
+        subset2 = copy.deepcopy(self.settings.entry4_level1)
+        addition = subset + subset2
+        self.assertNotEqual(id(addition), id(subset))
+        self.assertEqual(addition.keys(), [u'param3', u'param2', u'param1'])
+        self.assertEqual(addition.values(), [u'SYSTEM_STATUS', 5000, u'/usr/app'])
+        
+        # Test inplace addition using magic method, add unique keys
+        # in other to self
+        subset = copy.deepcopy(self.settings.entry3_level1)
+        subset2 = copy.deepcopy(self.settings.entry4_level1)
+        subset += subset2
+        self.assertEqual(subset.keys(), [u'param3', u'param2', u'param1'])
+        self.assertEqual(subset.values(), [u'SYSTEM_STATUS', 5000, u'/usr/app'])
+
+    def test_config_subtraction(self):
+        """
+        Test subtraction of ConfigHandeler objects
+        """
+        
+        # Make subdict of entry2 and entry3 keys. Then subtract entry 3 again
+        # using magic method
+        subset = copy.deepcopy(self.settings.search(['entry2_level1*','entry3_level1*']))
+        subtract = subset - self.settings.entry3_level1
+        self.assertEqual(subtract.keys(), [u'entry2_level1.level2.param4.app_namespace', 
+            u'entry2_level1.level2.param1', u'entry2_level1.level2.param2', 
+            u'entry2_level1.level2.param3', u'entry2_level1.level2_1.param4.log_level',
+            u'entry2_level1.level2_1.param3', u'entry2_level1.level2_1.param2',
+            u'entry2_level1.level2.param4.log_level', u'entry2_level1.level2_1.param1',
+            u'entry2_level1.level2_1.param4.app_namespace'])
+        
+        # Make subdict of entry2 and entry3 keys. Then subtract entry 3 again
+        # using inplace magic method
+        subset = copy.deepcopy(self.settings.search(['entry2_level1*','entry3_level1*']))
+        subset -= self.settings.entry3_level1
+        self.assertEqual(subset.keys(), [u'entry2_level1.level2.param4.app_namespace', 
+            u'entry2_level1.level2.param1', u'entry2_level1.level2.param2', 
+            u'entry2_level1.level2.param3', u'entry2_level1.level2_1.param4.log_level',
+            u'entry2_level1.level2_1.param3', u'entry2_level1.level2_1.param2',
+            u'entry2_level1.level2.param4.log_level', u'entry2_level1.level2_1.param1',
+            u'entry2_level1.level2_1.param4.app_namespace'])
+        
+    def test_config_update(self):
+        """
+        Test ConfigHandler update method
+        """
+        
+        # Test update, add and replace keys in self with other
+        subset = copy.deepcopy(self.settings.entry3_level1)
+        subset2 = copy.deepcopy(self.settings.entry4_level1)
+        subset.update(subset2)
+        self.assertEqual(subset.keys(), [u'param3', u'param2', u'param1'])
+        self.assertEqual(subset.values(), [u'SYSTEM_STATUS', 5000, u'/usr/app/data/user'])
+        
     def test_config_search(self):
         """
         Test config dictionary search by fnmatch Unix style wildcard use
@@ -179,11 +241,11 @@ class ConfigHandlerTests(unittest.TestCase):
         """
         
         # fnmatch wildcard search
-        self.assertEqual(len(self.settings.search('lie_db.*')), 7)
-        self.assertEqual(len(self.settings.search('*PrintingObserver*')), 5)
+        self.assertEqual(len(self.settings.search('entry1_level1.*')), 7)
+        self.assertEqual(len(self.settings.search('*level2_1*')), 5)
         
         # regular expression search
-        self.assertEqual(len(self.settings.search('^lie_db', regex=True)), 7)
+        self.assertEqual(len(self.settings.search('^entry1_level1', regex=True)), 7)
     
     def test_config_dict_methods(self):
         """
@@ -191,7 +253,7 @@ class ConfigHandlerTests(unittest.TestCase):
         """
         
         self.assertEqual(sorted(self.settings.keys()), sorted(self.data.keys()))
-        self.assertEqual(len([True for i in self.settings.values() if i in formatted_example_config.values()]), 20)
+        self.assertEqual(len([True for i in self.settings.values() if i in formatted_example_config.values()]), 21)
         
         if PY3:
             self.assertCountEqual(self.settings.items(), formatted_example_config.items())
@@ -207,14 +269,14 @@ class ConfigHandlerTests(unittest.TestCase):
         
         self.assertTrue(self.settings.isnested)
         
-        sub = self.settings.subdict(['lie_db.dblog','system.port','user.dbpath'])
+        sub = self.settings.subdict(['entry1_level1.param1','entry3_level1.param2','entry4_level1.param1'])
         self.assertIsNotNone(sub)
         self.assertIsInstance(sub, ConfigHandler)
         self.assertEqual(len(sub), 3)
-        self.assertEqual(sub.user.dbpath, '/usr/app/data/user')
+        self.assertEqual(sub.entry4_level1.param1, '/usr/app/data/user')
         
         self.assertListEqual(self.settings.get_attributes_at_level(),
-            ['lie_db', 'lie_logging', 'system', 'user'])
+            ['entry1_level1', 'entry2_level1', 'entry3_level1', 'entry4_level1'])
     
     def test_config_itemaccess(self):
         """
@@ -222,12 +284,12 @@ class ConfigHandlerTests(unittest.TestCase):
         """
         
         # __getitem__ access
-        self.assertEqual(self.settings['lie_db.port'], 27017)
-        self.assertRaises(KeyError, lambda:  self.settings['port'])
+        self.assertEqual(self.settings['entry1_level1.param3'], 100)
+        self.assertRaises(KeyError, lambda:  self.settings['param3'])
         
         # __getattr__ access
-        self.assertEqual(self.settings.lie_db.port, 27017)
-        subset = self.settings.lie_db
+        self.assertEqual(self.settings.entry1_level1.param3, 100)
+        subset = self.settings.entry1_level1
         self.assertIsInstance(subset, ConfigHandler)
         
         # dictionary get access
@@ -238,34 +300,50 @@ class ConfigHandlerTests(unittest.TestCase):
         Test attribute overloading with attribute resolution order
         """
         
-        subset = self.settings.search(['^lie_db','^system'], regex=True)
+        subset = self.settings.search(['^entry1_level1','^entry3_level1'], regex=True)
         
-        self.assertEqual(subset.flatten().port, 50000)
-        self.assertEqual(subset.flatten(resolve_order=['system','lie_db']).port, 27017)
+        self.assertEqual(subset.flatten().param4, 12.45)
+        self.assertEqual(subset.flatten(resolve_order=['entry3_level1','entry1_level1']).param2, 'liestudio')
     
+    def test_config_removal(self):
+        """
+        Test dictionary removal operations.
+        Make a deepcopy of subdicts before removing items
+        """
+        
+        # param5 only occurs once
+        subset = copy.deepcopy(self.settings.entry1_level1)
+        subset.remove('param5')
+        self.assertNotIn('param5', subset)
+        
+        # log_level occurs twice at differently named levels
+        subset2 = copy.deepcopy(self.settings.entry2_level1)
+        subset2.remove('level2.param4.log_level')
+        subset2.level2_1.param4.remove('app_namespace')
+        self.assertNotIn('level2.param4.log_level', subset2)
+        self.assertNotIn('level2_1.param4.app_namespace', subset2)
+        
+        # Difference between a frozen and unfrozen dict
+        self.assertFalse('entry2_level1.level2_1.param4.app_namespace' in subset2._config)
+        subset2.freeze = True
+        subset2.remove('level2_1.param2')
+        self.assertTrue('entry2_level1.level2_1.param2' in subset2._config)
+        
     def test_config_update(self):
         """
         Test dictionary set, remove and update methods
         """
         
         # When the config instance is not frozen
-        self.settings['lie_db.host'] = 'host1'
-        self.assertEqual(self.settings.get('lie_db.host'), 'host1')
-        self.settings.lie_db.host = 'host2'
-        self.assertEqual(self.settings.get('lie_db.host'), 'host2')
-        self.settings.set('lie_db.host', 'localhost')
-        self.assertEqual(self.settings.get('lie_db.host'), 'localhost')
+        self.settings['entry1_level1.param2'] = 200
+        self.assertEqual(self.settings.get('entry1_level1.param2'), 200)
+        self.settings.entry1_level1.param2 = 300
+        self.assertEqual(self.settings.get('entry1_level1.param2'), 300)
+        self.settings.set('entry1_level1.param2', "liestudio")
+        self.assertEqual(self.settings.get('entry1_level1.param2'), "liestudio")
         
-        subset = self.settings.lie_db
-        subset2 = self.settings.lie_logging
+        subset = self.settings.entry1_level1
+        subset2 = self.settings.entry2_level1
         rawdict = subset.dict()
         rawdict.update(subset2.dict())
         subset.update(subset2)
-        
-        subset.remove('PrintingObserver.activate')
-        self.assertNotIn('PrintingObserver.activate', subset)
-        subset.PrintingObserver.remove('datefmt')
-        self.assertNotIn('PrintingObserver.datefmt', subset)
-        
-        del subset['terminate_mongod_on_exit']
-        self.assertNotIn('terminate_mongod_on_exit', subset)
