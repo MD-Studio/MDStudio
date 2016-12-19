@@ -18,6 +18,32 @@ class DictWrapper(dict):
 
 class ConfigHandler(object):
     """
+    Manages the settings for all packages, modules or functions defined as 
+    dictionary of combined global settings provided at class initialisation 
+    or individually using the `load` methods.
+  
+    Internally, the settings are stored as a dictionary with keys representing
+    the setting hierarchy as dot seperated string. For example:
+  
+    * <package name>.<class name>.<function name>.<attribute>
+    * <package name>.<function name>.<attribute>
+  
+    The package name and attribute name (or setting name) are required, 
+    class and function names are optional.
+  
+    A subset of settings can be retrieved using the `fetch` method. 
+    The `fetch` method returns a copy of the requested settings from the main
+    settings dictionary in package name order. This allows for a safe
+    overloading of the settings for that particular instance only.
+    The returned subset supports Python string formatting for string based
+    settings in which the replacement token is the same dot seperated setting
+    name. For example:
+  
+      'database_path': '{system.app_dir}/database'
+  
+    allows the datbase path the be resolved dynamically using the active 
+    application path derived from the system package.
+    
     TODO: harmonize difference in dictionary methods between Python 2.x and 3.x
         Perhaps inherit from 2.x, 3.x specific dict method class.
     """
@@ -47,11 +73,12 @@ class ConfigHandler(object):
         self.level  = level
         self.freeze = freeze
         
+        self._orm = {}
         self._keys  = {}
         self._reskeys = keys
         self._resolve_config_level(self._reskeys)
         self._initialised = True
-    
+        
     def __call__(self):
         """
         Implement class __call__ method
@@ -90,6 +117,9 @@ class ConfigHandler(object):
         Implement class __contains__ method
         This is the equivalent of the dict __contains__ method in that it only
         checks the first level of a nested dictionary for the key.
+        
+        The `contains` method checks for the presence of the key at any
+        level.
         
         :return: if the dictionary contains the key at the first level
         :rtype:  bool
@@ -223,7 +253,7 @@ class ConfigHandler(object):
     
     def __isub__(self, other):
         """
-        Implements implace subtraction (-=).
+        Implements inplace subtraction (-=).
         
         Subtract (sub)dictionary keys of other from
         self. Does not remove key,value pairs in
@@ -242,6 +272,12 @@ class ConfigHandler(object):
     __rsub__ = __sub__
     
     def __delattr__(self, key):
+        """
+        Implements dictionary key,value removal using buildin `del`
+        
+        :param key:   dictionary key to remove
+        :type key:    str
+        """
         
         self.remove(key)
     
@@ -451,7 +487,17 @@ class ConfigHandler(object):
             return self.format_value.format(value)
         except:
             return value
+    
+    def add(self, other):
+        """
+        Add unique keys from other to self
         
+        :param other: other ConfigHandler instance
+        :type other:  ConfigHandler instance
+        """
+        
+        self.update(other, replace=False)
+    
     def dict(self, nested=False):
         """
         Return a copy of the (nested) (sub)dictionary represented
@@ -481,7 +527,8 @@ class ConfigHandler(object):
     
     def contains(self, key):
         """
-        Check if key is in dictionary at any level
+        Check if key is in dictionary at any level.
+        The magic method __contains__ checks only the first level.
         
         :return: if the dictionary contains the key
         :rtype:  bool
@@ -534,37 +581,6 @@ class ConfigHandler(object):
         fl._keys = flattened
         
         return fl
-    
-    def get(self, key, default=None):
-        """
-        Get value for dictionary key or return default
-        
-        The get method searches the dictionary keys in two ways:
-        
-        * Return the value if the full key is present in the dictionary
-          keys list. The key may be a dot seperated string representing
-          a nested dictinary key.
-        * In case of a nested dictionary, match the key in the first
-          level of the dictionary.
-        
-        :param key:     dictionary key to get value for
-        :type key:      str
-        :param default: default value to return if key does not exists
-        """
-        
-        if key in self._keys:
-            value = self._config.get(self._keys[key], default)
-            return self._format(value)
-        
-        query = self.search('^{0}(?=.|$)'.format(key), regex=True, level=self.level+1)
-        if len(query) == 1 and key in query._keys.values():
-            return query.get(list(query._keys)[0])
-        if len(query) == 1 and key in query._keys.keys():
-            return query.get(key)
-        if len(query):
-            return query
-        
-        return default
     
     def get_attributes_at_level(self, level=0):
         """
@@ -643,7 +659,7 @@ class ConfigHandler(object):
         :type config:  dict
         """
         
-        assert isinstance(config, dict), 'config attribute needs to be of type dict'
+        assert isinstance(config, dict), TypeError("Default configuration needs to be defined as a dictionary, got: {0}".format(config))
         
         # Clear current config
         self._config.clear()
@@ -716,23 +732,20 @@ class ConfigHandler(object):
         
         return self.subdict(match, level=level)
     
-    def set(self, key, value):
+    def sub(self, other):
         """
-        Update and/or add key,value pair to dictionary
+        Remove keys in other from self
         
-        Do not allow addition of new key,value pairs if the
-        dictionary is frozen
-        
-        :param key:   dictionary key to update/add
-        :type key:    str
-        :param value: dictionary value to update/add
+        :param other: other ConfigHandler instance
+        :type other:  ConfigHandler instance
         """
         
-        if key not in self._keys and self.freeze:
-            raise KeyError('Unable to add new key "{0}" to frozen dictionary'.format(key))
-        
-        self._config[self._keys.get(key,key)] = value
-    
+        if isinstance(other, ConfigHandler):
+            toremove1 = [k for k in other._keys.values() if k in self._keys.values()]
+            toremove2 = [k for k,v in self._keys.items() if v in toremove1]
+            for key in toremove2:
+                del self._keys[key]
+                
     def subdict(self, keys, level=0):
         """
         Return a new ConfigHandler instance reflecting a subdictionary
@@ -741,13 +754,18 @@ class ConfigHandler(object):
         :type keys:  list
         """
         
-        return ConfigHandler(self._config,
+        if self._orm_key in self._orm:
+            ORMClass = type(ConfigHandler.__name__, (self._orm[self._orm_key], ConfigHandler), {})
+        else:
+            ORMClass = ConfigHandler
+            
+        return ORMClass(self._config,
                              keys,
                              freeze=self.freeze,
                              format_value=self.format_value,
                              level=level)
     
-    # Python dictionary methods
+    # PYTHON DICTIONARY METHODS
     def clear(self):
         """
         Clear the dictionary of all key,value pairs
@@ -761,6 +779,47 @@ class ConfigHandler(object):
         
         self._keys = []
         self._config.clear()
+    
+    def copy(self):
+        """
+        Return a shallow copy of the ConfigHandler
+        """
+        
+        return copy.copy(self)
+    
+    def get(self, key, default=None):
+        """
+        Get value for dictionary key or return default
+        
+        The get method searches the dictionary keys in two ways:
+        
+        * Return the value if the full key is present in the dictionary
+          keys list. The key may be a dot seperated string representing
+          a nested dictinary key.
+        * In case of a nested dictionary, match the key in the first
+          level of the dictionary.
+        
+        :param key:     dictionary key to get value for
+        :type key:      str
+        :param default: default value to return if key does not exists
+        """
+        
+        if key in self._keys:
+            value = self._config.get(self._keys[key], default)
+            return self._format(value)
+        
+        self._orm_key = key
+        query = self.search('^{0}(?=.|$)'.format(key), regex=True, level=self.level+1)
+        self._orm_key = None
+        
+        if len(query) == 1 and key in query._keys.values():
+            return query.get(list(query._keys)[0])
+        if len(query) == 1 and key in query._keys.keys():
+            return query.get(key)
+        if len(query):
+            return query
+        
+        return default
     
     def has_key(self, key):
         """
@@ -793,38 +852,33 @@ class ConfigHandler(object):
     
     def keys(self):
         """
-        Return dictionary keys in the active (sub)dictionary
+        Return dictionary keys in the active (sub)dictionary.
+        For nested dictionaries it returns the first level keys only similar
+        to the Python dict keys() method.
         
         :return: dictionary keys
         :rtype:  set
         """
         
         return [key for key,value in self._keys.items() if value in self._config]
-    
-    def add(self, other):
-        """
-        Add unique keys from other to self
         
-        :param other: other ConfigHandler instance
-        :type other:  ConfigHandler instance
+    def set(self, key, value):
         """
+        Update and/or add key,value pair to dictionary
         
-        self.update(other, replace=False)
-    
-    def sub(self, other):
-        """
-        Remove keys in other from self
+        Do not allow addition of new key,value pairs if the
+        dictionary is frozen
         
-        :param other: other ConfigHandler instance
-        :type other:  ConfigHandler instance
+        :param key:   dictionary key to update/add
+        :type key:    str
+        :param value: dictionary value to update/add
         """
         
-        if isinstance(other, ConfigHandler):
-            toremove1 = [k for k in other._keys.values() if k in self._keys.values()]
-            toremove2 = [k for k,v in self._keys.items() if v in toremove1]
-            for key in toremove2:
-                del self._keys[key]
-    
+        if key not in self._keys and self.freeze:
+            raise KeyError('Unable to add new key "{0}" to frozen dictionary'.format(key))
+        
+        self._config[self._keys.get(key,key)] = value
+        
     def update(self, other, replace=True):
         """
         Update self with unique keys from other not in self
@@ -851,6 +905,7 @@ class ConfigHandler(object):
         elif isinstance(other, dict):
             other = _flatten_nested_dict(other)
             self._config.update(other)
+            self._resolve_config_level()
         else:
             raise TypeError('Attribute not an instance of ConfigHandler or dict')
         
@@ -858,7 +913,8 @@ class ConfigHandler(object):
         """
         Implementation of dict `values` method.
         
-        Returns values for all keys at every level of a nested dictionary
+        For nested dictionaries it returns the first level values only similar
+        to the Python dict values() method.
         
         :return: dictionary values
         :rtype:  list

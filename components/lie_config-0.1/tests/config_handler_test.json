@@ -5,7 +5,7 @@
     "entry1_level1.param4": 12.45,
     "entry1_level1.param5": true,
     "entry1_level1.param6": "%m/%d/%Y %I:%M:%S",
-    "entry1_level1.param7": "ইউনিকোড কী?",
+    "entry1_level1.param7": "\u0987\u0989\u09a8\u09bf\u0995\u09cb\u09a1 \u0995\u09c0?",
     "entry2_level1.level2.param1": true,
     "entry2_level1.level2.param2": "%m/%d/%Y %I:%M:%S",
     "entry2_level1.level2.param3": "{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n",

@@ -11,6 +11,7 @@ import sys
 import unittest
 import json
 import copy
+import glob
 
 # Add modules in package to path so we can import them
 currpath = os.path.dirname(__file__)
@@ -21,7 +22,8 @@ sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 PY3 = sys.version_info.major == 3
 
 from lie_config           import *
-from lie_config.config_io import _flatten_nested_dict
+from lie_config.config_io import (_flatten_nested_dict, config_from_yaml, config_from_ini, config_from_json,
+                                  config_to_yaml, config_to_ini, config_to_json)
 
 formatted_example_config = {
     'entry1_level1.param1': '/usr/app/data/liedb',
@@ -142,18 +144,17 @@ class ConfigHandlerTests(unittest.TestCase):
     _currpath = os.path.abspath(__file__)
     _settings_json = os.path.join(os.path.dirname(_currpath), 'config_handler_test.json')
     
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         """
         ConfigHandlerTests class setup
         
         Load test settings file from config_handler_test.json
         """
         
-        cls.data = _flatten_nested_dict(json.load(open(cls._settings_json)))
-        cls.settings = get_config()
-        cls.settings.load(cls.data)
-    
+        self.data = _flatten_nested_dict(json.load(open(self._settings_json)))
+        self.settings = ConfigHandler()
+        self.settings.load(self.data)
+        
     def test_config_magicmethod(self):
         """
         Test truth testing magic methods.
@@ -294,7 +295,15 @@ class ConfigHandlerTests(unittest.TestCase):
         
         # dictionary get access
         self.assertIsNone(self.settings.get('key_not_available'))
-    
+        
+        # When the config instance is not frozen
+        self.settings['entry1_level1.param2'] = 200
+        self.assertEqual(self.settings.get('entry1_level1.param2'), 200)
+        self.settings.entry1_level1.param2 = 300
+        self.assertEqual(self.settings.get('entry1_level1.param2'), 300)
+        self.settings.set('entry1_level1.param2', "liestudio")
+        self.assertEqual(self.settings.get('entry1_level1.param2'), "liestudio")
+        
     def test_config_attribute_overload(self):
         """
         Test attribute overloading with attribute resolution order
@@ -328,22 +337,124 @@ class ConfigHandlerTests(unittest.TestCase):
         subset2.freeze = True
         subset2.remove('level2_1.param2')
         self.assertTrue('entry2_level1.level2_1.param2' in subset2._config)
+
+class _taskMeta(object):
+    
+    def myclass(self):
         
-    def test_config_update(self):
+        print("This is a baseclass")
+
+
+class ConfigHandlerORMTests(unittest.TestCase):
+    """
+    Unittest ConfigHandler ORM tests
+    """
+    
+    _currpath = os.path.abspath(__file__)
+    _settings_json = os.path.join(os.path.dirname(_currpath), 'config_orm_test.json')
+    
+    def setUp(self):
         """
-        Test dictionary set, remove and update methods
+        ConfigHandlerTests class setup
+        
+        Load test settings file from config_orm_test.json
         """
         
-        # When the config instance is not frozen
-        self.settings['entry1_level1.param2'] = 200
-        self.assertEqual(self.settings.get('entry1_level1.param2'), 200)
-        self.settings.entry1_level1.param2 = 300
-        self.assertEqual(self.settings.get('entry1_level1.param2'), 300)
-        self.settings.set('entry1_level1.param2', "liestudio")
-        self.assertEqual(self.settings.get('entry1_level1.param2'), "liestudio")
+        self.data = _flatten_nested_dict(json.load(open(self._settings_json)))
+        self.settings = ConfigHandler()
+        self.settings._orm = {'_taskMeta': _taskMeta}
+        self.settings.load(self.data)
+    
+    def test_orm_mapper(self):
         
-        subset = self.settings.entry1_level1
-        subset2 = self.settings.entry2_level1
-        rawdict = subset.dict()
-        rawdict.update(subset2.dict())
-        subset.update(subset2)
+        b = self.settings._taskMeta
+        print(b)
+        print(b.myclass())
+
+
+class ConfigHandlerIOTests(unittest.TestCase):
+    """
+    Unittest ConfigHandler IO tests
+    """
+    
+    _currpath = os.path.abspath(__file__)
+    _settings_json = os.path.join(os.path.dirname(_currpath), 'config_handler_test')
+    
+    @classmethod
+    def setUpClass(cls):
+        """
+        ConfigHandlerTests class setup
+        
+        Load the reference configuration
+        """
+        
+        cls.data = json.load(open('{0}.json'.format(cls._settings_json)))
+        cls.reference_config = ConfigHandler()
+        cls.reference_config.load(cls.data)
+    
+    def tearDown(self):
+        """
+        Remove exported test files
+        """
+        
+        for exp in glob.glob('{0}_exporttest.*'.format(self._settings_json)):
+            os.remove(exp)
+    
+    def test_import_yaml(self):
+        """
+        Test import of configuration from YAML file
+        """
+        
+        yamldata = config_from_yaml('{0}.yaml'.format(self._settings_json))
+        config = ConfigHandler()
+        config.load(yamldata)
+        
+        self.assertEqual(self.reference_config, config)
+
+    def test_import_ini(self):
+        """
+        Test import of configuration from INI file
+        """
+        
+        inidata = config_from_ini('{0}.ini'.format(self._settings_json))
+        config = ConfigHandler()
+        config.load(inidata)
+        
+        self.assertEqual(self.reference_config, config)
+    
+    def test_import_json(self):
+        """
+        Test import of configuration from JSON file
+        """
+        
+        jsondata = config_from_json('{0}.json'.format(self._settings_json))
+        config = ConfigHandler()
+        config.load(jsondata)
+        
+        self.assertEqual(self.reference_config, config)
+    
+    def test_import_json(self):
+        """
+        Test import of configuration from JSON file
+        """
+        
+        jsondata = config_from_json('{0}.json'.format(self._settings_json))
+        config = ConfigHandler()
+        config.load(jsondata)
+        
+        self.assertEqual(self.reference_config, config)
+    
+    def test_export_json(self):
+        """
+        Test export of configuration to JSON file
+        """
+        
+        config_to_json(self.reference_config, tofile='{0}_exporttest.json'.format(self._settings_json))
+        
+    def test_export_yaml(self):
+        """
+        Test export of configuration to YAML file
+        """
+        
+        config_to_yaml(self.reference_config, tofile='{0}_exporttest.yaml'.format(self._settings_json))
+    

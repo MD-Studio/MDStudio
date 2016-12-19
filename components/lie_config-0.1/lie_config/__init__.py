@@ -106,7 +106,7 @@ class configwrapper(object):
     order to the keyword argument name.
     
     :param instance:      function or class name for which to retrieve configuration
-                        multiple names allowed for a specific resolution order.
+                          multiple names allowed for a specific resolution order.
     :type instance:       str or list
     :param confighandler: specific ConfigHandler instance to get configuration from
     :type confighandler:  str
