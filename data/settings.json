@@ -126,6 +126,7 @@
             "lie_logger", 
             "lie_user"
         ], 
+        "is_docker_build": true, 
         "platform": "linux2", 
         "shutdown_order": [
             "lie_user", 

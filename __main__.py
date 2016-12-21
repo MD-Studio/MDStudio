@@ -3,6 +3,7 @@
 """
 Main application bootstrapping
 """
+from glob import glob
 
 import os
 import sys
@@ -10,6 +11,7 @@ import json
 import atexit
 import shutil
 import fnmatch
+import re
 
 try:
   import _preamble
@@ -56,39 +58,39 @@ def _format_crossbar_cliargs(args):
     :type args:  ConfigHandler instance
     :rtype:      list
     """
-    
+
     options = []
     commands = {}
     for key,value in args.items():
-        
+
         key_split = key.split('.')
-        
+
         # Only accept one or two argument commands
         if len(key_split) == 1:
             if isinstance(value, bool) and value:
                 options.extend(['--{0}'.format(key_split[0])])
-            else:    
+            else:
                 options.extend(['--{0}'.format(key_split[0]), value])
         elif len(key_split) == 2:
             if not key_split[0] in commands:
                 commands[key_split[0]] = []
             if isinstance(value, bool) and value:
                 commands[key_split[0]].append(['--{0}'.format(key_split[1])])
-            else:    
+            else:
                 commands[key_split[0]].append(['--{0}'.format(key_split[1]), value])
         else:
             logging.warn('Invalid crossbar CLI settings: {0} = {1}'.format(key,value))
-        
+
     for command, args in commands.items():
         options.append(command)
         for arg in args:
             options.extend(arg)
-    
+
     return options
 
 
 def bootstrap_app(args):
-    
+
     # If custom configuration file does not exists, exit.
     app_settings = os.path.join(__rootpath__, 'data/settings.json')
     if not os.path.isfile(args.config) and args.config != app_settings:
@@ -96,7 +98,7 @@ def bootstrap_app(args):
 
     # If no application settings.json file, copy default settings file.
     elif not os.path.isfile(args.config):
-        
+
         # copy base settings file
         default_config_file = os.path.join(__rootpath__, 'data/settings_default.json')
         if os.path.isfile(default_config_file):
@@ -120,7 +122,20 @@ def bootstrap_app(args):
     # Initiate ComponentManager with component search paths
     # Only load modules with prefix 'lie_' from virtual environment site-packages 
     components = ComponentManager(config=config)
-    components.add_searchpath(venvpath, prefix='lie_')  
+    components.add_searchpath(venvpath, prefix='lie_')
+
+    if 'system.is_docker_build' in config and config['system.is_docker_build']:
+        def list_components(self, searchpath):
+            found = {}
+            for g in glob(os.path.join(searchpath, '*/*/')):
+                match = re.match(r'(.*/(.*)-.*/\2)/', g)
+                if match:
+                    found[match.group(2)] = match.group(1)
+            return found
+
+        # in case we run in docker build mode
+        components.add_searchpath( os.path.join(__rootpath__, 'components/'), prefix='lie_', search_method=list_components)
+
     for path in config.system.get('component_path',[]):
         components.add_searchpath(path)
 
@@ -137,21 +152,21 @@ def bootstrap_app(args):
 
     # Register component shutdown procedures with the atexit module
     atexit.register(components.shutdown)
-    
+
     # format crossbar configuration to a sys.argv list that can be
     # parsed by the crossbar cli argparser.
     crossbar_cliargs = _format_crossbar_cliargs(config.crossbar)
-    
+
     # Save the updated global configuration back to the settings.json file
     config_to_json(config, app_settings)
-    
+
     # Import crossbar and start main event loop
     from crossbar.controller.cli import run
     run(prog='crossbar', args=crossbar_cliargs)
 
 
 if __name__ == '__main__':
-  
+
     # Launch app from command line.
     # Parse CLI arguments and bootstrap app
     from cli import lie_cli

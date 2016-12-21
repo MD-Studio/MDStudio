@@ -61,14 +61,17 @@ class ComponentManager(object):
         
         return components
     
-    def add_searchpath(self, searchpath, prefix=None):
+    def add_searchpath(self, searchpath, prefix=None,
+                       search_method=lambda self, searchpath: self._list_components(searchpath)):
         """
         Add a component search path to the manager
         
         Add all Python modules (packages), or optionally those
         starting with `prefix` in the specified search path to
         the ComponentManager
-      
+
+        :param search_method: callback that list directories with components
+        :type  search_method: lambda
         :param searchpath: path to component directory
         :type searchpath:  string
         :param prefix:     component name prefix to filter on
@@ -77,8 +80,8 @@ class ComponentManager(object):
         
         if not os.path.exists(searchpath):
           self.logging.error('LIE component searchpath does not exist: {0}'.format(searchpath))
-        
-        components = self._list_components(searchpath)
+
+        components = search_method(self, searchpath)
         if prefix:
           components = dict([(k,v) for k,v in components.items() if k.startswith(prefix)])
         
@@ -92,7 +95,7 @@ class ComponentManager(object):
         if not searchpath in self._searchpath:
           self._searchpath.append(searchpath)
         if not searchpath in sys.path:
-          sys.path.append(path)
+          sys.path.append(searchpath)
           
     def component_settings(self, components=None):
         """ 
@@ -139,11 +142,15 @@ class ComponentManager(object):
             
             if component_name in sys.modules and not do_reload:
               return sys.modules[component_name]
-            
+
+            #try:
             mfile, filename, data = imp.find_module(component, [path])
+            #except ImportError:
+            #    mfile, filename, data = imp.find_module(component_name, [path])
+
             mod = imp.load_module(component_name, mfile, filename, data)
-            
             return mod
+
             
     def bootstrap(self, components=None, order=[]):
         """

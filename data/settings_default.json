@@ -132,6 +132,7 @@
             "lie_config", 
             "lie_logger", 
             "lie_db"
-        ]
+        ],
+        "is_docker_build": false
     }
 }

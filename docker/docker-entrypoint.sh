@@ -1,4 +1,3 @@
-
 if [ ! -d "$DIRECTORY" ]; then
     bash installer.sh --setup --local-dev &>> docker/.INSTALLING
 else
