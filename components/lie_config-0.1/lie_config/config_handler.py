@@ -8,8 +8,9 @@ import weakref
 from   fnmatch        import fnmatch
 from   twisted.logger import Logger
 
-from   .config_format import ConfigFormatter
-from   .config_io     import _flatten_nested_dict
+from   .config_format       import ConfigFormatter
+from   .config_orm_handler  import ConfigOrmHandler
+from   .config_io           import _flatten_nested_dict
 
 logging = Logger()
 
@@ -31,8 +32,8 @@ class ConfigHandler(object):
     The package name and attribute name (or setting name) are required, 
     class and function names are optional.
   
-    A subset of settings can be retrieved using the `fetch` method. 
-    The `fetch` method returns a copy of the requested settings from the main
+    A subset of settings can be retrieved using the `search` method. 
+    The `search` method returns a copy of the requested settings from the main
     settings dictionary in package name order. This allows for a safe
     overloading of the settings for that particular instance only.
     The returned subset supports Python string formatting for string based
@@ -45,24 +46,41 @@ class ConfigHandler(object):
     application path derived from the system package.
     
     TODO: harmonize difference in dictionary methods between Python 2.x and 3.x
-        Perhaps inherit from 2.x, 3.x specific dict method class.
+          Perhaps inherit from 2.x, 3.x specific dict method class.
     """
     
-    def __init__(self, config={}, keys=None, freeze=False, format_value=ConfigFormatter, level=0):
+    def __init__(self, config={}, keys=None, freeze=False, level=0, sep='.',
+                 format_value=ConfigFormatter, orm=ConfigOrmHandler):
         """
         Implement class __init__ method
         
         :param config:       dictionary to manage
-        :type config:        dict
+        :type config:        dict or DictWrapper
+        :param keys:         dictionary keys representing the current 
+                             (sub)dictionary
+        :type keys:          dict
         :param freeze:       allow addition of new keys or removal of keys
         :type freeze:        bool
-        :param format_value: parse the value through the custom ConfigFormatter string
-                             formatting class before returning
+        :param format_value: parse the value through the custom ConfigFormatter
+                             string formatting class before returning
         :type format_value:  bool
+        :param level:        depth in a nested dictionary managed by the current 
+                             ConfigHandler instance
+        :type level:         int
+        :param sep:          seperator string used to concatenate nested
+                             dictionary keys. '.' by default.
+        :type sep:           str
         """
         
-        self._config = None
+        self._freeze  = freeze
+        self._sep     = sep
+        self._keys    = {}
+        self._reskeys = keys
+        self._orm_key = None
+        self.level    = level
+        
         self._weakref_config(config)
+        self.load(config, clear=False)
         
         # Instantiate format class if needed
         if type(format_value).__name__ == 'type':
@@ -70,13 +88,12 @@ class ConfigHandler(object):
         else:
             self.format_value = format_value
         
-        self.level  = level
-        self.freeze = freeze
+        # Instantiate ORM class if needed
+        if type(orm).__name__ == 'type':
+            self._orm_handler = orm(ConfigHandler)
+        else:
+            self._orm_handler = orm
         
-        self._orm = {}
-        self._keys  = {}
-        self._reskeys = keys
-        self._resolve_config_level(self._reskeys)
         self._initialised = True
         
     def __call__(self):
@@ -298,9 +315,8 @@ class ConfigHandler(object):
         
         if not key in self.__dict__:
             query = self.get(key)
-            if query:
-                return query
-
+            return query
+        
         return object.__getattribute__(self, key)
         
     def __getitem__(self, key):
@@ -457,11 +473,11 @@ class ConfigHandler(object):
         """
         
         for key in keys or self._config.keys():
-            splitted = key.split('.')
+            splitted = key.split(self._sep)
             if self.level >= len(splitted):
                 self._keys[splitted[-1]] = key
             else:
-                self._keys['.'.join(splitted[self.level:])] = key
+                self._keys[self._sep.join(splitted[self.level:])] = key
     
     def _leveled_dict_copy(self):
         """
@@ -512,7 +528,7 @@ class ConfigHandler(object):
             nested_dict = {}
             for key,value in self._keys.items():
                 
-                splitted = key.split('.')
+                splitted = key.split(self._sep)
                 d = nested_dict
                 for k in splitted[:-1]:
                     if not k in d:
@@ -571,13 +587,13 @@ class ConfigHandler(object):
                 if not k.startswith(key):
                     continue
                 
-                splitted = k.split('.')
+                splitted = k.split(self._sep)
                 if level >= len(splitted):
                     flattened[splitted[-1]] = v
                 else:
-                    flattened['.'.join(splitted[level:])] = v
+                    flattened[self._sep.join(splitted[level:])] = v
         
-        fl = ConfigHandler(self._config, level=level, freeze=self.freeze)
+        fl = ConfigHandler(self._config, level=level, freeze=self._freeze)
         fl._keys = flattened
         
         return fl
@@ -592,7 +608,7 @@ class ConfigHandler(object):
         
         attributes = []
         for key in self.keys():
-            key = key.split('.')
+            key = key.split(self._sep)
             if len(key) > level or level < 0:
                 attributes.append(key[level])
         
@@ -622,7 +638,7 @@ class ConfigHandler(object):
         levels = []
         for key in keys:
             if attribute in key:
-                levels.append(key.split('.').index(attribute))
+                levels.append(key.split(self._sep).index(attribute))
         
         return [(l,levels.count(l)) for l in set(levels)]
     
@@ -635,7 +651,7 @@ class ConfigHandler(object):
         :rtype:  bool
         """
         
-        return any('.' in key for key in self.keys())
+        return any(self._sep in key for key in self.keys())
     
     def levels(self):
         """
@@ -645,15 +661,17 @@ class ConfigHandler(object):
         :rtype:  int
         """
         
-        return max([len(n.split('.')) for n in self.keys()])
+        return max([len(n.split(self._sep)) for n in self.keys()])
     
-    def load(self, config):
+    def load(self, config, clear=True):
         """
         Load configuration dictionary.
         
-        This will clear any configuration dictionary already
-        loaded and reinitialize the current ConfigHandler class
-        as root for the new configuration.
+        This will clear any configuration dictionary already loaded and
+        reinitialize the current ConfigHandler class as root for the new
+        configuration.
+        Use the `update` or `add` methods to update an existing instance
+        of a root ConfigHandler class.
         
         :param config: configuration
         :type config:  dict
@@ -662,10 +680,11 @@ class ConfigHandler(object):
         assert isinstance(config, dict), TypeError("Default configuration needs to be defined as a dictionary, got: {0}".format(config))
         
         # Clear current config
-        self._config.clear()
+        if clear:
+            self._config.clear()
         self._keys.clear()
         
-        self._config.update(_flatten_nested_dict(config))
+        self._config.update(_flatten_nested_dict(config, sep=self._sep))
         self._resolve_config_level(self._reskeys)
     
     def remove(self, key):
@@ -691,7 +710,7 @@ class ConfigHandler(object):
         
         assert key in self._keys, KeyError('Key "{0}" not in dictionary'.format(key))
         
-        if not self.freeze:
+        if not self._freeze:
             del self._config[self._keys[key]]
         
         del self._keys[key]
@@ -728,7 +747,7 @@ class ConfigHandler(object):
         
         # If no match, return empty ConfigHandler
         if not len(match):
-            return ConfigHandler(freeze=self.freeze, format_value=self.format_value)
+            return ConfigHandler(freeze=self._freeze, format_value=self.format_value)
         
         return self.subdict(match, level=level)
     
@@ -748,22 +767,26 @@ class ConfigHandler(object):
                 
     def subdict(self, keys, level=0):
         """
-        Return a new ConfigHandler instance reflecting a subdictionary
+        Return a new ConfigHandler instance reflecting a subdictionary.
+        
+        Supports an ORM mapper to map custom instances of the ConfigHandler
+        class to keys.
         
         :param keys: subdictionary keys
         :type keys:  list
         """
         
-        if self._orm_key in self._orm:
-            ORMClass = type(ConfigHandler.__name__, (self._orm[self._orm_key], ConfigHandler), {})
-        else:
-            ORMClass = ConfigHandler
-            
-        return ORMClass(self._config,
-                             keys,
-                             freeze=self.freeze,
-                             format_value=self.format_value,
-                             level=level)
+        # Extend the ConfigHandler base class with custom methods for the key
+        # if defined in the ORM class.
+        ORMClass = self._orm_handler.get(self._orm_key)
+        
+        return ORMClass(config=self._config,
+                        keys=keys,
+                        freeze=self._freeze,
+                        format_value=self.format_value,
+                        orm=self._orm_handler,
+                        level=level,
+                        sep=self._sep)
     
     # PYTHON DICTIONARY METHODS
     def clear(self):
@@ -774,7 +797,7 @@ class ConfigHandler(object):
         dictionary is freezed
         """
         
-        if self.freeze:
+        if self._freeze:
             raise KeyError('Unable to clear freezed dictionary'.format(key))
         
         self._keys = []
@@ -808,6 +831,7 @@ class ConfigHandler(object):
             value = self._config.get(self._keys[key], default)
             return self._format(value)
         
+        # Save the current query key for use by the ORM mapper down the line
         self._orm_key = key
         query = self.search('^{0}(?=.|$)'.format(key), regex=True, level=self.level+1)
         self._orm_key = None
@@ -866,18 +890,27 @@ class ConfigHandler(object):
         """
         Update and/or add key,value pair to dictionary
         
-        Do not allow addition of new key,value pairs if the
-        dictionary is frozen
+        Do not allow addition of new key,value pairs if the dictionary is
+        frozen. If the value is a dictionary, flatten it and update
+        self._config
         
         :param key:   dictionary key to update/add
         :type key:    str
         :param value: dictionary value to update/add
         """
         
-        if key not in self._keys and self.freeze:
+        if key not in self._keys and self._freeze:
             raise KeyError('Unable to add new key "{0}" to frozen dictionary'.format(key))
         
-        self._config[self._keys.get(key,key)] = value
+        # If value is dictionary, flatten and update self._config. Remove original key.
+        if isinstance(value, dict):
+            self._config.update(_flatten_nested_dict(value, parent_key=self._keys.get(key,key), sep=self._sep))
+            self._resolve_config_level()
+            del self._config[self._keys[key]]
+            del self._keys[key]
+        
+        else:
+            self._config[self._keys.get(key,key)] = value
         
     def update(self, other, replace=True):
         """
@@ -903,7 +936,7 @@ class ConfigHandler(object):
                     self._config[v] = other._config[v]
                     
         elif isinstance(other, dict):
-            other = _flatten_nested_dict(other)
+            other = _flatten_nested_dict(other, sep=self._sep)
             self._config.update(other)
             self._resolve_config_level()
         else:

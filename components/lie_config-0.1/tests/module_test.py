@@ -21,9 +21,10 @@ sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 # Python 2.x and 3.x
 PY3 = sys.version_info.major == 3
 
-from lie_config           import *
-from lie_config.config_io import (_flatten_nested_dict, config_from_yaml, config_from_ini, config_from_json,
-                                  config_to_yaml, config_to_ini, config_to_json)
+from lie_config                     import *
+from lie_config.config_orm_handler  import ConfigOrmHandler
+from lie_config.config_io           import (_flatten_nested_dict, config_from_yaml, config_from_ini, config_from_json,
+                                            config_to_yaml, config_to_ini, config_to_json)
 
 formatted_example_config = {
     'entry1_level1.param1': '/usr/app/data/liedb',
@@ -334,15 +335,16 @@ class ConfigHandlerTests(unittest.TestCase):
         
         # Difference between a frozen and unfrozen dict
         self.assertFalse('entry2_level1.level2_1.param4.app_namespace' in subset2._config)
-        subset2.freeze = True
+        subset2._freeze = True
         subset2.remove('level2_1.param2')
         self.assertTrue('entry2_level1.level2_1.param2' in subset2._config)
 
+
 class _taskMeta(object):
     
-    def myclass(self):
+    def custommethod(self):
         
-        print("This is a baseclass")
+        return "custom method"
 
 
 class ConfigHandlerORMTests(unittest.TestCase):
@@ -360,16 +362,20 @@ class ConfigHandlerORMTests(unittest.TestCase):
         Load test settings file from config_orm_test.json
         """
         
-        self.data = _flatten_nested_dict(json.load(open(self._settings_json)))
-        self.settings = ConfigHandler()
-        self.settings._orm = {'_taskMeta': _taskMeta}
-        self.settings.load(self.data)
+        data = config_from_json(self._settings_json)
+        
+        # Setup ORM handler
+        orm = ConfigOrmHandler(ConfigHandler)
+        orm.add('_taskMeta', _taskMeta)
+        
+        self.settings = ConfigHandler(orm=orm)
+        self.settings.load(data)
     
     def test_orm_mapper(self):
         
         b = self.settings._taskMeta
-        print(b)
-        print(b.myclass())
+        self.assertTrue(hasattr(b, 'custommethod'))
+        self.assertEqual(b.custommethod(), "custom method")
 
 
 class ConfigHandlerIOTests(unittest.TestCase):
