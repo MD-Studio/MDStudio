@@ -16,21 +16,33 @@ from   twisted.logger import Logger
 
 logging = Logger()
 
-def _open_anything(source):
+def _open_anything(source, mode='r'):
+  """
+  Open input available from a file, a Python file like object, standard
+  input, a URL or a string and return a uniform Python file like object
+  with standard methods.
+  
+  :param source: Input as file, Python file like object, standard
+                 input, URL or a string
+  :type source:  mixed
+  :param mode:   file access mode, defaults to 'r'
+  :type mode:    string
+  :return:       Python file like object
+  """
   
   # Check if the source is a file and open
   if os.path.isfile(source):
-    logging.debug("Reading file from disk {0}".format(source))
-    return open(source, 'r')
+    logging.debug('Reading file from disk {0}'.format(source))
+    return open(source, mode)
     
   # Check if source is file already openend using 'open' or 'file' return
-  elif hasattr(source, 'read'):
-    logging.debug("Reading file %s from file object" % source.name)
+  if hasattr(source, 'read'):
+    logging.debug('Reading file {0} from file object'.format(source.name))
     return source
     
   # Check if source is standard input
-  elif source == '-':
-    logging.debug("Reading file from standard input")
+  if source == '-':
+    logging.debug('Reading file from standard input')
     return sys.stdin
     
   else:
@@ -40,7 +52,7 @@ def _open_anything(source):
       import urllib2, urlparse
       if urlparse.urlparse(source)[0] == 'http':
         result = urllib.urlopen(source)
-        loggin.debug("Reading file from URL with access info:\n %s" % result.info())
+        loggin.debug("Reading file from URL with access info:\n {0}".format(result.info()))
         return result
     except:
       logging.info("Unable to access URL")    
