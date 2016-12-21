@@ -58,6 +58,7 @@ Installation/update variables:
                     Currently build-in venv module of Python 3.4> or Python 2.x virtualenv
 -v|--verbosity:     verbosity level.
                     Default = $VERBOSITY
+-l|--local-dev      Installs lie studio components inplace, making the easily editable.
                     
 -h|--help:          This help message
 """
@@ -102,6 +103,10 @@ for i in "$@"; do
     -v=*|--verbosity=*)
     VERBOSITY="${i#*=}"
     shift # past argument=value
+    ;;
+    -l|--local-dev)
+    LOCALDEV=1
+    shift # past argument with no value
     ;;
     *)
     echo "$USAGE"
@@ -353,11 +358,14 @@ function _install_update_packages () {
   local _force_reinstall=''
   [[  $UPDATE -eq 1 ]] && _force_reinstall='--upgrade'
   
+  local _local_install=''
+  [[  $LOCALDEV -eq 1 ]] && _local_install='-e'
+  
   # Install LIEStudio components using pip
   for package in $( ls -d ${ROOTDIR}/components/*/ ); do
     if [[ -e ${package}/setup.py ]]; then
       echo "INFO: Install LIEStudio Python component ${package}"
-      pip install $_force_reinstall $package
+      pip install $_force_reinstall $_local_install $package
     fi
   done
   

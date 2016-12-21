@@ -1,10 +1,13 @@
-rm docker/.INSTALLING
-touch docker/.INSTALLING
-chmod 777 docker/.INSTALLING
 
-mkdir docs/html
-bash installer.sh --setup &>> docker/.INSTALLING
+if [ ! -d "$DIRECTORY" ]; then
+    bash installer.sh --setup --local-dev &>> docker/.INSTALLING
+else
+    bash installer.sh --upgrade &>> docker/.INSTALLING
+fi
 
+
+# notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
 
-tail -F -n0 /etc/hosts
+#execute the default phusion script
+/sbin/my_init

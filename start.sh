@@ -1,6 +1,17 @@
-docker-compose up -d --force-recreate
+# allows polling the installation process
+rm docker/.INSTALLING 2> /dev/null
+touch docker/.INSTALLING
+chmod 777 docker/.INSTALLING
 
-sleep 1
+# for documentation
+mkdir -p docs/html 
+mkdir -p docs/html/_static
+
+# start the containers
+docker-compose up -d
+
+# display the installation progress
 sh -c 'tail -n +0 -f docker/.INSTALLING | { sed "/<<<<COMPLETED>>>>/ q" && kill $$ ;}' && (rm docker/.INSTALLING || true)
 
+# login into workspace
 docker exec -it liestudio_workspace_1 bash
