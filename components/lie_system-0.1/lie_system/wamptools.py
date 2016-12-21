@@ -84,7 +84,7 @@ class LieApplicationSession(ApplicationSession):
     Twisted logger as self.log
     """
     
-    def __init__(self, config, package_config={}, **kwargs):
+    def __init__(self, config, package_config=None, **kwargs):
         """
         Class constructor
 
@@ -146,7 +146,11 @@ class LieApplicationSession(ApplicationSession):
         :param password:       password for authentication
         :type password:        str
         """
-        
+        # we cannot use default argument {} since it stores references internally,
+        # making subsequent constructions unpredictable
+        if package_config is None:
+            package_config = {}
+
         # Init session_config with default values
         self.session_config = {
             'realm': config.realm,

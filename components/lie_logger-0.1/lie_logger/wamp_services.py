@@ -18,11 +18,16 @@ class LoggerWampApi(LieApplicationSession):
     """
     Logger management WAMP methods.
     """
-  
-    client = MongoClient(host='localhost', port=27017)
-    db = client['liestudio']
-    log_collection = db['log']
-    
+    db = None#MongoClient(host='localhost', port=27017)client['liestudio']
+    log_collection = None#
+
+    def __init__(self, config, *args, **kwargs):
+
+        super(LoggerWampApi, self).__init__(self, config, *args, **kwargs)
+
+        self.db = MongoClient(host=config.get('lie_db.host'), port=config.get('lie_db.port'))['liestudio']
+        self.log_collection = self.db['log']
+
     @wamp.register(u'liestudio.logger.log')
     def log_event(self, event, default_log_level='info'):
         """

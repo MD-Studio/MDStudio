@@ -7,8 +7,6 @@ WAMP service methods the module exposes.
 """
 
 from autobahn import wamp
-from pymongo import MongoClient
-from twisted.internet.defer import inlineCallbacks
 from autobahn.wamp.exception import ApplicationError
 
 from lie_system import LieApplicationSession

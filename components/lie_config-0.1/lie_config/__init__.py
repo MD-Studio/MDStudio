@@ -135,7 +135,7 @@ class configwrapper(object):
     # Get parameter names from the global config.
     settings = get_config(name=self.confighandler).search(query)
     
-    # Determine level at wich to flatten config file
+    # Determine level at which to flatten config file
     levels = []
     for q in self.instance:
       levels.extend([l[0] for l in settings.get_level_for_attribute(q)])
