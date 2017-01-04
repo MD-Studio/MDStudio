@@ -41,6 +41,7 @@ When you want to use your private shell you can login using ssh using the follow
 #### Pycharms
 Go to `File > Project Settings > Project Interpreter`, and add a remote interpreter,
 and make sure it matches this screen.
+
 ![Configuration settings](docs/img/pycharm-config.png)
 
 ## Manual
