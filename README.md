@@ -22,7 +22,7 @@ To use the docker environment you have to start the container:
     >> ./start.sh
 
 This command will spin up the complete environment including MongoDB, and ssh's into the 
-container. When you want to exit this mode just use `ctrl+c` to exit. Containers can be
+container. When you want to exit this mode just use `>> exit` to exit. Containers can be
 stopped using:
 
     >> ./stop.sh
