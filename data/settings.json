@@ -2,7 +2,7 @@
     "crossbar": {
         "start": {
             "cbdir": "{system.app_path}/data/crossbar/", 
-            "config": "{crossbar.start.cbdir}config_tls.json", 
+            "config": "{crossbar.start.cbdir}config_notls.json", 
             "logdir": "{system.app_path}/data/logs", 
             "loglevel": "info", 
             "logtofile": true
@@ -129,7 +129,6 @@
         "platform": "darwin", 
         "shutdown_order": [
             "lie_user", 
-            "lie_config", 
             "lie_logger", 
             "lie_db"
         ]
