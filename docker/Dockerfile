@@ -31,6 +31,8 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
     && chmod 400 /root/.ssh/id_rsa \
 ;fi
 
+ADD docker/.bash_profile ~/.bash_profile
+
 WORKDIR /app/
 
-ENTRYPOINT ["bash", "docker/docker-entrypoint.sh" ]
+ENTRYPOINT ["bash", "docker/docker-entrypoint.sh" ] 

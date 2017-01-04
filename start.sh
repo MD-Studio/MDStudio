@@ -16,4 +16,4 @@ docker-compose up -d
 sh -c 'tail -n +0 -f docker/.INSTALLING | { sed "/<<<<COMPLETED>>>>/ q" && kill $$ ;}' && (rm docker/.INSTALLING || true)
 
 # login into workspace
-docker exec -it liestudio_workspace_1 bash
+docker exec -it liestudio_workspace_1 bash -l

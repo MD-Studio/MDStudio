@@ -5,9 +5,9 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="ssh://root@127.0.0.1:65432/app/lie_venv/bin/python" />
+    <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-    <option name="IS_MODULE_SDK" value="false" />
+    <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <module name="LIEStudio" />
@@ -15,9 +15,6 @@
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/__main__.py" />
     <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
-    <method>
-      <option name="RemoteToolBeforeRunTask" enabled="true" actionId="RemoteTool_External Tools_Source" />
-      <option name="RemoteToolBeforeRunTask" enabled="true" actionId="RemoteTool_External Tools_Debug speedup" />
-    </method>
+    <method />
   </configuration>
 </component>
