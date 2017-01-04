@@ -25,11 +25,12 @@ class LIEWorkflow(LieApplicationSession):
         
         #Dock structures
         self.log.info('Dock {0} structures'.format(len(ligands)))
+        docking_config = {'workdir':'/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/tmp',
+                          'bindingsite_center': [7.79934,9.49666,3.39229]}
         docked = []
-        for structure in ligands:
-          b = yield structure
-          docked.append(self.call(u'liestudio.docking.run', 
-              protein['result'], b['result'], bindingsite_center=[7.79934,9.49666,3.39229]))
+        for ligand in ligands:
+          lig = yield ligand
+          docked.append(self.call(u'liestudio.docking.plants', protein['result'], lig['result'], config=docking_config))
         
         #Simulating a MD run
         self.log.info('Running MD for {0} structures'.format(len(docked)))

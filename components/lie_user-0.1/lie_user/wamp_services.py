@@ -73,7 +73,7 @@ class UserWampApi(LieApplicationSession):
         :rtype:         dict or False
         """
         
-        auth_method = details.get(u'authmethod', None)
+        authmethod = details.get(u'authmethod', None)
         
         # Resolve request domain
         domain = None
@@ -81,8 +81,8 @@ class UserWampApi(LieApplicationSession):
             domain = details[u'http_headers_received'].get(u'host', None)
             details[u'domain'] = domain
         
-        self.log.debug('WAMP authentication request for realm: {realm}, authid: {authid}, method: {auth_method} domain: {domain}',
-            realm=realm, authid=authid, auth_method=auth_method, domain=domain)
+        self.log.debug('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
+            realm=realm, authid=authid, authmethod=authmethod, domain=domain)
         
         # Check for essentials (authid)
         if authid == None:
@@ -97,7 +97,7 @@ class UserWampApi(LieApplicationSession):
             raise ApplicationError('Access from domain {0} not allowed'.format(domain))
         
         # WAMP-ticket authetication
-        if auth_method == u'ticket':
+        if authmethod == u'ticket':
             if self.usermanager.validate_user_login(authid, details['ticket']):
                 self.usermanager.set_session_id(details.get(u'session', 0))
                 user_settings = self.usermanager.get_safe_user({'username': authid})
@@ -106,7 +106,7 @@ class UserWampApi(LieApplicationSession):
                 raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
         
         # WAMP-CRA authentication
-        elif auth_method == u'wampcra':
+        elif authmethod == u'wampcra':
             self.usermanager.set_session_id(details.get(u'session', 0))
             user_settings = self.usermanager.get_user({'username': authid})
             if user_settings:
@@ -116,7 +116,7 @@ class UserWampApi(LieApplicationSession):
                 raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
         
         else:
-            raise ApplicationError("No such authentication method known: {0}".format(auth_method))
+            raise ApplicationError("No such authentication method known: {0}".format(authmethod))
         
         # Log authorization
         self.log.info('Access granted. user: {user}', user=authid, **details)

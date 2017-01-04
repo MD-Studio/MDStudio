@@ -1,20 +1,30 @@
 # -*- coding: utf-8 -*-
 
 """
-Unit tests for the config component WAMP API
+Unit tests for the docking component WAMP API
 """
 
-import os, sys
+import os
+import sys
 import shutil
 
 # Add modules in package to path so we can import them
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+__rootpath__ = os.path.dirname(__file__)
+sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
 from   autobahn.twisted.util    import sleep
 from   autobahn.twisted         import wamp
 from   twisted.trial            import unittest
 from   twisted.internet         import defer
 from   twisted.application      import service
+
+protein=None
+with open(os.path.join(__rootpath__, 'protein.mol2'), 'r') as pfile:
+    protein = pfile.read()
+
+ligand=None
+with open(os.path.join(__rootpath__, 'ligand.mol2'), 'r') as lfile:
+    ligand = lfile.read()
 
 class WAMPUnitTestBase(wamp.ApplicationSession):
     """
@@ -44,62 +54,29 @@ class WAMPUnitTestBase(wamp.ApplicationSession):
             print("already finished")
 
 
-class GetSingleConfig(WAMPUnitTestBase):
+class RunPlantsDocking(WAMPUnitTestBase):
     """
     Autobahn WAMP ApplicationSession test session.
     
-    Test retrieval of configuration based on a single configuration key.
+    Test lie_docking PLANTS based docking run
     """
     
     @defer.inlineCallbacks
     def onJoin(self, details):
         
-        res = yield self.call(u'liestudio.config.get', 'lie_logging')
+        config = {'bindingsite_center': [7.79934,9.49666,3.39229],
+                  'workdir': __rootpath__,
+                  'exec_path': os.path.join(__rootpath__, '../../../bin/plants_darwin')}
+        res = yield self.call(u'liestudio.docking.plants', protein, ligand, config=config)
         
-        returndict = type(res) == dict
-        returnsingle = len(res) == 1 and 'lie_logging' in res
+        self.log("logging config: {0}".format(res), testpass=True)
         
-        self.log("logging config: {0}".format(res), testpass=all([returndict, returnsingle]))
+        # Remove docking directory
+        if os.path.exists(res.get('dir', None)):
+            shutil.rmtree(res.get('dir'))
+        
         self.finish()
 
-
-class GetMultipleConfig(WAMPUnitTestBase):
-    """
-    Autobahn WAMP ApplicationSession test session.
-    
-    Test retrieval of configuration based on multiple configuration keys.
-    """
-    
-    @defer.inlineCallbacks
-    def onJoin(self, details):
-        
-        res = yield self.call(u'liestudio.config.get', ['lie_logging','system'])
-        
-        returndict = type(res) == dict
-        returnmult = len(res) == 2 and set(res.keys()) == set([u'system', u'lie_logging'])
-        
-        self.log("logging config: {0}".format(res), testpass=all([returndict, returnmult]))
-        self.finish()
-
-
-class GetNonexistingConfig(WAMPUnitTestBase):
-    """
-    Autobahn WAMP ApplicationSession test session.
-    
-    Test retrieval of non-existing configuration key.
-    """
-    
-    @defer.inlineCallbacks
-    def onJoin(self, details):
-        
-        res = yield self.call(u'liestudio.config.get', 'notexisting')
-        
-        returndict = type(res) == dict
-        returnempty = len(res) == 0
-        
-        self.log("logging config: {0}".format(res), testpass=all([returndict, returnempty]))
-        self.finish()
-        
 
 class ConfigWAMPTests(unittest.TestCase):
     """
@@ -128,16 +105,6 @@ class ConfigWAMPTests(unittest.TestCase):
         app.stopService()
 
     @defer.inlineCallbacks
-    def test_get_single(self):
+    def test_plants_docking(self):
         
-       yield self.runOneTest([GetSingleConfig])
-    
-    @defer.inlineCallbacks
-    def test_get_multiple(self):
-        
-       yield self.runOneTest([GetMultipleConfig])
-    
-    @defer.inlineCallbacks
-    def test_get_nonexisting(self):
-        
-       yield self.runOneTest([GetNonexistingConfig])
+       yield self.runOneTest([RunPlantsDocking])

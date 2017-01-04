@@ -26,12 +26,25 @@ class ConfigWampApi(LieApplicationSession):
         """
         Retrieve application configuration.
     
-        Search for `key` anywhere in a globally accessible 
-        configuration store. 
-        Returns query results in JSON format
+        Search for `key` anywhere in a globally accessible configuration store. 
+        Returns query results in JSON format.
+        `key` may be a single string to search for or a list of strings in 
+        wich case the resulting configuration dictionary is the collection of
+        individual query results
+        
+        :param key:    configuration key to search for
+        :type key:     string or list of strings
+        :param config: configuration store to look in (`default`)
+        :type config:  string
+        
+        :rtype:        dict
         """
         
-        settings = self.package_config.search('*{0}*'.format(str(key)))
+        if not isinstance(key, (tuple,list)):
+            key = [key]
+        key = ['*{0}*'.format(str(k)) for k in key]
+            
+        settings = self.package_config.search(key)
         return settings.dict(nested=True)
     
     def onExit(self, details):

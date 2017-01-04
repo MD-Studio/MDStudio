@@ -17,7 +17,6 @@ from pymongo.errors import ConnectionFailure
 
 from .settings import APP_COLLECTION
 
-
 def init_mongodb(settings):
     """
     Initiate the application MongoDB database
@@ -50,6 +49,21 @@ def exit_mongodb(settings):
                           port=settings.get('port'))
     db.stop(terminate_mongod_on_exit=settings.get('terminate_mongod_on_exit', False))
 
+def mongodb_connect(host='localhost', port=27017, **kwargs):
+    """
+    Connect to a running MongoDB database
+    
+    :param host: URL of the database
+    :param port: port number
+    :type port:  int
+    """
+    
+    # A port number is sometimes defined as a python long (L) by for instances
+    # databases or serializers. The MongoClient class does not exept this. 
+    port = int(port)
+    
+    client = MongoClient(host=host, port=port, **kwargs)
+    return client
 
 class BootstrapMongoDB(object):
     """
@@ -137,9 +151,11 @@ class BootstrapMongoDB(object):
 
         # Init Mongo Client without immediately connecting. Set connect- and
         # server Selection timeout to 2 sec. for fast connection probing.
-        client = self._connect(connect=False,
-                               connectTimeoutMS=2000,
-                               serverSelectionTimeoutMS=2000)
+        client = mongodb_connect(host=self._host,
+                                port=self._port,
+                                connect=False,
+                                connectTimeoutMS=2000,
+                                serverSelectionTimeoutMS=2000)
 
         # Try to establish connection
         try:
@@ -184,12 +200,6 @@ class BootstrapMongoDB(object):
 
         return pid
 
-    def _connect(self, **kwargs):
-
-        client = MongoClient(host=self._host, port=self._port, **kwargs)
-
-        return client
-
     def _start_mongodb(self):
         """
         Start a local mongod process
@@ -232,7 +242,7 @@ class BootstrapMongoDB(object):
 
         # Init pymongo MongoClient instance
         if not self.db:
-            self.db = self._connect()
+            self.db = mongodb_connect(host=self._host, port=self._port)
 
         # Check for appdatabase collection
         if not self.has_database:

@@ -36,7 +36,7 @@ class StructuresWampApi(LieApplicationSession):
             with open(structure_file, 'r') as sf:
                 result = sf.read()
         
-        self.log.info("Return structure: {structure}", structure=structure_file, **self.session_config)
+        self.log.info("Return structure: {structure}", structure=structure_file, **self.session_config.dict())
         
         return {'result': result}
 

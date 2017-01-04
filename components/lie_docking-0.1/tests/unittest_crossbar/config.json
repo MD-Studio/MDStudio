@@ -58,12 +58,10 @@
              },
             "components": [
                 {
-                   "type": "class",
-                   "realm": "wamp_test",
-                   "classname": "lie_config.wamp_services.ConfigWampApi",
-                   "extra": {
-                     "package_config": "../config_handler_test.json"
-                   }
+                    "type": "wamplet",
+                    "package": "lie_docking",
+                    "realm": "wamp_test",
+                    "entrypoint": "wamp_services"
                 }
              ]
         }

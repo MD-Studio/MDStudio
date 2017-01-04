@@ -138,7 +138,7 @@
                   "package_config": "../settings.json",
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 },
                 "transport": {
                   "type": "websocket",
@@ -167,7 +167,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               },
               {
@@ -187,7 +187,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               },
               {
@@ -207,7 +207,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               }
             ]
@@ -237,7 +237,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               },
               {
@@ -257,7 +257,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               }
             ]
@@ -287,7 +287,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               },
               {
@@ -307,7 +307,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               }
             ]
@@ -337,7 +337,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               },
               {
@@ -357,7 +357,7 @@
                 "extra": {
                   "authid": "lieadmin",
                   "password": "liepw@#",
-                  "auth_method": "ticket"  
+                  "authmethod": "ticket"  
                 }
               }
             ]
