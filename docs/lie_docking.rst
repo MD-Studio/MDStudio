@@ -33,6 +33,14 @@ lie_docking.docking_settings module
     :undoc-members:
     :show-inheritance:
 
+lie_docking.plants_conf module
+------------------------------
+
+.. automodule:: lie_docking.plants_conf
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie_docking.plants_docking module
 ---------------------------------
 
