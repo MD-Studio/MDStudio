@@ -36,6 +36,13 @@ When you want to use your private shell you can login using ssh using the follow
 | User    | `root`                       |
 | Port    | `65432`                      |
 
+### IDE Integration
+
+#### Pycharms
+Go to `File > Project Settings > Project Interpreter`, and add a remote interpreter,
+and make sure it matches this screen.
+![Configuration settings](docs/img/pycharm-config.png)
+
 ## Manual
 When you want to keep track of the whole environment for yourself, you should follow these
 instructions.
