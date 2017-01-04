@@ -4,6 +4,9 @@ else
     bash installer.sh --upgrade &>> docker/.INSTALLING
 fi
 
+# disable the debugger disabling code which spews a LOT of warnings
+sed -i 's/ sys.settrace(None)/ #sys.settrace(None)/g' /app/lie_venv/lib/python2.7/site-packages/twisted/internet/process.py
+
 echo "source /app/lie_venv/bin/activate" >> ~/.bashrc
 
 if [ -d /app/.pycharm_helpers/pydev/ ]; then
