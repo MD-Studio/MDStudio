@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from   __future__ import unicode_literals
+
 import re
 import copy
 import logging
@@ -12,51 +14,53 @@ from   .config_format       import ConfigFormatter
 from   .config_orm_handler  import ConfigOrmHandler
 from   .config_io           import _flatten_nested_dict
 
-logging = Logger()
-
 class DictWrapper(dict):
     pass
 
 class ConfigHandler(object):
     """
-    Manages the settings for all packages, modules or functions defined as 
-    dictionary of combined global settings provided at class initialisation 
+    Manages the settings for all packages, modules or functions defined as
+    dictionary of combined global settings provided at class initialisation
     or individually using the `load` methods.
-  
+    
     Internally, the settings are stored as a dictionary with keys representing
     the setting hierarchy as dot seperated string. For example:
-  
+    
     * <package name>.<class name>.<function name>.<attribute>
     * <package name>.<function name>.<attribute>
-  
-    The package name and attribute name (or setting name) are required, 
+    
+    The package name and attribute name (or setting name) are required,
     class and function names are optional.
-  
-    A subset of settings can be retrieved using the `search` method. 
+    
+    A subset of settings can be retrieved using the `search` method.
     The `search` method returns a copy of the requested settings from the main
     settings dictionary in package name order. This allows for a safe
     overloading of the settings for that particular instance only.
     The returned subset supports Python string formatting for string based
     settings in which the replacement token is the same dot seperated setting
     name. For example:
-  
+      
       'database_path': '{system.app_dir}/database'
-  
-    allows the datbase path the be resolved dynamically using the active 
+    
+    allows the datbase path the be resolved dynamically using the active
     application path derived from the system package.
     
     TODO: harmonize difference in dictionary methods between Python 2.x and 3.x
           Perhaps inherit from 2.x, 3.x specific dict method class.
+    TODO: parent pointer system is to difficult. Do we need it if we only use
+          level and full key subsets to search?
     """
     
-    def __init__(self, config={}, keys=None, freeze=False, level=0, sep='.',
+    logging = Logger()
+    
+    def __init__(self, config={}, keys=None, freeze=False, level=0, sep='.', parent='',
                  format_value=ConfigFormatter, orm=ConfigOrmHandler):
         """
         Implement class __init__ method
         
         :param config:       dictionary to manage
         :type config:        dict or DictWrapper
-        :param keys:         dictionary keys representing the current 
+        :param keys:         dictionary keys representing the current
                              (sub)dictionary
         :type keys:          dict
         :param freeze:       allow addition of new keys or removal of keys
@@ -64,7 +68,7 @@ class ConfigHandler(object):
         :param format_value: parse the value through the custom ConfigFormatter
                              string formatting class before returning
         :type format_value:  bool
-        :param level:        depth in a nested dictionary managed by the current 
+        :param level:        depth in a nested dictionary managed by the current
                              ConfigHandler instance
         :type level:         int
         :param sep:          seperator string used to concatenate nested
@@ -77,6 +81,11 @@ class ConfigHandler(object):
         self._keys    = {}
         self._reskeys = keys
         self._orm_key = None
+        
+        self._parent  = parent
+        if type(self._parent) != list:
+            self._parent = [parent]
+        
         self.level    = level
         
         self._weakref_config(config)
@@ -95,13 +104,13 @@ class ConfigHandler(object):
             self._orm_handler = orm
         
         self._initialised = True
-        
+    
     def __call__(self):
         """
         Implement class __call__ method
         
-        .. note:: This function will return a copy of the (sub)dictionary
-                  the object represents.
+        This function will return a **copy** of the (sub)dictionary
+        the object represents.
         
         :return: full configuration dictionary
         :rtype:  dict
@@ -114,7 +123,7 @@ class ConfigHandler(object):
         Deepcopy directives for this class
         
         All __dict__ attributes except the _config dictionary are deepcopied.
-        For the _config dictionary a copy is made for only those keys that 
+        For the _config dictionary a copy is made for only those keys that
         reflect the (sub)dictionary of the class instance.
         """
         
@@ -123,8 +132,9 @@ class ConfigHandler(object):
         
         for n, v in self.__dict__.items():
             if not n == '_config':
-                setattr(new, n, copy.deepcopy(v, memo))
+                new.__dict__[n] = copy.deepcopy(v, memo)
         
+        new.__dict__['_config'] = None
         new._weakref_config(dict([(v,self._config[v]) for k,v in self._keys.items()]))
         
         return new
@@ -221,7 +231,7 @@ class ConfigHandler(object):
         Implements addition (+).
         
         Add (sub)dictionary keys from other to self using the add method.
-        Addition equals dictionary updating but without replacement of 
+        Addition equals dictionary updating but without replacement of
         equal keys in self.
         
         :param other: other ConfigHandler instance
@@ -241,7 +251,7 @@ class ConfigHandler(object):
         Implements inplace addition (+=).
         
         Add (sub)dictionary keys from other to self using the add method.
-        Addition equals dictionary updating but without replacement of 
+        Addition equals dictionary updating but without replacement of
         equal keys in self.
         
         :param other: other ConfigHandler instance
@@ -250,7 +260,7 @@ class ConfigHandler(object):
         
         self.add(other)
         return self
-        
+    
     def __sub__(self, other):
         """
         Implements subtraction (-).
@@ -284,7 +294,7 @@ class ConfigHandler(object):
         subtract.sub(other)
         
         return subtract
-         
+    
     __radd__ = __add__
     __rsub__ = __sub__
     
@@ -318,7 +328,7 @@ class ConfigHandler(object):
             return query
         
         return object.__getattribute__(self, key)
-        
+    
     def __getitem__(self, key):
         """
         __getitem__ overload.
@@ -342,7 +352,7 @@ class ConfigHandler(object):
             return query
         
         return self.__dict__[key]
-            
+    
     def __iter__(self):
         """
         Implement class __iter__ method
@@ -387,8 +397,13 @@ class ConfigHandler(object):
         """
         __setattr__ overload.
         
-        Set dictionary entries using class attribute setter methods
-        fallback to the default __setattr__ behaviour.
+        Set dictionary entries using class attribute setter methods in
+        the following order:
+        
+        1 self.__dict__ setter at class initiation
+        2 config setter handeled by property methods
+        3 self.__dict__ only for existing keys
+        4 config setter for existing and new keys,value pairs
         
         :param name:  attribute name.
         :param value: attribute value
@@ -400,10 +415,10 @@ class ConfigHandler(object):
             return dict.__setattr__(self, key, value)
         elif isinstance(propobj, property) and propobj.fset:
             propobj.fset(self, value)
-        elif key in self._keys:
-            self.set(key, value)
-        else:
+        elif key in self.__dict__:
             self.__setitem__(key, value)
+        else:
+            self.set(key, value)
     
     def __setitem__(self, key, value):
         """
@@ -441,18 +456,18 @@ class ConfigHandler(object):
         for k in sorted(self.keys()):
             if self._keys[k] in self._config:
                 value = self._config[self._keys[k]]
-            
+                
                 # Encode strings to UTF-8
                 if type(value) in (str, unicode):
                     value = value.encode('utf-8')
-            
+                
                 overview.append('{0}: {1}\n'.format(k, value))
         
         return ''.join(overview)
     
     def _weakref_config(self, config):
         """
-        Setup a weak reference to the root instance of the 
+        Setup a weak reference to the root instance of the
         config dict if not done so already.
         
         :param config:       dictionary to make a weak reference to
@@ -464,7 +479,7 @@ class ConfigHandler(object):
             self._config = weakref.ref(wrapped_config)()
         else:
             self._config = config
-    
+               
     def _resolve_config_level(self, keys=None):
         """
         Set the keys in self._keys to reflect the attribute level
@@ -478,7 +493,7 @@ class ConfigHandler(object):
                 self._keys[splitted[-1]] = key
             else:
                 self._keys[self._sep.join(splitted[self.level:])] = key
-    
+        
     def _leveled_dict_copy(self):
         """
         Return a copy of the (sub)dictionary the ConfigHandler object
@@ -554,7 +569,7 @@ class ConfigHandler(object):
             if key in k:
                 return True
         
-        return False 
+        return False
     
     def flatten(self, resolve_order=None, level=1):
         """
@@ -677,7 +692,7 @@ class ConfigHandler(object):
         :type config:  dict
         """
         
-        assert isinstance(config, dict), TypeError("Default configuration needs to be defined as a dictionary, got: {0}".format(config))
+        assert isinstance(config, dict), TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(config)))
         
         # Clear current config
         if clear:
@@ -686,6 +701,23 @@ class ConfigHandler(object):
         
         self._config.update(_flatten_nested_dict(config, sep=self._sep))
         self._resolve_config_level(self._reskeys)
+    
+    def parent(self, key=None):
+        """
+        Returns the full parent key upto the current level.
+        This could potentially be ambiguous.
+        
+        :return: parent key or keys
+        :rtype:  list
+        """
+        
+        attributes = []
+        for key in self._keys.values():
+            key = key.split(self._sep)
+            if len(key) > self.level or self.level < 0:
+                attributes.append(self._sep.join(key[0:self.level]))
+        
+        return sorted(set(attributes))
     
     def remove(self, key):
         """
@@ -701,7 +733,7 @@ class ConfigHandler(object):
         ..  note:: When using chained attribute access (dot notation)
                    to remove a nested parameter in a frozen dictionary, the
                    last (sub)dictionary in the chain is the active one
-                   resulting in the key,value pair still being available in 
+                   resulting in the key,value pair still being available in
                    the other ones.
         
         :param key:   dictionary key to remove
@@ -715,7 +747,7 @@ class ConfigHandler(object):
         
         del self._keys[key]
     
-    def search(self, pattern, regex=False, level=0):
+    def search(self, pattern, regex=False, top=False, level=0):
         """
         Search the dictionary based on key names (strings) with support for
         Unix style wildcard expansion (using fnmatch) or regular expressions.
@@ -738,12 +770,18 @@ class ConfigHandler(object):
         if not isinstance(pattern, (tuple,list)):
             pattern = [pattern]
         
+        # Search at current level or from top down.
+        if top:
+            items = [(value,value) for value in self._config.keys()]
+        else:
+            items = self._keys.items()
+        
         for p in pattern:
             if not regex:
-                match.extend([self._keys[key] for key in self._keys if fnmatch(key, p)])
+                match.extend([(key,value) for key,value in items if fnmatch(key, p)])
             else:
                 regex = re.compile(p)
-                match.extend([self._keys[key] for key in self._keys if regex.match(key)])
+                match.extend([(key,value) for key,value in items if regex.match(key)])
         
         # If no match, return empty ConfigHandler
         if not len(match):
@@ -764,10 +802,11 @@ class ConfigHandler(object):
             toremove2 = [k for k,v in self._keys.items() if v in toremove1]
             for key in toremove2:
                 del self._keys[key]
-                
+    
     def subdict(self, keys, level=0):
         """
-        Return a new ConfigHandler instance reflecting a subdictionary.
+        Return a new ConfigHandler instance reflecting a subdictionary for
+        the keys in `keys`
         
         Supports an ORM mapper to map custom instances of the ConfigHandler
         class to keys.
@@ -780,13 +819,27 @@ class ConfigHandler(object):
         # if defined in the ORM class.
         ORMClass = self._orm_handler.get(self._orm_key)
         
+        # Get parent
+        if all([type(n) == tuple for n in keys]):
+            parent = []
+            for path,root in keys:
+                path = path.split(self._sep)
+                root = root.split(self._sep)
+                if path[0] in root:
+                    parent.append(self._sep.join(root[0:root.index(path[0])+1]))
+            keys = [k[1] for k in keys]
+            parent = sorted(set(parent))
+        else:
+            parent = self._parent
+        
         return ORMClass(config=self._config,
                         keys=keys,
                         freeze=self._freeze,
                         format_value=self.format_value,
                         orm=self._orm_handler,
                         level=level,
-                        sep=self._sep)
+                        sep=self._sep,
+                        parent=parent)
     
     # PYTHON DICTIONARY METHODS
     def clear(self):
@@ -865,7 +918,7 @@ class ConfigHandler(object):
                 return True
         
         return False
-            
+    
     def items(self):
         """
         :return: list of key,value pairs
@@ -885,7 +938,7 @@ class ConfigHandler(object):
         """
         
         return [key for key,value in self._keys.items() if value in self._config]
-        
+    
     def set(self, key, value):
         """
         Update and/or add key,value pair to dictionary
@@ -899,18 +952,38 @@ class ConfigHandler(object):
         :param value: dictionary value to update/add
         """
         
-        if key not in self._keys and self._freeze:
+        isnewkey = key not in self._keys
+        if isnewkey and self._freeze:
             raise KeyError('Unable to add new key "{0}" to frozen dictionary'.format(key))
         
-        # If value is dictionary, flatten and update self._config. Remove original key.
-        if isinstance(value, dict):
-            self._config.update(_flatten_nested_dict(value, parent_key=self._keys.get(key,key), sep=self._sep))
-            self._resolve_config_level()
-            del self._config[self._keys[key]]
-            del self._keys[key]
-        
+        # Resolve the key path
+        if isnewkey:
+            if len(self._parent) > 1:
+                raise KeyError('Unable to assign valye for child key {0} to unambiguous parent {1}'.format(key, self._parent))
+            parent = self._parent[0]
+            if parent:
+               parent = '{0}{1}'.format(parent, self._sep)
+            newkey = '{0}{1}'.format(parent, key)
         else:
-            self._config[self._keys.get(key,key)] = value
+            newkey = self._keys.get(key)
+        
+        # If value is dictionary, flatten and update self._config.
+        if isinstance(value, dict):
+            flattened = _flatten_nested_dict(value, parent_key=newkey, sep=self._sep)
+            self._config.update(flattened)
+            
+            # If flattened dictionary represents new keys, update self._keys
+            if isnewkey:
+                self._keys.update(dict([(k.replace(parent, ''), k) for k in flattened]))
+            
+            # Remove original key
+            if self._keys.get(key):
+                del self._config[self._keys[key]]
+                del self._keys[key]
+        else:
+            self._config[newkey] = value
+            if isnewkey:
+                self._keys[newkey.replace(parent, '')] = newkey
         
     def update(self, other, replace=True):
         """
@@ -934,14 +1007,14 @@ class ConfigHandler(object):
                 # Update self_config if needed
                 if not v in self._config:
                     self._config[v] = other._config[v]
-                    
+        
         elif isinstance(other, dict):
             other = _flatten_nested_dict(other, sep=self._sep)
             self._config.update(other)
             self._resolve_config_level()
         else:
             raise TypeError('Attribute not an instance of ConfigHandler or dict')
-        
+    
     def values(self):
         """
         Implementation of dict `values` method.
