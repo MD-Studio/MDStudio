@@ -7,6 +7,8 @@ chmod 777 docker/.INSTALLING
 mkdir -p docs/html 
 mkdir -p docs/html/_static
 
+mkdir -p .pycharm_helpers
+
 # start the containers
 docker-compose up -d
 
