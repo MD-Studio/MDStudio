@@ -15,14 +15,6 @@
     <orderEntry type="jdk" jdkName="Remote Python 2.7.12 (ssh://root@127.0.0.1:65432/app/lie_venv/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
-  <component name="TemplatesService">
-    <option name="TEMPLATE_FOLDERS">
-      <list>
-        <option value="$MODULE_DIR$/lie_venv/lib/python2.7/site-packages/crossbar/templates" />
-        <option value="$MODULE_DIR$/docs" />
-      </list>
-    </option>
-  </component>
   <component name="TestRunnerService">
     <option name="projectConfiguration" value="Nosetests" />
     <option name="PROJECT_TEST_RUNNER" value="Nosetests" />
