@@ -308,7 +308,7 @@ function _setup_venv () {
     
   else
     echo "INFO: Create Python virtual environment at: $_VENVPATH"
-    $_PY_VENV $_VENVPATH
+    $_PY_VENV --always-copy $_VENVPATH
   fi
   
   # Set execute permissions for scripts in /bin
