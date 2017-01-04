@@ -10,6 +10,9 @@ if [ -d /app/.pycharm_helpers/pydev/ ]; then
     python /app/.pycharm_helpers/pydev/setup_cython.py build_ext --inplace  > nul
 fi
 
+# make sure we have the bindings for our IDE
+pip install -r /app/data/python_default_requirements.txt
+
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
 
