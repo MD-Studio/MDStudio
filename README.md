@@ -46,10 +46,27 @@ and make sure it matches this screen.
 ![Configuration settings](docs/img/pycharm-config.png)
 
 Note specifically:
-|         |                              |
-|---------|------------------------------|
-| Interpreter path     | `app/lie_venv/bin/python`    |
-| User    | `/app/.pycharm_helpers`      |
+|                      |                              |
+|----------------------|------------------------------|
+| Interpreter path     | `/app/lie_venv/bin/python`   |
+| Pycharm helpers      | `/app/.pycharm_helpers`      |
+
+#### Debug Hook
+While we now support breakpoints and the likes natively, Pycharm still fails to do post morten
+debugging in components. Fixing this is easy; We go to `Run > View Breakpoints`. We add a 
+python exception breakpoint. 
+
+![Breakpoints settings](docs/img/pycharm-breakpoint.png)
+
+After that we select the runpy._error exception:
+
+![Select error](docs/img/pycharm-error.png)
+
+Make sure `On Raise` is selected:
+
+![Select on raise](docs/img/pycharm-raise.png)
+
+
 
 ## Manual
 When you want to keep track of the whole environment for yourself, you should follow these
