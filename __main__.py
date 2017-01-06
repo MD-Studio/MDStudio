@@ -124,18 +124,9 @@ def bootstrap_app(args):
     components = ComponentManager(config=config)
     components.add_searchpath(venvpath, prefix='lie_')
 
-    if 'system.is_docker_build' in config and config['system.is_docker_build']:
-        # noinspection PyUnusedLocal
-        def list_components(self, search_path):
-            found = {}
-            for g in glob(os.path.join(search_path, '*/*/')):
-                match = re.match(r'(.*/(.*)-.*/\2)/', g)
-                if match:
-                    found[match.group(2)] = match.group(1)
-            return found
+    init_docker_build(components, config)
 
-        # in case we run in docker build mode
-        components.add_searchpath( os.path.join(__rootpath__, 'components/'), prefix='lie_', search_method=list_components)
+    init_debug_hook(config)
 
     for path in config.system.get('component_path',[]):
         components.add_searchpath(path)
@@ -165,6 +156,38 @@ def bootstrap_app(args):
     from crossbar.controller.cli import run
     run(prog='crossbar', args=crossbar_cliargs)
 
+
+def init_debug_hook(config):
+    if config.system.get('is_dev_build', False):
+        if config.system.get('is_docker_build', False):
+            from twisted.python.failure import Failure
+
+            def debug(self, exc_value=None, exc_type=None, exc_tb=None, capture_vars=False, failure_init=Failure.__init__):
+                if (exc_value, exc_type, exc_tb) == (None, None, None):
+                    import runpy
+                    raise runpy._Error()
+                failure_init(self, exc_value, exc_type, exc_tb, capture_vars)
+
+            Failure.__init__ = debug
+        else:
+            # enable debug mode
+            from twisted.python.failure import startDebugMode
+            startDebugMode()
+
+
+def init_docker_build(components, config):
+    if config.system.get('is_docker_build', False):
+        # noinspection PyUnusedLocal
+        def list_components(self, search_path):
+            found = {}
+            for g in glob(os.path.join(search_path, '*/*/')):
+                match = re.match(r'(.*/(.*)-.*/\2)/', g)
+                if match:
+                    found[match.group(2)] = match.group(1)
+            return found
+
+        # in case we run in docker build mode
+        components.add_searchpath(os.path.join(__rootpath__, 'components/'), prefix='lie_', search_method=list_components)
 
 if __name__ == '__main__':
 
