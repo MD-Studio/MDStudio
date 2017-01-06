@@ -158,6 +158,11 @@ def bootstrap_app(args):
 
 
 def init_debug_hook(config):
+    """
+    Setups the correct debugging hooks for docker builds, and when using a development build
+
+    :param config: The configuration object
+    """
     if config.system.get('is_dev_build', False):
         if config.system.get('is_docker_build', False):
             from twisted.python.failure import Failure
@@ -176,7 +181,13 @@ def init_debug_hook(config):
 
 
 def init_docker_build(components, config):
-    if config.system.get('is_docker_build', False):
+    """
+    Adds local development files
+
+    :param components: The component loader object
+    :param config:  The configuration object
+    """
+    if config.system.get('is_dev_build', False) and config.system.get('is_docker_build', False):
         # noinspection PyUnusedLocal
         def list_components(self, search_path):
             found = {}
