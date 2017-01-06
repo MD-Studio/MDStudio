@@ -7,6 +7,9 @@ data/logs/
 data/liedb/
 docs/html/
 
+# This file is different per user
+data/settings.json
+
 ### Python files
 # Byte-compiled / optimized / DLL files
 __pycache__/
