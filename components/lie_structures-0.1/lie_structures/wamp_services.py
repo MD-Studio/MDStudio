@@ -30,7 +30,7 @@ class StructuresWampApi(LieApplicationSession):
     def get_structure(self, structure):
         
         result = ''
-        currpath = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/components/lie_structures-0.1/lie_structures'
+        currpath = os.path.dirname(os.path.realpath(__file__))
         structure_file = os.path.join(currpath, '{0}.mol2'.format(structure))
         if os.path.exists(structure_file):
             with open(structure_file, 'r') as sf:
