@@ -25,7 +25,16 @@ class LoggerWampApi(LieApplicationSession):
 
         super(LoggerWampApi, self).__init__(config, package_config, **kwargs)
 
-        self.db = MongoClient(host=config.get('lie_db.host'), port=config.get('lie_db.port'))['liestudio']
+        if self.db is None:
+            from pymongo.errors import ServerSelectionTimeoutError
+            try:
+                self.db = MongoClient(host='localhost', port=27017, serverSelectionTimeoutMS=1)['liestudio']
+                # force a connection
+                self.db.collection_names()
+            except ServerSelectionTimeoutError as err:
+                # we probably are using a docker setup
+                self.db = MongoClient(host='mongo', port=27017)['liestudio']
+
         self.log_collection = self.db['log']
 
     @wamp.register(u'liestudio.logger.log')
