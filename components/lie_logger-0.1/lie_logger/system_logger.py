@@ -392,6 +392,8 @@ class RotateFileLogObserver(object):
             self._logfile = io.open(self._logfile_path, mode='a+', encoding=self._logfile_encoding)
             self._logfile_ctime = int(time.time())
             self._logfile.write(u'{0}\n'.format(self._logfile_ctime))
+            self._logfile.flush()
+
             logging.debug('Create new logfile at: {0}'.format(self._logfile_path))
             return
 

@@ -23,6 +23,7 @@ except ImportError:
     from urlparse import urlparse
 
 from   pymongo import MongoClient
+from   pymongo.errors import ServerSelectionTimeoutError
 from   werkzeug.security import generate_password_hash, check_password_hash
 from   twisted.logger import Logger
 
@@ -31,7 +32,16 @@ from   sendmail import Email
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
-db = None#MongoClient(host='localhost', port=27017)['liestudio']
+db = None
+if db is None:
+    try:
+        db = MongoClient(host='localhost', port=27017, serverSelectionTimeoutMS=1)['liestudio']
+        # force a connection
+        db.collection_names()
+    except ServerSelectionTimeoutError as err:
+        # we probably are using a docker setup
+        db = MongoClient(host='mongo', port=27017)['liestudio']
+
 
 logging = Logger()
 
@@ -50,8 +60,6 @@ def init_user(settings, config):
 
     # @todo: again this should be fixed in a nicer way
     global db
-    if db is None:
-        db = MongoClient(host=config.get('lie_db.host'), port=config.get('lie_db.port'))['liestudio']
 
     # Check for MongoDB database
     # TODO: should make a wrapper around PyMongo connection for easy checking connection
