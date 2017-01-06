@@ -167,11 +167,11 @@ def init_debug_hook(config):
         if config.system.get('is_docker_build', False):
             from twisted.python.failure import Failure
 
-            def debug(self, exc_value=None, exc_type=None, exc_tb=None, capture_vars=False, failure_init=Failure.__init__):
+            def debug(self, exc_value=None, exc_type=None, exc_tb=None, captureVars=False, failure_init=Failure.__init__):
                 if (exc_value, exc_type, exc_tb) == (None, None, None):
                     import runpy
                     raise runpy._Error()
-                failure_init(self, exc_value, exc_type, exc_tb, capture_vars)
+                failure_init(self, exc_value, exc_type, exc_tb, captureVars)
 
             Failure.__init__ = debug
         else:
