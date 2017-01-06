@@ -125,9 +125,10 @@ def bootstrap_app(args):
     components.add_searchpath(venvpath, prefix='lie_')
 
     if 'system.is_docker_build' in config and config['system.is_docker_build']:
-        def list_components(self, searchpath):
+        # noinspection PyUnusedLocal
+        def list_components(self, search_path):
             found = {}
-            for g in glob(os.path.join(searchpath, '*/*/')):
+            for g in glob(os.path.join(search_path, '*/*/')):
                 match = re.match(r'(.*/(.*)-.*/\2)/', g)
                 if match:
                     found[match.group(2)] = match.group(1)

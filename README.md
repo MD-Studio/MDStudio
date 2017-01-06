@@ -32,6 +32,7 @@ When you want to use your private shell you can login using ssh using the follow
 
 |         |                              |
 |---------|------------------------------|
+| Host    | `127.0.0.1`                  |
 | Key     | `docker/insecure_id_rsa.ppk` |
 | User    | `root`                       |
 | Port    | `65432`                      |
@@ -43,6 +44,12 @@ Go to `File > Project Settings > Project Interpreter`, and add a remote interpre
 and make sure it matches this screen.
 
 ![Configuration settings](docs/img/pycharm-config.png)
+
+Note specifically:
+|         |                              |
+|---------|------------------------------|
+| Interpreter path     | `app/lie_venv/bin/python`    |
+| User    | `/app/.pycharm_helpers`      |
 
 ## Manual
 When you want to keep track of the whole environment for yourself, you should follow these

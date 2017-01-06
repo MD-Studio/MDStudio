@@ -1,7 +1,7 @@
 if [ ! -d lie_venv/ ]; then
     bash installer.sh --setup --local-dev &>> docker/.INSTALLING
 else
-    bash installer.sh --upgrade &>> docker/.INSTALLING
+    bash installer.sh --update --local-dev &>> docker/.INSTALLING
 fi
 
 # disable the debugger disabling code which spews a LOT of warnings
