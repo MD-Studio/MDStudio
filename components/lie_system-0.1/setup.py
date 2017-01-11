@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# package: lie_db
+# package: lie_system
 # file: setup.py
 #
-# Part of ‘lie_db’, a package providing MongoDB access for the LIEStudio
+# Part of ‘lie_system’, a package providing MongoDB access for the LIEStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -37,6 +37,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
+    install_requires=['jsonpickle'],
     test_suite="tests.module_test_suite",
     include_package_data=True,
     zip_safe=True,

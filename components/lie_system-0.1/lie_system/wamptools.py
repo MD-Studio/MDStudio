@@ -7,14 +7,11 @@ import time
 from   autobahn.wamp          import auth, cryptosign
 from   autobahn.twisted.wamp  import ApplicationSession
 from   twisted.internet.defer import inlineCallbacks
+from   pymongo                import MongoClient
 
 from   lie_config             import ConfigHandler
-
-# LieApplicationSession variables names defined in os.envrion
-ENVIRON = {'_LIE_WAMP_REALM':'realm',
-           '_LIE_AUTH_METHOD':'auth_method',
-           '_LIE_AUTH_USERNAME':'username',
-           '_LIE_AUTH_PASSWORD':'password'}
+from   lie_db                 import mongodb_connect
+from   lie_system.messaging   import WAMPMessageEnvelope
 
 def _resolve_package_config(package_config):
     """
@@ -84,19 +81,22 @@ class LieApplicationSession(ApplicationSession):
     Twisted logger as self.log
     """
     
+    require_config = []
+    
     def __init__(self, config, package_config={}, **kwargs):
         """
         Class constructor
 
         Extending the Autobahn ApplicationSession constructor with variable 
         initiation routines for WAMP session authentication, authorization
-        and API configuration. These variables are stored in two dictionaries:
+        and API configuration. These variables are stored in two objects:
         
         * session_config: stores all variables related to the current session
+          in a WAMPMessageEnvelope object
         * package_config: stores all variables needed to run the package
           specific methods the API exposes.
         
-        The variables that populate these two dictionaries may be defined in
+        The variables that populate these two objects may be defined in
         three different ways depending on the context in which the 
         LieApplicationSession is being used:
 
@@ -148,22 +148,18 @@ class LieApplicationSession(ApplicationSession):
         """
         
         # Init session_config with default values
-        self.session_config = {
-            'realm': config.realm,
-            'package_name': self.__module__.split('.')[0],
-            'class_name': type(self).__name__
-        }
+        self.session_config = WAMPMessageEnvelope(realm=config.realm,
+            package_name=self.__module__.split('.')[0],
+            class_name=type(self).__name__,
+            **kwargs
+        )
         
         # Update session_config with key/value pairs in config.extra except
         # for package config
         extra = config.extra if type(config.extra) == dict else {}
         for key, value in extra.items():
             if key != 'package_config':
-                self.session_config[key] = value
-        
-        # Update session_config with kwargs and environmental variables
-        self.session_config.update(kwargs)
-        self.session_config.update(dict([(ENVIRON[k],os.environ[k]) for k in ENVIRON if k in os.environ]))
+                self.session_config.set(key,value)
         
         # Configure config object
         config.realm = self.session_config.get('realm', config.realm)
@@ -181,6 +177,10 @@ class LieApplicationSession(ApplicationSession):
         self.package_config = ConfigHandler()
         self.package_config.update(_resolve_package_config(package_config))
         self.package_config.update(_resolve_package_config(extra.get('package_config')))
+        
+        # Init database connection
+        self._db = None
+        self._establish_database_connection()
         
         # Call onInit hook
         self.onInit()
@@ -202,25 +202,25 @@ class LieApplicationSession(ApplicationSession):
         else:
             self.log.debug("client public key loaded: {}".format(self._key.public_key()))
     
-    @property
-    def auth_method(self):
+    def _establish_database_connection(self, config=None):
         """
-        Returns the Crossbar WAMP authentication method to use.
-        A WAMP connection can possibly allow for multiple authentication
-        methods.
+        Establish MongoDB database connection.
         
-        :rtype: list or None
+        This is the only action required for normal database operations. 
+        Creation of new MongoDB collections is performed implicitly when the
+        collection is first referenced in a command and database permission
+        settings allow it. 
+        
+        :param config: configuration retrieved by calling liestudio.config.get
+        :type config:  dict
         """
         
-        auth_method = self.session_config.get('auth_method', None)
-        if not auth_method:
-            return None
-
-        if hasattr(auth_method, '__iter__'):
-            return [auth_method]
-
-        return [auth_method]
-    
+        if not self._db and 'lie_db' in self.package_config:
+            mongo_config = self.package_config.lie_db
+            client = mongodb_connect(host=mongo_config.get('host','localhost'),
+                                    port=mongo_config.get('port', 27017))
+            self._db = client[mongo_config.get('dbname','liestudio')]
+        
     @inlineCallbacks
     def onConnect(self):
         """
@@ -234,8 +234,8 @@ class LieApplicationSession(ApplicationSession):
         extra = {}
         
         # Define authentication method
-        auth_method = self.auth_method
-        if auth_method and u'cryptosign' in auth_method:
+        authmethod = self.session_config.authmethod
+        if authmethod and u'cryptosign' in authmethod:
 
             # create a proxy signing key with the private key being held in SSH agent
             # if the key has not yet been loaded in raw format.
@@ -248,7 +248,7 @@ class LieApplicationSession(ApplicationSession):
         
         # Establish transport layer
         self.join(self.config.realm,
-                  authmethods=self.auth_method,
+                  authmethods=authmethod,
                   authid=self.session_config.get('authid', None),
                   authrole=None,
                   authextra=extra)
@@ -292,7 +292,7 @@ class LieApplicationSession(ApplicationSession):
                           method to perform the authentication.
         :type challenge:  obj
         """
-
+        
         self.log.debug("Recieved WAMP authentication challenge type '{0}'".format(challenge.method))
         
         # WAMP-Ticket based authentication
@@ -346,7 +346,7 @@ class LieApplicationSession(ApplicationSession):
         
         # Register methods
         res = yield self.register(self)
-        self.log.info("{class_name}: {procedures} procedures registered", procedures=len(res), **self.session_config)
+        self.log.info("{class_name}: {procedures} procedures registered", procedures=len(res), **self.session_config.dict())
         
         # Update session_config, they may have been changed by the application
         # authentication method
@@ -354,11 +354,14 @@ class LieApplicationSession(ApplicationSession):
             self.session_config[session_param] = getattr(details,session_param)
         
         # Retrieve package configuration based on package_name and update package_config
+        # Try to establish a MongoDB database connection if lie_db configuration available
         def handle_retrieve_config_error(failure):
             self.log.warn('Unable to retrieve configuration for {0}'.format(self.session_config.get('package_name')))
         
-        server_config = self.call(u'liestudio.config.get', self.session_config.get('package_name'))
+        self.require_config.append(self.session_config.get('package_name'))
+        server_config = self.call(u'liestudio.config.get', self.require_config)
         server_config.addCallback(self.package_config.update)
+        server_config.addCallback(self._establish_database_connection)
         server_config.addErrback(handle_retrieve_config_error)
         
         # Call onRun hook.
@@ -377,7 +380,7 @@ class LieApplicationSession(ApplicationSession):
         :type details:  Autobahn SessionDetails object
         """
 
-        self.log.debug('{class_name} of {package_name} is leaving realm {realm}', **self.session_config)
+        self.log.debug('{class_name} of {package_name} is leaving realm {realm}', **self.session_config.dict())
 
         # Call onExit hook
         self.onExit(details)
