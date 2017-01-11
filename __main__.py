@@ -164,7 +164,7 @@ def init_debug_hook(config):
     :param config: The configuration object
     """
     if config.system.get('is_dev_build', False):
-        if config.system.get('is_docker_build', False):
+        if os.getenv('IS_DOCKER', False):
             from twisted.python.failure import Failure
 
             def debug(self, exc_value=None, exc_type=None, exc_tb=None, captureVars=False, failure_init=Failure.__init__):
@@ -187,7 +187,7 @@ def init_docker_build(components, config):
     :param components: The component loader object
     :param config:  The configuration object
     """
-    if config.system.get('is_dev_build', False) and config.system.get('is_docker_build', False):
+    if os.getenv('IS_DOCKER', False):
         # noinspection PyUnusedLocal
         def list_components(self, search_path):
             found = {}

@@ -6,6 +6,8 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import os
+
 from   autobahn import wamp
 from   pymongo import MongoClient
 from   twisted.logger import LogLevel
@@ -26,14 +28,8 @@ class LoggerWampApi(LieApplicationSession):
         super(LoggerWampApi, self).__init__(config, package_config, **kwargs)
 
         if self.db is None:
-            from pymongo.errors import ServerSelectionTimeoutError
-            try:
-                self.db = MongoClient(host='localhost', port=27017, serverSelectionTimeoutMS=1)['liestudio']
-                # force a connection
-                self.db.collection_names()
-            except ServerSelectionTimeoutError as err:
-                # we probably are using a docker setup
-                self.db = MongoClient(host='mongo', port=27017)['liestudio']
+            host = os.getenv('MONGO_HOST', 'localhost')
+            self.db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
 
         self.log_collection = self.db['log']
 

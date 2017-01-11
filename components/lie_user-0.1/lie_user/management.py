@@ -32,15 +32,8 @@ from   sendmail import Email
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
-db = None
-if db is None:
-    try:
-        db = MongoClient(host='localhost', port=27017, serverSelectionTimeoutMS=1)['liestudio']
-        # force a connection
-        db.collection_names()
-    except ServerSelectionTimeoutError as err:
-        # we probably are using a docker setup
-        db = MongoClient(host='mongo', port=27017)['liestudio']
+host = os.getenv('MONGO_HOST', 'localhost')
+db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
 
 
 logging = Logger()

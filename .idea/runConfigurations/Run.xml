@@ -1,9 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run" type="PythonConfigurationType" factoryName="Python" singleton="true">
+  <configuration default="false" name="Run" type="PythonConfigurationType" factoryName="Python" singleton="true" show_console_on_std_out="true" show_console_on_std_err="true">
+    <log_file path="$PROJECT_DIR$/data/logs/lielog.log" checked="true" skipped="false" show_all="false" alias="LieLog" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
+      <env name="IS_DOCKER" value="1" />
       <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="MONGO_HOST" value="mongo" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />

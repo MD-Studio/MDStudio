@@ -20,6 +20,7 @@ services:
             - mongo
         ports:
             - "65432:22"
+            - "80:8080"
         tty: true
 
     mongo:
