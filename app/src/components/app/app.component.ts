@@ -7,11 +7,11 @@ import {Component,
         AfterViewInit,
         ViewEncapsulation,
         OnInit}                 from '@angular/core';
-import {CORE_DIRECTIVES}        from '@angular/common';
 import {Http, 
         Headers}                from '@angular/http';
-import {Router,
-        ROUTER_DIRECTIVES}      from '@angular/router';
+import {BrowserModule} from '@angular/platform-browser';
+import {Router}        from '@angular/router';
+import {NgModule}      from '@angular/core';
 
 // PrimeNG imports
 import {Button,
@@ -35,6 +35,13 @@ declare var componentHandler: any;
   encapsulation: ViewEncapsulation.None,
   directives:    [CORE_DIRECTIVES, ROUTER_DIRECTIVES, Button, PanelMenu, Menubar],
   host:          {'class' : 'ng-animate AppComponent'}, 
+})
+
+@NgModule({
+  imports: [BrowserModule, HttpModule, LoginModule, routing],
+  declarations: [AppComponent],
+  bootstrap: [AppComponent]
+
 })
 
 export class AppComponent implements AfterViewInit, OnInit {

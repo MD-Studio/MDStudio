@@ -20,7 +20,7 @@ let typings = ['manual-typings/manual-typings.d.ts', 'typings/browser.d.ts'];
 function compile(filesArray, destDirectory) {
     return gulp.src(filesArray)
         .pipe(plugins.sourcemaps.init())
-        .pipe(plugins.typescript(_tsProject))
+        .pipe(plugins.typescript())
         .pipe(plugins.sourcemaps.write('./'))
         .pipe(gulp.dest(destDirectory))
         .pipe(bs.stream());
