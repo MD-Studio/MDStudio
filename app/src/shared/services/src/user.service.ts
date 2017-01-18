@@ -10,8 +10,8 @@ import {Injectable}         from '@angular/core';
 export class UserService {
   
   public uid: number;
-  public username: String;
-  public email: String;
+  public username: string;
+  public email: string;
   public session_id: any;
   public isLoggedIn: Boolean = true;
   public initTime: Number = Date.now() / 1000 | 0;

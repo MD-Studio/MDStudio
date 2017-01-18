@@ -1,0 +1,126 @@
+<!-- Top level docking component container div -->
+<div id="docking" class="flex-container-rows valign-stretch halign-stretch nowrap" style="height: 100%">
+    <!-- Chart and table container -->
+    <div class="flex-item flex-container-cols valign-stretch halign-stretch">
+      
+        <!-- Chart with MD energy trajectory data -->
+        <div id="md-trajectory-chart" class="flex-item ui-component-container">
+            <nvd3 [options]="chart_options" [data]="chart_data"></nvd3>
+        </div>
+
+        <!-- Table with MD data -->
+        <div id="md-table" class="flex-item ui-component-container">
+      
+            <div class="header">
+          
+                <!-- data table menu -->
+                <div class="ui-menu-bar flex-container-rows valign-center">
+                  
+                    <div class="ui-inputtext-wrapper flex-item">
+                        <span class="ui-icon fa fa-search"></span>
+                        <input #gb type="text" pInputText placeholder="Global Filter..." class="flex-item">
+                    </div>
+
+                    <div class="ui-multiselect-wrapper flex-item">
+                        <p-multiSelect [options]="availableColumns" [(ngModel)]="selectedColumns"
+                         (onChange)="sortSelectedColumns()"></p-multiSelect>
+                    </div>
+              
+                    <div class="spacer flex-item stretch"></div>
+              
+                    <div class="ui-widget-bar flex-item" *ngIf="selectedMD && selectedMD.length > 0">
+                        <button type="button" pButton label="{{selectedMD.length}}" title="number of selected rows"></button>
+                        <button type="button" pButton (click)="update(dt)" label="Reset" icon="fa-rotate-left" iconPos="right" title="reset data table sorting and filtering"></button>
+                        <button type="button" pButton (click)="delete()" icon="fa-trash-o" title="delete selected rows"></button>
+                        <button type="button" pButton (click)="md_detail_unfold = !md_detail_unfold;"
+                            [class.ui-state-active]="md_detail_unfold" icon="fa-edit" title="selection details"></button>
+                    </div>
+                  
+                    <button type="button" pButton icon="fa-file-o" iconPos="left" label="CSV" (click)="dt.exportCSV()" title="export table data"></button>
+                    <button type="button" pButton (click)="reload()" [disabled]="!data_has_changed"
+                        icon="fa-refresh" title="reload table data"></button>
+                  
+                </div>
+          
+            </div>    
+      
+            <div class="inner">
+          
+                <!-- data table -->
+                <p-dataTable #dt [value]="mds" [globalFilter]="gb" [contextMenu]="cm"
+                 [responsive]="true" [reorderableColumns]="true" sortMode="multiple"
+                 selectionMode="multiple" [(selection)]="selectedMD" (onRowSelect)="onRowSelect($event)">
+                  
+                    <!-- Add row selection indicator column, TODO: primeng datatable multiple select by checkbox column does not work -->
+                    <p-column [sortable]="false" styleClass="status-col">
+                        <template let-col="rowData"><span class="ui-row-status"></span></template>
+                    </p-column>
+              
+                    <!-- Add the data columns -->
+                    <p-column *ngFor="let col of selectedColumns" field="{{col}}" header="{{col}}" 
+                     [sortable]="true" styleClass="{{col}}"></p-column>
+          
+                </p-dataTable>
+          
+                <!-- Right-click contextual menu, TODO: does not work with router-deprecated-->
+                <p-contextMenu #cm [model]="items"></p-contextMenu>
+          
+            </div>
+        </div>
+    </div>
+  
+    <!-- MD details panel -->
+    <div id='md-details' class='ui-foldable-panel' [class.show]="md_detail_unfold">
+  
+        <!-- Menu bar -->
+        <div class="container ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+            <button type="button" pButton icon="fa-close" (click)="delete(first_selected=true)" label="Delete" title="delete MD run"></button>
+            <button type="button" pButton icon="fa-check" (click)="save()" label="Save" title="save changes"></button>
+        </div>
+      
+        <!-- Non-editable data and statistics -->
+        <div class="container">
+            <div class="ui-inputtext-wrapper">
+                <label class="label-type-1" for="compound">{{md?.compound}}</label>
+            </div>
+            <div class="ui-inputtext-wrapper">
+                <label class="label-type-2" for="id">ID: {{md?.id}}</label>
+                <label class="label-type-2" for="pose">Pose: {{md?.pose}}</label>
+            </div>
+        </div>
+  
+        <div class="container">
+            <div class="ui-inputtext-wrapper">
+                <p class="section-header">Statistics</p>
+            </div>
+            <div class="ui-inputtext-wrapper">
+                <label for="range" [class.warning]="md?.range < 200">Frame selection: {{md?.range}} frames</label>
+            </div>
+            <div class="ui-inputtext-wrapper">
+                <label for="focus">Focus: {{active_brush_extend}}</label>
+            </div>
+            <div class="ui-inputtext-wrapper">
+                <label for="elec">Elec: {{md?.ave_elec}} +/- {{md?.std_elec}} kJ/mol</label>
+            </div>
+            <div class="ui-inputtext-wrapper">
+                <label for="elec">Vdw: {{md?.ave_vdw}} +/- {{md?.std_vdw}} kJ/mol</label>
+            </div>
+        </div>
+  
+        <!-- Editable data view -->
+        <div class="container" *ngIf="md">
+            <div class="ui-inputtext-wrapper">
+                <p class="section-header">Frame selection range</p>
+            </div>
+            <div class="ui-inputtext-wrapper">
+                <label for="range">Range: {{md?.rangeSlider}}</label>
+                <p-slider [(ngModel)]="md.rangeSlider" 
+                 [min]="md.traj_start_frame" [max]="md.traj_end_frame" [range]="true"
+                 (onChange)="md.rangeSliderAdjust()"
+                 (onSlideEnd)="md.calculateStats()"></p-slider>
+            </div>
+        </div>
+
+    </div>
+      
+</div>

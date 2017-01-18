@@ -5,9 +5,9 @@
 // Angular imports
 import {Component,
         OnInit}                 from '@angular/core';
-import {CORE_DIRECTIVES}        from '@angular/common';
 import {Router,
-        ROUTER_DIRECTIVES}      from '@angular/router';
+        RouterModule}      from '@angular/router';
+import {NgModule}      from '@angular/core';
 
 // App imports
 import {UserService}            from '../../shared/services/src/user.service';
@@ -18,9 +18,13 @@ import {WampService}            from '../../shared/services/src/wamp.service';
   moduleId:      module.id,
   templateUrl:   'boot.component.html',
   styleUrls:     ['boot.component.css'],
-  directives:    [CORE_DIRECTIVES, ROUTER_DIRECTIVES],
 })
 
+@NgModule({
+  imports: [RouterModule],
+  declarations: [BootComponent],
+  bootstrap: [BootComponent]
+})
 export class BootComponent implements OnInit {
 
   public system_message: String;

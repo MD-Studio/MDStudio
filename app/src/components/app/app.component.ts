@@ -10,7 +10,8 @@ import {Component,
 import {Http, 
         Headers}                from '@angular/http';
 import {BrowserModule} from '@angular/platform-browser';
-import {Router}        from '@angular/router';
+import {Router,
+        RouterModule}  from '@angular/router';
 import {NgModule}      from '@angular/core';
 
 // PrimeNG imports
@@ -33,15 +34,13 @@ declare var componentHandler: any;
   templateUrl:   'app.component.html',
   styleUrls :    ['app.component.css'],
   encapsulation: ViewEncapsulation.None,
-  directives:    [CORE_DIRECTIVES, ROUTER_DIRECTIVES, Button, PanelMenu, Menubar],
   host:          {'class' : 'ng-animate AppComponent'}, 
 })
 
 @NgModule({
-  imports: [BrowserModule, HttpModule, LoginModule, routing],
-  declarations: [AppComponent],
+  imports: [BrowserModule, RouterModule],
+  declarations: [AppComponent, Button, PanelMenu, Menubar],
   bootstrap: [AppComponent]
-
 })
 
 export class AppComponent implements AfterViewInit, OnInit {
@@ -59,7 +58,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.main_menu_items = [
       {
         label: 'Main',
-        defaultActive: true,
         items: [
           {label: 'Dashboard', icon: 'fa-dashboard', routerLink: ['/dashboard']},
           {label: 'Logs', icon: 'fa-tasks', routerLink: ['/log']},
@@ -70,7 +68,6 @@ export class AppComponent implements AfterViewInit, OnInit {
       {
         label: 'Account',
         icon: 'fa-edit',
-        defaultActive: true,
         items: [
           {label: 'Account', icon: 'fa-user'},
           {label: 'Cloud', icon: 'fa-cloud-download'}
@@ -79,7 +76,6 @@ export class AppComponent implements AfterViewInit, OnInit {
       {
         label: 'Settings',
         icon: 'fa-gear',
-        defaultActive: true,
         items: [
           {label: 'Preferences', icon: 'fa-gear'},
           {label: 'Help', icon: 'fa-info-circle'}
@@ -92,7 +88,9 @@ export class AppComponent implements AfterViewInit, OnInit {
         {
           label: this.user.username,
           items: [
-            {label: 'Logout', icon: 'fa-power-off', command: (event) => {this.onSubmitLogout()}},
+            {label: 'Logout', 
+             icon: 'fa-power-off', 
+             command: (event) => {this.onSubmitLogout()}},
             {label: 'Profile'},
             {label: 'Contact'}
           ]

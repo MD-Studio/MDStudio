@@ -7,8 +7,7 @@ import {BootComponent} from "./boot.component";
 
 @Component({
     selector: 'test-cmp',
-    template: '<sd-app></sd-app>',
-    directives:  []
+    template: '<sd-app></sd-app>'
 })
 
 class TestApp{}

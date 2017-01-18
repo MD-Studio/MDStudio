@@ -1,4 +1,4 @@
-import {RouterConfig}            from '@angular/router';
+import {Routes}            from '@angular/router';
 
 import {AppComponent}            from './app.component';
 import {DashboardComponent}      from '../../components/dashboard/dashboard.component';
@@ -10,7 +10,7 @@ import {Authorize}               from '../../shared/services/src/auth.service';
 // Setup main application component router.
 // - TODO: Lazy load the log component, not needed by default.
 // - TODO: rerouting undefined routes not working
-export const AppRoutes: RouterConfig = [
+export const AppRoutes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
