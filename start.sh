@@ -1,3 +1,6 @@
+# build the docker containers
+docker-compose build
+
 # allows polling the installation process
 rm docker/.INSTALLING 2> /dev/null
 touch docker/.INSTALLING

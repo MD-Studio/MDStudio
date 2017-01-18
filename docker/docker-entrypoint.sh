@@ -16,7 +16,11 @@ if [ -d /app/.pycharm_helpers/pydev/ ]; then
 fi
 
 # make sure we have the bindings for our IDE
-pip install -r /app/data/python_default_requirements.txt
+pip install -r /app/data/python_default_requirements.txt &>> docker/.INSTALLING
+
+cd /app/app 
+npm install &>> docker/.INSTALLING
+cd ../  
 
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING

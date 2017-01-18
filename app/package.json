@@ -16,9 +16,9 @@
     }
   ],
   "scripts": {
-    "start": "tsc && concurrently \"npm run tsc:w\" \"npm run lite\" ",
-    "tsc": "tsc",
-    "tsc:w": "tsc -w",
+    "start": "tsc && concurrently \"npm run ntsc:w\" \"npm run lite\" ",
+    "ntsc": "ntsc",
+    "ntsc:w": "ntsc -w",
     "typings": "typings",
     "postinstall": "typings install"
   },

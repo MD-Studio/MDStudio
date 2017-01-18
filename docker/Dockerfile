@@ -1,8 +1,14 @@
 FROM phusion/baseimage:latest
 
 RUN apt-get update && \
-    apt-get install -y python2.7 python-pip libffi-dev libssl-dev \
-    && apt-get clean
+    apt-get install -y python2.7 python-pip libffi-dev libssl-dev git sudo curl
+
+RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
+    apt-get install nodejs && \
+    npm install -g gulp && \
+    npm install ntypescript -g && \
+    npm install typings -g && \
+    apt-get clean
 
 RUN pip install --upgrade pip
 RUN pip install virtualenv sphinx sphinx_rtd_theme future
