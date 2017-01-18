@@ -2,7 +2,7 @@ import {RouterConfig}            from '@angular/router';
 
 import {AppComponent}            from './app.component';
 import {DashboardComponent}      from '../../components/dashboard/dashboard.component';
-import {AnalysisComponent}       from '../../components/analysis/analysis.component';
+import {DockingComponent}       from '../../components/docking/docking.component';
 import {LoggingComponent}        from '../../components/logging/logging.component';
 import {MDComponent}             from '../../components/md/md.component';
 import {Authorize}               from '../../shared/services/src/auth.service';
@@ -22,8 +22,8 @@ export const AppRoutes: RouterConfig = [
     canActivate: [Authorize]
   },
   {
-    path: 'analysis',
-    component: AnalysisComponent,
+    path: 'docking',
+    component: DockingComponent,
     canActivate: [Authorize]
   },
   {

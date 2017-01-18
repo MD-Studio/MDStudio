@@ -19,8 +19,8 @@ fi
 pip install -r /app/data/python_default_requirements.txt &>> docker/.INSTALLING
 
 cd /app/app 
-npm install &>> docker/.INSTALLING
-cd ../  
+npm install --unsafe-perm &>> /app/docker/.INSTALLING
+cd /app/  
 
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING

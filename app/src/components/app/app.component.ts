@@ -55,8 +55,8 @@ export class AppComponent implements AfterViewInit, OnInit {
         defaultActive: true,
         items: [
           {label: 'Dashboard', icon: 'fa-dashboard', routerLink: ['/dashboard']},
-          {label: 'Task', icon: 'fa-tasks', routerLink: ['/log']},
-          {label: 'Analysis', icon: 'fa-flask', routerLink: ['/analysis']},
+          {label: 'Logs', icon: 'fa-tasks', routerLink: ['/log']},
+          {label: 'Docking', icon: 'fa-flask', routerLink: ['/docking']},
           {label: 'MD', icon: 'fa-th-list', routerLink: ['/md']},
         ]
       },

@@ -13,7 +13,7 @@ export class UserService {
   public username: String;
   public email: String;
   public session_id: any;
-  public isLoggedIn: Boolean = false;
+  public isLoggedIn: Boolean = true;
   public initTime: Number = Date.now() / 1000 | 0;
   
   constructor() {
