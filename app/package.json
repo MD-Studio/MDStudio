@@ -32,6 +32,7 @@
     "@angular/platform-browser-dynamic": "^2.4.0",
     "@angular/router": "^3.4.0",
     "@angular/upgrade": "^2.4.0",
+    "angular-in-memory-web-api": "^0.2.4",
     "angular2-cookie": "^1.2.2",
     "autobahn": ">= 0.11.0",
     "core-js": "^2.4.0",
