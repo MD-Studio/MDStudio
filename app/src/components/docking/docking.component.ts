@@ -38,12 +38,12 @@ declare let d3: any;
 
 // MD data object interface defenition
 export interface MD {
-    id?: Number;
-    compound?: String;
-    pose?: Number;
-    range?: Number;
-    start?: Number;
-    end?: Number;
+    id?: number;
+    compound?: string;
+    pose?: number;
+    range?: number;
+    start?: number;
+    end?: number;
 }
 
 // MD details object used by MD details side panel
@@ -62,7 +62,7 @@ class MDDetails implements MD {
   
   public rangeSlider: number[];
    
-  constructor(public traj_data?: Array<any>, public id?, public compound?, public pose?, 
+  constructor(public traj_data?: any[], public id?, public compound?, public pose?, 
               public range?, public start?, public end?) {
     
     //Determine last trajectory frame number from trajectory data
