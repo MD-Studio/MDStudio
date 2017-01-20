@@ -167,10 +167,10 @@ export class DockingComponent {
     
     // DataTable column selection
     public  availableColumns: SelectItem[];
-    public  selectedColumns: [] = ['id','compound','pose','range']; // Default columns
+    public  selectedColumns: string[] = ['id','compound','pose','range']; // Default columns
     
     // DataTable row selection
-    public  selectedMD: [];
+    public  selectedMD: MD[];
     public  mds: MD[];
     
     // MD details panel
