@@ -199,3 +199,14 @@ fabric.properties
 
 # Ignore pycharm helper files
 .pycharm_helpers/
+
+# Ignore compiled typescript
+app/gulp/*.js
+app/gulp/*.map
+app/gulp/tasks/*.js
+app/gulp/tasks/*.map
+app/src/*.js
+app/src/**/*.map
+app/src/**/*.js
+app/gulpfile.js
+app/gulpfile.js.map

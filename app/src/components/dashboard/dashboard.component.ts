@@ -20,8 +20,7 @@ import {WampService}        from '../../shared/services/src/wamp.service';
 })
 
 @NgModule({
-  declarations: [DashboardComponent],
-  bootstrap: [DashboardComponent]
+  declarations: [DashboardComponent]
 })
 export class DashboardComponent {
 

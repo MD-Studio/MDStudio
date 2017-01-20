@@ -22,8 +22,7 @@ import {WampService}            from '../../shared/services/src/wamp.service';
 
 @NgModule({
   imports: [RouterModule],
-  declarations: [BootComponent],
-  bootstrap: [BootComponent]
+  declarations: [BootComponent]
 })
 export class BootComponent implements OnInit {
 

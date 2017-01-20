@@ -5,7 +5,7 @@ import {getBrowserSync} from '../browsersync';
 const plugins = <any>gulpLoadPlugins();
 
 let _tsProject = plugins.typescript.createProject('tsconfig.json', {
-    typescript: require('typescript')
+    typescript: require('typescript'),
 });
 
 let bs = getBrowserSync();
@@ -20,7 +20,7 @@ let typings = ['manual-typings/manual-typings.d.ts', 'typings/browser.d.ts'];
 function compile(filesArray, destDirectory) {
     return gulp.src(filesArray)
         .pipe(plugins.sourcemaps.init())
-        .pipe(plugins.typescript())
+        .pipe(_tsProject())
         .pipe(plugins.sourcemaps.write('./'))
         .pipe(gulp.dest(destDirectory))
         .pipe(bs.stream());

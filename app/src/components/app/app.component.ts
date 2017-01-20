@@ -40,7 +40,6 @@ declare var componentHandler: any;
 @NgModule({
   imports: [BrowserModule, RouterModule],
   declarations: [AppComponent, Button, PanelMenu, Menubar],
-  bootstrap: [AppComponent]
 })
 
 export class AppComponent implements AfterViewInit, OnInit {

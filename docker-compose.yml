@@ -7,6 +7,7 @@ services:
         volumes:
             - .:/app
             # cache directories for faster building times
+            - /app/app/node_modules
             - /root/.cache/pip
             - /root/.npm
 
