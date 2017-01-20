@@ -219,8 +219,8 @@ export class DockingComponent {
         
         // Initiate contextual menu for the DataTable
         this.items = [
-            {label: 'View', icon: 'fa-search', command: (event) => this.delete(this.selectedMD)},
-            {label: 'Delete', icon: 'fa-close', command: (event) => this.delete(this.selectedMD)}
+            {label: 'View', icon: 'fa-search', command: (event) => this.delete()},
+            {label: 'Delete', icon: 'fa-close', command: (event) => this.delete()}
         ];
     }
     
@@ -317,7 +317,7 @@ export class DockingComponent {
     /**
      * Update the multiselect dropdown with column names.
      */
-    private initColumnMultiselect(columns: Array) {
+    private initColumnMultiselect(columns: string[]) {
       
       this.availableColumns = [];
       for (var i of columns) {
