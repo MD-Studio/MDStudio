@@ -12,6 +12,8 @@ mkdir -p docs/html/_static
 
 mkdir -p .pycharm_helpers
 
+docker-compose stop
+
 # start the containers
 docker-compose up -d
 

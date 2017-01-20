@@ -6,6 +6,9 @@ services:
         image: tianon/true
         volumes:
             - .:/app
+            # cache directories for faster building times
+            - /root/.cache/pip
+            - /root/.npm
 
 
     workspace:
@@ -21,6 +24,8 @@ services:
         ports:
             - "65432:22"
             - "80:8080"
+            - "5000:5000"
+            - "3001:3001"
         tty: true
 
     mongo:
