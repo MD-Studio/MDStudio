@@ -12,10 +12,9 @@
 // Angular imports
 import {Component,
         ViewEncapsulation,
+        NgModule,
         NgZone,
         OnInit}             from '@angular/core';
-import {Control,
-        CORE_DIRECTIVES}    from '@angular/common';
         
 // Third-party imports
 import {InputText,
@@ -35,10 +34,12 @@ import {WampService}        from '../../shared/services/src/wamp.service';
   moduleId:      module.id,
   templateUrl:   'logging.component.html',
   styleUrls :    ['logging.component.css'],
-  directives:    [InputText, DataTable, Button, Dialog, Column, Header, Footer],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.None
 })
 
+@NgModule({
+  declarations: [InputText, DataTable, Button, Dialog, Column, Header, Footer]
+})
 export class LoggingComponent implements OnInit {
     
     // General log statistics
@@ -47,8 +48,8 @@ export class LoggingComponent implements OnInit {
     public  error_log_message_count: number = 0;
      
     // DataTable row selection
-    public  selectedLogs: [];
-    public  logs: [];
+    public  selectedLogs: any[];
+    public  logs: any[];
     
     // Log custom filter
     public  log_custom_filter_unfold: boolean = false;   // Fold/unfold log custom filter input fields 

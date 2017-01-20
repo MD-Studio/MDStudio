@@ -7,9 +7,8 @@
 // Angular imports
 import {Component,
         ViewEncapsulation,
-        NgZone}             from '@angular/core';
-import {CORE_DIRECTIVES,
-        Validators}         from '@angular/common';
+        NgZone,
+        NgModule}           from '@angular/core';
 import {Router}             from '@angular/router';
 
 // Third-party imports
@@ -28,31 +27,33 @@ import {WampService}        from '../../shared/services/src/wamp.service';
   moduleId:      module.id,
   templateUrl:   'login.component.html',
   styleUrls :    ['login.component.css'],
-  directives:    [CORE_DIRECTIVES, Dialog, Button, InputText, InputSwitch],
   encapsulation: ViewEncapsulation.None,
   providers:     [CookieService],
   host:          {'class' : 'ng-animate LoginComponent'}, 
 })
 
+@NgModule({
+  declarations: [Dialog, Button, InputText, InputSwitch]
+})
 export class LoginComponent {
   
   // Activate buttons
-  public signin_inactive: Boolean = true;
-  public signup_inactive: Boolean = true;
-  public retrieve_inactive: Boolean = true;
+  public signin_inactive: boolean = true;
+  public signup_inactive: boolean = true;
+  public retrieve_inactive: boolean = true;
   
   // Validation status
-  public email_is_valid: String = '';
+  public email_is_valid: string = '';
   
   // Remember login
-  public remember_login: Boolean = false;
+  public remember_login: boolean = false;
   
-  public email: String = '';
-  public username: String = '';
-  public password: String = '';
-  public statusmessage: String = "Binding affinity prediction for Pro's";
+  public email: string = '';
+  public username: string = '';
+  public password: string = '';
+  public statusmessage: string = "Binding affinity prediction for Pro's";
   
-  public wampactive: Boolean = false;
+  public wampactive: boolean = false;
   
   constructor(public router: Router, public user: UserService, 
               public wamp: WampService, public zone: NgZone,
