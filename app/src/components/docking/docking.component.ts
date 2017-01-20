@@ -159,10 +159,12 @@ class MDDetails implements MD {
   moduleId:      module.id,
   templateUrl:   'docking.component.html',
   styleUrls:     ['docking.component.css'],
-  directives:    [InputText, DataTable, ContextMenu, Button, Dialog, Column, nvD3, Slider, MultiSelect],
-  providers:     [HTTP_PROVIDERS],
 })
 
+@NgModule({
+  imports: [HttpModule],
+  declarations: [InputText, DataTable, ContextMenu, Button, Dialog, Column, nvD3, Slider, MultiSelect]
+})
 export class DockingComponent {
     
     // DataTable column selection
