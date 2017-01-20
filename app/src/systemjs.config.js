@@ -3,10 +3,10 @@
   // map tells the System loader where to look for things
   var map = {
     'rxjs':                       'node_modules/rxjs',
-    'angular2-in-memory-web-api': 'node_modules/angular2-in-memory-web-api',
+    'angular-in-memory-web-api': 'node_modules/angular-in-memory-web-api',
     '@angular':                   'node_modules/@angular',
     '@angular/router':            'node_modules/@angular/router',
-    'angular2-cookie':            'node_modules/angular2-cookie',
+    'angular-cookie':            'node_modules/angular-cookie',
     'primeng':                    'node_modules/primeng',
     'ng2-nvd3':                   'node_modules/ng2-nvd3/build/lib/ng2-nvd3',
   };
@@ -14,8 +14,8 @@
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
     'rxjs':                       { defaultExtension: 'js' },
-    'angular2-in-memory-web-api': { defaultExtension: 'js' },
-    'angular2-cookie':            { main: 'core.js',  defaultExtension: 'js' },
+    'angular-in-memory-web-api': { defaultExtension: 'js' },
+    'angular-cookie':            { main: 'core.js',  defaultExtension: 'js' },
     'primeng':                    { defaultExtension: 'js' },
   };
 
