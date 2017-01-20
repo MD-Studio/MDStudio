@@ -13,7 +13,7 @@
 
     'rxjs':                       'node_modules/rxjs',
     'angular-in-memory-web-api':  'node_modules/angular-in-memory-web-api/bundles/in-memory-web-api.umd.js',
-    'angular-cookies':             'node_modules/angular-cookies',
+    'angular2-cookie':             'node_modules/angular2-cookie',
     'primeng':                    'node_modules/primeng',
     'ng2-nvd3':                   'node_modules/ng2-nvd3/build/lib/ng2-nvd3',
   };
@@ -21,7 +21,7 @@
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
     'rxjs':                       { defaultExtension: 'js' },
-    'angular-cookies':             { main: 'core.js',  defaultExtension: 'js' },
+    'angular2-cookie':            { main: 'core.js',  defaultExtension: 'js' },
     'primeng':                    { defaultExtension: 'js' },
   };
 
