@@ -49,18 +49,18 @@ export interface MD {
 // MD details object used by MD details side panel
 class MDDetails implements MD {
   
-  public traj_start_frame: Number = 0;
-  public traj_end_frame: Number = 2000;
+  public traj_start_frame: number = 0;
+  public traj_end_frame: number = 2000;
   
   // TODO: these are now parsed as string by the .toFixed(2) function in
   // the calculateStats function. This is used bacause Angular 2 Pipes are
   // broken in Safari.
-  public ave_elec: String;
-  public std_elec: String;
-  public ave_vdw: String;
-  public std_vdw: String;
+  public ave_elec: string;
+  public std_elec: string;
+  public ave_vdw: string;
+  public std_vdw: string;
   
-  public rangeSlider: Number[];
+  public rangeSlider: number[];
    
   constructor(public traj_data?: Array<any>, public id?, public compound?, public pose?, 
               public range?, public start?, public end?) {
