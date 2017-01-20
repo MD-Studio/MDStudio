@@ -2,8 +2,6 @@ echo 'Running installer' &>> docker/.INSTALLING
 
 if [ ! -d lie_venv/ ]; then
     bash installer.sh --setup --local-dev &>> docker/.INSTALLING
-else
-    bash installer.sh --setup --local-dev &>> docker/.INSTALLING
 fi
 
 echo 'Enabling debugging code' &>> docker/.INSTALLING
