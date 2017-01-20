@@ -7,8 +7,8 @@ RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     apt-get install nodejs && \
     npm install -g gulp && \
     npm install -g gulp-cli && \
-    npm install typescript -g && \
-    npm install typings -g && \
+    npm install -g typescript && \
+    npm install -g typings && \
     apt-get clean
 
 RUN pip install --upgrade pip
@@ -40,4 +40,4 @@ ADD docker/.bash_profile ~/.bash_profile
 
 WORKDIR /app/
 
-ENTRYPOINT ["bash", "docker/docker-entrypoint.sh" ] 
+ENTRYPOINT ["bash", "/app/docker/docker-entrypoint.sh" ] 
