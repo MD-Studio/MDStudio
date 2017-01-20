@@ -8,7 +8,10 @@
         "experimentalDecorators": true,
         "removeComments": true,
         "noImplicitAny": false,
-        "types": ["node"]
+        "types": [
+            "core-js",
+            "node"
+        ]
     },
     "exclude": [
         "node_modules",
