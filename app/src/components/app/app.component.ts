@@ -8,17 +8,22 @@ import {Component,
         ViewEncapsulation,
         OnInit}                 from '@angular/core';
 import {Http, 
+        HttpModule,
         Headers}                from '@angular/http';
 import {BrowserModule} from '@angular/platform-browser';
 import {Router,
         RouterModule}  from '@angular/router';
 import {NgModule}      from '@angular/core';
 
+import {AppRouting} from './app.routes';
+
 // PrimeNG imports
 import {Button,
         PanelMenu,
         Menubar,
-        MenuItem}               from 'primeng/primeng';
+        MenuItem,
+        PanelMenuSub,
+        MenubarSub}               from 'primeng/primeng';
 
 // App imports
 import {UserService}            from '../../shared/services/src/user.service';
@@ -38,8 +43,10 @@ declare var componentHandler: any;
 })
 
 @NgModule({
-  imports: [BrowserModule, RouterModule],
-  declarations: [AppComponent, Button, PanelMenu, Menubar],
+  imports: [BrowserModule, AppRouting, HttpModule],
+  declarations: [AppComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub],
+  bootstrap: [ AppComponent ],
+  providers: [] 
 })
 
 export class AppComponent implements AfterViewInit, OnInit {
@@ -58,10 +65,10 @@ export class AppComponent implements AfterViewInit, OnInit {
       {
         label: 'Main',
         items: [
-          {label: 'Dashboard', icon: 'fa-dashboard', routerLink: ['/dashboard']},
-          {label: 'Logs', icon: 'fa-tasks', routerLink: ['/log']},
-          {label: 'Docking', icon: 'fa-flask', routerLink: ['/docking']},
-          {label: 'MD', icon: 'fa-th-list', routerLink: ['/md']},
+          {label: 'Dashboard', icon: 'fa-dashboard'/*, routerLink: ['/dashboard'] @TODO */},
+          {label: 'Logs', icon: 'fa-tasks'/*, routerLink: ['/log'] @TODO */},
+          {label: 'Docking', icon: 'fa-flask'/*, routerLink: ['/docking'] @TODO */},
+          {label: 'MD', icon: 'fa-th-list'/*, routerLink: ['/md'] @TODO */},
         ]
       },
       {
