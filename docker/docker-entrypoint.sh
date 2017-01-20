@@ -24,7 +24,8 @@ echo 'Install IDE bindings' &>> docker/.INSTALLING
 pip install -r /app/data/python_default_requirements.txt &>> docker/.INSTALLING
 
 echo 'Install NPM packages' &>> docker/.INSTALLING
-cd /app/app && npm install --unsafe-perm &>> docker/.INSTALLING && cd /app/  
+mkdir -p /app/app/node_modules
+npm install --prefix /app/app --unsafe-perm &>> docker/.INSTALLING
 
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
