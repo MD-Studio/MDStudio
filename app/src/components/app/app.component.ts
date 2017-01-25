@@ -33,7 +33,11 @@ import {Button,
         PanelMenuSub,
         MenubarSub,
         MultiSelectModule,
-        DataTableModule}               from 'primeng/primeng';
+        DataTableModule,
+        ContextMenuModule,
+        SliderModule,
+        DialogModule,
+        InputSwitchModule}               from 'primeng/primeng';
 
 // App imports
 import {UserService}            from '../../shared/services/src/user.service';
@@ -53,7 +57,7 @@ declare var componentHandler: any;
 })
 
 @NgModule({
-  imports: [BrowserModule, AppRouting, HttpModule, MultiSelectModule, FormsModule, DataTableModule],
+  imports: [BrowserModule, AppRouting, HttpModule, MultiSelectModule, FormsModule, DataTableModule, ContextMenuModule, SliderModule, DialogModule, InputSwitchModule],
   declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub, nvD3],
   bootstrap: [ AppComponent ],
   providers: [] 
