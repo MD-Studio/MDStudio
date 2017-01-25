@@ -42,6 +42,7 @@ import {Button,
 // App imports
 import {UserService}            from '../../shared/services/src/user.service';
 import {WampService}            from '../../shared/services/src/wamp.service';
+import {Authorize}            from '../../shared/services/src/auth.service';
 
 declare var componentHandler: any;
 
@@ -60,7 +61,7 @@ declare var componentHandler: any;
   imports: [BrowserModule, AppRouting, HttpModule, MultiSelectModule, FormsModule, DataTableModule, ContextMenuModule, SliderModule, DialogModule, InputSwitchModule],
   declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub, nvD3],
   bootstrap: [ AppComponent ],
-  providers: [UserService, WampService] 
+  providers: [UserService, WampService, Authorize] 
 })
 
 export class AppComponent implements AfterViewInit, OnInit {
