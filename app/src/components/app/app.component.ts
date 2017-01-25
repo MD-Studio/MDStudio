@@ -80,6 +80,7 @@ export class AppComponent implements AfterViewInit, OnInit {
       {
         label: 'Main',
         icon: 'fa-home',
+        expanded: true,
         items: [
           {label: 'Dashboard', icon: 'fa-dashboard', routerLink: ['/dashboard']},
           {label: 'Logs', icon: 'fa-tasks', routerLink: ['/log']},
