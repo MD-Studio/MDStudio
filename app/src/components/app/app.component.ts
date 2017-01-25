@@ -80,10 +80,10 @@ export class AppComponent implements AfterViewInit, OnInit {
       {
         label: 'Main',
         items: [
-          {label: 'Dashboard', icon: 'fa-dashboard'/*, routerLink: ['/dashboard'] @TODO */},
-          {label: 'Logs', icon: 'fa-tasks'/*, routerLink: ['/log'] @TODO */},
-          {label: 'Docking', icon: 'fa-flask'/*, routerLink: ['/docking'] @TODO */},
-          {label: 'MD', icon: 'fa-th-list'/*, routerLink: ['/md'] @TODO */},
+          {label: 'Dashboard', icon: 'fa-dashboard', routerLink: ['/dashboard']},
+          {label: 'Logs', icon: 'fa-tasks', routerLink: ['/log']},
+          {label: 'Docking', icon: 'fa-flask', routerLink: ['/docking']},
+          {label: 'MD', icon: 'fa-th-list', routerLink: ['/md']},
         ]
       },
       {
