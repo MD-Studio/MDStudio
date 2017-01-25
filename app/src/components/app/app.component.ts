@@ -22,6 +22,7 @@ import {MDComponent} from '../md/md.component'
 import {LoggingComponent} from '../logging/logging.component'
 import {LoginComponent} from '../login/login.component'
 import {AppRouting} from './app.routes';
+import {nvD3} from './utils/ng2-nvd3'
 
 // PrimeNG imports
 import {Button,
@@ -50,7 +51,7 @@ declare var componentHandler: any;
 
 @NgModule({
   imports: [BrowserModule, AppRouting, HttpModule],
-  declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub],
+  declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub, nvD3],
   bootstrap: [ AppComponent ],
   providers: [] 
 })

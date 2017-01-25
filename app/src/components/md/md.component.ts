@@ -27,7 +27,7 @@ import {InputText,
         Slider,
         SelectItem,
         MultiSelect}          from 'primeng/primeng';
-import {nvD3}                 from 'ng2-nvd3';
+import {nvD3}                 from '../app/utils/ng2-nvd3';
 
 // App imports
 import {UserService}          from '../../shared/services/src/user.service';
