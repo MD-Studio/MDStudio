@@ -18,6 +18,7 @@ import {NgModule}      from '@angular/core';
 import {DashboardComponent} from '../dashboard/dashboard.component'
 import {BootComponent} from '../boot/boot.component'
 import {DockingComponent} from '../docking/docking.component'
+import {MDComponent} from '../md/md.component'
 import {LoggingComponent} from '../logging/logging.component'
 import {LoginComponent} from '../login/login.component'
 import {AppRouting} from './app.routes';
@@ -49,7 +50,7 @@ declare var componentHandler: any;
 
 @NgModule({
   imports: [BrowserModule, AppRouting, HttpModule],
-  declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub],
+  declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub],
   bootstrap: [ AppComponent ],
   providers: [] 
 })
