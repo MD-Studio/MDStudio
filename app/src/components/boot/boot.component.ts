@@ -14,7 +14,7 @@ import {UserService}            from '../../shared/services/src/user.service';
 import {WampService}            from '../../shared/services/src/wamp.service';
 
 @Component({
-  selector:      'app',
+  selector:      'lie-app',
   moduleId:      module.id,
   templateUrl:   'boot.component.html',
   styleUrls:     ['boot.component.css'],
