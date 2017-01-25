@@ -79,6 +79,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.main_menu_items = [
       {
         label: 'Main',
+        icon: 'fa-home',
         items: [
           {label: 'Dashboard', icon: 'fa-dashboard', routerLink: ['/dashboard']},
           {label: 'Logs', icon: 'fa-tasks', routerLink: ['/log']},

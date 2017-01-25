@@ -212,10 +212,6 @@
         padding-left: 3.5em;
       }
       
-      .ui-panelmenu-icon {
-        z-index: -90;
-      }
-      
       &.ui-state-active,
       &.ui-state-hover {
         background-color: $left-nav-btn-color-backg;
@@ -257,12 +253,27 @@
     margin-left: -.3em !important;
 }
 
-.ui-panelmenu-header .ui-menuitem-icon {
-    margin-left: -0.25em;
-    font-size: 2.2em !important;
+.ui-panelmenu-header {
+   .ui-menuitem-icon {
+      margin-left: -0.2em;
+      font-size: 2em !important;
+   }
+
+   .ui-menuitem-icon + .ui-menuitem-text {
+      line-height: 2em;
+      margin-left: 1em;
+      display: block;
+      margin-top: .5em;
+   }
 }
 
 .ui-panelmenu-panel:nth-child(n+2) {
     border-top: 2px solid #4E5E7A;
     margin-top: .5em;
+}
+
+.ui-panelmenu-icon{
+  &.fa-caret-down, &.fa-caret-right {
+      display: none;
+  }
 }
