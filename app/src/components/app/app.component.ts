@@ -6,14 +6,15 @@
 import {Component,
         AfterViewInit,
         ViewEncapsulation,
-        OnInit}                 from '@angular/core';
+        OnInit,
+        NgModule}                 from '@angular/core';
+import {FormsModule}              from '@angular/forms';
 import {Http, 
         HttpModule,
         Headers}                from '@angular/http';
 import {BrowserModule} from '@angular/platform-browser';
 import {Router,
         RouterModule}  from '@angular/router';
-import {NgModule}      from '@angular/core';
 
 import {DashboardComponent} from '../dashboard/dashboard.component'
 import {BootComponent} from '../boot/boot.component'
@@ -30,7 +31,8 @@ import {Button,
         Menubar,
         MenuItem,
         PanelMenuSub,
-        MenubarSub}               from 'primeng/primeng';
+        MenubarSub,
+        MultiSelectModule}               from 'primeng/primeng';
 
 // App imports
 import {UserService}            from '../../shared/services/src/user.service';
@@ -50,7 +52,7 @@ declare var componentHandler: any;
 })
 
 @NgModule({
-  imports: [BrowserModule, AppRouting, HttpModule],
+  imports: [BrowserModule, AppRouting, HttpModule, MultiSelectModule, FormsModule],
   declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub, nvD3],
   bootstrap: [ AppComponent ],
   providers: [] 
