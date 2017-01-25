@@ -60,7 +60,7 @@ declare var componentHandler: any;
   imports: [BrowserModule, AppRouting, HttpModule, MultiSelectModule, FormsModule, DataTableModule, ContextMenuModule, SliderModule, DialogModule, InputSwitchModule],
   declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub, nvD3],
   bootstrap: [ AppComponent ],
-  providers: [] 
+  providers: [UserService, WampService] 
 })
 
 export class AppComponent implements AfterViewInit, OnInit {
