@@ -15,7 +15,6 @@
     'angular-in-memory-web-api':  'node_modules/angular-in-memory-web-api/bundles/in-memory-web-api.umd.js',
     'angular2-cookie':             'node_modules/angular2-cookie',
     'primeng':                    'node_modules/primeng',
-    'ng2-nvd3':                   'node_modules/ng2-nvd3/build/lib/ng2-nvd3',
   };
 
   // packages tells the System loader how to load when no filename and/or no extension
