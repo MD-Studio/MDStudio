@@ -88,6 +88,10 @@
                             "type": "static",
                             "directory": "../../app/dist"
                         },
+                        "node_modules": {
+                            "type": "static",
+                            "directory": "../../app/node_modules"
+                        },
                         "help": {
                             "type": "static",
                             "directory": "../../docs/html"

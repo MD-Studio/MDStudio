@@ -46,7 +46,7 @@ def init_user(settings, config):
     and add the default admin user if needed
 
     :param settings: global and module specific settings
-    :type settings:  dict or dict like object
+    :type settings:  :py:dict or :py:dict like object
     :return:         successful bootstrap completion
     :rtype:          bool
     """
@@ -93,7 +93,7 @@ def exit_user(settings):
     Terminate all active sessions on component shutdown
 
     :param settings: global and module specific settings
-    :type settings:  dict or dict like object
+    :type settings:  :py:dict or :py:dict like object
     :return:         successful exit sequence
     :rtype:          bool
     """
@@ -471,7 +471,7 @@ class UserManager(object):
         Remove a user from the database
 
         :param userdata: PyMongo style database query
-        :type userdata:  dict
+        :type userdata:  :py:dict
         """
 
         user = self.get_user(userdata)
@@ -506,7 +506,7 @@ class UserManager(object):
         Get user data by query
 
         :param query: PyMongo style database query
-        :type query:  dict
+        :type query:  :py:dict
         """
         global db
         users = db['users']

@@ -40,9 +40,9 @@ class LoggerWampApi(LieApplicationSession):
         to local Twisted logger observers.
 
         :param event: Structured log event
-        :type event:  dict
+        :type event:  :py:dict
         :return:      standard return
-        :rtype:       dict to JSON
+        :rtype:       :py:dict to JSON
         """
         
         log_level = LogLevel.levelWithName(event.get('log_level', default_log_level))

@@ -140,7 +140,7 @@ class BootstrapMongoDB(object):
         """
         Return MongoDB server information
 
-        :rtype: dict
+        :rtype: :py:dict
         """
 
         if self.isrunning:

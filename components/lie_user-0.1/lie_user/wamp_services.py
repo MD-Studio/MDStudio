@@ -66,10 +66,10 @@ class UserWampApi(LieApplicationSession):
         :type authid:   str
         :param details: additional details including authentication method
                         and transport details
-        :type details:  dict
+        :type details:  :py:dict
         :return:        authentication response with the realm, user role and
                         user account info returned.
-        :rtype:         dict or False
+        :rtype:         :py:dict or False
         """
         
         authmethod = details.get(u'authmethod', None)

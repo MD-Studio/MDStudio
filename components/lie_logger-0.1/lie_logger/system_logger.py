@@ -58,7 +58,7 @@ def init_application_logging(settings, config):
     based on predefined logger module settings.
     
     :param settings: global and module specific settings
-    :type settings:  dict or dict like object
+    :type settings:  :py:dict or :py:dict like object
     :return:         true/false for successful bootstrap completion
     :rtype:          bool
     """
@@ -125,7 +125,7 @@ def exit_application_logging(settings):
     to the database.
     
     :param settings: global and module specific settings
-    :type settings:  dict or dict like object
+    :type settings:  :py:dict or :py:dict like object
     :return:         true/false for successful bootstrap completion
     :rtype:          bool
     """

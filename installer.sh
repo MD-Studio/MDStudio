@@ -407,6 +407,7 @@ function _compile_python_sphinx_docs () {
   echo "INFO: Compile LIEStudio and API documentation in HTML"
   rm -rf ${ROOTDIR}/docs/html
   cd ${ROOTDIR}/docs
+  mkdir -p ${ROOTDIR}/docs/_static
   make html
   cd ${ROOTDIR}
   
