@@ -54,8 +54,7 @@ class UserWampApi(LieApplicationSession):
         the Crossbar supported authentication methods.
         
         For more information about crossbar authentication/authorization
-        consult the online documentation at: 
-            http://crossbar.io/docs/Administration/
+        consult the online documentation at: http://crossbar.io/docs/Administration/
         
         This method also provides authentication based on IP/domain
         information in addition to the crossbar supported authentication 

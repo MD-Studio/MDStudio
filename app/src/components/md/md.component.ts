@@ -308,7 +308,7 @@ export class MDComponent {
      * - then convert each untyped object to type MD.
      */
     private loadProjectMDinfo() {
-        return this.http.get('assets/data/md-data.json')
+        return this.http.get('assets/data/md-data.json') 
                     .toPromise()
                     .then(res => <MD[]> res.json().data)
                     .then(data => {return data;});

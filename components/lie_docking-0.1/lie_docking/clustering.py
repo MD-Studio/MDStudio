@@ -9,7 +9,7 @@ from   twisted.logger           import Logger
 from   scipy.spatial.distance   import pdist, squareform
 from   scipy.cluster.hierarchy  import linkage, fcluster, leaders, dendrogram
 
-#import matplotlib.pyplot as plt 
+#import matplotlib.pyplot as plt
 
 def coords_from_mol2(mol2_files):
     """
@@ -19,7 +19,7 @@ def coords_from_mol2(mol2_files):
     :type mol2_files:  list
     :return:           coordinates as list of numpy arrays 
     """
-    
+
     sets = []
     for mol2 in mol2_files:
 
@@ -36,7 +36,7 @@ def coords_from_mol2(mol2_files):
             coords.append(map(float, line[2:5]))
         if coords:
           sets.append(coords)
-    
+
     return numpy.array(sets)
 
 def _rotate(c1, c2):
@@ -61,20 +61,22 @@ def _kabsch(P, Q):
     The optimal rotation matrix U is calculated and then used to rotate matrix
     P unto matrix Q so the minimum root-mean-square deviation (RMSD) can be
     calculated.
+
     Using the Kabsch algorithm with two sets of paired point P and Q,
-    centered around the center-of-mass.
-    Each vector set is represented as an NxD matrix, where D is the
-    the dimension of the space.
+    centered around the center-of-mass. Each vector set is represented as
+    an NxD matrix, where D is the the dimension of the space.
+
     The algorithm works in three steps:
-    - a translation of P and Q
-    - the computation of a covariance matrix C
-    - computation of the optimal rotation matrix U
+        * A translation of P and Q
+        * The computation of a covariance matrix C
+        * Computation of the optimal rotation matrix U
+
     http://en.wikipedia.org/wiki/Kabsch_algorithm
-    Parameters:
-    P -- (N, number of points)x(D, dimension) matrix
-    Q -- (N, number of points)x(D, dimension) matrix
-    Returns:
-    U -- Rotation matrix
+
+    :param P: (N, number of points)x(D, dimension) matrix
+    :param Q: (N, number of points)x(D, dimension) matrix
+    :return: U the Rotation matrix
+    :rtype: object
     """
 
     # Computation of the covariance matrix
@@ -100,7 +102,7 @@ def _kabsch(P, Q):
     return U
 
 def rmsd(c1,c2):
-    
+
     delta = c1 - c2
     delta_sq = delta * delta
     return numpy.sqrt(delta_sq.sum() / len(c1))
@@ -109,13 +111,13 @@ def kabsch(c1, c2):
     """
     Rotate matrix c1 onto c2 and calculate the RMSD
     """
-    
+
     c1 -= _centroid(c1)
     c2 -= _centroid(c2)
-    
+
     c1 = _rotate(c1, c2)
     return rmsd(c1, c2)
-    
+
 class ClusterStructures(object):
     """
     Cluster analysis on sets of structures that are identical in atom count,
@@ -123,21 +125,25 @@ class ClusterStructures(object):
     
     The class works on plain sets of coordinates and thereby assumes that 
     the above mentioned atom constraints are satisfied.
-    A calculated pairwise distance matrix (pdist) is used as similarity measure 
+    A calculated pairwise distance matrix (**pdist**) is used as similarity measure
     in a hierarchical clustering analysis.
     
-    Supported metrics of the pdist are:
-    * rmsd:   plane Root Mean Square Deviation between two coordinate
-              sets without fitting.
-    * kabsch: first fit the two coordinates set before calculating the
-              RMSD value. Minimize the Root Mean Square Deviation 
-              between the two coordinate sets by calculating the 
-              optimal rotation matrix.
-             
-              This uses the Kabsch algorithm:
-              - https://en.wikipedia.org/wiki/Kabsch_algorithm
+    Supported metrics of the **pdist** are:
+
+        * **rmsd**:
+          plane Root Mean Square Deviation between two coordinate
+          sets without fitting.
+        * **kabsch**:
+          first fit the two coordinates set before calculating the
+          RMSD value. Minimize the Root Mean Square Deviation
+          between the two coordinate sets by calculating the
+          optimal rotation matrix.
+
+          This uses the Kabsch algorithm:
+
+          * https://en.wikipedia.org/wiki/Kabsch_algorithm
     
-    The pdist is calculated once at class construction and is reused to
+    The **pdist** is calculated once at class construction and is reused to
     calculate different cluster flavors using the class `cluster` method.
     
     :param xyz:    structure xyz coordinate sets
@@ -148,50 +154,50 @@ class ClusterStructures(object):
                    corresponding to the entries in the coordinate set.
     :type labels:  list
     """
-    
+
     logging = Logger()
-    
+
     def __init__(self, xyz, metric='rmsd', labels=None):
-        
+
         self.xyz = xyz
         self.metric = metric
         self.labels = labels or range(len(labels))
-        
+
         # All xyz coordinate sets need to be of type numpy.ndarray 
         assert all([isinstance(coords, numpy.ndarray) for coords in self.xyz]), 'Structure coordinates need to be of type numpy.ndarray'
-        
+
         # Equality in number and order of atoms for all coordinate sets is assumed
         assert len(set([coords.size for coords in self.xyz])) == 1, 'Structure coordinates have an unequal number of atoms'
-        
+
         # Optional list of labels (e.a. structure id's) need to match coordinate set in length
         assert len(self.labels) == len(self.xyz), 'Number if labels is not matching number of coordinate sets'
-        
+
         self._condensed_distance_matrix = self._build_pdist()
         self._clusters = []
         self._clusters_filtered = {}
-        
+
     def __len__(self):
         """
         Return the number of clustered structures
         """
-        
+
         len(self._clusters)
-    
+
     def __str__(self):
         """
         Return a nicely formatted summary of the clustering
         """
-        
+
         summary = []
         summary.append('Clustering {0} structures'.format(len(self.xyz)))
         summary.append('Metric for pairwise distance matrix: {0}'.format(self.metric))
         summary.append('Metric for hierarchical clustering: {0}'.format(self.method))
         summary.append('Cluster selection criterion: {0} with parameter {1}\n'.format(self.criterion, self.t))
-        
+
         summary.append('Clusters: {0}, coverage: {1:.2f}%'.format(self.cluster_count, self.coverage*100))
-        
+
         return '\n'.join(summary)
-        
+
     def _build_pdist(self):
         """
         Construct condensed pairwise distance matrix using the `metric`
@@ -200,17 +206,17 @@ class ClusterStructures(object):
         :return:       condensed distance matrix
         :rtype:        list
         """
-        
+
         _metric_func = globals().get(self.metric)
         if not _metric_func:
             raise LookupError('{0} class does not know about "{1}" pdist metric'.format(type(self).__name__, self.metric))
-        
+
         dst = []
         for pair in itertools.combinations(self.xyz, 2):
             dst.append(_metric_func(*pair))
-        
+
         return dst
-    
+
     @property
     def clustered_structures(self):
         """
@@ -219,9 +225,9 @@ class ClusterStructures(object):
         
         :rtype: list
         """
-        
+
         return [sid for sid in self._clusters_filtered if self._clusters_filtered[sid].get('cluster',0) != 0]
-    
+
     @property
     def cluster_medians(self):
         """
@@ -233,15 +239,15 @@ class ClusterStructures(object):
         :return: dictionary of cluster ID/structure ID key/value pairs
         :rtype:  dict
         """
-        
+
         return dict([(self._clusters_filtered[sid]['cluster'], sid) for sid in self._clusters_filtered
                       if self._clusters_filtered[sid].get('mean', False)])
-    
+
     @property
     def cluster_count(self):
-        
+
         return len(self.cluster_medians)
-    
+
     @property
     def coverage(self):
         """
@@ -249,17 +255,17 @@ class ClusterStructures(object):
         
         :rtype: float 
         """
-        
+
         return (len(self.clustered_structures) / float(len(self.xyz)))
-        
+
     def plot(self, to_file='cluster_dendrogram.pdf'):
         """
         Plot the cluster dendrogram.
         """
-        
+
         fig = plt.figure()
-        
-        ddata = dendrogram(self._linkage, 
+
+        ddata = dendrogram(self._linkage,
                            labels=self.labels,
                            color_threshold=self._linkage[-(max(self._clusters)-1),2])
         annotate_above=1
@@ -274,12 +280,12 @@ class ClusterStructures(object):
         max_d = None
         if max_d:
             fig.axhline(y=max_d, c='k')
-        
+
         if not to_file:
             return fig
-            
+
         fig.savefig(to_file)
-            
+
     def cluster(self, t=5, method='single', criterion='distance', min_cluster_count=1):
         """
         Cluster the structures using hierarchical clustering methods on 
@@ -305,20 +311,20 @@ class ClusterStructures(object):
         :return:                  clustering results
         :rtype:                   dict
         """
-        
+
         self.method = method
         self.criterion = criterion
         self.t = t
-        
+
         self._linkage = linkage(self._condensed_distance_matrix, method=method)
         self._clusters = fcluster(self._linkage, t, criterion=criterion)
-        
+
         self._clusters_filtered = {}
         sqmatr = squareform(self._condensed_distance_matrix)
         for n in range(1,max(self._clusters)+1):
             cl = numpy.where(self._clusters == n)
             if len(cl[0]) >= min_cluster_count:
-                
+
                 # Get one structure as representative of the cluster
                 if len(cl[0]) == 1:
                     lc = [0]
@@ -328,7 +334,7 @@ class ClusterStructures(object):
                     m = numpy.mean(numpy.hstack(a[i][:i] for i in xrange(a.shape[0])))
                     x = (numpy.abs(a-m)).argmin()
                     lc = numpy.where(a == a.flat[x])[0]
-              
+
                 meanpose = self.labels[cl[0][lc[0]]]
                 for idx in cl[0]:
                     self._clusters_filtered[self.labels[idx]] = {'cluster':n, 'mean':self.labels[idx] == meanpose}
@@ -336,18 +342,18 @@ class ClusterStructures(object):
                 self.logging.debug('Cluster {0} contains less that {1} structures ({2}). Dropping'.format(n, min_cluster_count, len(cl[0])))
                 for idx in cl[0]:
                     self._clusters_filtered[self.labels[idx]] = {'cluster':0, 'mean':0}
-        
+
         self.logging.info('Cluster {0} structures. pdist method: {1}, cluster method: {2}, criterion: {3}, tolerance: {4}, minimum cluster size: {5}'.format(
             len(self.xyz), self.metric, self.method, self.criterion, self.t, min_cluster_count))
         self.logging.info('Resolved {0} clusters with a coverage of {1}%'.format(self.cluster_count, self.coverage*100))
         return self._clusters_filtered
 
 if __name__ == '__main__':
-    
+
     import glob
     s = glob.glob('/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/components/lie_docking-0.1/tests/cluster/*.mol2')
     xyz = coords_from_mol2(s)
     c = ClusterStructures(xyz, labels=[os.path.basename(n).replace('_entry_00001_conf_','lig_').split('.')[0] for n in s])
     c.cluster(4, method='single', min_cluster_count=2)
-    
+
     print(c)

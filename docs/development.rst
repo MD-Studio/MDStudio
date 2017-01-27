@@ -82,46 +82,48 @@ of the workflow.
 
 A task datamodel construct for a PLANTS docking run could look like this:
 
-{
-  _taskMeta: {
-    _realm:         
-    _package_name:  
-    _authid:        
-    _class_name:    
-    _authrole:      
-    _authmethod:    
-    _session:       
-    _status:        
-    _init_time:     
-    _update_time:   
-    _status_message:
-    _id:            
-  },
-  '_dataType': 'wampMethod',
-  '_wampUrl': 'liestudio.docking.run',
-  '_inputDict': {
-    'ligandFile': {
-      '_dataType': 'wampMethod',
-      '_wampUrl': 'liestudio.structure.get',
-      '_configDict': {
-        'structure_id': '100203',
-        'format': 'mol2'
-      },
+.. code-block:: python
+
+    {
+    _taskMeta: {
+        _realm:         
+        _package_name:  
+        _authid:        
+        _class_name:    
+        _authrole:      
+        _authmethod:    
+        _session:       
+        _status:        
+        _init_time:     
+        _update_time:   
+        _status_message:
+        _id:            
     },
-    proteinFile: {
-      '_dataType': 'inlineSource',
-      '_data: '<structure inline pdb>',
+    '_dataType': 'wampMethod',
+    '_wampUrl': 'liestudio.docking.run',
+    '_inputDict': {
+        'ligandFile': {
+        '_dataType': 'wampMethod',
+        '_wampUrl': 'liestudio.structure.get',
+        '_configDict': {
+            'structure_id': '100203',
+            'format': 'mol2'
+        },
+        },
+        proteinFile: {
+        '_dataType': 'inlineSource',
+        '_data: '<structure inline pdb>',
+        }
+    },
+    _outputDict: {
+        '<results>'
+    },
+    _configDict: {
+        'method', 'plants',
+        'workdir': '/home/workdir',
+        'bindingsite_center': [0,0,0]
     }
-  },
-  _outputDict: {
-    '<results>'
-  },
-  _configDict: {
-    'method', 'plants',
-    'workdir': '/home/workdir',
-    'bindingsite_center': [0,0,0]
-  }
-}
+    }
 
 **Message type**
 LIEStudio tasks communicate data in a number of predefined types indicated by the '_dataType' tage:

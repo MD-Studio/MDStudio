@@ -7,7 +7,7 @@ services:
         volumes:
             - .:/app
             # cache directories for faster building times
-            - /app/app/node_modules
+            #- /app/app/node_modules
             - /root/.cache/pip
             - /root/.npm
 
@@ -23,11 +23,17 @@ services:
         links:
             - mongo
         ports:
+            # use non standard ssh port
             - "65432:22"
+            # show on normal http port
             - "80:8080"
+            # needed for support on development
             - "8080:8080"
+            # gulp serve
             - "5000:5000"
             - "3001:3001"
+            # sphinx autobuild
+            - "8000:8000"
         tty: true
 
     mongo:

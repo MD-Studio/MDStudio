@@ -59,23 +59,23 @@ class LieApplicationSession(ApplicationSession):
     It does so by overriding the five `placeholder methods <http://autobahn.ws/python/wamp/programming.html>`_ 
     that the ApplicationSession calls over the course of the session life cycle:
     
-    * onConnect: first stage in establishing connection with the WAMP router
+    * **onConnect**: first stage in establishing connection with the WAMP router
       (Crossbar). Define the rules of engagement; realm to join, authentication
       method to use.
-    * onChallenge: authenticate using any of the Crossbar supported `methods <http://crossbar.io/docs/Authentication/>`_.
-    * onJoin: register the API methods with the WAMP router and update local
-      API configuration with settings retrieved by calling liestudio.config.get
-    * onLeave: cleanup methods when leaving the realm
-    * onDisconnect: cleanup methods when disconnecting from the WAMP router
+    * **onChallenge**: authenticate using any of the Crossbar supported `methods <http://crossbar.io/docs/Authentication/>`_.
+    * **onJoin**: register the API methods with the WAMP router and update local
+      API configuration with settings retrieved by calling ``liestudio.config.get``
+    * **onLeave**: cleanup methods when leaving the realm
+    * **onDisconnect**: cleanup methods when disconnecting from the WAMP router
     
     To enable custom events during the application life cycle, the 
     LieApplicationSession defines it's own placeholder methods. Do not override
     the five methods mentioned above but use these instead:
     
-    * onInit: called at the end of the class constructor.
-    * onRun: implement custom code to be called automatically when the WAMP 
+    * **onInit**: called at the end of the class constructor.
+    * **onRun**: implement custom code to be called automatically when the WAMP
       session joins the realm. Called from the onJoin method.
-    * onExit: cleanup methods called from the onLeave method.
+    * **onExit**: cleanup methods called from the onLeave method.
     
     Logging: the Autobahn ApplicationSession initiates an instance of the 
     Twisted logger as self.log
@@ -271,6 +271,7 @@ class LieApplicationSession(ApplicationSession):
 
         Depending on the `realm` the WAMP session tries to connect to the
         following authentication methods are supported:
+
         * WAMP-Anonymous: anonymous authentication needs to be explicitly
           defined and is by default not allowed. If defined, `onChallenge`
           will not be called.

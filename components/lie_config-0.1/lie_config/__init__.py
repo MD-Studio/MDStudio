@@ -16,7 +16,9 @@ configuration by providing WAMP endpoints.
 
 An example of initiating a global ConfigHandler class from a configuration
 stored as JSON file
-::
+
+.. code-block:: python
+
     import json
     import lie_config
     
@@ -76,10 +78,10 @@ def get_config(name='default'):
 class configwrapper(object):
     """
     configwrapper class
-    
+
     Decorator class responsible for replacing class or function keyword arguments
     by their equivalents from the module wide configuration.
-    
+
     Without any arguments to the decorator, the decorated function name is used
     to retrieve the configuration managed by a ConfigHandler instance.
     The 'default' ConfigHandler is used by default unless specified otherwise
@@ -87,24 +89,24 @@ class configwrapper(object):
     All function keyword arguments are replaced by their equivalents from the
     configuration except if they are defined in the call to the function (local
     overload).
-    
+
     With a string as argument to the decorator the configuration for that
     particular name will be searched for at any level in the configuration using
     the ConfigHandler `search` method. Both unique function names or a '.' (dot)
     seperated nested function name are accepted. The latter is more specific in
     case the same function name is used in different scopes.
-    
+
     Finally a list of strings as argument to the decorator allows the configuration
     to be resolved by overloading the configuration in the lists order.
     This feature is usefull if an argument to a function is not defined specific
     for that function in the configuration but is define in another (global) scope.
-    
-    If the function defines **kwargs in its argument string, all other parameters
+
+    If the function defines ``**kwargs`` in its argument string, all other parameters
     in the ConfigHandler instance resolved for that function are passed to the
     function. These parameters may be explicitly defined for that function by
     name (e.a '<function name>.<keyword argument name>') or resolved by resolution
     order to the keyword argument name.
-    
+
     :param instance:      function or class name for which to retrieve configuration
                           multiple names allowed for a specific resolution order.
     :type instance:       str or list

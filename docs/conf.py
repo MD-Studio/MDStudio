@@ -44,9 +44,7 @@ templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
-#
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The encoding of source files.
 #
@@ -57,7 +55,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'LIEStudio'
-copyright = '2016, LIEStudio'
+copyright = '2017, LIEStudio'
 author = 'LIEStudio'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -318,7 +316,7 @@ man_pages = [
 # man_show_urls = False
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/2': None, }
+intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}
 
 # -- Options for Texinfo output -------------------------------------------
 

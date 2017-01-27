@@ -181,7 +181,7 @@ class BootstrapMongoDB(object):
         Check if the database address to connect to is local or remote
 
         :return: true of false for remote or local database respectively
-        :rtype : bool
+        :rtype: bool
         """
 
         if 'localhost' in self._host or '127.0.0.1' in self._host:
@@ -194,7 +194,7 @@ class BootstrapMongoDB(object):
         Get the process identifier (pid) of a running mongod process
 
         :return: mongod pid
-        :rtype : int
+        :rtype: int
         """
 
         pid = None

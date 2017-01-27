@@ -391,9 +391,10 @@ function _compile_python_sphinx_docs () {
   echo "   :maxdepth: 4" >> ${ROOTDIR}/docs/tmp_modules.rst
   echo "" >> ${ROOTDIR}/docs/tmp_modules.rst
   
-  for module in $( ls -d ${ROOTDIR}/components/lie_*/lie_* ); do
+  for module in $( ls -d ${ROOTDIR}/components/lie_*/lie_* | sed '/egg-info/d'); do
     module_name=${module##*/}
     rm -rf ${ROOTDIR}/docs/${module_name}.rst
+    rm -rf ${ROOTDIR}/docs/${module_name}.md
     
     sphinx-apidoc --module-first --private --force -o ${ROOTDIR}/docs/ ${module}/
     
