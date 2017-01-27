@@ -22,7 +22,7 @@
                         <input #gb type="text" pInputText placeholder="Global Filter..." class="flex-item">
                     </div>
 
-                    <div class="ui-multiselect-wrapper flex-item">
+                    <div class="ui-multiselect-wrapper flex-item select-columns">
                         <p-multiSelect [options]="availableColumns" [(ngModel)]="selectedColumns"
                          (onChange)="sortSelectedColumns()"></p-multiSelect>
                     </div>

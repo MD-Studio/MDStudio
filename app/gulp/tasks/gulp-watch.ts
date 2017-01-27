@@ -48,7 +48,7 @@ function indexWatch (){
  * This function watches all files except typescript and sass files and copies only files changed.
  */
 function othersWatch() {
-    let files = ['src/**/*', '!src/**/*.ts', '!src/**/*.scss', '!src/index.html'];
+    let files = ['src/**/*.html', 'src/**/*.png', 'src/**/*.jpg', 'src/**/*.js', 'src/**/*.css', '!src/index.html'];
     gulp.watch(files, (event) => {
         console.log('File ' + event.path + ' was ' + event.type + ', copying it in dist and dist_tests folders');
         gulp.src(event.path, {base : 'src'})

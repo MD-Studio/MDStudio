@@ -8,7 +8,6 @@
 @import "../../shared/styles/theme_variables";
 
 :host(.AppComponent.ng-enter) {
-  -webkit-transition: all ease-in 1s;
   transition: all ease-in 1s;
   opacity: 0;
 }
@@ -53,10 +52,7 @@
   color: #fff;
   width: 50px;
   overflow: hidden;
-  -webkit-transition: width ease-in-out 0.5s;
   transition: width ease-in-out 0.5s;
-  -webkit-box-shadow: inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
-  -moz-box-shadow:    inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
   box-shadow:         inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
     
   .ui-panelmenu-content-wrapper, .ui-menu-list {
@@ -65,7 +61,6 @@
 
   &.show {
     width: 200px;
-    -webkit-transition: width ease-in-out 0.5s;
     transition: width ease-in-out 0.5s;
   }
   
@@ -168,7 +163,6 @@
   
   .ui-panelmenu-icon {
     z-index: 0 !important;
-    -webkit-transition: all ease-in-out 0.5s;
     transition: all ease-in-out 0.5s;
   }  
 }
@@ -194,8 +188,6 @@
     
     .ui-menuitem-panel {
       border-bottom: 1px solid #39404C;
-      -webkit-box-shadow: inset 0 -1px 1px 0px #434753;
-      -moz-box-shadow: inset 0 -1px 1px 0px #434753;
       box-shadow: inset 0 -1px 1px 0px #455065;
       margin-bottom: 1em;
       padding-bottom: 1em;

@@ -11,7 +11,8 @@
 // Angular imports
 import {Component,
         ViewChild,
-        NgModule}             from '@angular/core';
+        NgModule,
+        ViewEncapsulation }             from '@angular/core';
 import {Http,
         HttpModule,
         Response}             from '@angular/http';
@@ -159,6 +160,7 @@ class MDDetails implements MD {
   moduleId:      module.id,
   templateUrl:   'docking.component.html',
   styleUrls:     ['docking.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 
 @NgModule({

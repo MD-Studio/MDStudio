@@ -4,7 +4,8 @@
 
 // Angular imports
 import {Component,
-        OnInit}                 from '@angular/core';
+        OnInit,
+        ViewEncapsulation }                 from '@angular/core';
 import {Router,
         RouterModule}      from '@angular/router';
 import {NgModule}      from '@angular/core';
@@ -18,6 +19,7 @@ import {WampService}            from '../../shared/services/src/wamp.service';
   moduleId:      module.id,
   templateUrl:   'boot.component.html',
   styleUrls:     ['boot.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 
 @NgModule({

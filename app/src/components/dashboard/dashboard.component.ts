@@ -4,7 +4,8 @@
 
 import {Component,
         AfterViewInit,
-        NgModule}      from '@angular/core';
+        NgModule,
+        ViewEncapsulation }      from '@angular/core';
 import {Http, Headers}      from '@angular/http';
 
 import {Message}            from 'primeng/primeng';
@@ -16,7 +17,8 @@ import {WampService}        from '../../shared/services/src/wamp.service';
   selector:      'dashboard',
   moduleId:      module.id,
   templateUrl:   'dashboard.component.html',
-  styleUrls :    ['dashboard.component.css']
+  styleUrls :    ['dashboard.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 
 @NgModule({

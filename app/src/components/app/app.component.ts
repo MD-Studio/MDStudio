@@ -45,6 +45,7 @@ import {WampService}            from '../../shared/services/src/wamp.service';
 import {Authorize}            from '../../shared/services/src/auth.service';
 
 declare var componentHandler: any;
+declare var jQuery: any;
 
 // Component configuration decorator
 // - Disable view encapsulation to override ui element styles
@@ -121,9 +122,28 @@ export class AppComponent implements AfterViewInit, OnInit {
         { label: '', icon: 'fa-user' }
     ];
   }
-
+  
   ngAfterViewInit() {
     //componentHandler.upgradeDom();
+
+    jQuery( document ).ready( ($) => 
+    {
+      $( '.ui-menu-parent > .ui-menuitem-link' ).each( ( i, item ) => 
+      {
+        if( $(item).attr("href") == "#" )
+        {
+          var after = $('<span class="after-link" />');
+          $( item ).append( after );
+
+          after.click( (event) => 
+          {
+            event.preventDefault();
+            
+            return false;
+          } ); // click
+        }
+      } ); // each
+    } ); // ready
   }
   
   onSubmitLogout() {

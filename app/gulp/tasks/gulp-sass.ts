@@ -1,5 +1,6 @@
 import * as gulp from 'gulp';
 import * as gulpLoadPlugins from 'gulp-load-plugins';
+import * as autoprefixer from 'autoprefixer';
 import {getBrowserSync} from '../browsersync';
 
 const plugins = <any>gulpLoadPlugins();
@@ -14,6 +15,10 @@ function sassFn(destDirectory) {
     return gulp.src('**/*.scss', {cwd: 'src', base : 'src'})
         .pipe(plugins.sourcemaps.init())
         .pipe(plugins.sass())
+        .pipe(plugins.postcss([autoprefixer({
+            browsers: ['last 50 versions'],
+            cascade: true
+        })]))
         .pipe(plugins.sourcemaps.write('./'))
         .pipe(gulp.dest(destDirectory))
         .pipe(bs.stream());
