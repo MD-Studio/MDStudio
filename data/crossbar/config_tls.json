@@ -92,6 +92,26 @@
                     "paths": {
                         "/": {
                             "type": "static",
+                            "directory": "../../app/dist"
+                        },
+                        "dashboard": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "docking": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "log": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "login": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "md": {
+                            "type": "static",
                             "directory": "../../app/dist/index.html"
                         },
                         "node_modules": {
