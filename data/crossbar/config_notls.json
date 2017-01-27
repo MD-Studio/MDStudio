@@ -86,7 +86,7 @@
                     "paths": {
                         "/": {
                             "type": "static",
-                            "directory": "../../app/dist"
+                            "directory": "../../app/dist/index.html"
                         },
                         "node_modules": {
                             "type": "static",

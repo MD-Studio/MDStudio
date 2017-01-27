@@ -17,6 +17,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import glob
+import re
 import os
 import sys
 
@@ -344,3 +346,24 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
+
+with open("modules.rst", "w") as mod:
+    mod.write("""
+Components
+==========
+
+.. toctree::
+   :maxdepth: 4
+
+""")
+
+    for i in glob.glob('../components/lie_*/lie_*/'):
+        if not 'egg-info' in i:
+            module_name = re.match(r'../components/lie_.*/(lie_.*)/', i).group(1)
+            file = "{}.rst".format(module_name)
+            if os.path.isfile(file):
+                os.remove(file)
+
+            os.system("sphinx-apidoc --module-first --private --force -o ./ {}/".format(i))
+
+            mod.write("   {}\n".format(module_name))

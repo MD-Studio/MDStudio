@@ -226,4 +226,4 @@ dummy:
 
 .PHONY: livehtml
 livehtml:
-	sphinx-autobuild -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html --host 0.0.0.0 --port 8000
+	sphinx-autobuild -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html --host 0.0.0.0 --port 8000 --ignore=lie_* --ignore=modules.rst --watch=../components/ --poll

@@ -379,35 +379,12 @@ function _install_update_packages () {
 # Compile LIEStudio and API documentation as HTML using Sphinx
 function _compile_python_sphinx_docs () {
   
-  # Build API documentation for components
-  # - First remove previous components.*.rst files
-  echo "INFO: Build API documentation for LIEStudio Python modules in /components"
-  
-  # Make a modules.rst file
-  echo "Components" >> ${ROOTDIR}/docs/tmp_modules.rst
-  echo "==========" >> ${ROOTDIR}/docs/tmp_modules.rst
-  echo "" >> ${ROOTDIR}/docs/tmp_modules.rst
-  echo ".. toctree::" >> ${ROOTDIR}/docs/tmp_modules.rst
-  echo "   :maxdepth: 4" >> ${ROOTDIR}/docs/tmp_modules.rst
-  echo "" >> ${ROOTDIR}/docs/tmp_modules.rst
-  
-  for module in $( ls -d ${ROOTDIR}/components/lie_*/lie_* | sed '/egg-info/d'); do
-    module_name=${module##*/}
-    rm -rf ${ROOTDIR}/docs/${module_name}.rst
-    rm -rf ${ROOTDIR}/docs/${module_name}.md
-    
-    sphinx-apidoc --module-first --private --force -o ${ROOTDIR}/docs/ ${module}/
-    
-    echo "   ${module_name}" >> ${ROOTDIR}/docs/tmp_modules.rst
-  done
-  
-  mv ${ROOTDIR}/docs/tmp_modules.rst ${ROOTDIR}/docs/modules.rst
-  
   # Build documentation
   echo "INFO: Compile LIEStudio and API documentation in HTML"
   rm -rf ${ROOTDIR}/docs/html
   cd ${ROOTDIR}/docs
   mkdir -p ${ROOTDIR}/docs/_static
+  make build
   make html
   cd ${ROOTDIR}
   
