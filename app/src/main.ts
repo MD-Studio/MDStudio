@@ -6,26 +6,23 @@
  * - Initialize the main App components to bootstrap the UI.
  */
 
+
 // Angular imports
-import {bootstrap}            from '@angular/platform-browser-dynamic';
-import {enableProdMode}       from '@angular/core';
-import {HTTP_PROVIDERS}       from '@angular/http';
+import {platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import {enableProdMode}          from '@angular/core';
 
 // App imports
 import {AppComponent}         from './components/app/app.component';
 import {UserService}          from './shared/services/src/user.service';
 import {WampService}          from './shared/services/src/wamp.service';
-import {APP_ROUTER_PROVIDERS} from './shared/services/src/router.service';
 
 import 'rxjs/Rx';
 
 enableProdMode();
-bootstrap(
+platformBrowserDynamic().bootstrapModule(
   AppComponent,
   [
     UserService,
-    WampService,
-    APP_ROUTER_PROVIDERS,
-    HTTP_PROVIDERS
+    WampService
   ]
 ).catch(err => console.error(err));

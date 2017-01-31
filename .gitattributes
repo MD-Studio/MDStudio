@@ -1,0 +1,5 @@
+
+# .sh is for unix systems
+*.sh eol=lf
+*.bashrc eol=lf
+docker/python eol=lf

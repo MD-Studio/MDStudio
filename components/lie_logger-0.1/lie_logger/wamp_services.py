@@ -6,6 +6,8 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import os
+
 from   autobahn import wamp
 from   pymongo import MongoClient
 from   twisted.logger import LogLevel
@@ -18,11 +20,19 @@ class LoggerWampApi(LieApplicationSession):
     """
     Logger management WAMP methods.
     """
-  
-    client = MongoClient(host='localhost', port=27017)
-    db = client['liestudio']
-    log_collection = db['log']
-    
+    db = None#MongoClient(host='localhost', port=27017)client['liestudio']
+    log_collection = None#
+
+    def __init__(self, config, package_config=None, **kwargs):
+
+        super(LoggerWampApi, self).__init__(config, package_config, **kwargs)
+
+        if self.db is None:
+            host = os.getenv('MONGO_HOST', 'localhost')
+            self.db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
+
+        self.log_collection = self.db['log']
+
     @wamp.register(u'liestudio.logger.log')
     def log_event(self, event, default_log_level='info'):
         """
@@ -30,9 +40,9 @@ class LoggerWampApi(LieApplicationSession):
         to local Twisted logger observers.
 
         :param event: Structured log event
-        :type event:  dict
+        :type event:  :py:dict
         :return:      standard return
-        :rtype:       dict to JSON
+        :rtype:       :py:dict to JSON
         """
         
         log_level = LogLevel.levelWithName(event.get('log_level', default_log_level))

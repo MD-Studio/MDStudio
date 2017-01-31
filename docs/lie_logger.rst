@@ -9,6 +9,14 @@ lie_logger package
 Submodules
 ----------
 
+lie_logger.log_serializer module
+--------------------------------
+
+.. automodule:: lie_logger.log_serializer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie_logger.settings module
 --------------------------
 

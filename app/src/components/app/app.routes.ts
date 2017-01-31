@@ -1,8 +1,8 @@
-import {RouterConfig}            from '@angular/router';
+import {Routes, RouterModule}            from '@angular/router';
 
 import {AppComponent}            from './app.component';
 import {DashboardComponent}      from '../../components/dashboard/dashboard.component';
-import {AnalysisComponent}       from '../../components/analysis/analysis.component';
+import {DockingComponent}       from '../../components/docking/docking.component';
 import {LoggingComponent}        from '../../components/logging/logging.component';
 import {MDComponent}             from '../../components/md/md.component';
 import {Authorize}               from '../../shared/services/src/auth.service';
@@ -10,7 +10,7 @@ import {Authorize}               from '../../shared/services/src/auth.service';
 // Setup main application component router.
 // - TODO: Lazy load the log component, not needed by default.
 // - TODO: rerouting undefined routes not working
-export const AppRoutes: RouterConfig = [
+export const AppRoutes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
@@ -22,8 +22,8 @@ export const AppRoutes: RouterConfig = [
     canActivate: [Authorize]
   },
   {
-    path: 'analysis',
-    component: AnalysisComponent,
+    path: 'docking',
+    component: DockingComponent,
     canActivate: [Authorize]
   },
   {
@@ -42,3 +42,4 @@ export const AppRoutes: RouterConfig = [
     canActivate: [Authorize],
   }
 ];
+export const AppRouting = RouterModule.forRoot(AppRoutes);

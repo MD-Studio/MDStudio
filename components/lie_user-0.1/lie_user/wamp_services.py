@@ -7,8 +7,6 @@ WAMP service methods the module exposes.
 """
 
 from autobahn import wamp
-from pymongo import MongoClient
-from twisted.internet.defer import inlineCallbacks
 from autobahn.wamp.exception import ApplicationError
 
 from lie_system import LieApplicationSession
@@ -56,8 +54,7 @@ class UserWampApi(LieApplicationSession):
         the Crossbar supported authentication methods.
         
         For more information about crossbar authentication/authorization
-        consult the online documentation at: 
-            http://crossbar.io/docs/Administration/
+        consult the online documentation at: http://crossbar.io/docs/Administration/
         
         This method also provides authentication based on IP/domain
         information in addition to the crossbar supported authentication 
@@ -69,10 +66,10 @@ class UserWampApi(LieApplicationSession):
         :type authid:   str
         :param details: additional details including authentication method
                         and transport details
-        :type details:  dict
+        :type details:  :py:dict
         :return:        authentication response with the realm, user role and
                         user account info returned.
-        :rtype:         dict or False
+        :rtype:         :py:dict or False
         """
         
         authmethod = details.get(u'authmethod', None)

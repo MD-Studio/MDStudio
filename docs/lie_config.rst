@@ -33,10 +33,10 @@ lie_config.config_io module
     :undoc-members:
     :show-inheritance:
 
-lie_config.config_manager module
---------------------------------
+lie_config.config_orm_handler module
+------------------------------------
 
-.. automodule:: lie_config.config_manager
+.. automodule:: lie_config.config_orm_handler
     :members:
     :undoc-members:
     :show-inheritance:

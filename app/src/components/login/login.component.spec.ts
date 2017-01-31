@@ -7,7 +7,6 @@ import {Component} from "@angular/core";
 
 @Component({
     selector: 'test-login',
-    template: '<sd-login></sd-login>',
-    directives: []
+    template: '<sd-login></sd-login>'
 })
 class TestLoginComponent {}

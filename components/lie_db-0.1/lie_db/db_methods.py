@@ -17,6 +17,16 @@ from pymongo.errors import ConnectionFailure
 
 from .settings import APP_COLLECTION
 
+def get_host(settings):
+    """
+    Adds support to host switching needed for docker builds
+
+    :param settings: the Settings object
+    :return: The correct host
+    """
+    return os.getenv('MONGO_HOST', settings.get('host'))
+
+
 def init_mongodb(settings):
     """
     Initiate the application MongoDB database
@@ -26,7 +36,7 @@ def init_mongodb(settings):
     db = BootstrapMongoDB(dbpath=settings.get('dbpath'),
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
-                          host=settings.get('host'),
+                          host=get_host(settings),
                           port=settings.get('port'))
     assert db.start()
 
@@ -45,11 +55,11 @@ def exit_mongodb(settings):
     db = BootstrapMongoDB(dbpath=settings.get('dbpath'),
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
-                          host=settings.get('host'),
+                          host=get_host(settings),
                           port=settings.get('port'))
     db.stop(terminate_mongod_on_exit=settings.get('terminate_mongod_on_exit', False))
 
-def mongodb_connect(host='localhost', port=27017, **kwargs):
+def mongodb_connect(host=os.getenv('MONGO_HOST', 'localhost'), port=27017, **kwargs):
     """
     Connect to a running MongoDB database
     
@@ -77,7 +87,7 @@ class BootstrapMongoDB(object):
     TODO: Add database authentication
     """
 
-    def __init__(self, dbpath, dbname='liedb', mongod_path=None, host='localhost',
+    def __init__(self, dbpath, dbname='liedb', mongod_path=None, host=os.getenv('MONGO_HOST', 'localhost'),
                  port=27017, dblog=None, app_collection_template=APP_COLLECTION):
 
         if dbpath:
@@ -130,7 +140,7 @@ class BootstrapMongoDB(object):
         """
         Return MongoDB server information
 
-        :rtype: dict
+        :rtype: :py:dict
         """
 
         if self.isrunning:
@@ -171,7 +181,7 @@ class BootstrapMongoDB(object):
         Check if the database address to connect to is local or remote
 
         :return: true of false for remote or local database respectively
-        :rtype : bool
+        :rtype: bool
         """
 
         if 'localhost' in self._host or '127.0.0.1' in self._host:
@@ -184,7 +194,7 @@ class BootstrapMongoDB(object):
         Get the process identifier (pid) of a running mongod process
 
         :return: mongod pid
-        :rtype : int
+        :rtype: int
         """
 
         pid = None

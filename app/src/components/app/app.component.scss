@@ -8,7 +8,6 @@
 @import "../../shared/styles/theme_variables";
 
 :host(.AppComponent.ng-enter) {
-  -webkit-transition: all ease-in 1s;
   transition: all ease-in 1s;
   opacity: 0;
 }
@@ -31,6 +30,10 @@
 
 #top-nav-bar {
   height: 50px !important;
+  .ui-menu-list {
+    list-style: none;
+    margin: 0;
+  }
 }
 
 #component-view {
@@ -49,15 +52,15 @@
   color: #fff;
   width: 50px;
   overflow: hidden;
-  -webkit-transition: width ease-in-out 0.5s;
   transition: width ease-in-out 0.5s;
-  -webkit-box-shadow: inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
-  -moz-box-shadow:    inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
   box-shadow:         inset -4px 0px 5px 0px rgba(50, 50, 50, 0.75);
+    
+  .ui-panelmenu-content-wrapper, .ui-menu-list {
+    overflow: hidden;
+  }
 
   &.show {
     width: 200px;
-    -webkit-transition: width ease-in-out 0.5s;
     transition: width ease-in-out 0.5s;
   }
   
@@ -160,7 +163,6 @@
   
   .ui-panelmenu-icon {
     z-index: 0 !important;
-    -webkit-transition: all ease-in-out 0.5s;
     transition: all ease-in-out 0.5s;
   }  
 }
@@ -186,8 +188,6 @@
     
     .ui-menuitem-panel {
       border-bottom: 1px solid #39404C;
-      -webkit-box-shadow: inset 0 -1px 1px 0px #434753;
-      -moz-box-shadow: inset 0 -1px 1px 0px #434753;
       box-shadow: inset 0 -1px 1px 0px #455065;
       margin-bottom: 1em;
       padding-bottom: 1em;
@@ -202,10 +202,6 @@
       
       a.ui-panelmenu-headerlink-hasicon {
         padding-left: 3.5em;
-      }
-      
-      .ui-panelmenu-icon {
-        z-index: -90;
       }
       
       &.ui-state-active,
@@ -242,5 +238,34 @@
       left: 0.6em;
       font-size: 1.5em;
     }
+  }
+}
+
+.ui-panelmenu-content-wrapper .ui-menuitem-icon {
+    margin-left: -.3em !important;
+}
+
+.ui-panelmenu-header {
+   .ui-menuitem-icon {
+      margin-left: -0.2em;
+      font-size: 2em !important;
+   }
+
+   .ui-menuitem-icon + .ui-menuitem-text {
+      line-height: 2em;
+      margin-left: 1em;
+      display: block;
+      margin-top: .5em;
+   }
+}
+
+.ui-panelmenu-panel:nth-child(n+2) {
+    border-top: 2px solid #4E5E7A;
+    margin-top: .5em;
+}
+
+.ui-panelmenu-icon{
+  &.fa-caret-down, &.fa-caret-right {
+      display: none;
   }
 }

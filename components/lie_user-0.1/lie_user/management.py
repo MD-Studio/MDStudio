@@ -23,6 +23,7 @@ except ImportError:
     from urlparse import urlparse
 
 from   pymongo import MongoClient
+from   pymongo.errors import ServerSelectionTimeoutError
 from   werkzeug.security import generate_password_hash, check_password_hash
 from   twisted.logger import Logger
 
@@ -31,12 +32,13 @@ from   sendmail import Email
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
-client = MongoClient(host='localhost', port=27017)
-db = client['liestudio']
+host = os.getenv('MONGO_HOST', 'localhost')
+db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
+
 
 logging = Logger()
 
-def init_user(settings):
+def init_user(settings, config):
     """
     User component bootstrap routines
 
@@ -44,10 +46,13 @@ def init_user(settings):
     and add the default admin user if needed
 
     :param settings: global and module specific settings
-    :type settings:  dict or dict like object
+    :type settings:  :py:dict or :py:dict like object
     :return:         successful bootstrap completion
     :rtype:          bool
     """
+
+    # @todo: again this should be fixed in a nicer way
+    global db
 
     # Check for MongoDB database
     # TODO: should make a wrapper around PyMongo connection for easy checking connection
@@ -88,7 +93,7 @@ def exit_user(settings):
     Terminate all active sessions on component shutdown
 
     :param settings: global and module specific settings
-    :type settings:  dict or dict like object
+    :type settings:  :py:dict or :py:dict like object
     :return:         successful exit sequence
     :rtype:          bool
     """
@@ -96,7 +101,7 @@ def exit_user(settings):
     # Get database
     db_collection_name = settings.get('db_collection_name', 'users')
     users = db[db_collection_name]
-    
+
     # Count number of active user sessions
     active_session_count = users.find({'session_id': {'$ne': None}}).count()
     logging.debug('{0} active user sessions'.format(active_session_count))
@@ -121,13 +126,13 @@ def generate_password(password_length=10, min_length=8):
     :param min_length:      not generate passwords with less characters
     :type min_length:       int 
     """
-    
+
     # Should not generate passwords smaller then min_length characters
     if password_length < min_length:
       logging.warn('Unable to generate password with less then {0} characters ({1})'.format(
         min_length, password_length))
       return
-    
+
     # Import (pseudo)-random number generator
     try:
         myrg = random.SystemRandom()
@@ -135,16 +140,16 @@ def generate_password(password_length=10, min_length=8):
         logging.debug(
             "Python 'urandom' function not implemented for os: {0} fallback to random.choice()".format(os.name))
         myrg = random.choice
-    
+
     # Determine character class partitioning based on password_length
     floordiv = password_length // 3
     chargroups = [floordiv] * 3
     chargroups[0] = chargroups[0] + (password_length - (floordiv * 3))
-    
+
     # Pick random characters from three character collections based on partitioning
     charcollection = (string.ascii_letters, string.digits, string.punctuation)
     password = str().join([ myrg.choice(charcollection[i]) for i,c in enumerate(chargroups) for _ in range(c)])
-    
+
     logging.debug('Generate {0} character random password: {1}'.format(password_length, password))
     return password
 
@@ -218,7 +223,7 @@ def is_valid_ipv4_address(address):
     :type address:  str
     :rtype:         bool
     """
-    
+
     try:
         socket.inet_pton(socket.AF_INET, address)
     except AttributeError:  # no inet_pton here, sorry
@@ -241,7 +246,7 @@ def is_valid_ipv6_address(address):
     :type address:  str
     :rtype:         bool
     """
-    
+
     try:
         socket.inet_pton(socket.AF_INET6, address)
     except socket.error:  # not a valid address
@@ -259,24 +264,24 @@ def resolve_domain(url, scheme=''):
     :param scheme: scheme of the url, blank by default
     :type scheme:  str
     """
-    
+
     # Strip the communication schema
     url = url.strip()
     if url.startswith('http://'):
         scheme = 'http://'
         url = url.lstrip('http://')
-    
+
     # Split on port number if any and parse
     url_spec = urlparse(url.rsplit(':',1)[0], scheme=scheme)
     domain = url_spec.netloc
-    
+
     # Check if valid ip
     if is_valid_ipv4_address(domain) or is_valid_ipv6_address(domain):
         try:
             domain = socket.gethostbyaddr(domain)[0]
         except:
             pass
-    
+
     return domain
 
 
@@ -293,12 +298,12 @@ def ip_domain_based_access(domain, blacklist=[]):
     
     :rtype:           bool
     """
-    
+
     for bld in blacklist:
         if fnmatch.fnmatch(domain, bld):
             logging.info('Access for domain {domain} blacklisted (pattern={blacklist})'.format(domain=domain, blacklist=bld))
             return False
-    
+
     return True
 
 
@@ -312,25 +317,25 @@ class UserManager(object):
         # Get user based on kwargs dictionary.
         # None if no match or unrelated kwargs
         self.user = self.get_user(kwargs)
-        
+
         # Set the session ID if any
         self.session_id = None
         if self.user:
             self.session_id = self.user.get('session_id', None)
-    
+
     def set_session_id(self, key):
         """
         Register the WAMP session ID generated by Crossbar in the user object
         and add to the database
         """
-        
+
         self.session_id = key
 
         users = db['users']
         users.update_one({'uid': self.user['uid']}, {'$set':{'session_id': self.session_id}})
 
         logging.debug('Open session: {0} for user {1}'.format(self.session_id, self.user['uid']))
-    
+
     def retrieve_password(self, email):
         """
         Retrieve password by email
@@ -353,20 +358,20 @@ class UserManager(object):
         if not user:
           logging.info('No user with email {0}'.format(email))
           return
-            
+
         new_password = generate_password()
         user['password'] = hash_password(new_password)
         logging.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
-        
+
         with Email() as email:
           email.send(
-            email, 
+            email,
             PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE.format(password=new_password, user=user['username']),
             'Password retrieval request for LIEStudio'
           )
           self.user = user
           self.save()
-        
+
         return user
 
     def validate_user_login(self, username, password):
@@ -389,7 +394,7 @@ class UserManager(object):
             check = check_password(user['password'], password)
         else:
             logging.debug('No such user')
-            
+
         logging.info('{status} login attempt for user: {user}',
             status='Correct' if check else 'Incorrect', user=username)
 
@@ -440,8 +445,8 @@ class UserManager(object):
             return
         if users.find_one({'email': userdata['email']}):
             logging.error('Email {0} already in use'.format(userdata['email']))
-            return 
-            
+            return
+
         # Make new uid, increment max uid by 0
         uid = users.find_one(sort=[("uid", -1)])
         if not uid:
@@ -466,7 +471,7 @@ class UserManager(object):
         Remove a user from the database
 
         :param userdata: PyMongo style database query
-        :type userdata:  dict
+        :type userdata:  :py:dict
         """
 
         user = self.get_user(userdata)
@@ -501,20 +506,19 @@ class UserManager(object):
         Get user data by query
 
         :param query: PyMongo style database query
-        :type query:  dict
+        :type query:  :py:dict
         """
-
+        global db
         users = db['users']
         result = users.find_one(query)
-        
+
         return result
-    
+
     def save(self):
         """
         Save modified user data to database
         """
-        
+
         if self.user:
           users = db['users']
           users.replace_one({'_id':self.user['_id']}, self.user)
-        

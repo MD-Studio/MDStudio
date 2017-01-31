@@ -37,7 +37,7 @@ class DockingBase(object):
         allowed (known) option names for the docking method.
         
         :param config: custom settings
-        :type config:  dict
+        :type config:  :py:dict
         """
         
         for key,value in config.items():

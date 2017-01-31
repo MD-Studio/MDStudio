@@ -1,7 +1,6 @@
 @import url(https://fonts.googleapis.com/css?family=Ubuntu:400,500);
 
 :host(.LoginComponent.ng-enter) {
-  -webkit-transition: all ease-in 0.5s;
   transition: all ease-in 0.5s;
   opacity: 0;
 }

@@ -1,0 +1,46 @@
+// We don't use Native or Emulated View encapsulation so we
+// localize the css by component id
+#docking {
+  
+  #md-trajectory-chart {
+    max-height: 45%;
+    background-color: #f6f6f6;
+  
+    box-shadow:         inset  0  8px 8px -8px #696868,
+                        inset  0 -8px 8px -8px #696868;
+                      
+    .brush .extent {
+      stroke: #fff;
+      shape-rendering: crispEdges;
+    }
+  } 
+
+  #md-table {
+    max-height: 55%;
+  }
+
+  #md-details {
+  
+    label.label-type-1 {
+      font-weight: bold;
+      font-size: 1.5em;
+      color: #3B9BC4;
+    }
+  
+    label.label-type-2 {
+      padding-right: 1em;
+      font-weight: 700;
+      font-size: 1.1em;
+      color: #9CA4BD;
+    }
+  
+    label.warning {
+      color: #F0A630;
+    }
+  
+    p.section-header {
+      font-weight: bold;
+      padding: 0;
+    }
+  }
+}

@@ -3,11 +3,10 @@
  */
 
 import {Component,
-        AfterViewInit}      from '@angular/core';
-import {Control,
-        CORE_DIRECTIVES}    from '@angular/common';
+        AfterViewInit,
+        NgModule,
+        ViewEncapsulation }      from '@angular/core';
 import {Http, Headers}      from '@angular/http';
-import {Router}             from '@angular/router-deprecated';
 
 import {Message}            from 'primeng/primeng';
 
@@ -19,9 +18,12 @@ import {WampService}        from '../../shared/services/src/wamp.service';
   moduleId:      module.id,
   templateUrl:   'dashboard.component.html',
   styleUrls :    ['dashboard.component.css'],
-  directives:    [CORE_DIRECTIVES],
+  encapsulation: ViewEncapsulation.None
 })
 
+@NgModule({
+  declarations: [DashboardComponent]
+})
 export class DashboardComponent {
 
 }

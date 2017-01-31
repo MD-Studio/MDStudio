@@ -5,13 +5,17 @@ file: settings.py
 
 db module wide settings
 """
+import os
+
+path = os.path.dirname(os.path.realpath(__file__))
+mongoHost = os.getenv('MONGO_HOST', 'localhost')
 
 SETTINGS = {
-  'dbpath' : '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/data/liedb',
+  'dbpath' : '{}/data/liedb'.format(path),
   'dbname' : 'liestudio',
-  'dblog'  : '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/data/logs/mongodb.log',
+  'dblog'  : '{}/data/logs/mongodb.log'.format(path),
   'port'   : 27017,
-  'host'   : 'localhost',
+  'host'   : mongoHost,
   'create_db': True,
   'terminate_mongod_on_exit': False
 }

@@ -12,8 +12,10 @@ import pkgutil
 
 from   twisted.logger import Logger
 
+
 def import_error(pkg):
-  print(pkg)
+    print(pkg)
+
 
 class ComponentManager(object):
     """
@@ -21,23 +23,23 @@ class ComponentManager(object):
     
     :param config: component settings required for initiation
                    and exit routines
-    :type config:  dict or ConfigHandler instance
+    :type config:  :py:dict or :lie_system:ConfigHandler instance
     :param prefix: prefix to add to component names on import to
                    avoid namespace collision
     :type prefix:  str
     """
-    
+
     logging = Logger()
-    
+
     def __init__(self, config={}, prefix=''):
-        
+
         self.prefix = prefix
         self.shutdown_order = []
-        
+
         self._config = config
         self._components = {}
         self._searchpath = []
-    
+
     def __getattr__(self, component):
 
         return self.get_component(component)
@@ -48,52 +50,55 @@ class ComponentManager(object):
             yield (self.get_component(component))
 
     def _list_components(self, source, recursive=False):
-        
+
         components = {}
         if recursive:
-          for importer, name, isPkg in pkgutil.walk_packages([source], onerror=import_error):
-              if isPkg:
-                  components[name] = os.path.join(source, name)
+            for importer, name, isPkg in pkgutil.walk_packages([source], onerror=import_error):
+                if isPkg:
+                    components[name] = os.path.join(source, name)
         else:
-          for importer, name, isPkg in pkgutil.iter_modules([source]):
-              if isPkg:
-                  components[name] = os.path.join(source, name)
-        
+            for importer, name, isPkg in pkgutil.iter_modules([source]):
+                if isPkg:
+                    components[name] = os.path.join(source, name)
+
         return components
-    
-    def add_searchpath(self, searchpath, prefix=None):
+
+    def add_searchpath(self, searchpath, prefix=None,
+                       search_method=lambda self, searchpath: self._list_components(searchpath)):
         """
         Add a component search path to the manager
         
         Add all Python modules (packages), or optionally those
         starting with `prefix` in the specified search path to
         the ComponentManager
-      
+
+        :param search_method: callback that list directories with components
+        :type  search_method: lambda
         :param searchpath: path to component directory
         :type searchpath:  string
         :param prefix:     component name prefix to filter on
         :type prefix:      string
         """
-        
+
         if not os.path.exists(searchpath):
-          self.logging.error('LIE component searchpath does not exist: {0}'.format(searchpath))
-        
-        components = self._list_components(searchpath)
+            self.logging.error('LIE component searchpath does not exist: {0}'.format(searchpath))
+
+        components = search_method(self, searchpath)
         if prefix:
-          components = dict([(k,v) for k,v in components.items() if k.startswith(prefix)])
-        
+            components = dict([(k, v) for k, v in components.items() if k.startswith(prefix)])
+
         if not components:
-          self.logging.info('No components found in path: {0} (prefix: {1})'.format(searchpath, prefix or ''))
-        
+            self.logging.info('No components found in path: {0} (prefix: {1})'.format(searchpath, prefix or ''))
+
         self._components.update(components)
         self.logging.debug("Added {0} components from search path: {1}".format(len(components), searchpath))
-        
+
         # Add component directory to sys.path and self._searchpath
         if not searchpath in self._searchpath:
-          self._searchpath.append(searchpath)
+            self._searchpath.append(searchpath)
         if not searchpath in sys.path:
-          sys.path.append(path)
-          
+            sys.path.append(searchpath)
+
     def component_settings(self, components=None):
         """ 
         Load component settings
@@ -107,24 +112,24 @@ class ComponentManager(object):
         
         :param components: components to retrieve public settings for.
         :type components:  list of strings
-        :rtype:            dict
+        :rtype:            :py:dict
         """
-        
+
         if components:
-          assert isinstance(components, (tuple,list)), 'Components needs to be a tuple or list'
-          components = [c for c in components if c in self._components]
+            assert isinstance(components, (tuple, list)), 'Components needs to be a tuple or list'
+            components = [c for c in components if c in self._components]
         else:
-          components = self._components.keys()
-        
+            components = self._components.keys()
+
         settings_dict = {}
         for component in components:
-          if hasattr(self.get_component(component), 'settings'):
-            settings = self.get_component(component).settings
-            settings_dict[component] = settings
-            self.logging.debug('Load default settings from {0} component'.format(component))
+            if hasattr(self.get_component(component), 'settings'):
+                settings = self.get_component(component).settings
+                settings_dict[component] = settings
+                self.logging.debug('Load default settings from {0} component'.format(component))
 
         return settings_dict
-        
+
     def get_component(self, component, do_reload=False):
         """
         Load module by name
@@ -132,19 +137,22 @@ class ComponentManager(object):
         By default the module is not reloaded if already loaded
         unless `do_reload` equals true.
         """
-      
+
         if component in self._components:
             path, name = os.path.split(self._components[component])
             component_name = '{0}{1}'.format(self.prefix, name)
-            
+
             if component_name in sys.modules and not do_reload:
-              return sys.modules[component_name]
-            
+                return sys.modules[component_name]
+
+            # try:
             mfile, filename, data = imp.find_module(component, [path])
+            # except ImportError:
+            #    mfile, filename, data = imp.find_module(component_name, [path])
+
             mod = imp.load_module(component_name, mfile, filename, data)
-            
             return mod
-            
+
     def bootstrap(self, components=None, order=[]):
         """
         Bootstrap components by calling their `oninit` function
@@ -155,30 +163,34 @@ class ComponentManager(object):
         :param order:      bootstrap order
         :type order:       list of strings
         """
-        
+
         if components:
-          assert isinstance(components, (tuple,list)), 'Components needs to be of type tuple or list'
-          components = [c for c in components if c in self._components]
+            assert isinstance(components, (tuple, list)), 'Components needs to be of type tuple or list'
+            components = [c for c in components if c in self._components]
         else:
-          components = self._components.keys()
-        
+            components = self._components.keys()
+
         if len(order):
-          order = [c for c in order if c in components]
-          order.extend([c for c in components if not c in order])
-          components = order
-        
+            order = [c for c in order if c in components]
+            order.extend([c for c in components if not c in order])
+            components = order
+
         init_count = 1
         for component in components:
-          if hasattr(self.get_component(component), 'oninit'):
-            oninit = self.get_component(component).oninit
-            if oninit:
-              self.logging.debug('Bootstrap component {0}'.format(component))
-              oninit(self._config[component])
-              init_count += 1
-        
+            if hasattr(self.get_component(component), 'oninit'):
+                oninit = self.get_component(component).oninit
+                if oninit:
+                    self.logging.debug('Bootstrap component {0}'.format(component))
+                    if oninit.func_code.co_argcount == 1:
+                        oninit(self._config[component])
+                    else:
+                        oninit(self._config[component], self._config)
+
+                    init_count += 1
+
         self.logging.debug('Run bootstrap for {0} components. ({1} checked)'.format(init_count, len(components)))
-              
-    def shutdown(self, components=None, order=[]):   
+
+    def shutdown(self, components=None, order=[]):
         """
         Shutdown components by calling their `onexit` function
         
@@ -188,21 +200,21 @@ class ComponentManager(object):
         :param order:      shutdown order
         :type order:       list of strings
         """
-        
+
         if components:
-          assert isinstance(components, (tuple,list)), 'Components needs to be of type tuple or list'
-          components = [c for c in components if c in self._components]
+            assert isinstance(components, (tuple, list)), 'Components needs to be of type tuple or list'
+            components = [c for c in components if c in self._components]
         else:
-          components = self._components.keys()
-        
+            components = self._components.keys()
+
         if not len(order):
             order = self.shutdown_order
-            
+
         if len(order):
             order = [c for c in order if c in components]
             order = [c for c in components if not c in order] + order
             components = order
-        
+
         self.logging.debug('Application shutdown procedure for {0} components'.format(len(components)))
         for component in components:
             if hasattr(self.get_component(component), 'onexit'):

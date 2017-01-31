@@ -10,10 +10,11 @@
 
 // Angular imports
 import {Component,
-        ViewChild}            from '@angular/core';
-import {CORE_DIRECTIVES}      from '@angular/common';
+        ViewChild,
+        NgModule,
+        ViewEncapsulation }            from '@angular/core';
 import {Http,
-        HTTP_PROVIDERS,
+        HttpModule,
         Response}             from '@angular/http';
 
 // Third-party imports
@@ -27,7 +28,7 @@ import {InputText,
         Slider,
         SelectItem,
         MultiSelect}          from 'primeng/primeng';
-import {nvD3}                 from 'ng2-nvd3';
+import {nvD3}                 from '../app/utils/ng2-nvd3';
 
 // App imports
 import {UserService}          from '../../shared/services/src/user.service';
@@ -38,31 +39,31 @@ declare let d3: any;
 
 // MD data object interface defenition
 export interface MD {
-    id: Number;
-    compound: String;
-    pose: Number;
-    range: Number;
-    start: Number;
-    end: Number;
+    id?: number;
+    compound?: string;
+    pose?: number;
+    range?: number;
+    start?: number;
+    end?: number;
 }
 
 // MD details object used by MD details side panel
 class MDDetails implements MD {
   
-  public traj_start_frame: Number = 0;
-  public traj_end_frame: Number = 2000;
+  public traj_start_frame: number = 0;
+  public traj_end_frame: number = 2000;
   
   // TODO: these are now parsed as string by the .toFixed(2) function in
   // the calculateStats function. This is used bacause Angular 2 Pipes are
   // broken in Safari.
-  public ave_elec: String;
-  public std_elec: String;
-  public ave_vdw: String;
-  public std_vdw: String;
+  public ave_elec: string;
+  public std_elec: string;
+  public ave_vdw: string;
+  public std_vdw: string;
   
-  public rangeSlider: Number[];
+  public rangeSlider: number[];
    
-  constructor(public traj_data?: Array, public id?, public compound?, public pose?, 
+  constructor(public traj_data?: any[], public id?, public compound?, public pose?, 
               public range?, public start?, public end?) {
     
     //Determine last trajectory frame number from trajectory data
@@ -159,18 +160,21 @@ class MDDetails implements MD {
   moduleId:      module.id,
   templateUrl:   'md.component.html',
   styleUrls:     ['md.component.css'],
-  directives:    [InputText, DataTable, ContextMenu, Button, Dialog, Column, nvD3, Slider, MultiSelect],
-  providers:     [HTTP_PROVIDERS],
+  encapsulation: ViewEncapsulation.None
 })
 
+@NgModule({
+  imports: [HttpModule],
+  declarations: [InputText, DataTable, ContextMenu, Button, Dialog, Column, nvD3, Slider, MultiSelect]
+})
 export class MDComponent {
     
     // DataTable column selection
     public  availableColumns: SelectItem[];
-    public  selectedColumns: [] = ['id','compound','pose','range']; // Default columns
+    public  selectedColumns: string[] = ['id','compound','pose','range']; // Default columns
     
     // DataTable row selection
-    public  selectedMD: [];
+    public  selectedMD: MD[];
     public  mds: MD[];
     
     // MD details panel
@@ -184,8 +188,8 @@ export class MDComponent {
     //       and set active_brush_extend
     public  chart_options: any;
     public  chart_data: any;
-    public  displayedTrajID: Number;
-    public  active_brush_extend: Number[];
+    public  displayedTrajID: number;
+    public  active_brush_extend: number[];
     
     @ViewChild(nvD3)
     nvD3: nvD3;
@@ -217,8 +221,8 @@ export class MDComponent {
         
         // Initiate contextual menu for the DataTable
         this.items = [
-            {label: 'View', icon: 'fa-search', command: (event) => this.delete(this.selectedMD)},
-            {label: 'Delete', icon: 'fa-close', command: (event) => this.delete(this.selectedMD)}
+            {label: 'View', icon: 'fa-search', command: (event) => this.delete()},
+            {label: 'Delete', icon: 'fa-close', command: (event) => this.delete()}
         ];
     }
     
@@ -306,7 +310,7 @@ export class MDComponent {
      * - then convert each untyped object to type MD.
      */
     private loadProjectMDinfo() {
-        return this.http.get('assets/data/md-data.json')
+        return this.http.get('assets/data/md-data.json') 
                     .toPromise()
                     .then(res => <MD[]> res.json().data)
                     .then(data => {return data;});
@@ -315,7 +319,7 @@ export class MDComponent {
     /**
      * Update the multiselect dropdown with column names.
      */
-    private initColumnMultiselect(columns: Array) {
+    private initColumnMultiselect(columns: string[]) {
       
       this.availableColumns = [];
       for (var i of columns) {

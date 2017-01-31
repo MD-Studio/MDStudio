@@ -54,12 +54,10 @@
   width: 0px;
   border-left: 1px solid #F1F2F7;
   overflow: hidden;
-  -webkit-transition: width ease-in-out 0.5s;
   transition: width ease-in-out 0.5s;
   
   &.show {
     width: 240px;
-    -webkit-transition: width ease-in-out 0.5s;
     transition: width ease-in-out 0.5s;
   }
   
@@ -90,8 +88,6 @@
   border: none;
   padding: 5px 0;
   margin: 5px 0;
-  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) inset;
-  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) inset;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) inset;
 
   .ui-slider-handle {
@@ -103,8 +99,6 @@
     background: url("../../assets/slider_handles.png") 0 0 no-repeat;
     outline: none;
     border-radius: 0; border: none;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
     
     .ui-state-active {
       background-position: -17px 0;
@@ -119,11 +113,7 @@
     border: 0;
     background: #14a4ff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.6) inset;
-    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.6) inset;
-    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.6) inset;
     border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
   }
 }
 
@@ -173,7 +163,8 @@
   // Table as flexbox to circumvent scrollable bug in datatable
   // TODO: should be removed as soon as bug is fixed.
   table {
-    display: block;
+    display: flex;
+    flex-direction: column;
     width: 100%;
     table-layout: auto;
   }
@@ -187,16 +178,16 @@
   
   thead tr,
   tbody tr {
-    display: -webkit-flex;
-    -webkit-flex-flow: row;
+    display: flex;
+    flex-direction: row;
     min-height: 35px;
   }
   
   thead th,
   tbody td {
-    display: -webkit-flex;
+    display: flex;
     width: 100%;
-    -webkit-align-items: stretch;
+    align-items: stretch;
   }
   
   // DataTable header
@@ -356,7 +347,6 @@
     text-align: left;
     border: 1px solid rgba(0, 0, 0, 0.15);
     border-radius: 0px;
-    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
     background-clip: padding-box;
     background-color: #fff;
@@ -492,8 +482,6 @@
     min-width: 200px;
     text-overflow: ellipsis;
     transition: border 0.1s linear; 
-    -moz-transition: border 0.1s linear; 
-    -webkit-transition: border 0.1s linear;
     
     &.ui-state-focus,
     &:focus {
@@ -501,8 +489,6 @@
       margin-bottom: 0;
       border-bottom: 2px solid $left-nav-btn-color-hover;
       transition: border 0.1s linear; 
-      -moz-transition: border 0.1s linear; 
-      -webkit-transition: border 0.1s linear;
     }
     
     &.ui-state-disabled {
@@ -564,8 +550,6 @@
   font-size: 0.9em;
   position: relative;
   transition: background-color 0.1s ease-out; 
-  -moz-transition: background-color 0.1s ease-out; 
-  -webkit-transition: background-color 0.1s ease-out;
   
   &.ui-state-disabled {
     cursor: not-allowed !important;
@@ -575,8 +559,6 @@
   &.ui-state-hover {
     background-color: #186ba0;
     transition: background-color 0.1s ease-in; 
-    -moz-transition: background-color 0.1s ease-in; 
-    -webkit-transition: background-color 0.1s ease-in;
   }
   
   &.ui-state-active {
@@ -629,43 +611,7 @@
   span.animate {
     display:inline-block;
   	background-color: #eaeaea;
-  	-webkit-box-sizing:border-box;
-  	-moz-box-sizing:border-box;
-  	-ms-box-sizing:border-box;
   	box-sizing:border-box;
-  	background-image:
-  		-webkit-linear-gradient(
-  		-45deg,
-  		rgba(234, 83, 35, 1) 25%,
-  		transparent 25%,
-  		transparent 50%,
-  		rgba(234, 83, 35, 1) 50%,
-  		rgba(234, 83, 35, 1) 75%,
-  		transparent 75%,
-  		transparent
-  	);
-  	background-image:
-  		-moz-linear-gradient(
-  		-45deg,
-  		rgba(234, 83, 35, 1) 25%,
-  		transparent 25%,
-  		transparent 50%,
-  		rgba(234, 83, 35, 1) 50%,
-  		rgba(234, 83, 35, 1) 75%,
-  		transparent 75%,
-  		transparent
-  	);
-  	background-image:
-  		-ms-linear-gradient(
-  		-45deg,
-  		rgba(234, 83, 35, 1) 25%,
-  		transparent 25%,
-  		transparent 50%,
-  		rgba(234, 83, 35, 1) 50%,
-  		rgba(234, 83, 35, 1) 75%,
-  		transparent 75%,
-  		transparent
-  	);
   	background-image:
   		linear-gradient(
   		-45deg,
@@ -677,45 +623,34 @@
   		transparent 75%,
   		transparent
   	);
-  	-webkit-background-size:50px 50px;
-  	-moz-background-size:50px 50px;
-  	-ms-background-size:50px 50px;
   	background-size:50px 50px;
-  	-webkit-animation:move 2s linear infinite;
-  	-moz-animation:move 2s linear infinite;
-  	-ms-animation:move 2s linear infinite;
   	animation:move 2s linear infinite;
-  	-webkit-box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
-  	-moz-box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
-  	-ms-box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
   	box-shadow:inset 0 10px 0 rgba(255,255,255,.2);
   }
 }
 
-@-webkit-keyframes move{
-  0% {
-  	background-position: 0 0;
+.select-columns {
+  .ui-multiselect-label {
+    font-size: 0;
+
+    &::after {
+      content: "Select columns";
+      font-size: 12.6px;
+    }
   }
-  100% {
-  	background-position: 50px 50px;
-  }
-}	
-@-moz-keyframes move{
-  0% {
-  	background-position: 0 0;
-  }
-  100% {
-  	background-position: 50px 50px;
-  }
-}	
-@-ms-keyframes move{
-  0% {
-  	background-position: 0 0;
-  }
-  100% {
-  	background-position: 50px 50px;
-  }
-}	
+}
+
+.ui-menu-parent > .ui-menuitem-link .after-link {
+  content: "";
+  display: block;
+  // background: red;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
 @keyframes move{
   0% {
   	background-position: 0 0;
