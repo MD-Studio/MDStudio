@@ -34,7 +34,7 @@ __rootpath__  = os.path.dirname(os.path.abspath(__file__))
 __pyv__       = sys.version_info[0:2]
 
 # Check if Python virtual environment is in sys.path
-venv_path = os.getenv('_PY_VENVPATH')
+venv_path = os.getenv('VIRTUAL_ENV')
 venv_active=False
 for path in sys.path:
     if fnmatch.fnmatch(path, '{}/*site-packages'.format( venv_path )):

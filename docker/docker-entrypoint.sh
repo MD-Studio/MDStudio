@@ -15,13 +15,19 @@ sed -i 's/ sys.settrace(None)/ #sys.settrace(None)/g' ${_VENVPATH}/lib/python2.7
 echo "source ${_VENVPATH}/bin/activate" >> ~/.bashrc
 echo "export MONGO_HOST=mongo" >> ~/.bashrc
 echo "export IS_DOCKER=1" >> ~/.bashrc
-echo "export _PY_VENVPATH=${_VENVPATH}" >> ~/.bashrc
 
 echo 'Compiling pycharm helpers' &>> docker/.INSTALLING
 if [ -d /app/.pycharm_helpers/pydev/ ]; then
     python /app/.pycharm_helpers/pydev/setup_cython.py build_ext --inplace &>> docker/.INSTALLING
 fi
 
+echo 'Install IDE bindings' &>> docker/.INSTALLING
+# make sure we have the bindings for our IDE
+cd /app
+pipenv install --requirements > .requirements.txt
+pip install -r ./.requirements.txt &>> docker/.INSTALLING
+rm ./.requirements.txt
+cd $_PWD
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
 

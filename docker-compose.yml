@@ -8,6 +8,7 @@ services:
             - .:/app
             # cache directories for faster building times
             #- /app/app/node_modules
+            - /root/.local/share/virtualenvs
             - /root/.cache/pip
             - /root/.npm
 

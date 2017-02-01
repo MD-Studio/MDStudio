@@ -12,14 +12,6 @@ Prerequisites
 
  * Docker_, that's it.
 
-Installation
-~~~~~~~~~~~~
-Run the builder under bash:
-
-.. code-block:: bash
-
-    $ ./build.sh
-
 Usage
 ~~~~~
 To use the docker environment you have to start the container:
@@ -27,6 +19,12 @@ To use the docker environment you have to start the container:
 .. code-block:: bash
 
     $ ./start.sh
+
+After this we login to our docker container and we can start LIEStudio with:
+
+.. code-block:: bash
+
+    $ python .
 
 This command will spin up the complete environment including MongoDB, and ssh's into the 
 container. When you want to exit this mode just use `>> exit` to exit. Containers can be
@@ -160,30 +158,7 @@ The application is started on the command line as:
 
 .. code-block:: bash
 
-    $ pipenv shell
-    $ _VENV_NAME=$(basename $(pwd))
-    $ _VENVPATH=$(pew dir "${_VENV_NAME}")
-    $ export _PY_VENVPATH=${_VENVPATH}
-    $ python .
-
-The three middle lines are needed for python to check whether the application is started 
-in the virtual environment. To simplify this, you could either add the value of ``_PY_VENVPATH``
-to your environment variables, or you could put ``export _PY_VENVPATH=${_VENVPATH}`` in your 
-``.bashrc`` (or equivalent). Note that you need to replace ``${_VENVPATH}`` with the actual value.
-To retrieve this value, you could ``echo ${_VENVPATH}`` instead of ``python .``
-
-Once you've done this, the startup of the application reduces to:
-
-.. code-block:: bash
-
-    $ pipenv shell
-    $ python .
-
-To exit the virtual environment, simply run
-
-.. code-block:: bash
-
-    $ deactivate
+    $ pipenv run python .
 
 
 .. _Docker: https://www.docker.com/
