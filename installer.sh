@@ -426,10 +426,14 @@ else
 fi
 
 # 6) Install npm dependencies
-if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then
+if [[ $SETUP -eq 1 ]]; then
   echo 'Install NPM packages'
   mkdir -p ${ROOTDIR}/app/node_modules
   npm install --prefix ${ROOTDIR}/app --unsafe-perm
+elif [[ $UPDATE -eq 1 ]]; then
+  echo 'Updating NPM packages'
+  mkdir -p ${ROOTDIR}/app/node_modules
+  npm update --prefix ${ROOTDIR}/app --unsafe-perm
 fi
 
 # 7) Compile gulp 
