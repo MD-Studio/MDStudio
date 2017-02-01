@@ -27,7 +27,7 @@ cd /app
 pipenv install --requirements > .requirements.txt
 pip install -r ./.requirements.txt &>> docker/.INSTALLING
 rm ./.requirements.txt
-cd $_PWD
+
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
 
