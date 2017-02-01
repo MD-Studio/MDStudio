@@ -5,10 +5,7 @@ RUN apt-get update && \
 
 RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     apt-get install nodejs && \
-    npm install -g gulp && \
-    npm install -g gulp-cli && \
-    npm install -g typescript && \
-    npm install -g typings && \
+    npm i -g gulp gulp-cli typescript typings && \
     apt-get clean
 
 RUN pip install --upgrade pip

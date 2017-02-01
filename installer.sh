@@ -425,13 +425,28 @@ else
   echo "      If you wish to use secure communication over TLS, define your own certificate pair in ${CBDIR}/data/crossbar"
 fi
 
-# 6) Compile software documentation
+# 6) Install npm dependencies
+if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then
+  echo 'Install NPM packages'
+  mkdir -p ${ROOTDIR}/app/node_modules
+  npm install --prefix ${ROOTDIR}/app --unsafe-perm
+fi
+
+# 7) Compile gulp 
+if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then
+  echo 'Compile gulp'
+  cd ${ROOTDIR}/app
+  gulp compile
+  cd ${ROOTDIR}
+fi
+
+# 8) Compile software documentation
 if [[ $COMPILE_DOCS -eq 1 ]]; then
   _activate_py_venv
   _compile_python_sphinx_docs
 fi
 
-# 7) Run Python unittests
+# 9) Run Python unittests
 if [[ $TEST -eq 1 ]]; then
   
   _activate_py_venv

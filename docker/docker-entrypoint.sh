@@ -22,17 +22,6 @@ if [ -d /app/.pycharm_helpers/pydev/ ]; then
     python /app/.pycharm_helpers/pydev/setup_cython.py build_ext --inplace &>> docker/.INSTALLING
 fi
 
-echo 'Install IDE bindings' &>> docker/.INSTALLING
-# make sure we have the bindings for our IDE
-pip install -r /app/data/python_default_requirements.txt &>> docker/.INSTALLING
-
-echo 'Install NPM packages' &>> docker/.INSTALLING
-mkdir -p /app/app/node_modules
-npm install --prefix /app/app --unsafe-perm &>> docker/.INSTALLING
-
-echo 'Gulp Build' &>> docker/.INSTALLING
-gulp build &>> docker/.INSTALLING
-
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
 
