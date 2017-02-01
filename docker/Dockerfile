@@ -12,7 +12,7 @@ RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     apt-get clean
 
 RUN pip install --upgrade pip
-RUN pip install virtualenv sphinx sphinx_rtd_theme future
+RUN pip install pipenv
 
 ARG PUID=1000
 ARG PGID=1000
