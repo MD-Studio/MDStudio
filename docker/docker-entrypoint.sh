@@ -23,11 +23,12 @@ fi
 
 echo 'Install IDE bindings' &>> docker/.INSTALLING
 # make sure we have the bindings for our IDE
+_PWD=$(pwd)
 cd /app
 pipenv install --requirements > .requirements.txt
 pip install -r ./.requirements.txt &>> docker/.INSTALLING
 rm ./.requirements.txt
-
+cd $_PWD
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
 
