@@ -37,6 +37,11 @@ def prepaire_work_dir(path, user=None, create=False):
     :rtype:        str
     """
     
+    # Check if path
+    if not path:
+        logging.debug('No path defined')
+        return None
+    
     # Check if target path exists
     path = os.path.abspath(path)
     if not os.path.exists(path):

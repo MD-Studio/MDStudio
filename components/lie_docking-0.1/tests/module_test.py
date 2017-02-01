@@ -2,8 +2,6 @@
 
 """
 Unit tests for the docking component
-
-TODO: Add wamp_services unittests
 """
 
 import os
@@ -17,16 +15,18 @@ import glob
 __rootpath__ = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
-from   twisted.logger import Logger
+from   twisted.logger             import Logger
 from   lie_docking.plants_docking import PlantsDocking
+from   lie_docking.utils          import prepaire_work_dir
 
 logging = Logger()
 
 class PlantsDockingTest(unittest.TestCase):
     
-    workdir = os.path.join(__rootpath__, 'plants_docking')
+    workdir = None
     ligand_file = os.path.join(__rootpath__, 'ligand.mol2')
     protein_file = os.path.join(__rootpath__, 'protein.mol2')
+    exec_path = os.path.join(__rootpath__, '../../../bin/plants_darwin')
     
     @classmethod
     def setUpClass(cls):
@@ -48,7 +48,7 @@ class PlantsDockingTest(unittest.TestCase):
         the working directory
         """
         
-        if os.path.exists(self.workdir):
+        if self.workdir and os.path.exists(self.workdir):
             shutil.rmtree(self.workdir)
     
     def test_plants_faultyworkdir(self):
@@ -57,9 +57,9 @@ class PlantsDockingTest(unittest.TestCase):
         is not available and cannot be created
         """
         
-        workdir = '/Users/_dummy_user/lie_docking-0.1/tests/plants_docking'
-        plants = PlantsDocking(workdir)
-        plants['bindingsite_center'] = [7.79934,9.49666,3.39229]
+        plants = PlantsDocking(workdir='/Users/_dummy_user/lie_docking-0.1/tests/plants_docking',
+                               exec_path=self.exec_path,
+                               bindingsite_center=[7.79934,9.49666,3.39229])
         
         self.assertFalse(plants.run(self.protein, self.ligand))
     
@@ -69,9 +69,10 @@ class PlantsDockingTest(unittest.TestCase):
         is not found
         """
         
-        _exec = '/Users/_dummy_user/lie_docking-0.1/tests/plants'
-        plants = PlantsDocking(self.workdir, exec_path=_exec)
-        plants['bindingsite_center'] = [7.79934,9.49666,3.39229]
+        self.workdir = prepaire_work_dir(__rootpath__, create=True)
+        plants = PlantsDocking(workdir=self.workdir,
+                               exec_path='/Users/_dummy_user/lie_docking-0.1/tests/plants',
+                               bindingsite_center=[7.79934,9.49666,3.39229])
         
         self.assertFalse(plants.run(self.protein, self.ligand))
             
@@ -80,11 +81,12 @@ class PlantsDockingTest(unittest.TestCase):
         A working plants docking
         """
         
-        plants = PlantsDocking(self.workdir)
-        plants['bindingsite_center'] = [7.79934,9.49666,3.39229]
+        self.workdir = prepaire_work_dir(__rootpath__, create=True)
+        plants = PlantsDocking(workdir=self.workdir, 
+                               exec_path=self.exec_path,
+                               bindingsite_center=[7.79934,9.49666,3.39229])
         self.assertTrue(plants.run(self.protein, self.ligand))
         
         outputfiles = glob.glob('{0}/_entry_00001_conf_*.mol2'.format(self.workdir))
         self.assertEqual(len(outputfiles), plants._config['cluster_structures'])
         self.assertEqual(len(outputfiles), len(plants.results()))
-        

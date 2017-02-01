@@ -36,7 +36,7 @@ SETTINGS = {
         'chemplp_lipo_weight': 0.0,
         'chemplp_intercept_weight': -20.0,
         'rescore_mode': 'simplex',
-        'search_speed': 'speed1',
+        'search_speed': 'speed1', #speed1, speed2, speed4
         'protein_file': 'protein.mol2',
         'ligand_file': 'ligand.mol2',
         'output_dir': '.',
@@ -56,6 +56,7 @@ SETTINGS = {
         'write_merged_protein': 0,
         'write_merged_ligand': 0,
         'write_merged_water': 0,
+        'write_protein_splitted': 0,
         'write_per_atom_scores': 0,
         'merge_multi_conf_output': 0
     }    
