@@ -112,16 +112,13 @@ LIEStudio tasks communicate data in a number of predefined types indicated by th
 * **inlineSource**: the data is send inline using the ``_data`` tag. 
 * **fileSource**: the data is located in a file at the ``_url`` location with optional tags ``_fileType``.
 
-_inputDict
-~~~~~~~~~~
+``_inputDict``:
 WAMP methods may accept an arbitrary number of input values. These can be regarded as the arguments 
 of a Python function. Keyword arguments are stored in the ``_configDict``.
 Each input is of a certain data type as described above.
 
-_outputDict
-~~~~~~~~~~~
+``_outputDict``:
 Equal to the ``_inputDict`` in capabilities.
 
-_configDict
-~~~~~~~~~~~
+``_configDict``:
 Keyword values to the method.
