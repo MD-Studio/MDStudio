@@ -221,8 +221,8 @@ export class DockingComponent {
         
         // Initiate contextual menu for the DataTable
         this.items = [
-            {label: 'View', icon: 'fa-search', command: (event) => this.delete()},
-            {label: 'Delete', icon: 'fa-close', command: (event) => this.delete()}
+            {label: 'View', icon: 'fa-search', command: (event) => this.delete(this.selectedMD)},
+            {label: 'Delete', icon: 'fa-close', command: (event) => this.delete(this.selectedMD)}
         ];
     }
     

@@ -12,81 +12,15 @@ Classes for protein-ligand docking using the PLANTS software:
 import os
 import csv
 import json
-import textwrap
 
 from   twisted.logger   import Logger
 from   lie_config       import configwrapper
 
 from   docking_settings import SETTINGS
 from   docking_base     import DockingBase
+from   plants_conf      import PLANTS_CONF_FILE_TEMPLATE
 from   utils            import cmd_runner
 from   clustering       import coords_from_mol2, ClusterStructures
-
-PLANTS_CONF_FILE_TEMPLATE = textwrap.dedent("""
-    # Scoring function and search settings
-    scoring_function             {scoring_function}
-    search_speed                 {search_speed}
-    rescore_mode                 {rescore_mode}
-    outside_binding_site_penalty {outside_binding_site_penalty}
-    enable_sulphur_acceptors     {enable_sulphur_acceptors}
-    ligand_intra_score           {ligand_intra_score}
-    chemplp_clash_include_14     {chemplp_clash_include_14}
-    chemplp_clash_include_HH     {chemplp_clash_include_HH}
-    plp_steric_e                 {plp_steric_e}
-    plp_burpolar_e               {plp_burpolar_e}
-    plp_hbond_e                  {plp_hbond_e}
-    plp_metal_e                  {plp_metal_e}
-    plp_repulsive_weight         {plp_repulsive_weight}
-    plp_tors_weight              {plp_tors_weight}
-    chemplp_weak_cho             {chemplp_weak_cho}
-    chemplp_charged_hb_weight    {chemplp_charged_hb_weight}
-    chemplp_charged_metal_weight {chemplp_charged_metal_weight}
-    chemplp_hbond_weight         {chemplp_hbond_weight}
-    chemplp_hbond_cho_weight     {chemplp_hbond_cho_weight}
-    chemplp_metal_weight         {chemplp_metal_weight}
-    chemplp_plp_weight           {chemplp_plp_weight}
-    chemplp_plp_steric_e         {chemplp_plp_steric_e}
-    chemplp_plp_burpolar_e       {chemplp_plp_burpolar_e}
-    chemplp_plp_hbond_e          {chemplp_plp_hbond_e}
-    chemplp_plp_metal_e          {chemplp_plp_metal_e}
-    chemplp_plp_repulsive_weight {chemplp_plp_repulsive_weight}
-    chemplp_tors_weight          {chemplp_tors_weight}
-    chemplp_lipo_weight          {chemplp_lipo_weight}
-    chemplp_intercept_weight     {chemplp_intercept_weight}
-    
-    # Input file specification
-    protein_file                 {protein_file} 
-    ligand_file                  {ligand_file}
-   
-    # Output settings
-    output_dir                   {output_dir}
-    write_multi_mol2             {write_multi_mol2}
-    
-    # Ligand settings
-    flip_amide_bonds             {flip_amide_bonds}
-    flip_planar_n                {flip_planar_n}
-    flip_ring_corners            {flip_ring_corners}
-    force_flipped_bonds_planarity {force_flipped_bonds_planarity}
-    force_planar_bond_rotation   {force_planar_bond_rotation}
-    
-    # Binding site definition
-    bindingsite_center           {bindingsite_center[0]} {bindingsite_center[1]} {bindingsite_center[2]}
-    bindingsite_radius           {bindingsite_radius}
-    
-    # cluster algorithm
-    cluster_structures           {cluster_structures}
-    cluster_rmsd                 {cluster_rmsd}
-    
-    # Writer
-    write_ranking_links          {write_ranking_links}
-    write_protein_bindingsite    {write_protein_bindingsite}
-    write_protein_conformations  {write_protein_conformations}
-    write_merged_protein         {write_merged_protein}
-    write_merged_ligand          {write_merged_ligand}
-    write_merged_water           {write_merged_water}
-    write_per_atom_scores        {write_per_atom_scores}
-    merge_multi_conf_output      {merge_multi_conf_output}
-    """)
 
 @configwrapper('plants')        
 class PlantsDocking(DockingBase):
@@ -104,10 +38,18 @@ class PlantsDocking(DockingBase):
     If not otherwise defined, the PLANTS executable files are available
     in the bin directory of the lie_docking package suffixed by the
     OS identifier as returned by `sys.platform`.
-    
     Support is available for all of PLANTS default configuration options
-    described in sections 1.0 of the manual.
+    described in sections 1.0 of the PLANTS manual.
     
+    Run a PLANTS docking as:
+    ::
+        docking = PlantsDocking(plants_config_dict)
+        docking.run(protein, ligand)
+        results_json = docking.results()
+    
+    :param user_meta:   user information included in Twisted based structured
+                        log messages.
+    :type user_meta:    dict
     :param kwargs:      additional keyword arguments are considered as
                         PLANTS configuration options
     :type kwargs:       dict
@@ -117,12 +59,32 @@ class PlantsDocking(DockingBase):
     allowed_config_options = SETTINGS.get(method,{})
     logging = Logger()
     
-    def __init__(self, **kwargs):
+    def __init__(self, user_meta={}, **kwargs):
         
-        # Class internal attributes
-        self._config = kwargs
-        self._workdir = self._config.get('workdir', None)
+        self.user_meta = user_meta
         
+        self._config   = kwargs
+        self._workdir  = None
+    
+    def _prepaire_ligand(self, ligand):
+        """
+        Check and adjust the ligand MOL2 file for use in PLANTS
+        
+        PLANTS exclusively uses the MOL2 file format, thus MOL2-files
+        (including bond connetivity) must be provided for all input files.
+        PLANTS expects correct MOL2-atom- and bond-types. 
+        This is needed for the correct identification of rotatable bonds and
+        charged functional groups and may influence docking and virtual
+        screening performance.
+        
+        TODO: Implement check, perhaps using the SPORES program.
+              Check plants manual.
+        
+        :param ligand: ligand file to check
+        """
+        
+        return ligand
+    
     def results(self):
         """
         Return PLANTS results
@@ -185,7 +147,7 @@ class PlantsDocking(DockingBase):
         for key, value in self.allowed_config_options.items():
             if not key in self._config:
                 self._config[key] = value
-                self.logging.warn('Required "{0}" configuration option not defined. Add with default option {1}'.format(key, value))
+                self.logging.warn('Required "{0}" configuration option not defined. Add with default option {1}'.format(key, value), **self.user_meta)
         
         confstring = PLANTS_CONF_FILE_TEMPLATE.format(**self._config)
         return confstring
@@ -195,6 +157,15 @@ class PlantsDocking(DockingBase):
         Run a PLANTS docking for a given protein and ligand in mol2
         format in either 'screen' or 'rescore' mode.
         
+        A docking run requires the following PLANTS configuration arguments
+        to be defined:
+        * exec_path: path to the PLANTS executable
+        * workdir: a working directory to write docking results to
+        * bindingsite_center: target ligand binding site in the protein defined
+          as a 3D coordinate
+        The `run` function will exit if any of these requirements are not
+        resolved.
+        
         :param protein: protein 3D structure in mol2 format
         :type protein:  str
         :param ligand:  ligand 3D structure in mol2 format
@@ -202,17 +173,42 @@ class PlantsDocking(DockingBase):
         :param mode:    PLANTS execution mode as either virtual
                         screening 'screen' or rescoring 'rescore'
         :type mode:     str
+        
+        :return:        boolean to indicate successful docking
+        :rtype:         bool
         """
         
-        # Working directory needs to be defined
-        if not self._workdir:
+        # Check required PLANTS configuration arguments
+        self._workdir = self._config.get('workdir', None)
+        if self._workdir:
+            self._workdir = os.path.abspath(self._workdir)
+            if not os.path.exists(self._workdir):
+                self.logging.error('Working directory {0} does not exist'.format(self._workdir), **self.user_meta)
+                return False
+            if not os.access(self._workdir, os.W_OK):
+                self.logging.error('Working directory {0} not writable'.format(self._workdir), **self.user_meta)
+                return False
+        else:
+            self.logging.error('Working directory not defined (workdir parameter)', **self.user_meta)
             return False
         
-        # Check if executable is available
         exec_path = self._config.get('exec_path')
         if not os.path.exists(exec_path):
-            self.logging.error('{0} executable not available at: {1}'.format(self.method, exec_path))
+            self.logging.error('{0} executable not available at: {1}'.format(self.method, exec_path), **self.user_meta)
             return False
+        if not os.access(exec_path, os.X_OK):
+            self.logging.error('{0} executable {1} does not have exacutable permissions'.format(self.method, exec_path), **self.user_meta)
+            return False
+            
+        if not self._config.get('bindingsite_center'):
+            self.logging.error('Binding site center not defined', **self.user_meta)
+            return False
+        if sum(self._config.get('bindingsite_center')) == 0 or len(self._config.get('bindingsite_center')) != 3:
+            self.logging.error('Malformed binding site center definition: {0}'.format(self._config.get('bindingsite_center')), **self.user_meta)
+            return False
+        
+        # Check ligand
+        ligand = self._prepaire_ligand(ligand)
         
         # Copy files to working directory
         conf_file = os.path.join(self._workdir, 'plants.config') 
@@ -227,5 +223,5 @@ class PlantsDocking(DockingBase):
             
         cmd = [exec_path, '--mode', mode, 'plants.config']
         output, error = cmd_runner(cmd, self._workdir)
-               
+        
         return True

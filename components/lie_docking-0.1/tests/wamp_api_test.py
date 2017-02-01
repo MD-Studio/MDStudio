@@ -69,8 +69,18 @@ class RunPlantsDocking(WAMPUnitTestBase):
                   'exec_path': os.path.join(__rootpath__, '../../../bin/plants_darwin')}
         res = yield self.call(u'liestudio.docking.plants', protein, ligand, config=config)
         
-        self.log("logging config: {0}".format(res), testpass=True)
+        means = [k for k,v in res.get('result', {}).items() if v['mean']]
+        returndict = type(res) == dict and res.get('result', None) != None
         
+        self.log('Number of docking poses: {0}'.format(len(res['result'])), testpass=returndict)
+        
+        structures_retrieved = []
+        for s in means:
+            structure = yield self.call(u'liestudio.docking.get', os.path.join(res['dir'], s))
+            structures_retrieved.append(structure.get('result',None) != None)
+
+        self.log('Retrieved {0} docked structures representing cluster means'.format(len(structures_retrieved)), testpass=all(structures_retrieved))
+    
         # Remove docking directory
         if os.path.exists(res.get('dir', None)):
             shutil.rmtree(res.get('dir'))
