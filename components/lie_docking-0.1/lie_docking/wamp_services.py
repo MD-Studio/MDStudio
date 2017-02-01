@@ -38,7 +38,7 @@ class DockingWampApi(LieApplicationSession):
         :param ligand:  ligand 3D structure file
         :type ligand:   str
         :param config:  docking method configuration options
-        :type config:   :py:dict
+        :type config:   :py:class:`dict`
         """
         
         self.log.info('Initiate docking. method: {method}', method='plants', **self.session_config)

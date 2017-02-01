@@ -119,7 +119,7 @@ class LogSerializer(object):
         Base method for encoding (serializing) a log dictionary
         
         :param obj: log dictionary to serialize
-        :type obj:  :py:dict
+        :type obj:  :py:class:`dict`
         """
         
         serialized = {}

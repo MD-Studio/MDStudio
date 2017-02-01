@@ -6,7 +6,7 @@ Contents:
 .. toctree::
    
    about
-   development
+   development/index
    modules
 
 Indices and tables

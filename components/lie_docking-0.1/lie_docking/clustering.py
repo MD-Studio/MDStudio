@@ -237,7 +237,7 @@ class ClusterStructures(object):
         given cluster.
         
         :return: dictionary of cluster ID/structure ID key/value pairs
-        :rtype:  :py:dict
+        :rtype:  :py:class:`dict`
         """
 
         return dict([(self._clusters_filtered[sid]['cluster'], sid) for sid in self._clusters_filtered
@@ -309,7 +309,7 @@ class ClusterStructures(object):
         :type min_cluster_count:  int
         
         :return:                  clustering results
-        :rtype:                   :py:dict
+        :rtype:                   :py:class:`dict`
         """
 
         self.method = method

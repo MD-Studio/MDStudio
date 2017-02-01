@@ -25,6 +25,9 @@ echo 'Install NPM packages' &>> docker/.INSTALLING
 mkdir -p /app/app/node_modules
 npm install --prefix /app/app --unsafe-perm &>> docker/.INSTALLING
 
+echo 'Gulp Build' &>> docker/.INSTALLING
+gulp build &>> docker/.INSTALLING
+
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
 
