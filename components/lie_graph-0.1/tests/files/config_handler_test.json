@@ -1,0 +1,21 @@
+{
+    "entry1_level1.param1": "{entry3_level1.param1}/data/liedb",
+    "entry1_level1.param2": "liestudio",
+    "entry1_level1.param3": 100,
+    "entry1_level1.param4": 12.45,
+    "entry1_level1.param5": true,
+    "entry1_level1.param6": "%m/%d/%Y %I:%M:%S",
+    "entry1_level1.param7": "\u0987\u0989\u09a8\u09bf\u0995\u09cb\u09a1 \u0995\u09c0?",
+    "entry2_level1.level2.param1": true,
+    "entry2_level1.level2.param2": "%m/%d/%Y %I:%M:%S",
+    "entry2_level1.level2.param3": "{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n",
+    "entry2_level1.level2.param4": {"log_level":"debug", "app_namespace":" > 5"},
+    "entry2_level1.level2_1.param1": false,
+    "entry2_level1.level2_1.param2": "%m/%d/%Y %I:%M:%S",
+    "entry2_level1.level2_1.param3": "{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n",
+    "entry2_level1.level2_1.param4": {"log_level":"infp", "app_namespace":" > 3"},
+    "entry3_level1.param1": "/usr/app",
+    "entry3_level1.param2": 5000,
+    "entry3_level1.param3": "SYSTEM_STATUS",
+    "entry4_level1.param1": "{entry3_level1.param1}/data/user"
+}
