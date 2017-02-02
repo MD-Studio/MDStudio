@@ -74,13 +74,13 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
   needed.
   
   :param config:     dictionary to flatten
-  :type config:      :py:dict
+  :type config:      :py:class:`dict`
   :param parent_key: leading string in concatenated keys
   :type parent_key:  str
   :param sep:        concatenation seperator
   :type sep:         str
   :return:           flattened dictionary
-  :rtype:            :py:dict
+  :rtype:            :py:class:`dict`
   """
   
   items = []
@@ -105,11 +105,11 @@ def _nest_flattened_dict(config, sep='.'):
   `_flatten_nested_dict` method to a nested representation
   
   :param config:     dictionary to nest
-  :type config:      :py:dict
+  :type config:      :py:class:`dict`
   :param sep:        concatenation seperator
   :type sep:         str
   :return:           nested dictionary
-  :rtype:            :py:dict
+  :rtype:            :py:class:`dict`
   """
   
   nested_dict = {}
@@ -138,7 +138,7 @@ def config_from_ini(inifile):
     :type inifile:  any type accepted by _open_anything function
     
     :return:        parsed configuration
-    :rtype:         :py:dict
+    :rtype:         :py:class:`dict`
     """
     
     fileobject = _open_anything(inifile)
@@ -206,7 +206,7 @@ def config_from_json(jsonfile):
     :type inifile:  any type accepted by _open_anything function
     
     :return:        parsed configuration
-    :rtype:         :py:dict
+    :rtype:         :py:class:`dict`
     """
     
     fileobject = _open_anything(jsonfile)
@@ -242,7 +242,7 @@ def config_from_yaml(yamlfile):
     :type yamlfile:  any type accepted by _open_anything function
     
     :return:        parsed configuration
-    :rtype:         :py:dict
+    :rtype:         :py:class:`dict`
     """
     
     from yaml import load

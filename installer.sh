@@ -28,7 +28,7 @@ _PY_SUPPORTED=( 2\.7\* 3\.4\* 3\.5\* )
 _PY_PACKAGES=( )
 _PY_VENV=
 _PY_VENV_ACTIVE=0
-_VENVPATH=${ROOTDIR}'/lie_venv'
+_VENV_NAME=$(basename $(pwd))
 
 USAGE="""LIEStudio setup script
 
@@ -295,27 +295,21 @@ function _activate_py_venv () {
 function _setup_venv () {
   
   # Create or upgrade the Python virtual environment
-  if [ -d $_VENVPATH ]; then
+  if [[ $(pew ls | grep "^${_VENV_NAME}$") =~ "${_VENV_NAME}" ]]; then
     
     # Remove and reinstall venv
     if [[ $FORCE -eq 1 ]]; then
-      echo "INFO: Reinstall Python virtual environment at $_VENVPATH"
-      \rm -rf $_VENVPATH
-      $_PY_VENV $_VENVPATH
+      echo "INFO: Reinstall Python virtual environment at $(pew dir "${_VENV_NAME}")"
+      pew rm "${_VENV_NAME}"
+      pipenv install
     else
       echo "INFO: Virtual environment present, not reinstalling"
     fi
     
   else
-    echo "INFO: Create Python virtual environment at: $_VENVPATH"
-    $_PY_VENV --always-copy $_VENVPATH
+    echo "INFO: Create Python virtual environment"
+    pipenv install
   fi
-  
-  # Set execute permissions for scripts in /bin
-  echo "INFO: grant executable permissions to scripts in ${_VENVPATH}/bin"
-  for file in $( ls ${_VENVPATH}/bin/* ); do
-    chmod +x $file
-  done
   
   return 0
 }
@@ -352,10 +346,9 @@ function _install_update_packages () {
   # Update virtual environment
   if [[ $UPDATE -eq 1 ]]; then
     echo "INFO: Update Python virtual environment at $_VENVPATH"
-    pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
-  # Download and install requirements in python_default_requirements.txt
+    pipenv update
   else
-    pip install -r ${ROOTDIR}/data/python_default_requirements.txt
+    pipenv install
   fi
 
   # Install all LIEStudio component packages and their dependencies using pip
@@ -383,7 +376,6 @@ function _compile_python_sphinx_docs () {
   echo "INFO: Compile LIEStudio and API documentation in HTML"
   rm -rf ${ROOTDIR}/docs/html
   cd ${ROOTDIR}/docs
-  mkdir -p ${ROOTDIR}/docs/_static
   make build
   make html
   cd ${ROOTDIR}
@@ -418,6 +410,8 @@ if [[ $SETUP -eq 1 ]]; then
   _setup_venv
 fi
 
+_VENVPATH=$(pew dir "${_VENV_NAME}")
+
 # 4) Install/update python packages
 if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then
   _install_update_packages
@@ -431,13 +425,32 @@ else
   echo "      If you wish to use secure communication over TLS, define your own certificate pair in ${CBDIR}/data/crossbar"
 fi
 
-# 6) Compile software documentation
+# 6) Install npm dependencies
+if [[ $SETUP -eq 1 ]]; then
+  echo 'Install NPM packages'
+  mkdir -p ${ROOTDIR}/app/node_modules
+  npm install --prefix ${ROOTDIR}/app --unsafe-perm
+elif [[ $UPDATE -eq 1 ]]; then
+  echo 'Updating NPM packages'
+  mkdir -p ${ROOTDIR}/app/node_modules
+  npm update --prefix ${ROOTDIR}/app --unsafe-perm
+fi
+
+# 7) Compile gulp 
+if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then
+  echo 'Compile gulp'
+  cd ${ROOTDIR}/app
+  gulp compile
+  cd ${ROOTDIR}
+fi
+
+# 8) Compile software documentation
 if [[ $COMPILE_DOCS -eq 1 ]]; then
   _activate_py_venv
   _compile_python_sphinx_docs
 fi
 
-# 7) Run Python unittests
+# 9) Run Python unittests
 if [[ $TEST -eq 1 ]]; then
   
   _activate_py_venv

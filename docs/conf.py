@@ -150,13 +150,13 @@ html_theme = 'sphinx_rtd_theme'
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-# html_logo = None
+html_logo = '_static/logo.png'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 #
-# html_favicon = None
+html_favicon = '_static/favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -178,7 +178,7 @@ html_static_path = ['_static']
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
 #
-# html_use_smartypants = True
+html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
 #
@@ -359,11 +359,13 @@ Components
 
     for i in glob.glob('../components/lie_*/lie_*/'):
         if not 'egg-info' in i:
-            module_name = re.match(r'../components/lie_.*/(lie_.*)/', i).group(1)
-            file = "{}.rst".format(module_name)
+            names = re.match(r'../components/lie_.*/(lie_(.*))/', i)
+            module_name = names.group(1)
+            name = names.group(2)
+            file = "components/{}.rst".format(module_name)
             if os.path.isfile(file):
                 os.remove(file)
 
-            os.system("sphinx-apidoc --module-first --private --force -o ./ {}/".format(i))
+            os.system("sphinx-apidoc --module-first --private --force -o components/{} {}/".format(name, i))
 
-            mod.write("   {}\n".format(module_name))
+            mod.write("   components/{}/modules.rst\n".format(name))

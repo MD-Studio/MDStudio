@@ -10,7 +10,7 @@ BUILDDIR      = _build
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) . -W
+ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) . -W -E
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
@@ -226,4 +226,4 @@ dummy:
 
 .PHONY: livehtml
 livehtml:
-	sphinx-autobuild -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html --host 0.0.0.0 --port 8000 --ignore=lie_* --ignore=modules.rst --watch=../components/ --poll
+	sphinx-autobuild -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html --host 0.0.0.0 --port 8000 --ignore=lie_* --ignore=components/modules.rst --ignore=modules.rst --watch=../components/ --poll

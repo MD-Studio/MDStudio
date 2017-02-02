@@ -11,3 +11,7 @@ gulp.task('serve', callback =>
 gulp.task('build', callback =>
     runSequence('clean', ['copy:dist', 'ts:dist', 'sass:dist'], 'inject', 'server:init', callback)
 );
+
+gulp.task('compile', callback =>
+    runSequence('clean', ['copy:dist', 'ts:dist', 'sass:dist'], 'inject', callback)
+);

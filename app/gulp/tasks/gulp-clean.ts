@@ -18,5 +18,5 @@ function cleanTypescript() {
 
 ///////////////////// Clean Tasks /////////////////////
 
-gulp.task('cleanTypescript', cleanTypescript);
-gulp.task('clean', ['cleanTypescript'], clean);
+gulp.task('clean:typescript', cleanTypescript);
+gulp.task('clean', ['clean:typescript'], clean);

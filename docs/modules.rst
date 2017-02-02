@@ -5,11 +5,11 @@ Components
 .. toctree::
    :maxdepth: 4
 
-   lie_config
-   lie_db
-   lie_docking
-   lie_logger
-   lie_md
-   lie_structures
-   lie_system
-   lie_user
+   components/config/modules.rst
+   components/db/modules.rst
+   components/docking/modules.rst
+   components/logger/modules.rst
+   components/md/modules.rst
+   components/structures/modules.rst
+   components/system/modules.rst
+   components/user/modules.rst

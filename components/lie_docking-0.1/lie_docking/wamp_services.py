@@ -48,6 +48,7 @@ class DockingWampApi(LieApplicationSession):
         
         :param structure_path: fully qualified file path to the structure file
         :type structure_path:  :py:str
+        :type config:   :py:class:`dict`
         """
         
         structure_path = '{0}.mol2'.format(structure_path)
