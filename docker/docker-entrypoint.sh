@@ -14,6 +14,9 @@ _VENVPATH="/root/.local/share/virtualenvs/app"
 grep -q "source ${_VENVPATH}/bin/activate" ~/.bashrc || echo "source ${_VENVPATH}/bin/activate" >> ~/.bashrc
 grep -q "export MONGO_HOST=mongo" ~/.bashrc || echo "export MONGO_HOST=mongo" >> ~/.bashrc
 grep -q "export IS_DOCKER=1" ~/.bashrc || echo "export IS_DOCKER=1" >> ~/.bashrc
+grep -q "mkdir -p /var/lock/subsys" ~/.bashrc || echo "mkdir -p /var/lock/subsys" >> ~/.bashrc
+grep -q "daemonize -p /var/run/frontend.pid -v -l /var/lock/subsys/frontend -c /app/app /usr/bin/gulp serve" ~/.bashrc || echo "daemonize -p /var/run/frontend.pid -v -l /var/lock/subsys/frontend -c /app/app /usr/bin/gulp serve" >> ~/.bashrc
+grep -q "daemonize -p /var/run/docs.pid -v -l /var/lock/subsys/docs -c /app/docs /usr/bin/make livehtml" ~/.bashrc || echo "daemonize -p /var/run/docs.pid -v -l /var/lock/subsys/docs -c /app/docs /usr/bin/make livehtml" >> ~/.bashrc
 
 echo 'Compiling pycharm helpers' &>> docker/.INSTALLING
 if [ -d /app/.pycharm_helpers/pydev/ ]; then
@@ -28,12 +31,6 @@ pipenv install --requirements > .requirements.txt
 pip install -r ./.requirements.txt &>> docker/.INSTALLING
 rm ./.requirements.txt
 cd $_PWD
-
-echo 'Starting Deamons'
-mkdir -p /var/lock/subsys
-daemonize -p /var/run/frontend.pid -v -l /var/lock/subsys/frontend -c /app/app /usr/bin/gulp serve &>> docker/.INSTALLING
-daemonize -p /var/run/docs.pid -v -e /app/docs.err -l /var/lock/subsys/docs -c /app/docs /usr/bin/make livehtml &>> docker/.INSTALLING
-
 
 # notify the installation has been completed
 echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
