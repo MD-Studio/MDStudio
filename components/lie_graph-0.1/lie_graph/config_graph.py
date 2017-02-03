@@ -7,7 +7,7 @@ import collections
 
 from   .graph              import Graph
 from   .graph_algorithms   import dijkstra_shortest_path
-from   .graph_axis_methods import GraphAxisMethods
+from   .graph_axis_class   import GraphAxisMethods
 from   .graph_query        import GraphQuery
 
 def _flatten_nested_dict(graph_dict, parent_key='', sep='.'):
@@ -392,7 +392,7 @@ class ConfigHandler(Graph, GraphAxisMethods):
         :param path_method: method used to calculate shortest path between 
                             root node and leaf node
         :type path_method:  method
-        :rtype:             dict
+        :rtype:             :py:class:dict
         
         TODO: get path between nodes closest to root and leaves using closest_to
               method is potentially slow for large graphs.
@@ -424,7 +424,7 @@ class ConfigHandler(Graph, GraphAxisMethods):
         Emulates Pythons dictionary get method
         
         :return: node having the query key or default
-        :rtype:  ConfigHandler
+        :rtype:  lie_config.ConfigHandler
         """
         
         if self.sep in key:
@@ -493,7 +493,7 @@ class ConfigHandler(Graph, GraphAxisMethods):
         of a root ConfigHandler class.
         
         :param config: configuration
-        :type config:  dict
+        :type config:  :py:class:dict
         """
         
         assert isinstance(config, dict), TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(config)))

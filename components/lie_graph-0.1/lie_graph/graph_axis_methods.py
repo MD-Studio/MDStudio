@@ -124,7 +124,7 @@ def node_neighbors(graph, nid):
     :param graph: Graph to query
     :type graph:  Graph class instance
     :param node:  node to return neighbors for
-    :type node:   nid
+    :type node:   lie_graph.graph_axis_class.GraphAxisMethods.nid
     """
     
     if graph.is_masked:

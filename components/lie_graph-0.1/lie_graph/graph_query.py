@@ -7,13 +7,14 @@ class GraphQuery(object):
     Graph query engine
     
     Query mini language:
-    . = positional argument as either:
-        key = search at rootlevel
-        .key = search at current node
-        ..key = search at any level
-    {} = node or edge argument based search:
-        'type': seach in 'node' or 'edge'
-        'attr': attribute name to match
+    
+        . = positional argument as either:
+            key = search at rootlevel
+            .key = search at current node
+            ..key = search at any level
+        {} = node or edge argument based search:
+            'type': seach in 'node' or 'edge'
+            'attr': attribute name to match
     """
     
     def __init__(self, sep='.'):

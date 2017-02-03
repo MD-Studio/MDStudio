@@ -8,9 +8,6 @@ RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     npm i -g gulp gulp-cli typescript typings && \
     apt-get clean
 
-RUN pip install --upgrade pip
-RUN pip install pipenv
-
 ARG PUID=1000
 ARG PGID=1000
 RUN groupadd -g $PGID liestudio && \
@@ -32,6 +29,14 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
         && chmod 600 /root/.ssh/authorized_keys /root/.ssh/id_rsa.pub \
     && chmod 400 /root/.ssh/id_rsa \
 ;fi
+
+# deamonize
+RUN git clone git://github.com/bmc/daemonize.git ~/deamonize && \
+    cd ~/deamonize && \
+    sh configure && \
+    make && \
+    sudo make install
+
 
 ADD docker/.bash_profile ~/.bash_profile
 

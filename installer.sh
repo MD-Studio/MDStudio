@@ -376,7 +376,6 @@ function _compile_python_sphinx_docs () {
   echo "INFO: Compile LIEStudio and API documentation in HTML"
   rm -rf ${ROOTDIR}/docs/html
   cd ${ROOTDIR}/docs
-  make build
   make html
   cd ${ROOTDIR}
   
@@ -397,6 +396,14 @@ echo "====================================================================="
 echo ""
 
 cd $ROOTDIR
+
+# update or upgrade pip requirements
+# we redirect ensurepip to nul since it is disabled
+# on debian like systems
+curl https://bootstrap.pypa.io/get-pip.py | python && \
+python -m pip install --upgrade pip && \
+python -m pip install pew && \
+python -m pip install pipenv
 
 # 1) Resolve Python version and virtual env options
 _resolve_python_version

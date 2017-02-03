@@ -16,7 +16,7 @@ def node_neighbors(graph, nid):
     :param graph: Graph to query
     :type graph:  Graph class instance
     :param node:  node to return neighbors for
-    :type node:   nid
+    :type node:   lie_graph.graph_mixin.EdgeTools.nid
     
     TODO: This is a duplicate of the node_neighbors function in
           graph_axis_methods here to prevent circular import. Reorganize!
