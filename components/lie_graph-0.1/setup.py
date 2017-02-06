@@ -24,6 +24,7 @@
 from setuptools import setup, find_packages
 
 distribution_name = 'lie_graph'
+test_requirements = ['unittest2']
 
 setup(
     name=distribution_name,
@@ -38,8 +39,8 @@ setup(
     packages=find_packages(),
     py_modules=[distribution_name],
     test_suite="tests",
-    test_requirements = ['unittest2'],
-    install_requires = ['asq'] + test_requirements,
+    test_requirements=test_requirements,
+    install_requires=['asq'] + test_requirements,
     include_package_data=True,
     zip_safe=True,
     classifiers=[

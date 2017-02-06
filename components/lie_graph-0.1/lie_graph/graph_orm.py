@@ -49,7 +49,7 @@ class GraphORM(object):
         :param cls:        class to map
         :type cls:         class
         :param edge_attr:  edge attributes to match
-        :type edge_attr:   dict
+        :type edge_attr:   :py:class:dict
         :param kwargs:     additional keyword arguments to add to matching
                            dictionary
         """
@@ -73,7 +73,7 @@ class GraphORM(object):
         :param cls:        class to map
         :type cls:         class
         :param edge_attr:  edge attributes to match
-        :type edge_attr:   dict
+        :type edge_attr:   :py:class:dict
         :param kwargs:     additional keyword arguments to add to matching
                            dictionary
         """
@@ -95,21 +95,24 @@ class GraphORM(object):
         Map a custom class to a node or edge based on their attributes.
         
         Both attribute key and value are considered in the matching.
-        TODO: extend matching engine to match only key or values and use
-              logical operators on values.
+
+        TODO: 
+
+            extend matching engine to match only key or values and use
+            logical operators on values.
         
         If there is nothing to map, return the base class which by default is
         the same class as the Graph instance making the call to the get method.
         
-        :param graph:    a graph to match against
-        :type graph:     Graph
-        :param objects:  one or more nodes or edges to match against
-        :type objects:   list
-        :param base_cls: graph base class. Needs to be based on Graph class
-        :type base_cls:  Graph (inherited) class
-        :param classes:  additional classes to include in base class when
-                         building custom Graph class
-        :type classes:   list or tuple 
+        :param graph:                       a graph to match against
+        :type graph:                        `lie_graph.graph.Graph`
+        :param objects:                     one or more nodes or edges to match against
+        :type objects:                      list
+        :param base_cls:                    graph base class. Needs to be based on Graph class
+        :type base_cls:                     `lie_graph.graph.Graph` (inherited) class
+        :param classes:                     additional classes to include in base class when
+                                            building custom Graph class
+        :type classes:                      list or tuple
         """
         
         # Are we matching edges? or nodes?

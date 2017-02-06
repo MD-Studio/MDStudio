@@ -479,7 +479,7 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Return the difference between the key set of self and other
         
-        :rtype: set
+        :rtype: :py:class:set
         """
          
         return set(self.keys()).difference(set(other.keys()))
@@ -522,7 +522,7 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Return the intersection between the key set of self and other
         
-        :rtype: set
+        :rtype: :py:class:set
         """
         
         return set(self.keys()).intersection(set(other.keys()))
@@ -635,7 +635,7 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Return the symmetric difference between the key set of self and other
         
-        :rtype: set
+        :rtype: :py:class:set
         """
         
         return set(self.keys()).symmetric_difference(set(other.keys()))
@@ -644,7 +644,7 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Return the union between the key set of self and other
         
-        :rtype: set
+        :rtype: :py:class:set
         """
         
         return set(self.keys()).union(set(other.keys()))
@@ -654,7 +654,7 @@ class GraphDict(colabc.MutableMapping, dict):
         Update key/value pairs in also updating the view if needed
         
         :param other: other key/value pairs
-        :type other:  dict
+        :type other:  :py:class:dict
         """
         
         self._storage.update(other)

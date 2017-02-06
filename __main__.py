@@ -35,13 +35,15 @@ __pyv__       = sys.version_info[0:2]
 
 # Check if Python virtual environment is in sys.path
 venv_path = os.getenv('VIRTUAL_ENV')
-venv_active=False
+venv_active = False
+
 for path in sys.path:
     if fnmatch.fnmatch(path, '{}/*site-packages'.format( venv_path )):
         venvpath = path
         venv_active = True
 if not venv_active:
     raise Exception('Python virtual environment not active')
+
 
 # Import required system packages
 from  lie_system     import ComponentManager

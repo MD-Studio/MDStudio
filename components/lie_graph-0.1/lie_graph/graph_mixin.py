@@ -150,10 +150,10 @@ class EdgeTools(_NodeEdgeBase):
         """
         Set edge attribute values.
         The method may be overloaded in custom classes to pre-process data
-        before setting. 
-        
-        :param key:  edge attribute key
-        :param value edge attribute value
+        before setting.
+
+        :param key:   edge attribute key
+        :param value: edge attribute value
         """
         
         self.edges[self.nid][key] = value
@@ -233,8 +233,8 @@ class NodeTools(_NodeEdgeBase):
         The method may be overloaded in custom classes to pre-process data
         before setting. 
         
-        :param key:  node attribute key
-        :param value node attribute value
+        :param key:   node attribute key
+        :param value: node attribute value
         """
         
         self.nodes[self.nid][key] = value
