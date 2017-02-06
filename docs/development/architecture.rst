@@ -18,7 +18,20 @@ operates as WAMP router. The benefits of this approach are plentyfull:
   routing such as: communication realms, secure transport (TLS), authorization and authentication among others.
 * WAMP bundels Remote Procedure Call (RPC) and Publish & Subscribe messaging patterns in one unified protocol
 
+Directory Structure
+-------------------
+LIEStudio consists of the following directories:
+
+ * app - The frontend Angularjs_ code.
+ * components - The python lie components.
+ * data - Configuration files needed to run the application.
+ * docker - Docker configuration files.
+ * docs - Application documentation folder.
+ * scripts - Collection of scripts.
+
 
 
 .. _Crossbar: http://crossbar.io
 .. _Autobahn: http://autobahn.ws
+
+.. _Angularjs: https://angularjs.org/

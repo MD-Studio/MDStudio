@@ -402,8 +402,8 @@ cd $ROOTDIR
 # on debian like systems
 curl https://bootstrap.pypa.io/get-pip.py | python && \
 python -m pip install --upgrade pip && \
-python -m pip install pew && \
-python -m pip install pipenv
+python -m pip install --upgrade pew && \
+python -m pip install --upgrade pipenv
 
 # 1) Resolve Python version and virtual env options
 _resolve_python_version

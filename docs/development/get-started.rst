@@ -3,172 +3,88 @@
 Get Started
 ===========
 
-Docker
-------
-To make development easier we have setup a docker environment.
+.. toctree::
+    :maxdepth: 2
+    
+    docker
+    manual
 
-Prerequisites
-~~~~~~~~~~~~~
-
- * Docker_, that's it.
-
-Usage
-~~~~~
-To use the docker environment you have to start the container:
+To get started with LIEStudio, we should first install the application. 
+First install git_, and after that clone LIEStudio:
 
 .. code-block:: bash
 
-    $ ./start.sh
+    $ git clone https://github.com/NLeSC/LIEStudio.git
 
-After this we login to our docker container and we can start LIEStudio with:
+
+We can now choose two options:
+
+    * A :ref:`docker` installation - The most simple and complete installation (recommended)
+    * A complete :ref:`manual` installation - A bit harder but more control
+
+Using LIEStudio
+---------------
+LIEStudio consists of three parts:
+
+ * Backend code based on Crossbar_ written in python.
+ * Frontend code based on Angularjs_ written in typescript.
+ * The documentation.
+
+Backend
+~~~~~~~
+LIEStudio runs both the backend, and will spin up a simple webserver to run the frontend.
+
+On docker we run the application with:
 
 .. code-block:: bash
 
     $ python .
 
-This command will spin up the complete environment including MongoDB, and ssh's into the 
-container. When you want to exit this mode just use `>> exit` to exit. Containers can be
-stopped using:
-
-.. code-block:: bash
-
-    $ ./stop.sh
-
-SSH Access
-~~~~~~~~~~
-When you want to use your private shell you can login using ssh using the following setttings:
-
-+--------+----------------------------------+
-| Host   | ``127.0.0.1``                    |
-+--------+----------------------------------+
-| Key    | ``docker/insecure_id_rsa.ppk``   |
-+--------+----------------------------------+
-| User   | ``root``                         |
-+--------+----------------------------------+
-| Port   | ``65432``                        |
-+--------+----------------------------------+
-
-.. warning::
-
-    On Windows it could be that the working directory is empty. Please use ``cd /app`` to go to the correct directory!
-
-IDE Integration
-~~~~~~~~~~~~~~~
-
-Pycharms
-~~~~~~~~~~~~~
-
-Go to `File > Project Settings > Project Interpreter`, and add a remote interpreter,
-and make sure it matches this screen.
-
-.. image:: ../img/pycharm-config.png
-
-Note specifically:
-
-+--------------------+--------------------------------+
-| Interpreter path   | ``/app/lie_venv/bin/python``   |
-+--------------------+--------------------------------+
-| Pycharm helpers    | ``/app/.pycharm_helpers``      |
-+--------------------+--------------------------------+
-
-Debug Hook
-~~~~~~~~~~~~~
-While we now support breakpoints and the likes natively, Pycharm still fails to do post morten
-debugging in components. Fixing this is easy; We go to `Run > View Breakpoints`. We add a 
-python exception breakpoint. 
-
-.. image:: ../img/pycharm-breakpoint.png
-
-After that we select the runpy._error exception:
-
-.. image:: ../img/pycharm-error.png
-
-Make sure `On Raise` is selected:
-
-.. image:: ../img/pycharm-raise.png
-
-
-Manual
-------
-
-When you want to keep track of the whole environment for yourself, you should follow these
-instructions.
-
-Prerequisites
-~~~~~~~~~~~~~
-The only external dependencies are the MongoDB_ NoSQL database
-making available the `mongod` MongoDB exacutable in the users path, and the ``nodejs`` package.
-For a manual installation, make sure you install:
-
-* MongoDB_ running locally.
-* Python_
-* pip_
-* nodejs_
-
-First we need to install npm global dendencies:
-
-* gulp_
-* gulp-cli_
-* typescript_
-* typings_
-
-We install them by running:
-
-.. code-block:: bash
-
-    $ npm i -g gulp gulp-cli typescript typings
-
-The LIEStudio application is written in Python and mostly self contained thanks to the
-use of an in-application Python virtual environment, in combination with pipenv_.
-The application has currently been successfully tested with Python versions: 2.7
-To install pipenv_, run:
-
-.. code-block:: bash
-
-    $ pip install pipenv
-
-
-Installation
-~~~~~~~~~~~~
-Run the ``installer.sh`` script as:
-
-.. code-block:: bash
-
-    $ ./installer.sh -s
-
-for a quick install using the default Python version. Use -h for more information on
-customizing the installation.
-
-A quick install will in sequence:
-
-* Setup a python virtual environment
-* Install required packages from the Python package repository.
-* Install LIEStudio component Python packages and there dependencies
-* Create a self-signed certificate for WAMP communication over TLS secured websockets.
-  Certificate creation requires OpenSSL. If not available the default certificate
-  shipped with the package will be used (liestudio/data/crossbar).
-  It is recommended to replace the certificate with a personal one signed by a offical
-  certificate authority when using the application in a production environment.
-* Compile API documentation available from the browser when the program is running at
-  http://localhost/help.
-  
-Usage
-~~~~~
-The application is started on the command line as:
+Manually we have to use pipenv:
 
 .. code-block:: bash
 
     $ pipenv run python .
 
+ .. tip::
+   The LIEStudio application runs on  `http://localhost:8080/ <http://localhost:8080>`_ or   `http://localhost/ <http://localhost>`_ on docker.
 
-.. _Docker: https://www.docker.com/
-.. _MongoDB: https://www.mongodb.com
-.. _pipenv: https://github.com/kennethreitz/pipenv_
-.. _Python: https://www.python.org/download/releases/2.7/
-.. _pip: https://pip.pypa.io/en/stable/installing/
-.. _nodejs: https://nodejs.org/en/
+Frontend
+~~~~~~~~
+The frontend is compiled using ``gulp compile`` in the ``installer.sh``. When there is no active development
+on the GUI, this should suffice. However to manually recompile the frontend, you should change the working
+directory to ``app``. After this we have two commands:
 
-.. _gulp: http://gulpjs.com/
-.. _gulp-cli: https://github.com/gulpjs/gulp-cli
-.. _typescript: https://www.typescriptlang.org/
-.. _typings: https://github.com/typings/typings
+ * ``gulp serve`` - A live recompilation of Angularjs_, that allows for simple development.
+ * ``gulp compile`` - A single compile to bring LIEStudio to the latest version of the GUI.
+
+ .. tip::
+   In the docker container you can also use the command ``serve``, which will run ``gulp serve`` from the correct directory for you.
+   Also the command ``compile`` is available.
+
+ .. tip::
+   To see the live compilation you should go to `http://localhost:5000 <http://localhost:5000>`_.
+
+Documentation
+~~~~~~~~~~~~~
+The documentation by default is build when LIEStudio is installed. However we can also update and live serve the documentation while
+developing. First go to the ``docs`` directory. After this we can either run ``make html`` or ``make livehtml``.
+
+We can also compile the documentation by using the installer:
+
+.. code-block:: bash
+
+    $ ./installer.sh -d
+
+ .. tip::
+   In the docker container you can also use the command ``livedocs``, which will run the livedocs reloading.
+   Also the command ``docs`` is available.
+
+ .. tip::
+   To see the live documentation you should go to `http://localhost:8000 <http://localhost:8000>`_.
+
+
+.. _git: https://git-scm.com/
+
+.. _Crossbar: http://crossbar.io
+.. _Angularjs: https://angularjs.org/

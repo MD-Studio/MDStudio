@@ -37,6 +37,11 @@ RUN git clone git://github.com/bmc/daemonize.git ~/deamonize && \
     make && \
     sudo make install
 
+RUN echo "" >> ~/.bashrc && \
+    echo 'alias livedocs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
+    echo 'alias docs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
+    echo 'alias serve="(cd /app/app; /usr/bin/gulp serve)"' >> ~/.bashrc && \
+    echo 'alias compile="(cd /app/app; /usr/bin/gulp compile)"' >> ~/.bashrc
 
 ADD docker/.bash_profile ~/.bash_profile
 
