@@ -2,7 +2,7 @@ echo 'Running installer' &>> docker/.INSTALLING
 
 _VENV_NAME=$(basename $(pwd))
 
-if ! [[ $(pew ls | grep "^${_VENV_NAME}$") -eq "${_VENV_NAME}" ]]; then
+if [[ -d "/root/.local/share/virtualenvs/app" || !( $(pew ls | grep "^${_VENV_NAME}$") -eq "${_VENV_NAME}" ) ]]; then   
     bash installer.sh --setup --local-dev &>> docker/.INSTALLING
 
     echo 'Install IDE bindings' &>> docker/.INSTALLING
