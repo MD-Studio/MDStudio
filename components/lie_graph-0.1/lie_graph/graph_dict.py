@@ -446,17 +446,22 @@ class GraphDict(colabc.MutableMapping, dict):
         
         return self._view != None
     
-    def dict(self, **kwargs):
+    def dict(self, return_full=False):
         """
         Return a shallow copy of the full dictionary.
         
         If the current GraphDict represent a selective view on the parent
         dictionary then only return a dictionary with a shallow copy of the
         keys in the selective view.
+        
+        :param return_full: ignores is_view and return the full dictionary
+        :type return_full:  bool
+        
+        :rtype:             :py:dict
         """
         
         return_dict = self._storage
-        if self.is_view:
+        if self.is_view and not return_full:
             return_dict = dict([(k,v) for k,v in return_dict.items() if k in self._view])
         
         return return_dict
