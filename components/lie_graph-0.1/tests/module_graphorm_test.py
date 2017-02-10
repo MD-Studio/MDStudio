@@ -15,10 +15,10 @@ import unittest2
 currpath = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 
-from   lie_graph                  import Graph
-from   lie_graph.graph_io         import read_tgf
-from   lie_graph.graph_orm        import GraphORM
-from   lie_graph.graph_mixin      import FileHandler
+from   lie_graph                   import Graph
+from   lie_graph.io.io_tgf_format  import read_tgf
+from   lie_graph.graph_orm         import GraphORM
+from   lie_graph.graph_mixin       import FileHandler
 
 class ORMtestMo(object):
     

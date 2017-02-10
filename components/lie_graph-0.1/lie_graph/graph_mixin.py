@@ -22,11 +22,14 @@ class _NodeEdgeBase(object):
         :return:    attribute value
         """
         
-        value = self.get(key=key, default='__Graph_no_key__')
-        if value == '__Graph_no_key__':
-            raise GraphException('No such node or edge attribute: {0}'.format(key))
+        if not key in self.__dict__:
+            value = self.get(key=key, default='_Graph_no_key__')
+            if value == '_Graph_no_key__':
+                raise GraphException('No such node or edge attribute: {0}'.format(key))
         
-        return value
+            return value
+        
+        return object.__getattribute__(self, key)
         
     def __getitem__(self, key):
         """
@@ -40,8 +43,8 @@ class _NodeEdgeBase(object):
         :return:    attribute value
         """
         
-        value = self.get(key=key, default='__Graph_no_key__')
-        if value == '__Graph_no_key__':
+        value = self.get(key=key, default='_Graph_no_key__')
+        if value == '_Graph_no_key__':
             raise GraphException('No such node or edge attribute: {0}'.format(key))
         
         return value

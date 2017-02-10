@@ -65,6 +65,6 @@ __rootpath__  = os.path.dirname(__file__)
 __all__       = ['Graph', 'GraphAxis', 'GraphORM']
 
 # Component imports
-from    .graph              import Graph, GraphAxis
-from    .graph_io           import read_tgf, write_graph, read_graph
+from    .graph              import Graph
+from    .graph_axis_class   import GraphAxis
 from    .graph_orm          import GraphORM
