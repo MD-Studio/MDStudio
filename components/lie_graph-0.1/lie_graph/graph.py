@@ -98,6 +98,8 @@ class _Graph(object):
         self.root          = None
         self.edge_data_tag = 'label'
         self.node_data_tag = 'data'
+        self.node_tools    = NodeTools
+        self.edge_tools    = EdgeTools
         
         # Graph internal attributes, do not set manually.
         # Automatically assigned node ID's always increment the highest
@@ -147,12 +149,19 @@ class _Graph(object):
         
         return all([other_nodes_keys.issubset(self_nodes_keys), other_edges_keys.issubset(self_edges_keys)])
     
+    def __copy__(self, memo={}):
+        """
+        Copy directives for this class
+        """
+        
+        return self.copy()
+    
     def __deepcopy__(self, memo={}):
         """
         Deepcopy directives for this class
         """
         
-        return self.copy()
+        return self.copy(deep=True)
         
     def __eq__(self, other):
         """
@@ -543,32 +552,63 @@ class _Graph(object):
         self.adjacency.clear()
         self._nodeid = 0
                 
-    def copy(self):
+    def copy(self, deep=True, copy_view=True):
         """
-        Return a deep copy of the graph
+        Return a (deep) copy of the graph
         
-        :return: copy of the graph
-        :rtype:  Graph object
+        A normal copy is a shallow copy that will copy the class and its 
+        attributes except for the nodes, edges and _full_graph objects that
+        are referenced.
+        
+        If 'deep' equals true, a deepcopy of the class and its attributes is
+        made. The new graph has _full_graph referenced to itself.
+        
+        :param deep:        return a deep copy of the Graph object
+        :type deep:         bool
+        :param copy_view:   make a deep copy of the full nodes, edges and 
+                            adjacency dictionary and set any 'views'.
+                            Otherwise, only make a deep copy of the 'view'
+                            state.
+        :type copy_view:    bool
+        
+        :return:            copy of the graph
+        :rtype:             Graph object
         """
         
         # Make a new instance of the current class
         base_cls = self._get_class_object()
-        class_copy = base_cls()
         
-        # Copy all class attributes except 'adjacency','nodes', 'edges' and
-        # '_full_graph
-        notcopy = ('adjacency','edges','nodes', '_full_graph')
+        # Make a deep copy
+        if deep:
+            class_copy = base_cls()
+            
+            class_copy.edges.update(copy.deepcopy(self.edges.dict(return_full=True)))
+            if copy_view:
+                class_copy.edges._view = copy.deepcopy(self.edges._view)
+            
+            class_copy.nodes.update(copy.deepcopy(self.nodes.dict(return_full=True)))
+            if copy_view:
+                class_copy.nodes._view = copy.deepcopy(self.nodes._view)
+                
+            class_copy.adjacency.update(copy.deepcopy(self.adjacency.dict(return_full=True)))
+            if copy_view:
+                class_copy.adjacency._view = copy.deepcopy(self.adjacency._view)
+                
+            class_copy.orm = copy.deepcopy(self.orm)
+        
+        # Make a shallow copy
+        else:
+            class_copy = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
+            class_copy._full_graph = self._full_graph
+            
+        # Copy all class attributes except 'adjacency','nodes', 'edges',
+        # '_full_graph and orm
+        notcopy = ('adjacency','edges','nodes', '_full_graph', 'orm')
         for k,v in self.__dict__.items():
             if not k in notcopy:
                 class_copy.__dict__[k] = copy.deepcopy(v)
         
-        # Copy the active state of the 'adjacency', 'nodes' and 'edges'
-        # dictionaries to there fresh counterparts in the new class instance
-        class_copy.adjacency.update(self.adjacency())
-        class_copy.edges.update(self.edges())
-        class_copy.nodes.update(self.nodes())
-        
-        logger.debug('Return deep copy of graph {0}'.format(repr(self)))
+        logger.debug('Return {0} copy of graph {1}'.format('deep' if deep else 'shallow', repr(self)))
         
         return class_copy
     
@@ -659,7 +699,7 @@ class _Graph(object):
                 raise GraphException('Custom edge classes need to be defined as list')
             custom_orm_cls.extend(orm_cls)
         if len(edges) == 1:
-            custom_orm_cls.append(EdgeTools)
+            custom_orm_cls.append(self.edge_tools)
         
         base_cls = self.orm.get(self, edges, self._get_class_object(), classes=custom_orm_cls)
         w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
@@ -729,7 +769,7 @@ class _Graph(object):
                 raise GraphException('Custom node classes need to be defined as list')
             custom_orm_cls.extend(orm_cls)
         if len(nodes) == 1:
-            custom_orm_cls.append(NodeTools)
+            custom_orm_cls.append(self.node_tools)
         
         base_cls = self.orm.get(self, nodes, self._get_class_object(), classes=custom_orm_cls)
         w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)

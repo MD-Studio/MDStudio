@@ -22,9 +22,7 @@ sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 PY3 = sys.version_info.major == 3
 
 from lie_config                     import *
-from lie_config.config_orm_handler  import ConfigOrmHandler
-from lie_config.config_io           import (_flatten_nested_dict, config_from_yaml, config_from_ini, config_from_json,
-                                            config_to_yaml, config_to_ini, config_to_json)
+from lie_config.config_io           import _flatten_nested_dict, config_from_json
 
 formatted_example_config = {
     'entry1_level1.param1': '/usr/app/data/liedb',
@@ -50,100 +48,13 @@ formatted_example_config = {
     'entry4_level1.param1': '/usr/app/data/user'
 }
 
-class ConfigDecoratorTests(unittest.TestCase):
-    """
-    Unittest the configuration decorator method
-    """
-    
-    _currpath = os.path.abspath(__file__)
-    _settings_json = os.path.join(os.path.dirname(_currpath), 'config_decorator_test.json')
-    
-    @classmethod
-    def setUpClass(cls):
-        """
-        ConfigHandlerTests class setup
-        
-        Load test settings file from config_decorator_test.json
-        """
-        
-        cls.data = json.load(open(cls._settings_json))
-        settings = get_config()
-        settings.load(cls.data)
-    
-    def test_single_function_decorator(self):
-        """
-        Test the decorator on a single function with a predefined
-        ConfigHandler instance.
-        Change the configuration elsewhere and see changes reflected in
-        the next call to the function.
-        """
-        
-        from .decorator_test import decorator_method_defined, change_value_elsewhere
-        
-        # configwrapper managed function, default behaviour
-        self.assertEqual(decorator_method_defined(2), (4,6))
-        
-        # configwrapper managed function, local argument overload
-        self.assertEqual(decorator_method_defined(2, lv=3), (6,6))
-        
-        # configwrapper managed function, changing the config
-        # elshwere reflected in default behaviour
-        change_value_elsewhere('decorator_method_defined.gv', 10)
-        self.assertEqual(decorator_method_defined(2), (4,20))
-    
-    def test_undefined_function_decorator(self):
-        """
-        Test the decorator on a single function without arguments in
-        global configuration.
-        """
-        
-        from .decorator_test import decorator_method_undefined
-        
-        self.assertEqual(decorator_method_undefined(2), (2,4))
-    
-    def test_single_function_decorator_with_kwargs(self):
-        """
-        Test the decorator on a single function that also accepts
-        additonal kyword arguments via **kwargs.
-        This should result in the decorator passing all keyword
-        arguments available for the function.
-        """
-        
-        from .decorator_test import decorator_method_withkwargs
-        
-        self.assertEqual(decorator_method_withkwargs(2), (4, 6, {'nested': {'sec': True}, 'other': 'additional'}))
-    
-    def test_single_function_decorator_resolutionorder(self):
-        """
-        Test the decorator on a single function with a predefined
-        ConfigHandler instance.
-        The decorator is configured to resolve the function arguments
-        in predefined overload order.
-        """
-        
-        from .decorator_test import decorator_method_resolutionorder
-        
-        self.assertEqual(decorator_method_resolutionorder(2), (20,6))
-    
-    def test_class_decorator(self):
-        """
-        Test the decorator on a class with a predefined ConfigHandler
-        instance.
-        """
-        
-        from .decorator_test import decorator_class
-        
-        klass = decorator_class()
-        self.assertEqual(klass.run(2), (4,6))
-        self.assertEqual(klass.decorated_run(2), (20,30))
-
 class ConfigHandlerTests(unittest.TestCase):
     """
     Unittest ConfigHandler class
     """
     
     _currpath = os.path.abspath(__file__)
-    _settings_json = os.path.join(os.path.dirname(_currpath), 'config_handler_test.json')
+    _settings_json = os.path.join(os.path.dirname(_currpath), 'files', 'config_handler_test.json')
     
     def setUp(self):
         """
@@ -338,129 +249,3 @@ class ConfigHandlerTests(unittest.TestCase):
         subset2._freeze = True
         subset2.remove('level2_1.param2')
         self.assertTrue('entry2_level1.level2_1.param2' in subset2._config)
-
-
-class _taskMeta(object):
-    
-    def custommethod(self):
-        
-        return "custom method"
-
-
-class ConfigHandlerORMTests(unittest.TestCase):
-    """
-    Unittest ConfigHandler ORM tests
-    """
-    
-    _currpath = os.path.abspath(__file__)
-    _settings_json = os.path.join(os.path.dirname(_currpath), 'config_orm_test.json')
-    
-    def setUp(self):
-        """
-        ConfigHandlerTests class setup
-        
-        Load test settings file from config_orm_test.json
-        """
-        
-        data = config_from_json(self._settings_json)
-        
-        # Setup ORM handler
-        orm = ConfigOrmHandler(ConfigHandler)
-        orm.add('_taskMeta', _taskMeta)
-        
-        self.settings = ConfigHandler(orm=orm)
-        self.settings.load(data)
-    
-    def test_orm_mapper(self):
-        
-        b = self.settings._taskMeta
-        self.assertTrue(hasattr(b, 'custommethod'))
-        self.assertEqual(b.custommethod(), "custom method")
-
-
-class ConfigHandlerIOTests(unittest.TestCase):
-    """
-    Unittest ConfigHandler IO tests
-    """
-    
-    _currpath = os.path.abspath(__file__)
-    _settings_json = os.path.join(os.path.dirname(_currpath), 'config_handler_test')
-    
-    @classmethod
-    def setUpClass(cls):
-        """
-        ConfigHandlerTests class setup
-        
-        Load the reference configuration
-        """
-        
-        cls.data = json.load(open('{0}.json'.format(cls._settings_json)))
-        cls.reference_config = ConfigHandler()
-        cls.reference_config.load(cls.data)
-    
-    def tearDown(self):
-        """
-        Remove exported test files
-        """
-        
-        for exp in glob.glob('{0}_exporttest.*'.format(self._settings_json)):
-            os.remove(exp)
-    
-    def test_import_yaml(self):
-        """
-        Test import of configuration from YAML file
-        """
-        
-        yamldata = config_from_yaml('{0}.yaml'.format(self._settings_json))
-        config = ConfigHandler()
-        config.load(yamldata)
-        
-        self.assertEqual(self.reference_config, config)
-
-    def test_import_ini(self):
-        """
-        Test import of configuration from INI file
-        """
-        
-        inidata = config_from_ini('{0}.ini'.format(self._settings_json))
-        config = ConfigHandler()
-        config.load(inidata)
-        
-        self.assertEqual(self.reference_config, config)
-    
-    def test_import_json(self):
-        """
-        Test import of configuration from JSON file
-        """
-        
-        jsondata = config_from_json('{0}.json'.format(self._settings_json))
-        config = ConfigHandler()
-        config.load(jsondata)
-        
-        self.assertEqual(self.reference_config, config)
-    
-    def test_import_json(self):
-        """
-        Test import of configuration from JSON file
-        """
-        
-        jsondata = config_from_json('{0}.json'.format(self._settings_json))
-        config = ConfigHandler()
-        config.load(jsondata)
-        
-        self.assertEqual(self.reference_config, config)
-    
-    def test_export_json(self):
-        """
-        Test export of configuration to JSON file
-        """
-        
-        config_to_json(self.reference_config, tofile='{0}_exporttest.json'.format(self._settings_json))
-        
-    def test_export_yaml(self):
-        """
-        Test export of configuration to YAML file
-        """
-        
-        config_to_yaml(self.reference_config, tofile='{0}_exporttest.yaml'.format(self._settings_json))
-    

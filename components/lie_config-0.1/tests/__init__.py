@@ -20,18 +20,18 @@ the `tests` directory and should be launched as:
     crossbar start --cbdir tests/unittest_crossbar
 """
 
-import unittest
+import os
+import unittest2
 
-import tests.module_test
-import tests.wamp_api_test
+currpath = os.path.dirname(__file__)
 
 def module_test_suite():
     """
     Run lie_config module unit tests
     """
     
-    loader = unittest.TestLoader()
-    suite = loader.loadTestsFromModule(tests.module_test)
+    loader = unittest2.TestLoader()
+    suite = loader.discover(currpath, pattern='module_*.py')
     return suite
 
 def wamp_test_suite():
@@ -39,6 +39,6 @@ def wamp_test_suite():
     Run lie_config WAMP API unit tests
     """
     
-    loader = unittest.TestLoader()
-    suite = loader.loadTestsFromModule(tests.wamp_api_test)
+    loader = unittest2.TestLoader()
+    suite = loader.discover(currpath, pattern='wamp_*.py')
     return suite

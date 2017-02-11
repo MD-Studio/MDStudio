@@ -53,8 +53,8 @@ def _open_anything(source, mode='r'):
       
       import urllib2, urlparse
       if urlparse.urlparse(source)[0] == 'http':
-        result = urllib2.urlopen(source)
-        logging.debug("Reading file from URL with access info:\n {0}".format(result.info()))
+        result = urllib.urlopen(source)
+        loggin.debug("Reading file from URL with access info:\n {0}".format(result.info()))
         return result
     except:
       logging.info("Unable to access URL")    
@@ -74,13 +74,13 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
   needed.
   
   :param config:     dictionary to flatten
-  :type config:      :py:class:`dict`
+  :type config:      dict
   :param parent_key: leading string in concatenated keys
   :type parent_key:  str
   :param sep:        concatenation seperator
   :type sep:         str
   :return:           flattened dictionary
-  :rtype:            :py:class:`dict`
+  :rtype:            dict
   """
   
   items = []
@@ -105,11 +105,11 @@ def _nest_flattened_dict(config, sep='.'):
   `_flatten_nested_dict` method to a nested representation
   
   :param config:     dictionary to nest
-  :type config:      :py:class:`dict`
+  :type config:      dict
   :param sep:        concatenation seperator
   :type sep:         str
   :return:           nested dictionary
-  :rtype:            :py:class:`dict`
+  :rtype:            dict
   """
   
   nested_dict = {}
@@ -138,7 +138,7 @@ def config_from_ini(inifile):
     :type inifile:  any type accepted by _open_anything function
     
     :return:        parsed configuration
-    :rtype:         :py:class:`dict`
+    :rtype:         dict
     """
     
     fileobject = _open_anything(inifile)
@@ -206,7 +206,7 @@ def config_from_json(jsonfile):
     :type inifile:  any type accepted by _open_anything function
     
     :return:        parsed configuration
-    :rtype:         :py:class:`dict`
+    :rtype:         dict
     """
     
     fileobject = _open_anything(jsonfile)
@@ -220,7 +220,7 @@ def config_to_json(config, tofile=None):
     Optionally write the JSON construct to file
     
     :param config: configuration to export
-    :type config:  :lie_config:ConfigHandler
+    :type config:  ConfigHandler
     :param tofile: filepath to write exported JSON to
     :type tofile:  str
     """
@@ -242,7 +242,7 @@ def config_from_yaml(yamlfile):
     :type yamlfile:  any type accepted by _open_anything function
     
     :return:        parsed configuration
-    :rtype:         :py:class:`dict`
+    :rtype:         dict
     """
     
     from yaml import load
@@ -262,7 +262,7 @@ def config_to_yaml(config, tofile=None, **kwargs):
     Optionally write the YAML construct to file
     
     :param config: configuration to export
-    :type config:  :lie_config:ConfigHandler
+    :type config:  ConfigHandler
     :param tofile: filepath to write exported YAML to
     :type tofile:  str
     :param kwargs: optional keyword arguments to the pyyaml dump function

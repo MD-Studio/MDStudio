@@ -27,11 +27,21 @@ class GraphAxisMethods(object):
     
     @property
     def nid(self):
+        """
+        Return the node ID (nid) of the current node
+        
+        When using single node graph objects this method will return the nid of
+        the given node, in multi-node graphs it will return the first nid in
+        the keys list and in empty graphs it will return None.
+        """
         
         if self.root == None: 
             raise GraphException('Graph node descendancy requires a root node')
         
-        return list(self.nodes.keys())[0]
+        nids = list(self.nodes.keys())
+        if len(nids):
+            return nids[0]
+        return None
     
     def ancestors(self, node=None, include_self=False, return_nids=False):
         """
@@ -64,6 +74,8 @@ class GraphAxisMethods(object):
         :param return_nids:  return a list of node ID's (nid) instead of a new
                              graph object representing the selection
         :type return_nids:   bool
+        
+        :rtype:              Graph object or :py:list
         """
         
         nid = node or self.nid

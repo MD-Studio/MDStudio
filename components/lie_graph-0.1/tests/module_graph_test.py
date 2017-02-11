@@ -389,7 +389,11 @@ class TestGraph(unittest2.TestCase):
         # Query for nodes
         self.assertEqual(len(self.graph.query_nodes({'tgf': "'six'"}).nodes()),
             len([e for e in self.graph.nodes() if self.graph.nodes[e].get('tgf') == "'six'"]))
-    
+        
+        from asq.initiators import query
+        q = query(self.graph.nodes.values()).where(lambda n: n['tgf'].startswith("'s")).select(lambda s: s['nid'])
+        print(q.to_list())
+        
     def test_node_iteration(self):
         """
         Test node based traversal of the graph

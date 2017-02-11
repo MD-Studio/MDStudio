@@ -18,11 +18,9 @@ WAMP API unit tests can be skipped using the '-w' command line argument to
 tests.
 """
 
-import unittest
 import argparse
-
-import tests.module_test
-import tests.wamp_api_test
+import os
+import unittest2
 
 def module_test_suite(args):
     """
@@ -31,18 +29,20 @@ def module_test_suite(args):
     :param args: command line arguments
     :type args:  argparse parser object
     """
-    loader = unittest.TestLoader()
     
+    loader = unittest2.TestLoader()
+    currpath = os.path.dirname(__file__)
+
     if not args.no_module:
         print('Running lie_config unittests')
-        suite = loader.loadTestsFromModule(tests.module_test)
-        runner = unittest.TextTestRunner(verbosity=2)
+        suite = loader.discover(currpath, pattern='module_*.py')
+        runner = unittest2.TextTestRunner(verbosity=2)
         runner.run(suite)
     
     if not args.no_wamp:
         print('Running lie_config WAMP API test')
-        suite = loader.loadTestsFromModule(tests.wamp_api_test)
-        runner = unittest.TextTestRunner(verbosity=2)
+        suite = loader.discover(currpath, pattern='wamp_*.py')
+        runner = unittest2.TextTestRunner(verbosity=2)
         runner.run(suite)
 
 if __name__ == '__main__':
