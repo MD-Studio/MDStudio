@@ -85,6 +85,5 @@ We can also compile the documentation by using the installer:
 
 
 .. _git: https://git-scm.com/
-
 .. _Crossbar: http://crossbar.io
 .. _Angularjs: https://angularjs.org/

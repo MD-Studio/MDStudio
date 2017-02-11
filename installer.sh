@@ -295,12 +295,12 @@ function _activate_py_venv () {
 function _setup_venv () {
   
   # Create or upgrade the Python virtual environment
-  if [[ $(pew ls | grep "^${_VENV_NAME}$") =~ "${_VENV_NAME}" ]]; then
+  if [ ! -d $_VENVPATH ]; then
     
     # Remove and reinstall venv
     if [[ $FORCE -eq 1 ]]; then
-      echo "INFO: Reinstall Python virtual environment at $(pew dir "${_VENV_NAME}")"
-      pew rm "${_VENV_NAME}"
+      echo "INFO: Reinstall Python virtual environment at ${_VENVPATH}"
+      rm -rf $_VENVPATH
       pipenv install
     else
       echo "INFO: Virtual environment present, not reinstalling"
@@ -400,9 +400,7 @@ cd $ROOTDIR
 # update or upgrade pip requirements
 # we redirect ensurepip to nul since it is disabled
 # on debian like systems
-curl https://bootstrap.pypa.io/get-pip.py | python && \
-python -m pip install pip && \
-python -m pip install pew && \
+export PIPENV_VENV_IN_PROJECT=1
 python -m pip install pipenv
 
 # 1) Resolve Python version and virtual env options
@@ -417,7 +415,7 @@ if [[ $SETUP -eq 1 ]]; then
   _setup_venv
 fi
 
-_VENVPATH=$(pew dir "${_VENV_NAME}")
+_VENVPATH="/app/.venv"
 
 # 4) Install/update python packages
 if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then

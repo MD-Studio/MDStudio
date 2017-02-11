@@ -5,7 +5,7 @@
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="IS_DOCKER" value="1" />
-      <env name="VIRTUAL_ENV" value="/root/.local/share/virtualenvs/app" />
+      <env name="VIRTUAL_ENV" value="/app/.venv/" />
       <env name="PYTHONUNBUFFERED" value="1" />
       <env name="MONGO_HOST" value="mongo" />
     </envs>

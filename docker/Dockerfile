@@ -30,13 +30,6 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
     && chmod 400 /root/.ssh/id_rsa \
 ;fi
 
-# deamonize
-RUN git clone git://github.com/bmc/daemonize.git ~/deamonize && \
-    cd ~/deamonize && \
-    sh configure && \
-    make && \
-    sudo make install
-
 RUN echo "" >> ~/.bashrc && \
     echo 'alias livedocs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
     echo 'alias docs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
