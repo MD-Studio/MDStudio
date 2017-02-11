@@ -37,7 +37,7 @@ class ConfigWampApi(LieApplicationSession):
         :param config: configuration store to look in (`default`)
         :type config:  string
         
-        :rtype:        dict
+        :rtype:        :py:class:`dict`
         """
         
         if not isinstance(key, (tuple,list)):
@@ -54,7 +54,7 @@ class ConfigWampApi(LieApplicationSession):
         Save the updated global configuration back to the settings.json file
     
         :param settings: global and module specific settings
-        :type settings:  dict or dict like object
+        :type settings:  :py:class:`dict` or :py:class:`dict` like object
         """
         
         app_config = self.package_config.get('system.app_config')
