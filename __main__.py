@@ -38,7 +38,8 @@ venv_path = os.getenv('VIRTUAL_ENV')
 venv_active = False
 
 for path in sys.path:
-    if fnmatch.fnmatch(path, '{}/*site-packages'.format( venv_path )):
+    packages = '{}*/site-packages'.format( venv_path )
+    if fnmatch.fnmatch(path, packages):
         venvpath = path
         venv_active = True
 if not venv_active:

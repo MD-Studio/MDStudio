@@ -53,7 +53,7 @@ IDE Integration
 ---------------
 
 Pycharms
--------------
+--------
 
 Go to `File > Project Settings > Project Interpreter`, and add a remote interpreter,
 and make sure it matches this screen.
@@ -62,14 +62,14 @@ and make sure it matches this screen.
 
 Note specifically:
 
-+--------------------+-----------------------------------------------------+
-| Interpreter path   | ``/root/.local/share/virtualenvs/app/bin/python``   |
-+--------------------+-----------------------------------------------------+
-| Pycharm helpers    | ``/app/.pycharm_helpers``                           |
-+--------------------+-----------------------------------------------------+
++--------------------+------------------------------+
+| Interpreter path   | ``/app/.venv/bin/python``    |
++--------------------+------------------------------+
+| Pycharm helpers    | ``/app/.pycharm_helpers``    |
++--------------------+------------------------------+
 
 Debug Hook
--------------
+----------
 While we now support breakpoints and the likes natively, Pycharm still fails to do post morten
 debugging in components. Fixing this is easy; We go to `Run > View Breakpoints`. We add a 
 python exception breakpoint. 
