@@ -14,6 +14,7 @@ For a manual installation, make sure you install:
 * MongoDB_ running locally.
 * Python_
 * nodejs_
+* pipenv_
 
 First we need to install npm global dendencies:
 

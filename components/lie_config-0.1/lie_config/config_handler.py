@@ -536,7 +536,7 @@ class ConfigHandler(object):
         
         :param nested: return a nested or flat dictionary
         :type nested:  bool
-        :rtype:        dict
+        :rtype:        :py:class:`dict`
         """
         
         if nested:
@@ -689,7 +689,7 @@ class ConfigHandler(object):
         of a root ConfigHandler class.
         
         :param config: configuration
-        :type config:  dict
+        :type config:  :py:class:`dict`
         """
         
         assert isinstance(config, dict), TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(config)))
@@ -746,7 +746,7 @@ class ConfigHandler(object):
             del self._config[self._keys[key]]
         
         del self._keys[key]
-        
+    
     def search(self, pattern, regex=False, top=False, level=0):
         """
         Search the dictionary based on key names (strings) with support for
@@ -934,7 +934,7 @@ class ConfigHandler(object):
         to the Python dict keys() method.
         
         :return: dictionary keys
-        :rtype:  set
+        :rtype:  :py:class:`set`
         """
         
         return [key for key,value in self._keys.items() if value in self._config]

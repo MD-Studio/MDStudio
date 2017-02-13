@@ -67,6 +67,7 @@ docs/_build/
 
 # Virtualenv en venv
 lie_venv/
+.venv/
 
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
