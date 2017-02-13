@@ -8,6 +8,8 @@ RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     npm i -g gulp gulp-cli typescript typings && \
     apt-get clean
 
+RUN python -m pip install pipenv
+
 ARG PUID=1000
 ARG PGID=1000
 RUN groupadd -g $PGID liestudio && \

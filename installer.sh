@@ -397,11 +397,7 @@ echo ""
 
 cd $ROOTDIR
 
-# update or upgrade pip requirements
-# we redirect ensurepip to nul since it is disabled
-# on debian like systems
 export PIPENV_VENV_IN_PROJECT=1
-python -m pip install pipenv
 
 # 1) Resolve Python version and virtual env options
 _resolve_python_version
@@ -415,7 +411,7 @@ if [[ $SETUP -eq 1 ]]; then
   _setup_venv
 fi
 
-_VENVPATH="/app/.venv"
+_VENVPATH=${ROOTDIR}/.venv
 
 # 4) Install/update python packages
 if [[ $SETUP -eq 1 || $UPDATE -eq 1 ]]; then

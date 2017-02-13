@@ -46,7 +46,7 @@ Manually we have to use pipenv:
 
     $ pipenv run python .
 
- .. tip::
+.. tip::
    The LIEStudio application runs on  `http://localhost:8080/ <http://localhost:8080>`_ or   `http://localhost/ <http://localhost>`_ on docker.
 
 Frontend
@@ -76,11 +76,11 @@ We can also compile the documentation by using the installer:
 
     $ ./installer.sh -d
 
- .. tip::
+.. tip::
    In the docker container you can also use the command ``livedocs``, which will run the livedocs reloading.
    Also the command ``docs`` is available.
 
- .. tip::
+.. tip::
    To see the live documentation you should go to `http://localhost:8000 <http://localhost:8000>`_.
 
 
