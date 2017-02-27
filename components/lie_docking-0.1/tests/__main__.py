@@ -18,40 +18,5 @@ WAMP API unit tests can be skipped using the '-w' command line argument to
 tests.
 """
 
-import unittest
+import unittest2
 import argparse
-
-import tests.module_test
-import tests.wamp_api_test
-
-def module_test_suite(args):
-    """
-    Run lie_docking module and WAMP API unit tests
-    
-    :param args: command line arguments
-    :type args:  argparse parser object
-    """
-    loader = unittest.TestLoader()
-    
-    if not args.no_module:
-        print('Running lie_docking unittests')
-        suite = loader.loadTestsFromModule(tests.module_test)
-        runner = unittest.TextTestRunner(verbosity=2)
-        runner.run(suite)
-    
-    if not args.no_wamp:
-        print('Running lie_docking WAMP API test')
-        suite = loader.loadTestsFromModule(tests.wamp_api_test)
-        runner = unittest.TextTestRunner(verbosity=2)
-        runner.run(suite)
-
-if __name__ == '__main__':
-    
-    parser = argparse.ArgumentParser(prog='tests', usage='%(prog)s [options]')
-    parser.add_argument('-m', '--no_module_tests', dest='no_module', action="store_true",
-                     help='Skip module unit tests')
-    parser.add_argument('-w', '--no_wamp_tests', dest='no_wamp', action="store_true",
-                     help='Skip module WAMP API unit tests')
-    args = parser.parse_args()
-    
-    module_test_suite(args)

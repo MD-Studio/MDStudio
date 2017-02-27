@@ -9,7 +9,7 @@ TODO: Add wamp_services unittests
 """
 
 import os, sys
-import unittest
+import unittest2
 import shutil
 import time
 import glob
@@ -32,8 +32,8 @@ from lie_logger.system_logger import *
 
 logging = Logger()
 
-@unittest.skipIf(dbenabled == False, "Not supported, no active LIE MongoDB.")
-class LoggerExportToMongodbObserverTest(unittest.TestCase):
+@unittest2.skipIf(dbenabled == False, "Not supported, no active LIE MongoDB.")
+class LoggerExportToMongodbObserverTest(unittest2.TestCase):
   
   observer = None
   _mongodb_database_name = 'unittest_db'
@@ -94,7 +94,7 @@ class LoggerExportToMongodbObserverTest(unittest.TestCase):
         logging.error('Logging error message {0}'.format(logmessage))
         logging.critical('Logging critical message {0}'.format(logmessage))
       
-      self.assertEqual(set([n['log_level'] for n in client['log'].find()]), set(['info','warn','error','critical']))
+      self.assertEqual(set([n['log_level'] for n in client['log'].find()]), {'info', 'warn', 'error', 'critical'})
       
   def test_exporttomongodbobserver_messages(self):
       """
@@ -123,7 +123,7 @@ class LoggerExportToMongodbObserverTest(unittest.TestCase):
         self.assertEqual(logmessage['log_level'], 'info')
         self.assertEqual(logmessage['log_namespace'], 'tests.module_test')
 
-class LoggerRotateFileLogObserverTest(unittest.TestCase):
+class LoggerRotateFileLogObserverTest(unittest2.TestCase):
   
   observer = None
   _currpath = os.path.abspath(__file__)
@@ -178,7 +178,7 @@ class LoggerRotateFileLogObserverTest(unittest.TestCase):
       logfiles = glob.glob('{0}/rotatelogfile*.log'.format(os.path.dirname(self._currpath)))
       self.assertTrue(len(logfiles) >= 4)
       
-class LoggerPrintingObserverTest(unittest.TestCase):
+class LoggerPrintingObserverTest(unittest2.TestCase):
   
   observer = None
   

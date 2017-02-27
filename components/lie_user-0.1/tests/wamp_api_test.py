@@ -10,13 +10,10 @@ import shutil
 # Add modules in package to path so we can import them
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from   autobahn.twisted.util  import sleep
 from   autobahn.twisted       import wamp
 from   twisted.trial          import unittest
 from   twisted.internet       import defer
 from   twisted.application    import service
-
-from   lie_user.wamp_services import UserWampApi
 
 # Test import of the lie_db database drivers
 # If unable to import we cannot run the UserWAMPTests

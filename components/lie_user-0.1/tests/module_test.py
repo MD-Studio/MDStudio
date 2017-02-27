@@ -9,13 +9,10 @@ TODO: Add wamp_services unittests
 """
 
 import os, sys
-import unittest
+import unittest2
 import hashlib
 import string
 import shutil
-
-# Add modules in package to path so we can import them
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Test import of the lie_db database drivers
 # If unable to import we cannot run the UserDatabaseTests
@@ -27,38 +24,37 @@ except:
   pass
 
 from   lie_user.management import generate_password, hash_password, check_password, UserManager
-from   lie_user.settings   import SETTINGS
 
-@unittest.skipIf(dbenabled == False, "Not supported, no active LIE MongoDB.")
-class UserDatabaseTests(unittest.TestCase):
+@unittest2.skipIf(dbenabled == False, "Not supported, no active LIE MongoDB.")
+class UserDatabaseTests(unittest2.TestCase):
     """
     Unittest user management component
-  
+
     A reference database with user collection is created in the test directory
     containing 4 users named test1 to test4 with passwords equal to the username
-    and email adresses test1@email.com to test4@email.com 
+    and email adresses test1@email.com to test4@email.com
     """
-  
+
     _mongodb_database_name = 'unittest_db'
     _currpath = os.path.abspath(__file__)
     _dbpath = os.path.join(os.path.dirname(_currpath), _mongodb_database_name)
     _dblog = os.path.join(os.path.dirname(_currpath), '{0}.log'.format(_mongodb_database_name))
-    
+
     @classmethod
     def setUpClass(cls):
         """
         UserDatabaseTests class setup
-        
+
         * Bootstrap MongoDB with an empty test database
         * Write MongoDB log to local mongodb.log file
         """
-        
+
         # Start the database
         cls.db = BootstrapMongoDB(dbpath=cls._dbpath,
                                   dbname='liestudio',
                                   dblog=cls._dblog)
         cls.db.start()
-        
+
         # Add users in bulk using default PyMongo functions
         client = cls.db.connect()
         user = client['users']
@@ -68,7 +64,7 @@ class UserDatabaseTests(unittest.TestCase):
           {'username':'test3', 'email':'test3@email.com', 'password':hash_password('test3'), 'role':'default', 'uid':2, 'session_id':None},
           {'username':'test4', 'email':'test4@email.com', 'password':hash_password('test4'), 'role':'default', 'uid':3, 'session_id':None},
         ])
-    
+
     @classmethod
     def tearDownClass(cls):
         """
@@ -78,14 +74,14 @@ class UserDatabaseTests(unittest.TestCase):
         * Stop mongod process
         * Remove MongoDB test database and logfiles
         """
-        
+
         cls.db.stop(terminate_mongod_on_exit=True)
 
         if os.path.exists(cls._dbpath):
             shutil.rmtree(cls._dbpath)
         if os.path.exists(cls._dblog):
             os.remove(cls._dblog)
-                
+
     def test_create_user_unsufficient_data(self):
         """
         Unable to create a new user if not at least a username
@@ -99,16 +95,16 @@ class UserDatabaseTests(unittest.TestCase):
         """
         Test addition of a user
         """
-      
+
         userdata = {'username':'test5', 'email':'test5@email.com'}
         user = UserManager()
-        
+
         # Create new user with random password
         newuser = user.create_user(userdata)
         self.assertTrue(len(newuser))
         self.assertEqual(newuser['username'], userdata['username'])
         self.assertEqual(newuser['email'], userdata['email'])
-        
+
     def test_create_user_uniqueuser(self):
         """
         Test addition of unique user with respect to username
@@ -145,56 +141,56 @@ class UserDatabaseTests(unittest.TestCase):
         user = UserManager()
         self.assertEqual(user.get_safe_user({'username':'test1'}),
           {'email': 'test1@email.com', 'session_id': None, 'username': 'test1', 'role': 'default', 'uid': 0})
-    
+
     def test_user_password_retrieval(self):
         """
         Test user lost/forgotten password retrieval
-        
+
         Test searches user by email, generates new password, sends password to
         user by mail and changes password in user database record if the email
         was successfully send.
         This test will fail if the email server is not configured correctly.
         """
-        
+
         user = UserManager(email='test2@email.com')
         current_password = user.user['password']
-        
+
         user.retrieve_password('test2@email.com')
         self.assertNotEqual(user.user['password'], current_password)
-        
-class UserTests(unittest.TestCase):
+
+class UserTests(unittest2.TestCase):
 
     """
     Unittest user management component
     """
-    
+
     def test_password_generation_minlength(self):
         """
         Unable to generate passwords with less then `min_length` chars
         """
-        
+
         self.assertIsNone(generate_password(6))
-        
+
     def test_password_generation_length(self):
         """
         Test random password generation with a length of `password_length` characters
         """
-        
+
         for pw_length in (8,10,15,20):
           password = generate_password(pw_length)
           self.assertTrue(len(password), pw_length)
           print('test random password of length: {0} - {1}'.format(pw_length, password))
-          
-    def test_password_generation_randomcharselection(self):    
+
+    def test_password_generation_randomcharselection(self):
         """
         Random password should be strong, contain letters, gigits and punctuations
         """
-        
+
         randpw = generate_password(10)
-        strongpw = all([len(set(randpw).intersection(set(charset))) != 0 for 
+        strongpw = all([len(set(randpw).intersection(set(charset))) != 0 for
           charset in (string.ascii_letters, string.digits, string.punctuation)])
         self.assertTrue(strongpw)
-        
+
     def test_password_hashing_checking(self):
         """
         Test password hashing and hash checking using often used

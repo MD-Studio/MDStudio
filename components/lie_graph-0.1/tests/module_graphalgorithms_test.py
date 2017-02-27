@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-file: module_test.py
+file: config_test.py
 
 Unit tests for the lie_graph component
 """

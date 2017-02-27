@@ -191,7 +191,7 @@ def init_docker_build(components, config):
     :param components: The component loader object
     :param config:  The configuration object
     """
-    if os.getenv('IS_DOCKER', False):
+    if config.system.get('is_dev_build', False) or os.getenv('IS_DOCKER', False):
         # noinspection PyUnusedLocal
         def list_components(self, search_path):
             found = {}

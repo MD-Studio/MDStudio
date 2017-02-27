@@ -15,7 +15,7 @@ mkdir -p .pycharm_helpers
 docker-compose stop
 
 # start the containers
-docker-compose up --force-recreate -d
+docker-compose up -d
 
 # display the installation progress
 sh -c 'tail -n +0 -f docker/.INSTALLING | { sed "/<<<<COMPLETED>>>>/ q" && kill $$ ;}' && (rm docker/.INSTALLING || true)
