@@ -10,6 +10,7 @@ settings = {
         'ExportToMongodbObserver': {
             'activate': True,
             'log_cache_size': 50,
+            'filter_predicate': {'app':'liestudio'}
         },
         'RotateFileLogObserver': {
             'activate': True,

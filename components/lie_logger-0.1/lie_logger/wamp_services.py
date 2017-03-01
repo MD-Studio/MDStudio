@@ -20,7 +20,7 @@ class LoggerWampApi(LieApplicationSession):
     """
     Logger management WAMP methods.
     """
-    db = None#MongoClient(host='localhost', port=27017)client['liestudio']
+    db = None #MongoClient(host='localhost', port=27017)client['liestudio']
     log_collection = None#
 
     def __init__(self, config, package_config=None, **kwargs):
@@ -45,8 +45,9 @@ class LoggerWampApi(LieApplicationSession):
         :rtype:       :py:class:`dict` to JSON
         """
         
-        log_level = LogLevel.levelWithName(event.get('log_level', default_log_level))
-        self.log.emit(log_level, event.get('log_format', None), **event)
+        self.log.emit(event.get('log_level', default_log_level), 
+                      event.get('log_format', None),
+                      **event)
     
     @wamp.register(u'liestudio.logger.get')
     def get_log_events(self, user):

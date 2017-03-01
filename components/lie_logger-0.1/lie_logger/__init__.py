@@ -21,9 +21,7 @@ __rootpath__  = os.path.dirname(__file__)
 
 from .system_logger import init_application_logging, exit_application_logging
 from .settings import settings
-from .wamp_services import LoggerWampApi
 
 # Define component public API
-wampapi  = LoggerWampApi
 oninit   = init_application_logging
 onexit   = exit_application_logging
