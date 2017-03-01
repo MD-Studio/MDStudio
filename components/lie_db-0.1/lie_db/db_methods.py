@@ -281,7 +281,7 @@ class BootstrapMongoDB(object):
         if self.isrunning:
             logging.info('MongoDB already running')
             return True
-
+        
         # Check if we need to connect to a local or remote database
         if self.isremote:
             logging.info('Connect to remote database. Not starting local database')
