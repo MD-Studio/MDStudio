@@ -13,6 +13,8 @@ from   lie_config             import ConfigHandler
 from   lie_db                 import mongodb_connect
 from   lie_system.messaging   import WAMPMessageEnvelope
 
+from   wamp_logging           import WampLogging
+
 def _resolve_package_config(package_config):
     """
     Resolve the package_config as dictionary
@@ -83,7 +85,6 @@ class LieApplicationSession(ApplicationSession):
     
     require_config = []
     def __init__(self, config, package_config=None, **kwargs):
-    
         """
         Class constructor
 
@@ -146,6 +147,7 @@ class LieApplicationSession(ApplicationSession):
         :param password:       password for authentication
         :type password:        str
         """
+        
         # we cannot use default argument {} since it stores references internally,
         # making subsequent constructions unpredictable
         if package_config is None:
@@ -169,7 +171,7 @@ class LieApplicationSession(ApplicationSession):
         config.realm = self.session_config.get('realm', config.realm)
 
         # Init toplevel ApplicationSession
-        ApplicationSession.__init__(self, config)
+        super(LieApplicationSession, self).__init__(config)
         
         # Load client private key (raw format) if any
         self._key = None
@@ -351,7 +353,7 @@ class LieApplicationSession(ApplicationSession):
         
         # Register methods
         res = yield self.register(self)
-        self.log.info("{class_name}: {procedures} procedures registered", procedures=len(res), **self.session_config.dict())
+        self.log.info("{class_name}: {procedures} procedures registered", procedures=len(res), class_name=self.session_config.class_name)
         
         # Update session_config, they may have been changed by the application
         # authentication method
@@ -364,10 +366,14 @@ class LieApplicationSession(ApplicationSession):
             self.log.warn('Unable to retrieve configuration for {0}'.format(self.session_config.get('package_name')))
         
         self.require_config.append(self.session_config.get('package_name'))
+        self.require_config.append('lie_logger.global_log_level')
         server_config = self.call(u'liestudio.config.get', self.require_config)
         server_config.addCallback(self.package_config.update)
         server_config.addCallback(self._establish_database_connection)
         server_config.addErrback(handle_retrieve_config_error)
+        
+        # Init WAMP logging
+        self.logger = WampLogging(wamp=self, log_level=self.package_config.get('global_log_level', 'info'))
         
         # Call onRun hook.
         self.onRun(details)
@@ -389,6 +395,35 @@ class LieApplicationSession(ApplicationSession):
 
         # Call onExit hook
         self.onExit(details)
+    
+    # @inlineCallbacks
+    # def list_methods(self):
+    #     """
+    #     Returns a list of available modules
+    #     """
+    #
+    #     methods = {}
+    #     modules = yield self.call("wamp.registration.list")
+    #     for module in modules['exact']:
+    #         module = yield self.call("wamp.registration.get", module)
+    #         methods[module['uri']] = module
+    #
+    #     return methods
+    
+    def task(self, method, *args, **kwargs):
+        """
+        Wrapper around ApplicationSession `call` method.
+        
+        Ensure that the right method is being called, method arguments
+        and keyword argumnents are being provided and the current session
+        data is passed along.
+        """
+        
+        self.logger.debug('Call method {0}'.format(method))
+        
+        session_config = self.session_config()
+        
+        return self.call(method, session=session_config, *args, **kwargs)
     
     # Class placeholder methods. Override these for custom events during 
     # application life cycle

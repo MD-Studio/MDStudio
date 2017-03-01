@@ -187,7 +187,7 @@ class ComponentManager(object):
                         oninit(self._config[component], self._config)
 
                     init_count += 1
-
+        
         self.logging.debug('Run bootstrap for {0} components. ({1} checked)'.format(init_count, len(components)))
 
     def shutdown(self, components=None, order=[]):
