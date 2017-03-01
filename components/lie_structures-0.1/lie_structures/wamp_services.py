@@ -17,29 +17,39 @@ from   twisted.internet.defer import inlineCallbacks
 from   lie_system  import LieApplicationSession
 
 class StructuresWampApi(LieApplicationSession):
-
     """
     Structure database WAMP methods.
     """
     
+    require_config = ['system']
+    
     @inlineCallbacks
     def onJoin(self, details):
+        
         yield self.register(self.get_structure, u'liestudio.structures.get_structure', options=RegisterOptions(invoke=u'roundrobin'))
-        self.log.info("DockingWampApi: get_structure() registered!")
+        yield self.register(self.get_meta, u'liestudio.structures.get_meta')
+        self.log.info("StructuresWampApi: get_structure() registered!")
     
-    def get_structure(self, structure):
+    def get_structure(self, structure, session=None):
         
         result = ''
-        currpath = os.path.dirname(os.path.realpath(__file__))
-        structure_file = os.path.join(currpath, '{0}.mol2'.format(structure))
+        tmpdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/tmp'
+        structure_file = os.path.join(tmpdir, '{0}.mol2'.format(structure))
         if os.path.exists(structure_file):
             with open(structure_file, 'r') as sf:
                 result = sf.read()
+        else:
+            self.log.error("No such file {0}".format(structure_file))
         
         self.log.info("Return structure: {structure}", structure=structure_file, **self.session_config.dict())
         
         return {'result': result}
-
+    
+    def get_meta(self, meta, session=None):
+        
+        return meta, session
+        
+    
 def make(config):
     """
     Component factory
