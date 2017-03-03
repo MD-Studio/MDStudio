@@ -1,0 +1,57 @@
+HEADER    UNCLASSIFIED                            24-Feb-17
+TITLE     ALL ATOM STRUCTURE FOR MOLECULE LIG                                   
+AUTHOR    GROMOS AUTOMATIC TOPOLOGY BUILDER REVISION 2017-02-21 14:01:14
+AUTHOR   2  http://compbio.biosci.uq.edu.au/atb
+HETATM    1   H1 1LYI    0      -4.614   0.000   0.009  1.00  0.00           H
+HETATM    2   C1 1LYI    0      -3.527  -0.000   0.002  1.00  0.00           C
+HETATM    3   C2 1LYI    0      -2.835   1.212   0.002  1.00  0.00           C
+HETATM    4   H2 1LYI    0      -3.382   2.152   0.006  1.00  0.00           H
+HETATM    5   C3 1LYI    0      -2.835  -1.212   0.002  1.00  0.00           C
+HETATM    6   H3 1LYI    0      -3.382  -2.152   0.006  1.00  0.00           H
+HETATM    7   C4 1LYI    0      -1.430  -1.237  -0.002  1.00  0.00           C
+HETATM    8   C5 1LYI    0      -0.714   0.000  -0.003  1.00  0.00           C
+HETATM    9  C11 1LYI    0      -0.681  -2.466  -0.004  1.00  0.00           C
+HETATM   10   H6 1LYI    0      -1.231  -3.405  -0.005  1.00  0.00           H
+HETATM   11  C10 1LYI    0       0.681  -2.466  -0.004  1.00  0.00           C
+HETATM   12   H5 1LYI    0       1.231  -3.405  -0.007  1.00  0.00           H
+HETATM   13   C9 1LYI    0       1.430  -1.237  -0.002  1.00  0.00           C
+HETATM   14  C12 1LYI    0       2.835  -1.212   0.003  1.00  0.00           C
+HETATM   15  H10 1LYI    0       3.383  -2.152   0.002  1.00  0.00           H
+HETATM   16  C13 1LYI    0       3.527  -0.000   0.008  1.00  0.00           C
+HETATM   17   H7 1LYI    0       4.614   0.000   0.011  1.00  0.00           H
+HETATM   18   C8 1LYI    0       2.835   1.212   0.003  1.00  0.00           C
+HETATM   19   H4 1LYI    0       3.382   2.152   0.002  1.00  0.00           H
+HETATM   20   C7 1LYI    0       1.430   1.237  -0.002  1.00  0.00           C
+HETATM   21   C6 1LYI    0       0.714   0.000  -0.003  1.00  0.00           C
+HETATM   22  C16 1LYI    0       0.681   2.466  -0.004  1.00  0.00           C
+HETATM   23   H9 1LYI    0       1.231   3.405  -0.006  1.00  0.00           H
+HETATM   24  C15 1LYI    0      -0.681   2.466  -0.005  1.00  0.00           C
+HETATM   25   H8 1LYI    0      -1.231   3.405  -0.005  1.00  0.00           H
+HETATM   26  C14 1LYI    0      -1.430   1.237  -0.002  1.00  0.00           C
+CONECT    1    2
+CONECT    2    1    3    5
+CONECT    3    2    4   26
+CONECT    4    3
+CONECT    5    2    6    7
+CONECT    6    5
+CONECT    7    5    8    9
+CONECT    8    7   21   26
+CONECT    9    7   10   11
+CONECT   10    9
+CONECT   11    9   12   13
+CONECT   12   11
+CONECT   13   11   14   21
+CONECT   14   13   15   16
+CONECT   15   14
+CONECT   16   14   17   18
+CONECT   17   16
+CONECT   18   16   19   20
+CONECT   19   18
+CONECT   20   18   21   22
+CONECT   21    8   13   20
+CONECT   22   20   23   24
+CONECT   23   22
+CONECT   24   22   25   26
+CONECT   25   24
+CONECT   26    3    8   24
+END
