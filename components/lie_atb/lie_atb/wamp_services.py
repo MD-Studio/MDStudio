@@ -200,6 +200,7 @@ class ATBWampApi(LieApplicationSession):
         :param ffversion:   ATB supported force field version
         :type ffversion:    :py:str
         :param fformat:     ATB supported file format
+        :type fformat:      :py:str
         """
         
         if not ffversion in self.package_config.atb_forcefield_version:
@@ -226,6 +227,36 @@ class ATBWampApi(LieApplicationSession):
         else:
             self.logger.error('Unable to retrieve topology/prameter file for molid: {0}'.format(molid))
     
+    @wamp.register(u'liestudio.atb.structure_query'):
+    def atb_structure_query(self, session=None, mol, structure_format='pdb', netcharge='*'):
+        """
+        Query the ATB server database for molecules based on a structure
+        
+        :param mol:              the structure to search for
+        :type mol:               :py:str
+        :param structure_format: the file format for the uploaded structure.
+                                 supported types: pdb, mol, mol2, sdf, inchi
+        :type structure_format:  :py:str
+        :param netcharge:        the net charge of the query molecule ranging
+                                 from -5 to 5 or * if unknown.
+        :type netcharge:         :py:int
+        """
+        
+        if not structure_format in ('pdb','mol','mol2','sdf','inchi'):
+            self.logger.error('Unsupported structure format for ATB structure based search: {0}'.format(structure_format))
+            return
+        
+        # Init ATBServerApi
+        api = self._init_atb_api(api_token=self.package_config.atb_api_token)
+        if not api:
+            self.logger.error('Unable to use the ATB API')
+            return
+        
+        result = self._exceute_api_call(api.Molecules.structure_search, structure_format=structure_format,
+            structure=mol, netcharge=netcharge)
+        
+        return result.get('matches', [])
+        
     @wamp.register(u'liestudio.atb.molecule_query')
     def atb_molecule_query(self, session=None, **kwargs):
         """
@@ -236,17 +267,28 @@ class ATBWampApi(LieApplicationSession):
         attributes or 'any' for a whildcard search. Multiple query attributes
         will be chained using the AND logical operator. 
         
-        iupac:              the official IUPAC name of the  molecule
-        inchi:              the unique InChI string of the molecule
-        common_name:        the common name of the molecule 
-        formula:            the molecular formula (e.a. C2H6O)     
-        maximum_qm_level:
-        curation_trust:
+        iupac:              the official IUPAC name of the  molecule (str)
+        inchi_key:          the unique InChI code of the molecule (str)
+        common_name:        the common name of the molecule (str)
+        formula:            the molecular formula (e.a. C2H6O) (str)
+        maximum_qm_level:   string of comma seperated integers.
+        curation_trust:     level of expected accuracy of the molecule parameters
+                            as string of comma seperated integers. 0 by default:
+                            -1 = unfinished ATB molecule
+                             0 = finished ATB molecule
+                             1 = manual parameters from reliable users
+                             2 = manual parameters from official source
         is_finished:        are calculations for the molecule still running
         user_label:         any user specific label that may have been given to
                             the molecule.
+        is_finished:        query for finished molecules only
+        max_atoms:          maximum number of atoms (int)
+        min_atoms:          minimum number of atoms (int)
+        has_pdb_hetId:      molecule has PDB heteroatom ID (bool)
+        match_partial:      enable partial matching of string attributes (bool)
+                            False by default.
         
-        Query values are case insensitive.
+        Query values are case insensitive but the attributes (keys) are.
         
         :param kwargs: any of the accepted query key,value pairs.
         """
@@ -269,16 +311,6 @@ class ATBWampApi(LieApplicationSession):
         if 'molid' in kwargs:
             response = [self._exceute_api_call(api.Molecules.molid, molid=kwargs['molid'])]
         else:
-            # Make sure InChI is properly formatted
-            for arg in kwargs:
-                if arg.lower() == 'inchi':
-                    inchi = kwargs[arg].lstrip('InChI=')
-                    inchi = 'InChI={0}'.format(inchi)
-                
-                    del kwargs[arg]
-                    kwargs['InChI'] = inchi
-                    break
-        
             # Execute ATB molecule search query
             response = self._exceute_api_call(api.Molecules.search, **kwargs)
         
