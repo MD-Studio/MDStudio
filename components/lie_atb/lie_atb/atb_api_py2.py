@@ -81,7 +81,7 @@ class API(object):
                 raise Exception(u'Unsupported HTTP method: {0}'.format(method))
             if self.debug:
                 print >>stderr, u'Querying: {url}'.format(url=url)
-            
+        
             if method == u'POST' and any([isinstance(value, str) or u'read' in dir(value) for (key, value) in data.items()]):
                 def file_for(content):
                     u'''Cast a content object to a file for request.post'''
@@ -94,20 +94,20 @@ class API(object):
                         )
                         file_handler.seek(0) # Rewind the files to future .read()
                         return file_handler
-                
+            
                 files=dict(
                     [
                         (key, file_for(value))
                         for (key, value) in data.items()
                     ]
                 )
-                
+            
                 request = post(
                     url,
                     files=files,
                 )
                 response_content = request.text
-                
+            
                 if self.debug:
                     print u'INFO: Will send binary data.'
             else:
@@ -118,7 +118,10 @@ class API(object):
                     ),
                     timeout=self.timeout,
                 )
-                response_content = response.read().decode()
+                if self.api_format == 'pickle':
+                    response_content = response.read()
+                else:
+                    response_content = response.read().decode()
         except Exception, e:
             if self.debug:
                 stderr_write(u"Failed opening url: {0}{1}{2}".format(
@@ -146,7 +149,7 @@ class ATB_Mol(object):
         self.has_TI = molecule_dict[u'has_TI']
         self.iupac = molecule_dict[u'iupac']
         self.common_name = molecule_dict[u'common_name']
-        self.inchi = molecule_dict[u'InChI']
+        self.inchi_key = molecule_dict[u'inchi_key']
         self.experimental_solvation_free_energy = molecule_dict[u'experimental_solvation_free_energy']
         self.curation_trust = molecule_dict[u'curation_trust']
         self.pdb_hetId = molecule_dict[u'pdb_hetId']
@@ -159,6 +162,7 @@ class ATB_Mol(object):
         self.qm_level = molecule_dict[u'qm_level']
         self.commercial_set = molecule_dict[u'commercial_set']
         self.user_label = molecule_dict[u'user_label']
+        self.moltype = molecule_dict[u'moltype']
         
         # Convert "None" or u"None" to Python None
         for key,value in self.__dict__.items():
@@ -269,7 +273,7 @@ class Molecules(API):
     
     def duplicated_inchis(self, **kwargs):
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method=u'GET')
-        return self.api.deserialize(response_content)[u'InChIs']
+        return self.api.deserialize(response_content)[u'inchi_key']
     
     def generate_mol_data(self, **kwargs):
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method=u'GET')
@@ -281,12 +285,12 @@ class Molecules(API):
         data = self.api.deserialize(response_content)
         return ATB_Mol(self.api, data[u'molecule'])
     
-    def structure_search(self, **kwargs):
+    def structure_search(self, method = u'POST', **kwargs):
         assert all([ arg in kwargs for arg in (u'structure', u'netcharge', u'structure_format') ])
-        response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method=u"POST")
+        response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method=u"GET")
         return self.api.deserialize(response_content)
     
-    def submit(self, **kwargs):
+    def submit(self, request = u'POST', **kwargs):
         assert all([ arg in kwargs for arg in (u'netcharge', u'pdb', u'public', u'moltype') ])
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs)
         return self.api.deserialize(response_content)

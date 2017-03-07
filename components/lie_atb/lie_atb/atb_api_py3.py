@@ -121,7 +121,10 @@ class API(object):
                     ),
                     timeout=self.timeout,
                 )
-                response_content = response.read().decode()
+                if self.api_format == 'pickle':
+                    response_content = response.read()
+                else:
+                    response_content = response.read().decode()
         except Exception as e:
             self.debug:
                 stderr_write("Failed opening url: {0}{1}{2}".format(
@@ -149,7 +152,7 @@ class ATB_Mol(object):
         self.has_TI = molecule_dict['has_TI']
         self.iupac = molecule_dict['iupac']
         self.common_name = molecule_dict['common_name']
-        self.inchi = molecule_dict['InChI']
+        self.inchi_key = molecule_dict['inchi_key']
         self.experimental_solvation_free_energy = molecule_dict['experimental_solvation_free_energy']
         self.curation_trust = molecule_dict['curation_trust']
         self.pdb_hetId = molecule_dict['pdb_hetId']
@@ -162,6 +165,7 @@ class ATB_Mol(object):
         self.qm_level = molecule_dict['qm_level']
         self.commercial_set = molecule_dict['commercial_set']
         self.user_label = molecule_dict['user_label']
+        self.moltype = molecule_dict['moltype']
         
         # Convert "None" or u"None" to Python None
         for key,value in self.__dict__.items():
@@ -268,7 +272,7 @@ class Molecules(API):
     
     def duplicated_inchis(self, **kwargs) -> API_RESPONSE:
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method='GET')
-        return self.api.deserialize(response_content)['InChIs']
+        return self.api.deserialize(response_content)['inchi_key']
     
     def generate_mol_data(self, **kwargs) -> API_RESPONSE:
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method='GET')
@@ -280,12 +284,12 @@ class Molecules(API):
         data = self.api.deserialize(response_content)
         return ATB_Mol(self.api, data['molecule'])
     
-    def structure_search(self, **kwargs) -> API_RESPONSE:
+    def structure_search(self, method: str = 'POST', **kwargs) -> API_RESPONSE:
         assert all([ arg in kwargs for arg in ('structure', 'netcharge', 'structure_format') ])
-        response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method="POST")
+        response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method="GET")
         return self.api.deserialize(response_content)
     
-    def submit(self, **kwargs) -> API_RESPONSE:
+    def submit(self, request: str = 'POST', **kwargs) -> API_RESPONSE:
         assert all([ arg in kwargs for arg in ('netcharge', 'pdb', 'public', 'moltype') ])
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs)
         return self.api.deserialize(response_content)
