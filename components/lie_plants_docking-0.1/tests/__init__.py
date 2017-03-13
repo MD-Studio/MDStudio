@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Python function for lie_docking module and WAMP API unit tests, run as:
+Python function for lie_plants_docking module and WAMP API unit tests, run as:
 ::
     test = module_test_suite()
     runner = unittest.TextTestRunner(verbosity=2)
@@ -27,7 +27,7 @@ import tests.wamp_api_test
 
 def module_test_suite():
     """
-    Run lie_docking module unit tests
+    Run lie_plants_docking module unit tests
     """
     
     loader = unittest.TestLoader()
@@ -36,7 +36,7 @@ def module_test_suite():
 
 def wamp_test_suite():
     """
-    Run lie_docking WAMP API unit tests
+    Run lie_plants_docking WAMP API unit tests
     """
     
     loader = unittest.TestLoader()

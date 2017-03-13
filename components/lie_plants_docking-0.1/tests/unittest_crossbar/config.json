@@ -59,7 +59,7 @@
             "components": [
                 {
                     "type": "wamplet",
-                    "package": "lie_docking",
+                    "package": "lie_plants_docking",
                     "realm": "wamp_test",
                     "entrypoint": "wamp_services"
                 }

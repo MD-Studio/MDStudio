@@ -22,7 +22,7 @@ from   plants_conf      import PLANTS_CONF_FILE_TEMPLATE
 from   utils            import cmd_runner
 from   clustering       import coords_from_mol2, ClusterStructures
 
-@configwrapper('plants')        
+@configwrapper('lie_plants_docking')        
 class PlantsDocking(DockingBase):
     """
     Class for running a protein-ligand docking using the PLANTS docking
@@ -36,7 +36,7 @@ class PlantsDocking(DockingBase):
     
     This class is compatible with PLANTS versions 1.1 and 1.2. 
     If not otherwise defined, the PLANTS executable files are available
-    in the bin directory of the lie_docking package suffixed by the
+    in the bin directory of the lie_plants_docking package suffixed by the
     OS identifier as returned by `sys.platform`.
     Support is available for all of PLANTS default configuration options
     described in sections 1.0 of the PLANTS manual.

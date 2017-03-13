@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Python runner for lie_docking module unit tests, run as:
+Python runner for lie_plants_docking module unit tests, run as:
 ::
     python tests
 
@@ -26,7 +26,7 @@ import tests.wamp_api_test
 
 def module_test_suite(args):
     """
-    Run lie_docking module and WAMP API unit tests
+    Run lie_plants_docking module and WAMP API unit tests
     
     :param args: command line arguments
     :type args:  argparse parser object
@@ -34,13 +34,13 @@ def module_test_suite(args):
     loader = unittest.TestLoader()
     
     if not args.no_module:
-        print('Running lie_docking unittests')
+        print('Running lie_plants_docking unittests')
         suite = loader.loadTestsFromModule(tests.module_test)
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
     
     if not args.no_wamp:
-        print('Running lie_docking WAMP API test')
+        print('Running lie_plants_docking WAMP API test')
         suite = loader.loadTestsFromModule(tests.wamp_api_test)
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)

@@ -58,7 +58,7 @@ class RunPlantsDocking(WAMPUnitTestBase):
     """
     Autobahn WAMP ApplicationSession test session.
     
-    Test lie_docking PLANTS based docking run
+    Test lie_plants_docking PLANTS based docking run
     """
     
     @defer.inlineCallbacks

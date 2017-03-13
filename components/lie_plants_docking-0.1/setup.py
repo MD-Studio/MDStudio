@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# package: lie_docking
+# package: lie_plants_docking
 # file: setup.py
 #
-# Part of ‘lie_docking’, a package providing molecular docking functionality
+# Part of ‘lie_plants_docking’, a package providing molecular docking functionality
 # for the LIEStudio package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -23,17 +23,17 @@
 
 from setuptools import setup, find_packages
 
-distribution_name = 'lie_docking'
+distribution_name = 'lie_plants_docking'
 
 setup(
     name=distribution_name,
     version=0.1,
-    description='LIEStudio molecular docking module',
+    description='LIEStudio molecular docking module using PLANTS',
     author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
     author_email='m4.van.dijk@vu.nl',
     url='https://github.com/NLeSC/LIEStudio',
     license='Apache Software License 2.0',
-    keywords='LIEStudio molecular docking',
+    keywords='LIEStudio molecular docking PLANTS',
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
@@ -42,7 +42,7 @@ setup(
     zip_safe=True,
     entry_points={
         'autobahn.twisted.wamplet': [
-            'wamp_services = lie_docking.wamp_services:make'
+            'wamp_services = lie_plants_docking.wamp_services:make'
         ],
     },
     classifiers=[

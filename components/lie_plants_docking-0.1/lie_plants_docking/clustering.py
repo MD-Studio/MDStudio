@@ -351,7 +351,7 @@ class ClusterStructures(object):
 if __name__ == '__main__':
 
     import glob
-    s = glob.glob('/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/components/lie_docking-0.1/tests/cluster/*.mol2')
+    s = glob.glob('/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/components/lie_plants_docking-0.1/tests/cluster/*.mol2')
     xyz = coords_from_mol2(s)
     c = ClusterStructures(xyz, labels=[os.path.basename(n).replace('_entry_00001_conf_','lig_').split('.')[0] for n in s])
     c.cluster(4, method='single', min_cluster_count=2)

@@ -233,6 +233,26 @@
                   "password": "liepw@#",
                   "authmethod": "ticket"  
                 }
+              },
+              {
+                "type": "wamplet",
+                "package": "lie_atb",
+                "realm": "liestudio",
+                "entrypoint": "wamp_services",
+                "transport": {
+                  "type": "websocket",
+                  "endpoint": {
+                     "type": "tcp",
+                     "host":"localhost",
+                     "port": 8080
+                  },
+                  "url": "ws://localhost:8080/ws"
+                },
+                "extra": {
+                  "authid": "lieadmin",
+                  "password": "liepw@#",
+                  "authmethod": "ticket"  
+                }
               }
             ]
         },
@@ -246,7 +266,7 @@
             "components": [
               {
                 "type": "wamplet",
-                "package": "lie_docking",
+                "package": "lie_plants_docking",
                 "realm": "liestudio",
                 "entrypoint": "wamp_services",
                 "transport": {
@@ -296,7 +316,7 @@
             "components": [
               {
                 "type": "wamplet",
-                "package": "lie_docking",
+                "package": "lie_plants_docking",
                 "realm": "liestudio",
                 "entrypoint": "wamp_services",
                 "transport": {
@@ -346,7 +366,7 @@
             "components": [
               {
                 "type": "wamplet",
-                "package": "lie_docking",
+                "package": "lie_plants_docking",
                 "realm": "liestudio",
                 "entrypoint": "wamp_services",
                 "transport": {

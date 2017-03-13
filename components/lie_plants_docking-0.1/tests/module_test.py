@@ -16,8 +16,8 @@ __rootpath__ = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
 from   twisted.logger             import Logger
-from   lie_docking.plants_docking import PlantsDocking
-from   lie_docking.utils          import prepaire_work_dir
+from   lie_plants_docking.plants_docking import PlantsDocking
+from   lie_plants_docking.utils          import prepaire_work_dir
 
 logging = Logger()
 
@@ -57,7 +57,7 @@ class PlantsDockingTest(unittest.TestCase):
         is not available and cannot be created
         """
         
-        plants = PlantsDocking(workdir='/Users/_dummy_user/lie_docking-0.1/tests/plants_docking',
+        plants = PlantsDocking(workdir='/Users/_dummy_user/lie_plants_docking-0.1/tests/plants_docking',
                                exec_path=self.exec_path,
                                bindingsite_center=[7.79934,9.49666,3.39229])
         
@@ -71,7 +71,7 @@ class PlantsDockingTest(unittest.TestCase):
         
         self.workdir = prepaire_work_dir(__rootpath__, create=True)
         plants = PlantsDocking(workdir=self.workdir,
-                               exec_path='/Users/_dummy_user/lie_docking-0.1/tests/plants',
+                               exec_path='/Users/_dummy_user/lie_plants_docking-0.1/tests/plants',
                                bindingsite_center=[7.79934,9.49666,3.39229])
         
         self.assertFalse(plants.run(self.protein, self.ligand))
