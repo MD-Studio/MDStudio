@@ -25,6 +25,14 @@ lie_system.messaging module
     :undoc-members:
     :show-inheritance:
 
+lie_system.wamp_logging module
+------------------------------
+
+.. automodule:: lie_system.wamp_logging
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie_system.wamptools module
 ---------------------------
 

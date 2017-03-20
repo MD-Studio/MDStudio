@@ -196,7 +196,7 @@ def init_docker_build(components, config):
         def list_components(self, search_path):
             found = {}
             for g in glob(os.path.join(search_path, '*/*/')):
-                match = re.match(r'(.*/(.*)-.*/\2)/', g)
+                match = re.match(r'(.*/(.*)/\2)/', g)
                 if match:
                     found[match.group(2)] = match.group(1)
             return found

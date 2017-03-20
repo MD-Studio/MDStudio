@@ -22,11 +22,14 @@ class _NodeEdgeBase(object):
         :return:    attribute value
         """
         
-        value = self.get(key=key, default='__Graph_no_key__')
-        if value == '__Graph_no_key__':
-            raise GraphException('No such node or edge attribute: {0}'.format(key))
+        if not key in self.__dict__:
+            value = self.get(key=key, default='_Graph_no_key__')
+            if value == '_Graph_no_key__':
+                raise GraphException('No such node or edge attribute: {0}'.format(key))
         
-        return value
+            return value
+        
+        return object.__getattribute__(self, key)
         
     def __getitem__(self, key):
         """
@@ -40,8 +43,8 @@ class _NodeEdgeBase(object):
         :return:    attribute value
         """
         
-        value = self.get(key=key, default='__Graph_no_key__')
-        if value == '__Graph_no_key__':
+        value = self.get(key=key, default='_Graph_no_key__')
+        if value == '_Graph_no_key__':
             raise GraphException('No such node or edge attribute: {0}'.format(key))
         
         return value
@@ -50,13 +53,19 @@ class _NodeEdgeBase(object):
         """
         Implement class __setattr__.
         
-        Set dictionary entries using class attribute setter methods in
-        the following order:
+        Setter for both node and edge dictionaries and standard class
+        attributes. If the attribute is not yet defined in either of 
+        these cases it is considered a standard class attribute.
+        Use the `set` method to define new node or edge dictionary 
+        attributes. The latter method can be overloaded by custom 
+        classes.
+        
+        __setattr__ is resolved in the following order:
         
         1 self.__dict__ setter at class initiation
         2 graph setter handeled by property methods
-        3 self.__dict__ only for existing keys
-        4 `set` method for existing and new nodes/edges key,value pairs
+        3 `set` method for existing nodes/edges dictionary attributes.
+        3 self.__dict__ only for existing and new class attributes
         
         :param name:  attribute name.
         :param value: attribute value
@@ -68,10 +77,10 @@ class _NodeEdgeBase(object):
             return dict.__setattr__(self, key, value)
         elif isinstance(propobj, property) and propobj.fset:
             propobj.fset(self, value)
-        elif key in self.__dict__:
-            self.__setitem__(key, value)
-        else:
+        elif key in self:
             self.set(key, value)
+        else:
+            return dict.__setattr__(self, key, value)
     
     def __setitem__(self, key, value):
         """
@@ -106,7 +115,11 @@ class EdgeTools(_NodeEdgeBase):
     
     def __contains__(self, key):
         
-        return key in self.edges[self.nid]
+        nid = self.nid
+        if nid:
+            return key in self.edges[self.nid]
+        
+        return False
      
     def get(self, key=None, defaultattr=None, default=None, **kwargs):
         """
@@ -144,7 +157,11 @@ class EdgeTools(_NodeEdgeBase):
         This would actually be 'eid' for edge id rather than node id (nid).
         """
         
-        return list(self.edges.keys())[0]
+        nids = list(self.edges.keys())
+        if nids:
+            return nids[0]
+        
+        return None
     
     def set(self, key, value):
         """
@@ -167,7 +184,10 @@ class NodeTools(_NodeEdgeBase):
     
     def __contains__(self, key):
         
-        return key in self.nodes[self.nid]
+        nid = self.nid
+        if nid:
+            return key in self.nodes[self.nid]
+        return False
         
     def get(self, key=None, defaultattr=None, default=None, **kwargs):
         """
@@ -225,7 +245,11 @@ class NodeTools(_NodeEdgeBase):
         :rtype:  mixed
         """
         
-        return list(self.nodes.keys())[0]
+        nids = list(self.nodes.keys())
+        if nids:
+            return nids[0]
+        
+        return None
     
     def set(self, key, value):
         """

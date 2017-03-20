@@ -9,18 +9,19 @@ node.
 
 from itertools           import combinations
 
+from .graph              import Graph
 from .graph_helpers      import GraphException
 from .graph_algorithms   import dijkstra_shortest_path
 from .graph_axis_methods import *
 
-class GraphAxisMethods(object):
+class GraphAxis(Graph):
     """
     Graph axis based hierarchy query methods relative to a root node.
     The methods in the class wrap the axis functions in graph_axis_methods
     defining the node ID (nid) the root node and returning the query results
     as new (sub)grah by default.
     
-    This class is combined with the base _Graph class to yield the GraphAxis
+    This class is combined with the base Graph class to yield the GraphAxis
     class overloading some base methods to enforce root node definition and
     nid selection.
     """

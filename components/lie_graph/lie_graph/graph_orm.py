@@ -5,11 +5,12 @@ import logging as logger
 
 class GraphORM(object):
     
-    def __init__(self):
+    def __init__(self, inherit=True):
         
         self._node_orm_mapping = {}
         self._edge_orm_mapping = {}
         self._class_name       = 'Graph'
+        self._inherit          = inherit
     
     def _class_factory(self, base_cls, classes):
         """
@@ -31,6 +32,10 @@ class GraphORM(object):
         # Get method resolution order for the base_cls and filter for base
         # classes created by the GraphORM class to keep the mro clean.
         base_cls_mro = [c for c in inspect.getmro(base_cls) if not self.__module__ == c.__module__]
+        
+        # Inherit previous custom modules or only graph module classes
+        if not self._inherit:
+            base_cls_mro = [c for c in base_cls_mro if c.__module__.startswith('lie_graph')]
         
         # Add custom classes to the base class mro
         for n in reversed(classes):

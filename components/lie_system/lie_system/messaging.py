@@ -25,7 +25,8 @@ envelope = {
     'utime': None,
     'status_message': None,
     'task_id': None,
-    'system_user': None
+    'system_user': None,
+    'app': 'liestudio'
 }
 
 ALLOWED_STATUS_LABELS = ('submitted', 'waiting', 'ready', 'scheduled', 'running',

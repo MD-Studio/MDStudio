@@ -82,7 +82,7 @@ def init_application_logging(settings, config):
                     if predicate_name == 'log_level':
                         filter_predicates.append(
                             LogLevelFilterPredicate(defaultLogLevel=LogLevel.levelWithName(predicate_function)))
-
+                    
                     # For all other event arguments (predicate_name) use customFilterPredicate observer
                     else:
                         filter_predicates.append(customFilterPredicate(
@@ -160,7 +160,7 @@ def _compile_filter_predicates(predicate):
     operator = splitted[0]
     test_val = ' '.join(splitted[1:])
     if operator in ('==', '!=', '<>'):
-        return compile('str(_pred_test) {0} "{1}"'.format(operator, test_val), 'logger', 'eval')
+        return compile('_pred_test {0} "{1}"'.format(operator, test_val), 'logger', 'eval')
     elif operator in ('>', '<', '<=', '>='):
         return compile('_pred_test {0} float({1})'.format(operator, test_val), 'logger', 'eval')
     else:
@@ -251,9 +251,9 @@ class customFilterPredicate(object):
         If the event argument is not defined a PredicateResult.maybe
         is returned.
         """
+        
         _pred_test = event.get(self._predicate_name, None)
-
-        if _pred_test:
+        if _pred_test != None:
 
             # TODO: Evaluation is performed using 'eval' with stripped environment
             # on a pre-parsed and compiled function but still eval is not safe
@@ -442,10 +442,11 @@ class ExportToMongodbObserver(object):
         :param event: Twisted logger event
         :type event:  dict
         """
-
-        self._log_cache.append(_serialize_logger_event(event))
-        if len(self._log_cache) == self._log_cache_size:
-            self.flush()
+        
+        if event.get('app', None) == 'liestudio':
+            self._log_cache.append(_serialize_logger_event(event))
+            if len(self._log_cache) == self._log_cache_size:
+                self.flush()
 
     def flush(self):
         """
