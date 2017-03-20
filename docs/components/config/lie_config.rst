@@ -6,6 +6,13 @@ lie_config package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_config.tests
+
 Submodules
 ----------
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ROOTDIR=`pwd -P`
 _VENVPATH=${ROOTDIR}/.venv
 

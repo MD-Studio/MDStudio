@@ -6,6 +6,13 @@ lie_db package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_db.tests
+
 Submodules
 ----------
 

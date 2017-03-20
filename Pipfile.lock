@@ -1,8 +1,8 @@
 {
     "default": {
         "autobahn": {
-            "version": "==0.17.1",
-            "hash": "sha256:68b368bdc7f65c3f3f90749b749628a12bf9679b724e5a9fa33cec494f96ac5c"
+            "version": "==0.17.2",
+            "hash": "sha256:ccdd617129967ad7f9bdf2334685fc8121d414a9bdb3fdd5650481456bf8a0f4"
         },
         "txaio": {
             "version": "==2.6.1",
@@ -52,6 +52,10 @@
             "version": "==16.3.0",
             "hash": "sha256:c59426b15b45e39a7bc408eb6ba7e7188d9532764f873cc691199ddd975c97ef"
         },
+        "Werkzeug": {
+            "version": "==0.11.15",
+            "hash": "sha256:c6f6f89124df0514d886782c658c3e12f2caaa94da34cee3fd82eebf4ebf052b"
+        },
         "watchdog": {
             "version": "==0.8.3",
             "hash": "sha256:7e65882adb7746039b6f3876ee174952f8eaaa34491ba34333ddf1fe35de4162"
@@ -65,8 +69,12 @@
             "hash": "sha256:29f99fc6125fbc931b758dc053b3114e55c77a6e4c6c3a2674a2dc986016381d"
         },
         "appdirs": {
-            "version": "==1.4.0",
-            "hash": "sha256:85e58578db8f29538f3109c11250c2a5514a2fcdc9890d9b2fe777eb55517736"
+            "version": "==1.4.2",
+            "hash": "sha256:a53330b9d53b66aba1e26907dea2958982ebad92735f9faf3897b73c909a20c1"
+        },
+        "sphinx_rtd_theme": {
+            "version": "==0.1.9",
+            "hash": "sha256:3c38d037713bd78043486eea5bf771d71ed697ec25c09e16f49e44887f7fe184"
         },
         "enum34": {
             "version": "==1.1.6",
@@ -96,13 +104,9 @@
             "version": "==2.9.5",
             "hash": "sha256:a7b7438120dbe76a8e735ef7eba6048eaf4e0b7dbc530e100812f8ec462a4d50"
         },
-        "werkzeug": {
-            "version": "==0.11.15",
-            "hash": "sha256:c6f6f89124df0514d886782c658c3e12f2caaa94da34cee3fd82eebf4ebf052b"
-        },
         "crossbar": {
-            "version": "==16.10.1",
-            "hash": "sha256:634be14721bda662c6d8a8dbb987ee7dd99e19374af1a749c8c2188964a65779"
+            "version": "==17.2.1",
+            "hash": "sha256:f16a0b07d9660fa24dfd23e609b2ef41140ae1d8489fb2a058a0581fbd07cc3b"
         },
         "sortedcontainers": {
             "version": "==1.5.7",
@@ -168,10 +172,6 @@
             "version": "==0.23",
             "hash": "sha256:a4ec1aff59b95a14b45eb2e23761a0179e98319da5a7eb76b56ea8cdc7b871c3"
         },
-        "sphinx-rtd-theme": {
-            "version": "==0.1.9",
-            "hash": "sha256:3c38d037713bd78043486eea5bf771d71ed697ec25c09e16f49e44887f7fe184"
-        },
         "pytz": {
             "version": "==2016.10",
             "hash": "sha256:a1ea35e87a63c7825846d5b5c81d23d668e8a102d3b1b465ce95afe1b3a2e065"
@@ -205,8 +205,8 @@
             "hash": "sha256:78f3f434bcc5d6ee09020f92ba487f95ba50f1e3ef83ae96b9d5ffa1bab25c5d"
         },
         "sphinx": {
-            "version": "==1.5.2",
-            "hash": "sha256:57c8636e1d23f6c01fb19911a8f255f1b4934ba69feb55bd4dd0f097ebb04f05"
+            "version": "==1.5.3",
+            "hash": "sha256:2809b2ab81906483b47c9d7e28740e3b69c160617f33d7aa11dc4ae376fd04d9"
         },
         "u-msgpack-python": {
             "version": "==2.3.0",
@@ -241,8 +241,8 @@
             "hash": "sha256:52089f97fe7a9aa0d3277b220c1d730a85aefd64e1b2664696fe35317c5470a7"
         },
         "setuptools": {
-            "version": "==34.2.0",
-            "hash": "sha256:75d352eeeddd96a3fb702b1da9f8b89e5f8c045dbd86e3894516733eb5f99713"
+            "version": "==34.3.0",
+            "hash": "sha256:ef40d2d360ba1be284a47c51a5a489afa7d8cde5ca39f2321876e00e93fe04cd"
         },
         "babel": {
             "version": "==2.3.4",
@@ -265,8 +265,8 @@
             "hash": "sha256:0c1bd0cb7c301b193da4bcf31bdf68bbdbea88be4bea5f680caecc56d9b74020"
         },
         "pyasn1": {
-            "version": "==0.2.2",
-            "hash": "sha256:d4178dce4243b5177afb5410156941fdc956288413ca676a56135cfeb008eba5"
+            "version": "==0.2.3",
+            "hash": "sha256:0439b9bd518418260c2641a571f0e07fce4370cab13b68f19b5e023306c03cad"
         },
         "sdnotify": {
             "version": "==0.3.1",
@@ -283,7 +283,7 @@
         ],
         "requires": {},
         "hash": {
-            "sha256": "103013358faf8178d460e5890579130539d9a5d741890ef6877a193ab1a872cb"
+            "sha256": "ce6ccd6e33db72e908ebc677bd118d16941b8d6ac88703fabca9a5b84199e9f8"
         }
     }
 }

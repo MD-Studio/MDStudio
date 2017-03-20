@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # build the docker containers
 docker-compose build
 

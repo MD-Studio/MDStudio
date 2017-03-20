@@ -354,8 +354,8 @@ function _install_update_packages () {
     # Install LIEStudio components using pip
     for package in $( ls -d ${ROOTDIR}/components/*/ ); do
         if [[ -e ${package}/setup.py ]]; then
-        echo "INFO: Install LIEStudio Python component ${package}"
-        pip install $_force_reinstall $_local_install $package
+            echo "INFO: Install LIEStudio Python component ${package}"
+            pip install $_force_reinstall $_local_install $package
         fi
     done
     

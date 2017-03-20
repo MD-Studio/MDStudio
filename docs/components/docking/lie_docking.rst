@@ -6,6 +6,13 @@ lie_docking package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_docking.tests
+
 Submodules
 ----------
 

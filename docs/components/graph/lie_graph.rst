@@ -6,6 +6,13 @@ lie_graph package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_graph.tests
+
 Submodules
 ----------
 

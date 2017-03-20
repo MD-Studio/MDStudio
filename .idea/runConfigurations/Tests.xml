@@ -2,7 +2,12 @@
   <configuration default="false" name="Tests" type="tests" factoryName="Unittests" singleton="true">
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
-    <envs />
+    <envs>
+      <env name="IS_DOCKER" value="1" />
+      <env name="VIRTUAL_ENV" value="/app/.venv/" />
+      <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="MONGO_HOST" value="mongo" />
+    </envs>
     <option name="SDK_HOME" value="ssh://root@127.0.0.1:65432/app/.venv/bin/python" />
     <option name="WORKING_DIRECTORY" value="" />
     <option name="IS_MODULE_SDK" value="false" />

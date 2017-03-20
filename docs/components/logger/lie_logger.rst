@@ -6,6 +6,13 @@ lie_logger package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_logger.tests
+
 Submodules
 ----------
 

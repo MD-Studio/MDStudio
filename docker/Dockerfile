@@ -10,11 +10,6 @@ RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
 
 RUN python -m pip install pipenv
 
-ARG PUID=1000
-ARG PGID=1000
-RUN groupadd -g $PGID liestudio && \
-    useradd -u $PUID -g liestudio -m liestudio
-
 # ssh:
 ADD docker/insecure_id_rsa /tmp/id_rsa 
 ADD docker/insecure_id_rsa.pub /tmp/id_rsa.pub 
@@ -29,14 +24,19 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
         && cat /tmp/id_rsa >> /root/.ssh/id_rsa \
         && rm -f /tmp/id_rsa* \
         && chmod 600 /root/.ssh/authorized_keys /root/.ssh/id_rsa.pub \
-    && chmod 400 /root/.ssh/id_rsa \
+        && chmod 400 /root/.ssh/id_rsa \
 ;fi
 
 RUN echo "" >> ~/.bashrc && \
     echo 'alias livedocs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
     echo 'alias docs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
     echo 'alias serve="(cd /app/app; /usr/bin/gulp serve)"' >> ~/.bashrc && \
-    echo 'alias compile="(cd /app/app; /usr/bin/gulp compile)"' >> ~/.bashrc
+    echo 'alias compile="(cd /app/app; /usr/bin/gulp compile)"' >> ~/.bashrc && \
+    echo "" >> ~/.bashrc && \
+    echo 'source /app/.venv/bin/activate' >> ~/.bashrc && \
+    echo 'export MONGO_HOST=mongo' >> ~/.bashrc && \
+    echo 'export IS_DOCKER=1' >> ~/.bashrc
+
 
 ADD docker/.bash_profile ~/.bash_profile
 

@@ -1,6 +1,7 @@
+#!/usr/bin/env bash
 echo 'Running installer' &>> docker/.INSTALLING
 
-if [[ ! -d "/app/.venv" ]]; then   
+if [[ ! -d "/app/.venv" ]]; then
     bash installer.sh --setup --local-dev &>> docker/.INSTALLING
 fi
 
@@ -10,10 +11,6 @@ sed -i 's/ sys.settrace(None)/ #sys.settrace(None)/g' /app/.venv/lib/python2.7/s
 
 echo 'Set mongo connection' &>> docker/.INSTALLING
 sed -i 's/"host": "localhost",/"host": "mongo",/g' /app/data/settings.json
-
-grep -q "source /app/.venv/bin/activate" ~/.bashrc || echo "source /app/.venv/bin/activate" >> ~/.bashrc
-grep -q "export MONGO_HOST=mongo" ~/.bashrc || echo "export MONGO_HOST=mongo" >> ~/.bashrc
-grep -q "export IS_DOCKER=1" ~/.bashrc || echo "export IS_DOCKER=1" >> ~/.bashrc
 
 echo 'Compiling pycharm helpers' &>> docker/.INSTALLING
 if [ -d /app/.pycharm_helpers/pydev/ ]; then
