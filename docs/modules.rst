@@ -5,6 +5,7 @@ Components
 .. toctree::
    :maxdepth: 4
 
+   components/atb/modules.rst
    components/config/modules.rst
    components/db/modules.rst
    components/docking/modules.rst

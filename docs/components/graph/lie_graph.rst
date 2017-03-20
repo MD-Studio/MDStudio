@@ -6,16 +6,15 @@ lie_graph package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_graph.io
+
 Submodules
 ----------
-
-lie_graph.config_graph module
------------------------------
-
-.. automodule:: lie_graph.config_graph
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 lie_graph.graph module
 ----------------------
@@ -61,14 +60,6 @@ lie_graph.graph_helpers module
 ------------------------------
 
 .. automodule:: lie_graph.graph_helpers
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-lie_graph.graph_io module
--------------------------
-
-.. automodule:: lie_graph.graph_io
     :members:
     :undoc-members:
     :show-inheritance:
