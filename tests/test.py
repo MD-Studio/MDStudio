@@ -28,23 +28,22 @@ def load_studio_tests(suite, loader, dir, type):
         suite.addTests(tests)
 
 #def main():
-search_path = os.path.join(__root_path__, '../components/')
+def load_tests(loader, tests, pattern):
+    search_path = os.path.join(__root_path__, '../components/')
 
-for g in glob(os.path.join(search_path, '*/')):
-    sys.path.append(os.path.realpath(os.path.join(g, '../')))
+    for g in glob(os.path.join(search_path, '*/')):
+        sys.path.append(os.path.realpath(os.path.join(g, '../')))
 
 
-# Add all tests.
-alltests = unittest2.TestSuite()
-for name, path in list_components_tests(search_path).items():
-    print("Loading '{}' from '{}'".format(name, path))
-    if name == "lie_user_tests" or name == "lie_config_tests":
-        loader = unittest2.TestLoader()
-
+    # Add all tests.
+    alltests = unittest2.TestSuite()
+    for name, path in list_components_tests(search_path).items():
+        print("Loading '{}' from '{}'".format(name, path))
         load_studio_tests(alltests, loader, path, "tests/module/")
         # loadTests(alltests, loader, path, "wamp")
 
-result = unittest2.TextTestRunner(verbosity=2).run(alltests)
+    #result = unittest2.TextTestRunner(verbosity=2).run(alltests)
+    return alltests
 
 
 #if __name__ == '__main__':
