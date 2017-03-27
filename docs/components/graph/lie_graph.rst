@@ -11,6 +11,7 @@ Subpackages
 
 .. toctree::
 
+    lie_graph.io
     lie_graph.tests
 
 Submodules

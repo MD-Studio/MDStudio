@@ -6,6 +6,13 @@ lie_system package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_system.tests
+
 Submodules
 ----------
 

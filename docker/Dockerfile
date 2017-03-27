@@ -35,7 +35,8 @@ RUN echo "" >> ~/.bashrc && \
     echo "" >> ~/.bashrc && \
     echo 'source /app/.venv/bin/activate' >> ~/.bashrc && \
     echo 'export MONGO_HOST=mongo' >> ~/.bashrc && \
-    echo 'export IS_DOCKER=1' >> ~/.bashrc
+    echo 'export IS_DOCKER=1' >> ~/.bashrc && \
+    echo 'cd /app' >> ~/.bashrc
 
 
 ADD docker/.bash_profile ~/.bash_profile
