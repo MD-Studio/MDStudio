@@ -141,7 +141,7 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
         LogLevelFilterPredicate(defaultLogLevel=LogLevel.levelWithName('info'))
       ]
       
-      cls.observer = FilteringLogObserver(observer=RotateFileLogObserver(logfile_path=cls._logfilepath, rotation_time=4), 
+      cls.observer = FilteringLogObserver(observer=RotateFileLogObserver(logfile_path=cls._logfilepath, rotation_time=1),
         predicates=filter_predicates)
       globalLogPublisher.addObserver(cls.observer)
   
@@ -161,10 +161,10 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
   def test_rotationfileobserver_timerotation(self):
       """
       This test class configures the RotateFileLogObserver to 
-      create a new log file after every 4 seconds past.
+      create a new log file after every 1 seconds past.
       
-      Logging a series of messages 4 times with 4 seconds delay
-      between each should give at minimum 4 logfiles
+      Logging a series of messages 1 times with 1 seconds delay
+      between each should give at minimum 1 logfiles
       """
     
       for logmessage in range(4):
@@ -173,7 +173,7 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
         logging.warn('Logging warn message {0}'.format(logmessage))
         logging.error('Logging error message {0}'.format(logmessage))
         logging.critical('Logging critical message {0}'.format(logmessage))
-        time.sleep(5)
+        time.sleep(1)
       
       logfiles = glob.glob('{0}/rotatelogfile*.log'.format(os.path.dirname(self._currpath)))
       self.assertTrue(len(logfiles) >= 4)
