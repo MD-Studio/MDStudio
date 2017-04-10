@@ -24,12 +24,11 @@ def load_studio_tests(suite, loader, dir, type):
     if os.path.isdir(os.path.realpath(os.path.join(dir, type))):
         start_dir = os.path.realpath(os.path.join(dir, type))
         top_level_dir = os.path.realpath(os.path.join(dir, '../'))
-        tests = loader.discover(start_dir, "*.py", top_level_dir)
+        tests = loader.discover(start_dir, "*_test.py", top_level_dir)
         suite.addTests(tests)
 
-#def main():
 def load_tests(loader, tests, pattern):
-    search_path = os.path.join(__root_path__, '../components/')
+    search_path = os.path.join(__root_path__, 'components/')
 
     for g in glob(os.path.join(search_path, '*/')):
         sys.path.append(os.path.realpath(os.path.join(g, '../')))
@@ -40,11 +39,9 @@ def load_tests(loader, tests, pattern):
     for name, path in list_components_tests(search_path).items():
         print("Loading '{}' from '{}'".format(name, path))
         load_studio_tests(alltests, loader, path, "tests/module/")
-        # loadTests(alltests, loader, path, "wamp")
 
-    #result = unittest2.TextTestRunner(verbosity=2).run(alltests)
     return alltests
 
 
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+    unittest2.main()

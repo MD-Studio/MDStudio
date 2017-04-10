@@ -23,7 +23,7 @@ from   lie_graph.graph_axis_methods import *
 
 class GraphAxisTests(unittest2.TestCase):
     
-    _settings_json = os.path.join(currpath, 'files', 'config_handler_test.json')
+    _settings_json = os.path.join(currpath, '../', 'files', 'config_handler_test.json')
     
     def setUp(self):
         """

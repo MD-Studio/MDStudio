@@ -31,7 +31,7 @@ class ConfigHandlerIOTests(unittest2.TestCase):
     """
     
     _currpath = os.path.abspath(__file__)
-    _settings_json = os.path.join(os.path.dirname(_currpath), 'files', 'config_handler_test')
+    _settings_json = os.path.join(os.path.dirname(_currpath), '../', 'files', 'config_handler_test')
     
     @classmethod
     def setUpClass(cls):

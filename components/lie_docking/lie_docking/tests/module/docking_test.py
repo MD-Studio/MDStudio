@@ -15,18 +15,20 @@ import glob
 __rootpath__ = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
+# this executable is proprietary, and thus cannot be installed by default
+# if the file does not exists we skip the tests involved
+exec_path = os.path.join(__rootpath__, '../../../bin/plants_darwin')
+
 from   twisted.logger             import Logger
 from   lie_docking.plants_docking import PlantsDocking
 from   lie_docking.utils          import prepaire_work_dir
 
 logging = Logger()
-
 class PlantsDockingTest(unittest.TestCase):
     
     workdir = None
-    ligand_file = os.path.join(__rootpath__, 'ligand.mol2')
-    protein_file = os.path.join(__rootpath__, 'protein.mol2')
-    exec_path = os.path.join(__rootpath__, '../../../bin/plants_darwin')
+    ligand_file = os.path.join(__rootpath__, '../ligand.mol2')
+    protein_file = os.path.join(__rootpath__, '../protein.mol2')
     
     @classmethod
     def setUpClass(cls):
@@ -58,7 +60,7 @@ class PlantsDockingTest(unittest.TestCase):
         """
         
         plants = PlantsDocking(workdir='/Users/_dummy_user/lie_docking-0.1/tests/plants_docking',
-                               exec_path=self.exec_path,
+                               exec_path=exec_path,
                                bindingsite_center=[7.79934,9.49666,3.39229])
         
         self.assertFalse(plants.run(self.protein, self.ligand))
@@ -75,15 +77,16 @@ class PlantsDockingTest(unittest.TestCase):
                                bindingsite_center=[7.79934,9.49666,3.39229])
         
         self.assertFalse(plants.run(self.protein, self.ligand))
-            
+
+    @unittest.skipIf(not os.path.exists(exec_path), "This test requires proprietary software")
     def test_plants_docking(self):
         """
         A working plants docking
         """
         
-        self.workdir = prepaire_work_dir(__rootpath__, create=True)
+        self.workdir = prepaire_work_dir(os.path.join(__rootpath__, '../'), create=True)
         plants = PlantsDocking(workdir=self.workdir, 
-                               exec_path=self.exec_path,
+                               exec_path=exec_path,
                                bindingsite_center=[7.79934,9.49666,3.39229])
         self.assertTrue(plants.run(self.protein, self.ligand))
         

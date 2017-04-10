@@ -32,7 +32,7 @@ log_serializer = LogSerializer(max_depth=2)
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
-db = None#MongoClient(host='localhost', port=27017)['liestudio']
+db = None#MongoClient(host='localhost' if not os.getenv('IS_DOCKER') else 'mongo', port=27017)['liestudio']
 
 
 class InvalidObserverError(Exception):
@@ -298,7 +298,7 @@ class PrintingObserver(object):
         :type event : dict
         """
         event = _format_logger_event(event, datefmt=self._datefmt)
-        self._out.write(self._format_event.format(**event))
+        self._out.write(self._format_event.format(**event).decode('utf-8'))
 
 
 @provider(ILogObserver)
@@ -350,7 +350,7 @@ class RotateFileLogObserver(object):
             self._rotate_logfile()
 
         event = _format_logger_event(event, datefmt=self._datefmt)
-        self._logfile.write(self._format_event.format(**event))
+        self._logfile.write(self._format_event.format(**event).decode('utf-8'))
 
     def _get_logfile_ctime(self):
         """
@@ -427,9 +427,12 @@ class ExportToMongodbObserver(object):
     :type datefmt:  string
     """
 
-    def __init__(self, log_cache_size=50, **kwargs):
+    def __init__(self, log_cache_size=50, db_obj=None, **kwargs):
 
-        self._log_db = db['log']
+        if not db_obj:
+            db_obj = db
+
+        self._log_db = db_obj['log']
         self._log_cache_size = log_cache_size
 
         self._log_cache = []
@@ -442,11 +445,10 @@ class ExportToMongodbObserver(object):
         :param event: Twisted logger event
         :type event:  dict
         """
-        
-        if event.get('app', None) == 'liestudio':
-            self._log_cache.append(_serialize_logger_event(event))
-            if len(self._log_cache) == self._log_cache_size:
-                self.flush()
+
+        self._log_cache.append(_serialize_logger_event(event))
+        if len(self._log_cache) == self._log_cache_size:
+            self.flush()
 
     def flush(self):
         """

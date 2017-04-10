@@ -54,7 +54,7 @@ class ConfigHandlerTests(unittest.TestCase):
     """
     
     _currpath = os.path.abspath(__file__)
-    _settings_json = os.path.join(os.path.dirname(_currpath), 'files', 'config_handler_test.json')
+    _settings_json = os.path.join(os.path.dirname(_currpath), '../', 'files', 'config_handler_test.json')
     
     def setUp(self):
         """

@@ -60,7 +60,7 @@ class LoggerExportToMongodbObserverTest(unittest2.TestCase):
         LogLevelFilterPredicate(defaultLogLevel=LogLevel.levelWithName('info'))
       ]
       
-      cls.observer = FilteringLogObserver(observer=ExportToMongodbObserver(log_cache_size=10), predicates=filter_predicates)
+      cls.observer = FilteringLogObserver(observer=ExportToMongodbObserver(log_cache_size=10, db_obj=cls.db.connect()), predicates=filter_predicates)
       globalLogPublisher.addObserver(cls.observer)
   
   @classmethod
@@ -121,7 +121,7 @@ class LoggerExportToMongodbObserverTest(unittest2.TestCase):
       self.assertIsNotNone(logmessage)
       if logmessage:
         self.assertEqual(logmessage['log_level'], 'info')
-        self.assertEqual(logmessage['log_namespace'], 'tests.module_test')
+        self.assertEqual(logmessage['log_namespace'], 'lie_logger.tests.module.logger_test')
 
 class LoggerRotateFileLogObserverTest(unittest2.TestCase):
   

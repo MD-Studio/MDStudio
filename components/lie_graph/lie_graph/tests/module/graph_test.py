@@ -22,7 +22,7 @@ from   lie_graph.graph_io   import read_tgf
 
 class TestGraph(unittest2.TestCase):
     
-    _gpf_graph = os.path.join(currpath, 'files', 'graph.tgf')
+    _gpf_graph = os.path.join(currpath, '../', 'files', 'graph.tgf')
     
     def setUp(self):
         """

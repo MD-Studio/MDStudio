@@ -47,7 +47,7 @@ class ORMtestTgf9(object):
 
 class TestGraphORM(unittest2.TestCase):
     
-    _gpf_graph = os.path.join(currpath, 'files', 'graph.tgf')
+    _gpf_graph = os.path.join(currpath, '../', 'files', 'graph.tgf')
     
     def setUp(self):
         

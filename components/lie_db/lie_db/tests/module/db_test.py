@@ -31,6 +31,7 @@ class DatabaseTest(unittest.TestCase):
         self.dblog = os.path.join(os.path.dirname(currpath), 'mongodb.log')
         self.db = BootstrapMongoDB('unittest_db', dbname='liestudio', dblog=self.dblog)
 
+    @unittest.skipIf(os.getenv('IS_DOCKER', False), "In the docker version, we always run mongodb")
     def test_start_stop_local_database(self):
 
         """
@@ -50,6 +51,7 @@ class DatabaseTest(unittest.TestCase):
         # Stop the Database
         self.assertTrue(self.db.stop())
 
+    @unittest.skipIf(os.getenv('IS_DOCKER', False), "In the docker version, we always run mongodb")
     def test_not_running_database(self):
 
         """
@@ -60,6 +62,7 @@ class DatabaseTest(unittest.TestCase):
         self.assertFalse(self.db.isremote)
         self.assertFalse(len(self.db.info))
 
+    @unittest.skipIf(os.getenv('IS_DOCKER', False), "In the docker version, we always run mongodb")
     def test_running_database(self):
 
         """
@@ -89,6 +92,3 @@ class DatabaseTest(unittest.TestCase):
             shutil.rmtree('unittest_db')
         for log in glob.glob('mongodb.log*'):
             os.remove(log)
-
-if __name__ == '__main__':
-    unittest.main(verbosity=2)
