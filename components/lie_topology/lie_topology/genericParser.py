@@ -1,0 +1,4 @@
+def GenericStructureParser( path, ftype ):
+    	
+        
+    
