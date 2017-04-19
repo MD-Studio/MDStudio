@@ -132,7 +132,7 @@ class GraphORM(object):
         for i in objects:
             attr = graph.attr(i)
             if type(attr) == dict:
-                query.extend(attr.items())
+                query.extend([(k,v) for k,v in attr.items() if not type(v) in (list,dict)])
         
         # query matching based on set operation, does not work for unhashable types
         try:
