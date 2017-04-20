@@ -2,7 +2,8 @@
 
 import logging as logger
 
-from graph_helpers import GraphException, _open_anything
+from graph_helpers import GraphException
+from .io.io_helpers import _open_anything
 
 class _NodeEdgeBase(object):
     """
