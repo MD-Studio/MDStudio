@@ -24,10 +24,8 @@
 # @endcond
 #
 
-class LieTopologyException(Exception):
-    
-    def __init__(self, location, message):
-
-        # Call the base class constructor with the parameters it needs
-        super(Exception, self).__init__(location+"::"+message)
-        
+def ClassFromName(moduleName, className):
+ 
+    m = __import__(moduleName, globals(), locals(), className);
+    c = getattr(m, className);
+    return c;
