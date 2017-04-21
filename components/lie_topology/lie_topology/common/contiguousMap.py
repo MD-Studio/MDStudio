@@ -24,124 +24,138 @@
 # @endcond
 #
 
-
+from lie_topology.common.serializable import Serializable
 from lie_topology.common.exception import LieTopologyException;
 
-class ContiguousMap( object ):
-    
-    class Pair(object):
+class Pair( Serializable ):
         
-        def __init__(self, first, second):
-            
-            self.first = first;
-            self.second = second;
-    
+    def __init__(self, key = None, value = None):
+        
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
+        
+        self.key = key;
+        self.value = value;
+        
+class ContiguousMap( Serializable ):
+
     def __init__( self ):
         
-        self.mSearchStorage = {};
-        self.mContiguousStorage = [];
-    
-    def Insert( self, key, element ):
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
         
-        if key in self.mSearchStorage:
+        self.indices = {};
+        self.items = [];
+    
+    def __getitem__( self, key ):
+    
+        return self.find( key )
+    
+    def __setitem__(self, key, value ):
+        
+        self.setValue(key,value)
+    
+    def insert( self, key, element ):
+        
+        if key in self.indices:
             
             raise LieTopologyException( "ContiguousMap::PushBack", "Key %s already in use" % ( key ) );
             
-        newIndex = len( self.mContiguousStorage );
+        newIndex = len( self.items );
         
-        self.mContiguousStorage.append( ContiguousMap.Pair( key, element ) );
-        self.mSearchStorage[ key ] = newIndex;
+        self.items.append( Pair( key, element ) );
+        self.indices[ key ] = newIndex;
         
-    def Find( self, key ):
+    def find( self, key ):
         
-        if key in self.mSearchStorage:
+        if key in self.indices:
             
-            return self.At( self.mSearchStorage[key] );
+            return self.at( self.indices[key] );
         
         return None;
     
-    def Set( self, key, value ):
+    def setValue( self, key, value ):
         
-        if not key in self.mSearchStorage:
+        if not key in self.indices:
             
             raise LieTopologyException( "ContiguousMap::Set", "Key %s not in use" % ( key ) );
         
-        index = self.mSearchStorage[key];
+        index = self.indices[key];
         
-        self.mContiguousStorage[index].second = value;
+        self.items[index].value = value;
     
-    def KeyValueAt( self, index ):
+    def keyValueAt( self, index ):
         
-        if index >= len( self.mContiguousStorage ):
+        if index >= len( self.items ):
             
             raise LieTopologyException( "ContiguousMap::KeyValueAt", "Index %i out of range" % ( index ) );
         
-        pair = self.mContiguousStorage[index];
+        pair = self.items[index];
         
-        return pair.first, pair.second;
+        return pair.key, pair.value;
     
-    def At( self, index ):
+    def at( self, index ):
         
-        key, value = self.KeyValueAt( index );
+        key, value = self.keyValueAt( index );
         
         return value;
     
-    def KeyAt( self, index ):
+    def keyAt( self, index ):
         
-        key, value = self.KeyValueAt( index );
+        key, value = self.keyValueAt( index );
         
         return key;
     
-    def Size( self ):
+    def size( self ):
         
-        return len( self.mContiguousStorage );
+        return len( self.items );
         
-    def IndexOf( self, key ):
+    def indexOf( self, key ):
         
-        if key in self.mSearchStorage:
+        if key in self.indices:
             
-            return self.mSearchStorage[key];
+            return self.indices[key];
         
         return -1;
     
-    def Remove( self, key ):
+    def remove( self, key ):
         
-        if not key in self.mSearchStorage:
+        if not key in self.indices:
             
             raise LieTopologyException( "ContiguousMap::Remove", "Key %s not in use" % ( key ) );
         
         else:
             
-            index = self.mSearchStorage[key];
+            index = self.indices[key];
             
-            del self.mContiguousStorage[index];
-            del self.mSearchStorage[key];
+            del self.items[index];
+            del self.indices[key];
             
-    def Clear( self ):
+    def clear( self ):
         
-        self.mSearchStorage = {};
-        self.mContiguousStorage = [];
+        self.indices = {};
+        self.items = [];
     
-    def Values(self):
+    def values(self):
         
-        for i in range(0,len(self.mContiguousStorage),1):
+        for i in range(0,len(self.items),1):
             
-            key, value = self.KeyValueAt( i );
+            key, value = self.keyValueAt( i );
             
             yield value;
     
-    def Keys(self):
+    def keys(self):
         
-        for i in range(0,len(self.mContiguousStorage),1):
+        for i in range(0,len(self.items),1):
             
-            key, value = self.KeyValueAt( i );
+            key, value = self.keyValueAt( i );
             
             yield key;
     
-    def Items(self):
+    def items(self):
         
-        for i in range(0,len(self.mContiguousStorage),1):
+        for i in range(0,len(self.items),1):
             
-            key, value = self.KeyValueAt( i );
+            key, value = self.keyValueAt( i );
             
             yield key, value; 

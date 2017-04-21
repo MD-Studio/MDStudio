@@ -26,36 +26,9 @@
 
 import json
 
-from copy import deepcopy
-from collections import OrderedDict
-
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
-
-class Dummy( Serializable ):
-
-    def __init__(self):
-        
-        # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
-        
-        self.value = "Undefined"
-
-class Test( Serializable ):
-    
-    def __init__( self ):
-        
-        # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
-        
-        self.item1 = "test";
-        self.item2 = 1;
-        self.item3 = 2.0;
-        self.item4 = [ 1, 2, 3 ];
-        self.item5 = [ 1.0, 2.0, 3.0 ];
-        self.item6 = { "a" : 1, "b" : 2 }
-    	self.item7 = Dummy();        
 
 class Atom( Serializable ):
     
@@ -70,9 +43,6 @@ class Atom( Serializable ):
         # Element of the atom
         self.element = None
         
-        # Sequential index within the solute
-        self.index = None
-        
         # Identifier number defined by external sources
         self.identifier = None
         
@@ -83,7 +53,7 @@ class Atom( Serializable ):
         self.vdwType = None
         
         # Coulombic type, to be combined with a force field input
-    	self.coulType = None
+        self.coulType = None
         
         # Charge group indiciation
         self.chargeGroup = None
@@ -93,5 +63,3 @@ class Atom( Serializable ):
         
         # Virtual site treatment
         self.vsite = None
-  
-        self.test = Test()

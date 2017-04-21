@@ -30,7 +30,6 @@ import inspect
 from copy import deepcopy
 
 from lie_topology.common.util import ClassFromName
-from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 
 def _DeserializeValueChain( value, logger ):
@@ -46,7 +45,11 @@ def _DeserializeValueChain( value, logger ):
         
         rvalue = []
         for item in value:
-            rvalue.append( _DeserializeValueChain( item, logger ) )
+            
+            valChain = _DeserializeValueChain( item, logger );
+            
+            if valChain:
+                rvalue.append( valChain )
                     
     elif isinstance( value, dict ):
         # Two options: either full blown object or a case of a traditional dict
@@ -57,10 +60,16 @@ def _DeserializeValueChain( value, logger ):
         else:
             rvalue = {}
             for key, item in value.items():
-                rvalue[key] = _DeserializeValueChain( item, logger )
+                
+                valChain = _DeserializeValueChain( item, logger )
+                rvalue[key] = valChain
+    
+    # catch None
+    elif inspect.isclass( type(value) ):
+        rvalue = value;
     
     else:
-        raise LieTopologyException( "Serializable::_DeserializeValueChain", "Unknown value type" );
+        raise LieTopologyException( "Serializable::_DeserializeValueChain", "Unknown value type %s" % ( str(value) ) );
     
     return rvalue;
 
@@ -78,13 +87,17 @@ def _SerializeValueChain( value, logger ):
         
         rvalue = []
         for item in value:
-            rvalue.append( _SerializeValueChain( item, logger ) )
+            
+            valChain = _SerializeValueChain( item, logger );
+            rvalue.append( valChain )
                     
     elif isinstance( value, dict ):
         
         rvalue = {}
         for key, item in value.items():
-            rvalue[key] = _SerializeValueChain( item, logger )
+            
+            valChain = _SerializeValueChain( item, logger );
+            rvalue[key] = valChain
     
     elif inspect.isclass( type(value) ):
         
@@ -93,7 +106,7 @@ def _SerializeValueChain( value, logger ):
             rvalue = value.OnSerialize( logger )
     
     else:
-        raise LieTopologyException( "Serializable::_SerializeValueChain", "Unknown value type" );
+        raise LieTopologyException( "Serializable::_SerializeValueChain", "Unknown value type %s" % ( str(value) ) );
         
     return rvalue;
 
@@ -117,9 +130,8 @@ class Serializable( object ):
             
             if self._IsValidCategory( cat ):
     	       
-                # in the simplest case the value is already float, int or string
-                # if we are dealing with lists or objects things become harder
-                setattr(self, cat, _DeserializeValueChain( value, logger ) );
+               valChain =  _DeserializeValueChain( value, logger ) 
+               setattr(self, cat, _DeserializeValueChain( value, logger ) );
                 
             else:
                 # If a python logger is present
@@ -130,9 +142,9 @@ class Serializable( object ):
     def OnSerialize( self, logger = None ):          
         
         rvalue = {}
-        
         for cat, value in self.__dict__.items():
             
-            rvalue[cat] =  _SerializeValueChain( value, logger );
+            valChain =  _SerializeValueChain( value, logger );
+    	    rvalue[cat] = valChain
             
         return rvalue;

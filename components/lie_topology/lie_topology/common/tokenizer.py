@@ -24,59 +24,63 @@
 # @endcond
 #
 
+from lie_topology.common.exception import LieTopologyException;
+
 class Tokenizer:
     
-    def _ParseFile( self, ifile):
+    def __init__(self, ifstream ):
+        
+        # Storage of known blocks
+        self.blocks = {}
+        
+        # Parse the input stream
+        self._ParseFile( ifstream );
     
+    
+    def _ParseFile( self, ifstream ):
+        	
+        # Record the current block name
         currentBlock = None;
+        
+        # Store tokens till END
         tokens = [];
         
-        for line in ifile.split("\n"):
+        # Read line by line
+        for line in ifstream.split("\n"):
         
+            # Strip whitespace at ends
             line = line.strip();
             
-            if len( line ) == 0 or line.strip()[0] == '#':
+            # Split by basic delimiters
+            fragments = line.split();
+            
+            # If there are no fragments or a comment -> skip
+            if len( fragments ) == 0 or line[0] == '#':
                 
                 continue;
             
+           # If we havent recorded what block this is
             elif currentBlock == None:
-                
-                currentBlock = line;
+                currentBlock = fragments.pop(0);
                 continue;
          
-            elif line == "END" or line == "[END]":
+            for token in fragments:
                 
-                if currentBlock in self._blocks:
-                    
-                    self._blocks[currentBlock].append(tokens);
+                if token[0] == "#":
+                    break;
                 
-                else:
-                    
-                    self._blocks[currentBlock] = [ tokens ];
-                    
-                currentBlock = None;
-                tokens = [];
-                continue;
-            
-            else: 
+                tokens.append( token )
                 
-                for token in line.split():
-                    
-                    if token[0] == "#":
+                if tokens[-1] == "END" or tokens[-1] == "[END]":
                 
-                    	break;
+                    tokens.pop();
+                    
+                    if currentBlock in self.blocks:
+                        
+                        self.blocks[currentBlock].append(tokens)
                     
                     else:
+                        self.blocks[currentBlock] = [ tokens ]
                         
-                        tokens.append( token );
-            
-    
-    def __init__(self, ifile):
-        
-        self._blocks = {}
-        
-        self._ParseFile( ifile );
-        
-    def GetStream(self):
-        
-        return self._blocks;
+                    currentBlock = None
+                    tokens = []

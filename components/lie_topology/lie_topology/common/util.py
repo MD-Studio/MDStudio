@@ -26,6 +26,6 @@
 
 def ClassFromName(moduleName, className):
  
-    m = __import__(moduleName, globals(), locals(), className);
-    c = getattr(m, className);
-    return c;
+    _module = __import__(moduleName, globals(), locals(), className);
+    _iclass = getattr(_module, className);
+    return _iclass();

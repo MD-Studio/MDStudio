@@ -20,16 +20,6 @@ from   lie_system             import LieApplicationSession
 
 class TopologyWampApi(LieApplicationSession):
     
-    @inlineCallbacks
-    def onRun(self, details):
-        
-        self.log.info('Topology.onRun not in use yet')
-        
-        # DEBUG 
-        #reactor.stop()
-        
-        return {}
-        
     @wamp.register(u'liestudio.topology.parse_structure')
     def topology_parse_structure( self, pdb_path, ftype="auto" ):
         
