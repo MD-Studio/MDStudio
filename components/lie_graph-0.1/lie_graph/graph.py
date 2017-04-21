@@ -88,7 +88,7 @@ class Graph(object):
         
         # Adjacency is optional and can be constructed from edges.
         if not adjacency and edges:
-            self.adjacency = GraphDict(_edge_list_to_adjacency(edges.keys()))
+            self._set_adjacency()
         
         # Graph attributes, set directly
         self.is_directed   = False
@@ -347,6 +347,13 @@ class Graph(object):
         
         if isinstance(graph, Graph):
             self._full_graph = weakref.ref(graph._full_graph)()
+    
+    def _set_adjacency(self):
+        """
+        (re)create the adjacency list from the graph edges
+        """
+        
+        self.adjacency = GraphDict(_edge_list_to_adjacency(self.edges.keys()))
     
     def add_edge(self, nd1, nd2=None, attr=None, directed=None, deepcopy=True, node_from_edge=False, **kwargs):
         """
