@@ -39,7 +39,7 @@ def _DeserializeValueChain( value, logger ):
     if isinstance( value, ( float, int, long, str )  ):
         rvalue = value;
     
-    elif isinstance( value, list ):
+    elif isinstance( value, ( list, tuple ) ):
         # in case of a list we need to process each value of the list
         # As they might be objects themself
         
@@ -48,21 +48,25 @@ def _DeserializeValueChain( value, logger ):
             
             valChain = _DeserializeValueChain( item, logger );
             
-            if valChain:
+            if valChain != None:
                 rvalue.append( valChain )
                     
     elif isinstance( value, dict ):
         # Two options: either full blown object or a case of a traditional dict
         if "_moduleName" in value and "_className" in value:
             rvalue =  ClassFromName( value["_moduleName"], value["_className"] );
-            rvalue.OnDeserialize( value, logger );
+            
+            if rvalue != None:
+                rvalue.OnDeserialize( value, logger );
         
         else:
             rvalue = {}
             for key, item in value.items():
                 
                 valChain = _DeserializeValueChain( item, logger )
-                rvalue[key] = valChain
+                
+                if valChain != None:
+                    rvalue[key] = valChain
     
     # catch None
     elif inspect.isclass( type(value) ):
@@ -81,7 +85,7 @@ def _SerializeValueChain( value, logger ):
     if isinstance( value, ( float, int, long, str )  ):
         rvalue = value;
 
-    elif isinstance( value, list ):
+    elif isinstance( value, ( list, tuple ) ):
         # in case of a list we need to process each value of the list
         # As they might be objects themself
         
@@ -89,7 +93,9 @@ def _SerializeValueChain( value, logger ):
         for item in value:
             
             valChain = _SerializeValueChain( item, logger );
-            rvalue.append( valChain )
+            
+            if valChain != None:
+                rvalue.append( valChain )
                     
     elif isinstance( value, dict ):
         
@@ -97,12 +103,14 @@ def _SerializeValueChain( value, logger ):
         for key, item in value.items():
             
             valChain = _SerializeValueChain( item, logger );
-            rvalue[key] = valChain
+            
+            if valChain != None:
+                rvalue[key] = valChain
     
     elif inspect.isclass( type(value) ):
         
         # catch None
-        if value:
+        if value != None:
             rvalue = value.OnSerialize( logger )
     
     else:
@@ -131,7 +139,9 @@ class Serializable( object ):
             if self._IsValidCategory( cat ):
     	       
                valChain =  _DeserializeValueChain( value, logger ) 
-               setattr(self, cat, _DeserializeValueChain( value, logger ) );
+               
+               if valChain != None:
+                	setattr(self, cat, _DeserializeValueChain( value, logger ) );
                 
             else:
                 # If a python logger is present
@@ -145,6 +155,8 @@ class Serializable( object ):
         for cat, value in self.__dict__.items():
             
             valChain =  _SerializeValueChain( value, logger );
-    	    rvalue[cat] = valChain
+            
+            if valChain != None:
+    	       	rvalue[cat] = valChain
             
         return rvalue;

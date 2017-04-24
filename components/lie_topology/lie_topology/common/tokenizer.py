@@ -28,26 +28,21 @@ from lie_topology.common.exception import LieTopologyException;
 
 class Tokenizer:
     
-    def __init__(self, ifstream ):
+    def __init__( self, ifstream ):
         
-        # Storage of known blocks
-        self.blocks = {}
+        if ifstream.closed:
+            raise LieTopologyException("Tokenizer::__init__", "Given file stream is closed")
         
-        # Parse the input stream
-        self._ParseFile( ifstream );
-    
-    
-    def _ParseFile( self, ifstream ):
-        	
-        # Record the current block name
-        currentBlock = None;
+        self._stream = ifstream;
+        
+    def Blocks(self):
         
         # Store tokens till END
         tokens = [];
         
         # Read line by line
-        for line in ifstream.split("\n"):
-        
+        for line in self._stream:
+            
             # Strip whitespace at ends
             line = line.strip();
             
@@ -56,31 +51,26 @@ class Tokenizer:
             
             # If there are no fragments or a comment -> skip
             if len( fragments ) == 0 or line[0] == '#':
-                
                 continue;
             
-           # If we havent recorded what block this is
-            elif currentBlock == None:
-                currentBlock = fragments.pop(0);
-                continue;
-         
+            # Process tokens one by one         
             for token in fragments:
                 
-                if token[0] == "#":
+                # If this token was an END
+                if token == "END" or token == "[END]":
+                    
+                    if len(tokens) >= 1:
+                        currentBlock = tokens.pop(0)
+                        yield currentBlock, tokens;
+                    
+                    tokens = [];
+                    
+                # Test if we should discard from this point
+                elif token[0] == "#":
                     break;
                 
-                tokens.append( token )
-                
-                if tokens[-1] == "END" or tokens[-1] == "[END]":
-                
-                    tokens.pop();
-                    
-                    if currentBlock in self.blocks:
-                        
-                        self.blocks[currentBlock].append(tokens)
-                    
-                    else:
-                        self.blocks[currentBlock] = [ tokens ]
-                        
-                    currentBlock = None
-                    tokens = []
+                else:
+                    # Add the token
+                    tokens.append( token )
+        
+    

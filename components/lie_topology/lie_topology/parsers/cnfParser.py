@@ -29,77 +29,121 @@ import os
 
 from copy import deepcopy
 
-from lie_topology.common.pbc import RectBox
 from lie_topology.common.tokenizer import Tokenizer;
-from lie_topology.common.exception import PygromosException;
+from lie_topology.common.exception import LieTopologyException;
+from lie_topology.molecule.structure import Structure
 
-def _ParseCnfPositions( stream ):
-    
+def _ParseTitle(block, structure):
+
+    #currently not used
     pass;
 
 
-def ParseCnf( path, moleculeHandle, solventHandle ):
+def _ParseTimeStep(block, structure):
+
+    #currently not used
+    pass;
+
+def _ParsePosition(block, structure):
+    
+    activeTopology = None
+    activeResNum = None
+    
+    if not structure.topology:
         
-    atoms = [];
-    
-    tokenizer = Tokenizer( structurefile );
-    stream = tokenizer.GetStream();
-    
-    if not "POSITION" in stream:
+        # Start parsing a topology this round
+        activeTopology =
         
-        raise PygromosException( "CnfControl::_ParseCnf", "Expected an POSITION block in the cnf stream!" );
-    
-    if not "GENBOX" in stream:
+    # If the structure does not have a topology yet
+    for resNum, resName, atomName, atomNum, x, y, z in zip(block[0::7], block[1::7], 
+                                                           block[2::7], block[3::7], 
+                                                           block[4::7], block[5::7], 
+                                                           block[6::7]):	
         
-        raise PygromosException( "CnfControl::_ParseCnf", "Expected an GENBOX block in the cnf stream!" );
-    
-    positions = stream["POSITION"][0];
-   
-    for resNum, resName, atomName, atomNum, x, y, z in zip(positions[0::7], positions[1::7], positions[2::7], positions[3::7], positions[4::7], positions[5::7], positions[6::7]):	
+        print (resName)
         
-        atoms.append( CnfControl.Atom( atomNum, atomName, resName, resNum, ( float(x), float(y), float(z) ) ) );
+        #atoms.append( CnfControl.Atom( atomNum, atomName, resName, resNum, ( float(x), float(y), float(z) ) ) );
+
+    #currently not used
+    pass;
+
+def _ParseLatticeShifts(block, structure):
+
+    #currently not used
+    pass;
     
+def _ParseVelocity(block, structure):
+
+    #currently not used
+    pass;
     
-    box = stream["GENBOX"][0];
+def _ParseGenbox(block, structure):
+
+    #currently not used
+    pass;
+
+def _ParseCosDiplacements(block, structure):
+
+    #currently not used
+    pass;
+
+def _ParseFreeForce(block, structure):
+
+    #currently not used
+    pass;
+ 
+def _ParseConstrForce(block, structure):
+
+    #currently not used
+    pass; 
+
+def ParseCnf( ifstream ):
     
-    if int(box[0]) != 1:
-        
-        raise PygromosException( "CnfControl::_ParseCnf", "Tried to read in an box type that is not rectangular, this is currently not supported!" );
+    # Parser map
+    parseFunctions = dict()
+    parseFunctions["TITLE"] = _ParseTitle
+    parseFunctions["TIMESTEP"] = _ParseTimeStep
+    parseFunctions["POSITION"] = _ParsePosition
+    parseFunctions["LATTICESHIFTS"] = _ParseLatticeShifts
+    parseFunctions["VELOCITY"] = _ParseVelocity
+    parseFunctions["GENBOX"] = _ParseGenbox
+    parseFunctions["COSDISPLACEMENTS"] = _ParseCosDiplacements
+    parseFunctions["FREEFORCE"] = _ParseFreeForce
+    parseFunctions["CONSFORCE"] = _ParseConstrForce    
     
-    self.box = RectBox( float( box[1] ), float( box[2] ), float( box[3] ) );
+    tokenizer = Tokenizer( ifstream )
     
-    #
-    # Set ranges
-    # 
-    self.soluteStart = 0;
-    self.soluteEnd = moleculeHandle.solute.atoms.Size();
-    self.solventStart = self.soluteEnd;
-    self.solventEnd = len( atoms );
-    self.numSolventMol = ( self.solventEnd - self.solventStart ) / solventHandle.solute.atoms.Size();
+    # Save blocks that we already found with an increasing index
+    # Then we can edit structures later even if they are in a stupid order
+    occurances = dict();
     
-    for i in range( self.soluteStart, self.soluteEnd ):
-        
-        if atoms[i].residueName != moleculeHandle.meta.name:
+    # Add a single structure to the map
+    structures = [ Structure() ];
+    
+    # preload occurances
+    for key in parseFunctions:
+        occurances[key] = 0;
+    
+    ## Uses occurance map to be order agnostic
+    for blockName, block in tokenizer.Blocks():
+    
+        if not blockName in parseFunctions:
             
-            raise PygromosException( "CnfControl::_ParseCnf", "Solute residue %s does not match the solute name %s in the template!" % ( atoms[i].residueName, moleculeHandle.meta.name ) );
+            raise LieTopologyException("ParseCnf", "Unknown cnf block %s, if is an reduced block please read in a trajectory instead" % (blockName) )
         
-        if atoms[i].atomName != moleculeHandle.solute.atoms.KeyAt( i ):
-            
-            raise PygromosException( "CnfControl::_ParseCnf", "Solute atom %s does not match the solute name %s in the template!" % ( atoms[i].atomName, moleculeHandle.solute.atoms.KeyAt( i ) ) );
+        # Fetch the corresponding structure
+        structureIndex = occurances[blockName]
         
-        self.coords.append( atoms[i].coords );
+        while structureIndex >= len(structures):
+            structures.append( Structure() )
         
-    for i in range ( self.solventStart, self.solventEnd ):
+        structure = structures[structureIndex];
         
-        solvAtomIndex = ( i - self.solventStart ) % solventHandle.solute.atoms.Size();
+        # Read data
+        parseFunctions[blockName]( block, structure );
         
-        # we allow SOLV as another option
-        if atoms[i].residueName != solventHandle.meta.name and atoms[i].residueName != "SOLV":
-            
-            raise PygromosException( "CnfControl::_ParseCnf", "Solvent residue %s does not match the solute name %s in the template!" % ( atoms[i].residueName, solventHandle.meta.name ) );
-        
-        if atoms[i].atomName != solventHandle.solute.atoms.KeyAt( solvAtomIndex ):
-            
-            raise PygromosException( "CnfControl::_ParseCnf", "Solvent atom %s does not match the solute name %s in the template!" % ( atoms[i].atomName, solventHandle.solute.atoms.KeyAt( solvAtomIndex ) ) ); 
-        
-        self.coords.append( atoms[i].coords );
+    
+        # increment occurance
+        occurances[blockName] += 1;
+    
+    return structures;        

@@ -35,7 +35,7 @@ class Atom( Serializable ):
     def __init__( self ):
         
         # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
 
         # Name of the atom
         self.name = None
@@ -46,20 +46,49 @@ class Atom( Serializable ):
         # Identifier number defined by external sources
         self.identifier = None
         
+        # Indicates if this atom is part of the united group
+        self.united = None
+
+        # Indicates if this atom is part of an aromatic system
+        self.aromatic = None
+        
+        
+class ForceFieldDescription( Serializable ):
+    
+    def __init__( self ):
+        
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+
     	# Mass type, to be combined with a force field input
-        self.massType = None
+        self.mass_type = None
         
         # Van der waals type, to be combined with a force field input
-        self.vdwType = None
+        self.vdw_type = None
         
         # Coulombic type, to be combined with a force field input
-        self.coulType = None
+        self.coulombic_type = None
         
         # Charge group indiciation
-        self.chargeGroup = None
+        self.charge_group = None
         
         # Exclusion assignment, may include external atoms in chains
         self.exclusions = None
         
         # Virtual site treatment
-        self.vsite = None
+        self.virtual_site = None
+        
+        
+class ForceFieldAtom( Atom ):
+    
+    def __init__( self ):
+        
+        # Call the base classes constructor with the parameters it needs
+        Atom.__init__( self, self.__module__, self.__class__.__name__ )
+    	Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+        
+        # Description for an all atom treatment
+        self.all_atom_parameters = None
+        
+        # Description for an united atom 
+        self.united_atom_parameters = None
