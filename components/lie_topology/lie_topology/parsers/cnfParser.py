@@ -29,9 +29,10 @@ import os
 
 from copy import deepcopy
 
-from lie_topology.common.tokenizer import Tokenizer;
-from lie_topology.common.exception import LieTopologyException;
+from lie_topology.common.tokenizer   import Tokenizer;
+from lie_topology.common.exception   import LieTopologyException;
 from lie_topology.molecule.structure import Structure
+from lie_topology.molecule.topology  import Topology
 
 def _ParseTitle(block, structure):
 
@@ -52,7 +53,7 @@ def _ParsePosition(block, structure):
     if not structure.topology:
         
         # Start parsing a topology this round
-        activeTopology =
+        activeTopology = Topology()
         
     # If the structure does not have a topology yet
     for resNum, resName, atomName, atomNum, x, y, z in zip(block[0::7], block[1::7], 
