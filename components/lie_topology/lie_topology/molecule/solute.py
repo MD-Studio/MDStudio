@@ -36,22 +36,22 @@ class Solute( Serializable ):
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Name of the solutes
-        self.name = None;
+        self.name = None
     
         # Identifier number defined by external sources
         self.identifier = None
 
         # Atoms of this solute
-        self.atoms = ContiguousMap();
+        self.atoms = ContiguousMap()
         
         # Bonds of this solute
-        self.bonds = list();
+        self.bonds = list()
         
         # Angles of this solute
-        self.angles = list();
+        self.angles = list()
         
         # Dihedrals of this solute
-        self.dihedrals = list();
+        self.dihedrals = list()
         
         # Impropers of this solute
-        self.impropers = list();
+        self.impropers = list()
