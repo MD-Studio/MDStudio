@@ -9,28 +9,11 @@ import copy
 import time
 import random
 import jsonpickle
+import jsonschema
 
 from   getpass import getuser
 
-envelope = {
-    'realm': None,
-    'package_name': None,
-    'authid': None,
-    'class_name': None,
-    'authrole': 'default',
-    'authmethod': None,
-    'session': None,
-    'status': None,
-    'itime': None,
-    'utime': None,
-    'status_message': None,
-    'task_id': None,
-    'system_user': None,
-    'app': 'liestudio'
-}
-
-ALLOWED_STATUS_LABELS = ('submitted', 'waiting', 'ready', 'scheduled', 'running',
-                         'done', 'aborted', 'cancelled', 'cleared')
+from   lie_system.wamp_schema import liestudio_task_schema
 
 # LieApplicationSession variables names defined in os.environ
 ENVIRON = {'_LIE_WAMP_REALM':'realm',
@@ -38,21 +21,50 @@ ENVIRON = {'_LIE_WAMP_REALM':'realm',
            '_LIE_AUTH_USERNAME':'username',
            '_LIE_AUTH_PASSWORD':'password'}
 
-class WAMPMessageEnvelope(object):
+def _schema_to_data(schema, data=None):
     
-    def __init__(self, envelope=envelope, **kwargs):
+    default_data = {}
+    
+    required = schema.get('required', [])
+    properties = schema.get('properties',{})
+    
+    for key,value in properties.items():
+        if key in required:
+            default_data[key] = value.get('default')
+    
+    # Update with existing data
+    if data:
+        default_data.update(data)
+    
+    return default_data
+
+class WAMPTaskMetaData(object):
+    """
+    Class that handles initiation and updating of LIEStudio task metadata.
+    
+    The task metadata blueprint is handled by the `liestudio_task_schema`
+    JSON schema.
+    """
+    
+    def __init__(self, metadata=None, **kwargs):
         
-        self._envelope = copy.deepcopy(envelope)
+        # Init default task metadata
+        self._metadata = _schema_to_data(liestudio_task_schema, data=metadata)
+        self.task_id()
+        if not metadata:
+            self._update_time(time_stamp='itime')
         
-        # Update envelope with kwargs and environmental variables
+        # Update metadata with kwargs and environmental variables
         self.update(kwargs)
         self.update(dict([(ENVIRON[k],os.environ[k]) for k in ENVIRON if k in os.environ]))
         
         # Update defaults
-        self._set_task_id()
-        self._update_time(time_stamp='itime')
-        self._envelope['system_user'] = getuser()
+        self._metadata['system_user'] = getuser()
         
+        # Validate against schema
+        jsonschema.validate(self._metadata, liestudio_task_schema)
+        
+        self._allowed_status_labels = liestudio_task_schema['properties']['status']['enum']
         self._initialised = True
     
     def __call__(self):
@@ -61,12 +73,12 @@ class WAMPMessageEnvelope(object):
     
     def __contains__(self, key):
         
-        return key in self._envelope
+        return key in self._metadata
         
     def __getattr__(self, attr):
         
-        if attr in self._envelope:
-            return self._envelope[attr]
+        if attr in self._metadata:
+            return self._metadata[attr]
         
         return object.__getattribute__(self, attr)
     
@@ -77,15 +89,15 @@ class WAMPMessageEnvelope(object):
             return dict.__setattr__(self, attr, value)
         elif isinstance(propobj, property) and propobj.fset:
             propobj.fset(self, value)
-        elif attr in self._envelope:
+        elif attr in self._metadata:
             self.set(attr, value)
         else:
             self.__setitem__(attr, value)
     
     def __getitem__(self, item):
         
-        if item in self._envelope:
-            return self._envelope[item]
+        if item in self._metadata:
+            return self._metadata[item]
         
         return self.__dict__[item]
     
@@ -95,10 +107,10 @@ class WAMPMessageEnvelope(object):
         
         if isinstance(propobj, property) and propobj.fset:
             propobj.fset(self, value)
-        elif item in self._envelope:
+        elif item in self._metadata:
             self.set(item, value)
         else:
-            self.__setitem__(item, value)
+            self._metadata[item] = value
     
     @property
     def status(self):
@@ -109,8 +121,8 @@ class WAMPMessageEnvelope(object):
     def status(self, value):
         
         value = value.lower()
-        if value in ALLOWED_STATUS_LABELS:
-            self._envelope['status'] = value
+        if value in self._allowed_status_labels:
+            self._metadata['status'] = value
         else:
             raise LookupError, 'Task status label "{0}" not allowed'.format(value)
     
@@ -133,35 +145,38 @@ class WAMPMessageEnvelope(object):
 
         return [authmethod]
     
-    def _set_task_id(self):
+    def task_id(self):
         
-        if not self._envelope.get('task_id'):
-            self._envelope['task_id'] = '{0}-{1}'.format(int(time.time()), random.randint(1000,9999))
+        if not self._metadata.get('task_id'):
+            self._metadata['task_id'] = '{0}-{1}'.format(int(time.time()), random.randint(1000,9999))
     
     def _update_time(self, time_stamp='utime'):
         
-        if time_stamp != 'utime' and self._envelope.get(time_stamp):
+        if time_stamp != 'utime' and self._metadata.get(time_stamp):
             return
         
-        self._envelope[time_stamp] = int(time.time())
+        self._metadata[time_stamp] = int(time.time())
     
     def set(self, key, value):
         
-        self._envelope[key] = value
+        self._metadata[key] = value
         self._update_time()
     
     def get(self, key, default=None):
         
-        return self._envelope.get(key, default)
+        return self._metadata.get(key, default)
     
     def update(self, udict):
         
-        self._envelope.update(udict)
+        self._metadata.update(udict)
     
     def serialize(self, unpicklable=False):
         
-        return jsonpickle.encode(self._envelope, unpicklable=unpicklable)
+        return jsonpickle.encode(self.dict(), unpicklable=unpicklable)
     
     def dict(self):
         
-        return self._envelope
+        if 'password' in self._metadata:
+            del self._metadata['password']
+        
+        return self._metadata

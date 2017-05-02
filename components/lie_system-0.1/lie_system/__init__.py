@@ -7,7 +7,6 @@ LIEStudio system component
 """
 
 import os
-import inspect
 
 __module__    = 'lie_system'
 __docformat__ = 'restructuredtext'
@@ -19,9 +18,9 @@ __licence__   = 'Apache Software License 2.0'
 __url__       = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) 2016, Marc van Dijk, VU University, Amsterdam"
 __rootpath__  = os.path.dirname(__file__)
-__all__       = ['ComponentManager','LieApplicationSession','WAMPMessageEnvelope']
+__all__       = ['ComponentManager','LieApplicationSession','WAMPTaskMetaData']
 
 # Component imports
 from .component_manager import ComponentManager
-from .wamptools         import LieApplicationSession
-from .messaging         import WAMPMessageEnvelope
+from .wamp_tools         import LieApplicationSession
+from .wamp_taskmeta         import WAMPTaskMetaData

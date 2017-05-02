@@ -3,6 +3,7 @@
 import json
 import os
 import time
+import copy
 
 from   autobahn.wamp          import auth, cryptosign
 from   autobahn.twisted.wamp  import ApplicationSession
@@ -11,7 +12,7 @@ from   pymongo                import MongoClient
 
 from   lie_config             import ConfigHandler
 from   lie_db                 import mongodb_connect
-from   lie_system.messaging   import WAMPMessageEnvelope
+from   lie_system.wamp_taskmeta   import WAMPTaskMetaData
 
 from   wamp_logging           import WampLogging
 
@@ -93,7 +94,7 @@ class LieApplicationSession(ApplicationSession):
         and API configuration. These variables are stored in two objects:
         
         * session_config: stores all variables related to the current session
-          in a WAMPMessageEnvelope object
+          in a WAMPTaskMetaData object
         * package_config: stores all variables needed to run the package
           specific methods the API exposes.
         
@@ -154,7 +155,7 @@ class LieApplicationSession(ApplicationSession):
             package_config = {}
 
         # Init session_config with default values
-        self.session_config = WAMPMessageEnvelope(realm=config.realm,
+        self.session_config = WAMPTaskMetaData(realm=config.realm,
             package_name=self.__module__.split('.')[0],
             class_name=type(self).__name__,
             **kwargs
@@ -189,7 +190,7 @@ class LieApplicationSession(ApplicationSession):
         self._establish_database_connection()
         
         # Call onInit hook
-        self.onInit()
+        self.onInit(**kwargs)
     
     def _load_public_key(self, key):
         """
@@ -421,13 +422,18 @@ class LieApplicationSession(ApplicationSession):
         
         self.logger.debug('Call method {0}'.format(method))
         
-        session_config = self.session_config()
+        if 'session' in kwargs:
+            session_config = WAMPTaskMetaData(metadata=kwargs.get('session'))
+            del kwargs['session']
+        else:    
+            session_config = self.session_config
         
-        return self.call(method, session=session_config, *args, **kwargs)
+        print(session_config())
+        return self.call(method, session=session_config(), *args, **kwargs)
     
     # Class placeholder methods. Override these for custom events during 
     # application life cycle
-    def onInit(self):
+    def onInit(self, **kwargs):
         """
         Implement custom code to be called when the application class is
         initiated.
