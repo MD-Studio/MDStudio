@@ -25,8 +25,21 @@
 #
 
 from lie_topology.common.serializable import Serializable
-from lie_topology.common.contiguousMap import ContiguousMap;
-from lie_topology.common.exception import LieTopologyException;
+from lie_topology.common.contiguousMap import ContiguousMap
+from lie_topology.common.exception import LieTopologyException
+
+class Time( Serializable ):
+    
+    def __init__( self ):
+        
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+
+        # indentifier of the model
+        self.model_number = None
+        
+        # recording time
+        self.time = None
 
 class Structure( Serializable ):
     
@@ -36,8 +49,14 @@ class Structure( Serializable ):
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
 
         # Name of the structure
-        self.name = None;
-        
+        self.name = None
+
+        # Name of the 
+        self.description = None
+
+        # Time of recording
+        self.step = None
+
         # numpy array with xyz coordinates
         self.coordinates = None
         
@@ -47,8 +66,14 @@ class Structure( Serializable ):
         # numpy array with xyz cos-positions
         self.cos_offsets = None
         
+        # numpy array with lattice shifts
+        self.lattice_shifs = None
+
         # numpy array with xyz forces
         self.forces = None
         
         # topology
         self.topology = None
+
+        # lattice information
+        self.lattice = None

@@ -26,97 +26,141 @@
 
 import json
 import inspect
+import numpy as np
 
 from copy import deepcopy
 
 from lie_topology.common.util import ClassFromName
 from lie_topology.common.exception import LieTopologyException
 
+
+def _Seria
+
+def _SerializeNumpyType(value):
+
+    valChain = _SerializeValueChain( value.tolist(), logger )
+    rvalue = { "array_type" : value.dtype.name,
+                "values" : valChain }
+
+
+def _IsBasicType( value ):
+
+    return isinstance( value, ( float, int, long, str ) )
+
+def _IsBasicMap( value ):
+
+    return isinstance( value, dict )
+
+def _IsBasicSequence( value ):
+
+    return isinstance( value, ( list, tuple ) )
+
+def _IsNumpyType( value ):
+
+    return isinstance( value, np.ndarray )
+
+def _IsValid( value ):
+
+    rvalue = False
+
+    if ( _IsBasicType(value) or _IsBasicSequence(value) or _IsBasicMap(value) or _IsNumpyType( value ) ):
+        rvalue = True
+
+    elif inspect.isclass( type(value) ) and value != None:
+        rvalue = True
+        
+    return rvalue
+
 def _DeserializeValueChain( value, logger ):
         
-    rvalue = None;
+    rvalue = None
     
-    if isinstance( value, ( float, int, long, str )  ):
-        rvalue = value;
+    if _IsBasicType(value):
+        rvalue = value
     
-    elif isinstance( value, ( list, tuple ) ):
+    elif _IsBasicSequence(value):
         # in case of a list we need to process each value of the list
         # As they might be objects themself
         
         rvalue = []
         for item in value:
             
-            valChain = _DeserializeValueChain( item, logger );
-            
-            if valChain != None:
-                rvalue.append( valChain )
-                    
-    elif isinstance( value, dict ):
+            valChain = _DeserializeValueChain( item, logger )
+            rvalue.append( valChain )
+
+    elif _IsBasicMap(value):
         # Two options: either full blown object or a case of a traditional dict
         if "_moduleName" in value and "_className" in value:
-            rvalue =  ClassFromName( value["_moduleName"], value["_className"] );
-            
-            if rvalue != None:
-                rvalue.OnDeserialize( value, logger );
-        
+            rvalue =  ClassFromName( value["_moduleName"], value["_className"] )
+            rvalue.OnDeserialize( value, logger )
+
+        elif "array_type" in value and "values" in value:
+
+            # Typed array, construct a numpy array
+            rvalue = np.array( value["values"], value["array_type"] )
+
         else:
             rvalue = {}
             for key, item in value.items():
                 
                 valChain = _DeserializeValueChain( item, logger )
-                
-                if valChain != None:
-                    rvalue[key] = valChain
+                rvalue[key] = valChain
     
     # catch None
-    elif inspect.isclass( type(value) ):
-        rvalue = value;
+    #elif inspect.isclass( type(value) ):
+    #    rvalue = value
     
     else:
         raise LieTopologyException( "Serializable::_DeserializeValueChain", "Unknown value type %s" % ( str(value) ) );
     
-    return rvalue;
+    return rvalue
 
 
 def _SerializeValueChain( value, logger ):
     
-    rvalue = None;
+    rvalue = None
  
-    if isinstance( value, ( float, int, long, str )  ):
-        rvalue = value;
+    if _IsBasicType(value):
+        rvalue = value
 
-    elif isinstance( value, ( list, tuple ) ):
+    elif _IsNumpyType( value ):
+
+        valChain = _SerializeValueChain( value.tolist(), logger )
+        rvalue = { "array_type" : value.dtype.name,
+                   "values" : valChain }
+
+    elif _IsBasicSequence(value):
         # in case of a list we need to process each value of the list
         # As they might be objects themself
         
         rvalue = []
         for item in value:
             
-            valChain = _SerializeValueChain( item, logger );
+            valChain = _SerializeValueChain( item, logger )
             
-            if valChain != None:
+            if _IsValid( valChain ):
                 rvalue.append( valChain )
                     
-    elif isinstance( value, dict ):
+    elif _IsBasicMap(value):
         
         rvalue = {}
         for key, item in value.items():
             
-            valChain = _SerializeValueChain( item, logger );
+            valChain = _SerializeValueChain( item, logger )
             
-            if valChain != None:
+            if _IsValid( valChain ):
                 rvalue[key] = valChain
     
     elif inspect.isclass( type(value) ):
         
         # catch None
-        if value != None:
+        if _IsValid( value ):
             rvalue = value.OnSerialize( logger )
     
     else:
-        raise LieTopologyException( "Serializable::_SerializeValueChain", "Unknown value type %s" % ( str(value) ) );
+        raise LieTopologyException( "Serializable::_SerializeValueChain", "Unknown value type %s" % ( str(value) ) )
         
-    return rvalue;
+    return rvalue
 
 class Serializable( object ):
     
@@ -127,11 +171,11 @@ class Serializable( object ):
         
     def _IsValidCategory( self, cat ):
         
-        return cat in self.__dict__;
+        return cat in self.__dict__
     
     def OnDeserialize( self, data, logger = None ):
         
-        if not isinstance( data, dict ):
+        if not _IsBasicMap(data):
             raise LieTopologyException( "Serializable::OnDeserialize", "Deserialize data presented is not a map" );
         
         for cat, value in data.items():
@@ -140,8 +184,8 @@ class Serializable( object ):
     	       
                valChain =  _DeserializeValueChain( value, logger ) 
                
-               if valChain != None:
-                	setattr(self, cat, _DeserializeValueChain( value, logger ) );
+               if _IsValid( valChain ):
+                	setattr(self, cat, _DeserializeValueChain( value, logger ) )
                 
             else:
                 # If a python logger is present
@@ -154,9 +198,9 @@ class Serializable( object ):
         rvalue = {}
         for cat, value in self.__dict__.items():
             
-            valChain =  _SerializeValueChain( value, logger );
+            valChain =  _SerializeValueChain( value, logger )
             
-            if valChain != None:
+            if _IsValid( valChain ):
     	       	rvalue[cat] = valChain
             
-        return rvalue;
+        return rvalue

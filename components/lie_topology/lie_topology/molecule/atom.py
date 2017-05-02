@@ -30,30 +30,7 @@ from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 
-class Atom( Serializable ):
-    
-    def __init__( self ):
-        
-        # Call the base class constructor with the parameters it needs
-        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
-
-        # Name of the atom
-        self.name = None
-        
-        # Element of the atom
-        self.element = None
-        
-        # Identifier number defined by external sources
-        self.identifier = None
-        
-        # Indicates if this atom is part of the united group
-        self.united = None
-
-        # Indicates if this atom is part of an aromatic system
-        self.aromatic = None
-        
-        
-class ForceFieldDescription( Serializable ):
+class ForceFieldAtomDescription( Serializable ):
     
     def __init__( self ):
         
@@ -77,18 +54,39 @@ class ForceFieldDescription( Serializable ):
         
         # Virtual site treatment
         self.virtual_site = None
-        
-        
-class ForceFieldAtom( Atom ):
+
+class Atom( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, name = None, element = None, identifier = None, united = None, aromatic = None,\
+                  occupancy = None, bfactor = None ):
         
-        # Call the base classes constructor with the parameters it needs
-        Atom.__init__( self, self.__module__, self.__class__.__name__ )
-    	Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+
+        # Name of the atom
+        self.name = name
         
+        # Element of the atom
+        self.element = element
+        
+        # Identifier number defined by external sources
+        self.identifier = identifier
+        
+        # Indicates if this atom is part of the united group
+        self.united = united
+
+        # Indicates if this atom is part of an aromatic system
+        self.aromatic = aromatic
+        
+        # If from a crystallographic source store the occupancy
+        self.occupancy = occupancy
+
+        # If from a crystallographic source store the bfactor
+        self.bfactor = bfactor
+
         # Description for an all atom treatment
         self.all_atom_parameters = None
         
         # Description for an united atom 
         self.united_atom_parameters = None
+

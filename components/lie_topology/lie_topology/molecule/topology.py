@@ -25,8 +25,9 @@
 #
 
 from lie_topology.common.serializable import Serializable
-from lie_topology.common.contiguousMap import ContiguousMap;
-from lie_topology.common.exception import LieTopologyException;
+from lie_topology.common.contiguousMap import ContiguousMap
+from lie_topology.common.exception import LieTopologyException
+from lie_topology.molecule.group import Group 
 
 class Topology( Serializable ):
     
@@ -35,5 +36,21 @@ class Topology( Serializable ):
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
         
-        
+        # Solutes present in this topology
+        self.groups = ContiguousMap()
 
+        # Solvent present in this topology
+        self.solvent = None
+
+    def AddGroup( self, **kwargs ):
+
+        if not "name" in kwargs:
+
+            raise LieTopologyException("Topology::AddGroup", "Name is a required argument" )
+
+        self.groups.insert( kwargs["name"], Group( **kwargs ) )
+
+    def GetGroup( self, name ):
+
+        return self.groups[name]
+    

@@ -24,8 +24,13 @@
 # @endcond
 #
 
+
+import _ctypes
+import json
+import re
+
 def ClassFromName(moduleName, className):
  
-    _module = __import__(moduleName, globals(), locals(), className);
-    _iclass = getattr(_module, className);
-    return _iclass();
+    _module = __import__(moduleName, globals(), locals(), className)
+    _iclass = getattr(_module, className)
+    return _iclass()
