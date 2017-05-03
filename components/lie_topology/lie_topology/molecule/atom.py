@@ -66,9 +66,6 @@ class Atom( Serializable ):
         # NOTE, cane be either a direct charge OR 
         self.coulombic_type = None
         
-        # Polarizability type, to be combined with a force field input
-        self.polarizable_type = None
-
         # Charge group indiciation
         self.charge_group = None
         

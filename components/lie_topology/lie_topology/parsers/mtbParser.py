@@ -29,12 +29,12 @@ import os
 import json
 import numpy as np
 
-from lie_topology.common.tokenizer   import Tokenizer
-from lie_topology.common.exception   import LieTopologyException
+from lie_topology.common.tokenizer        import Tokenizer
+from lie_topology.common.exception        import LieTopologyException
 from lie_topology.filetypes.buildingBlock import BuildingBlock
-from lie_topology.molecule.molecule  import Molecule
-from lie_topology.forcefield.charge  import ChargeType
-from lie_topology.forcefield.reference import ForceFieldReference
+from lie_topology.molecule.molecule       import Molecule
+from lie_topology.forcefield.forcefield   import ChargeType
+from lie_topology.forcefield.reference    import ForceFieldReference
 
 def _ParseTitle(block, mtb_file):
 
@@ -72,13 +72,37 @@ def _ParsePrecedingExclusions( block, solute, count, it ):
             
     return it
 
+def _ParseSoluteBonds( block, solute, it ):
+
+    numBonds = int( block[it] ) 
+    it+=1
+
+    for bondIndex in range ( 0, numBonds ):
+
+        # Minus one as gromos uses fortran indices
+        index_i = int( block[it+0] ) - 1
+        index_j = int( block[it+1] ) - 1
+        bond_type = ForceFieldReference( block[it+2] )
+
+        atom_i_name = solute.atoms.keyAt( index_i )
+        atom_j_name = solute.atoms.keyAt( index_j )
+        
+        print( atom_i_name, atom_j_name)
+
+        it+=3
+    
+    return it
+
+
+
 def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
 
     cgIndex = 0
 
     for atom in range ( 0, count ):
-            
-        index          = int( block[it + 0] )
+        
+        # Minus one as gromos uses fortran indices
+        index          = int( block[it + 0] )  - 1
         name           = block[it + 1]
         vdwGroup       = block[it + 2]
         massGroup      = block[it + 3]
@@ -105,7 +129,9 @@ def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
 
         if exclusions:
             it += numNeighbours
-        
+    
+    return it
+
 def _ParseSoluteBuildingBlock(block, mtb_file):
 
     solute = Molecule()
@@ -122,6 +148,9 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
 
     # Parse trailing atoms in ( for chains )
     it = _ParseSoluteAtoms( block, solute, numExclu, it, False )
+
+    # Parse bond data
+    it = _ParseSoluteBonds( block, solute, it )
 
     print json.dumps( solute.OnSerialize(), indent=2 )
 
