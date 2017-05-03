@@ -39,7 +39,6 @@ from lie_topology.molecule.group     import Group
 
 def _AppendTopological( activeTopology, resNum, resName, atomName, atomNum ):
 
-    print ( resNum )
     activeGroup = activeTopology.GetGroup("solute")
 
     if not activeGroup:
@@ -51,8 +50,6 @@ def _AppendTopological( activeTopology, resNum, resName, atomName, atomNum ):
         activeGroup.AddSolute( name=resName, identifier=resNum )
 
     lastResidue = activeGroup.GetSoluteByIndex( -1 )
-
-    print ( resName, lastResidue.name, resNum, lastResidue.identifier)
 
     if resName != lastResidue.name or\
        resNum != lastResidue.identifier:

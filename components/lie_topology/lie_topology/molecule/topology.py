@@ -24,10 +24,11 @@
 # @endcond
 #
 
-from lie_topology.common.serializable import Serializable
+from lie_topology.common.serializable import Serializable, IsBasicMap
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.group import Group 
+from lie_topology.molecule.molecule import Molecule
 
 class Topology( Serializable ):
     
@@ -54,3 +55,59 @@ class Topology( Serializable ):
 
         return self.groups[name]
     
+    def OnSerialize( self, logger = None ):   
+
+        result = {}
+        
+        if self.groups:
+            ser_keys = []
+            ser_groups = []
+            
+            for ikey, igroup in self.groups.items():
+                ser_keys.append( ikey )
+                ser_groups.append( igroup.OnSerialize(logger) )
+                
+            result["groups"] = { "keys" : ser_keys, "values" : ser_groups }
+
+        if self.solvent:
+
+            ser_solvent = self.solvent.OnSerialize(logger)
+            result["solvent"] = ser_solvent
+        
+        return result
+    
+    def OnDeserialize( self, data, logger = None ):
+
+        if not IsBasicMap(data):
+            raise LieTopologyException( "Topology::OnDeserialize", "Deserialize data presented is not a map" )
+        
+        for cat, value in data.items():
+            if not self._IsValidCategory( cat ):
+    	       logger.warning("Serializable::OnDeserialize category %s not valid for deserialization" % ( cat ) )
+        
+        if "groups" in data:
+            
+            groupData = data["groups"]
+            groupData_keys = groupData["keys"]
+            groupData_values = groupData["values"]
+            
+            if len(groupData_keys) != len(groupData_values):
+                raise LieTopologyException( "Topology::OnDeserialize", "For group data, number of keys did not match number of items" )
+
+            for i in range(0,len(groupData_keys) ):
+
+                key = groupData_keys[i]
+                item = groupData_values[i]
+
+                group = Group()
+                group.OnDeserialize(item, logger)
+
+                self.groups.insert( key, group )
+            
+        if "solvent" in data:
+            
+            self.solvent = Molecule()
+            self.solvent.OnDeserialize(data["solvent"], logger)
+
+
+                    

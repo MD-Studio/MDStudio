@@ -33,29 +33,19 @@ from copy import deepcopy
 from lie_topology.common.util import ClassFromName
 from lie_topology.common.exception import LieTopologyException
 
-
-def _Seria
-
-def _SerializeNumpyType(value):
-
-    valChain = _SerializeValueChain( value.tolist(), logger )
-    rvalue = { "array_type" : value.dtype.name,
-                "values" : valChain }
-
-
-def _IsBasicType( value ):
+def IsBasicType( value ):
 
     return isinstance( value, ( float, int, long, str ) )
 
-def _IsBasicMap( value ):
+def IsBasicMap( value ):
 
     return isinstance( value, dict )
 
-def _IsBasicSequence( value ):
+def IsBasicSequence( value ):
 
     return isinstance( value, ( list, tuple ) )
 
-def _IsNumpyType( value ):
+def IsNumpyType( value ):
 
     return isinstance( value, np.ndarray )
 
@@ -63,7 +53,7 @@ def _IsValid( value ):
 
     rvalue = False
 
-    if ( _IsBasicType(value) or _IsBasicSequence(value) or _IsBasicMap(value) or _IsNumpyType( value ) ):
+    if ( IsBasicType(value) or IsBasicSequence(value) or IsBasicMap(value) or IsNumpyType( value ) ):
         rvalue = True
 
     elif inspect.isclass( type(value) ) and value != None:
@@ -75,10 +65,10 @@ def _DeserializeValueChain( value, logger ):
         
     rvalue = None
     
-    if _IsBasicType(value):
+    if IsBasicType(value):
         rvalue = value
     
-    elif _IsBasicSequence(value):
+    elif IsBasicSequence(value):
         # in case of a list we need to process each value of the list
         # As they might be objects themself
         
@@ -88,7 +78,7 @@ def _DeserializeValueChain( value, logger ):
             valChain = _DeserializeValueChain( item, logger )
             rvalue.append( valChain )
 
-    elif _IsBasicMap(value):
+    elif IsBasicMap(value):
         # Two options: either full blown object or a case of a traditional dict
         if "_moduleName" in value and "_className" in value:
             rvalue =  ClassFromName( value["_moduleName"], value["_className"] )
@@ -105,11 +95,6 @@ def _DeserializeValueChain( value, logger ):
                 
                 valChain = _DeserializeValueChain( item, logger )
                 rvalue[key] = valChain
-    
-    # catch None
-    #elif inspect.isclass( type(value) ):
-    #    rvalue = value
-    
     else:
         raise LieTopologyException( "Serializable::_DeserializeValueChain", "Unknown value type %s" % ( str(value) ) );
     
@@ -120,16 +105,16 @@ def _SerializeValueChain( value, logger ):
     
     rvalue = None
  
-    if _IsBasicType(value):
+    if IsBasicType(value):
         rvalue = value
 
-    elif _IsNumpyType( value ):
+    elif IsNumpyType( value ):
 
         valChain = _SerializeValueChain( value.tolist(), logger )
         rvalue = { "array_type" : value.dtype.name,
                    "values" : valChain }
 
-    elif _IsBasicSequence(value):
+    elif IsBasicSequence(value):
         # in case of a list we need to process each value of the list
         # As they might be objects themself
         
@@ -141,7 +126,7 @@ def _SerializeValueChain( value, logger ):
             if _IsValid( valChain ):
                 rvalue.append( valChain )
                     
-    elif _IsBasicMap(value):
+    elif IsBasicMap(value):
         
         rvalue = {}
         for key, item in value.items():
@@ -175,7 +160,7 @@ class Serializable( object ):
     
     def OnDeserialize( self, data, logger = None ):
         
-        if not _IsBasicMap(data):
+        if not IsBasicMap(data):
             raise LieTopologyException( "Serializable::OnDeserialize", "Deserialize data presented is not a map" );
         
         for cat, value in data.items():

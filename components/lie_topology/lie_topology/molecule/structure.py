@@ -24,9 +24,13 @@
 # @endcond
 #
 
-from lie_topology.common.serializable import Serializable
+import numpy as np
+
+from lie_topology.common.serializable import Serializable, IsBasicMap, IsNumpyType
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
+from lie_topology.molecule.topology import Topology
+from lie_topology.molecule.crystal import Lattice
 
 class Time( Serializable ):
     
@@ -77,3 +81,57 @@ class Structure( Serializable ):
 
         # lattice information
         self.lattice = None
+
+    def OnSerialize( self, logger = None ):   
+
+        result = {}
+        
+        for itemName in ("name", "description" ):
+            item = self.__dict__[itemName]
+            if item:
+                result[itemName] = item
+
+        for itemName in ("step", "topology", "lattice" ):
+            item = self.__dict__[itemName]
+            if item:
+                result[itemName] = item.OnSerialize(logger)
+
+        for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
+            item = self.__dict__[itemName]
+            if IsNumpyType(item):
+                result[itemName] = item.tolist()
+
+        return result
+    
+    def OnDeserialize( self, data, logger = None ):
+
+        if not IsBasicMap(data):
+            raise LieTopologyException( "Structure::OnDeserialize", "Deserialize data presented is not a map" )
+        
+        for cat, value in data.items():
+            if not self._IsValidCategory( cat ):
+    	       logger.warning("Structure::OnDeserialize category %s not valid for deserialization" % ( cat ) )
+        
+        for itemName in ("name", "description" ):
+            
+            if itemName in data:
+                item = data[itemName]
+                self.__dict__[itemName] = item
+
+        if "step" in data:
+            self.step = Time()
+            self.step.OnDeserialize(data["step"], logger)
+
+        if "topology" in data:
+            self.topology = Topology()
+            self.topology.OnDeserialize(data["topology"], logger)
+        
+        if "lattice" in data:
+            self.lattice = Lattice()
+            self.lattice.OnDeserialize(data["lattice"], logger)
+
+        for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
+
+            if itemName in data:
+                item = data[itemName]
+                self.__dict__[itemName] = np.array( item )

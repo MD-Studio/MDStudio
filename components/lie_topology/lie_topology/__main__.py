@@ -18,11 +18,9 @@ def main():
             structCpy = Structure()
             structCpy.OnDeserialize( struct.OnSerialize() )
             
-            print json.dumps( struct.topology.OnSerialize(), indent=2 )
+            print json.dumps( structCpy.topology.OnSerialize(), indent=2 )
 
         
-
-
 if __name__ == '__main__':
 
     main()
