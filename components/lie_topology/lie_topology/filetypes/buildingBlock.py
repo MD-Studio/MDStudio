@@ -24,25 +24,27 @@
 # @endcond
 #
 
-from lie_topology.common.serializable import Serializable
-from lie_topology.common.exception import LieTopologyException
+import sys
+import os
+import numpy as np
 
-class PhysicalConstants( Serializable ):
-    
-    def __init__( self ):
+from lie_topology.common.tokenizer     import Tokenizer
+from lie_topology.common.exception     import LieTopologyException
+from lie_topology.forcefield.physconst import PhysicalConstants
+from lie_topology.common.contiguousMap import ContiguousMap
 
-        # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        #  1.0/(4.0*PI*EPS0) (EPS0 is the permittivity of vacuum)
-        self.four_pi_eps0_i = 0.1389354E+03
+class BuildingBlock(object):
 
-        # Planck's constant HBAR = H/(2* PI)
-        self.plancks_constant = 0.6350780E-01
+    def __init__(self):
 
-        # Speed of light (in nm/ps)
-        self.speed_of_light = 2.9979245800E05
+        self.title = None
 
-        # Boltzmann's constant
-        self.boltzmann_constant = 8.31441E-03
+        self.exclusion_distance = 2
+
+        # Physical constants
+        self.physical_constants = PhysicalConstants()
+        
+        # Solutes present in the mtb
+        self.groups = ContiguousMap()
 

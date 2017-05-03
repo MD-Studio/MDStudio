@@ -29,18 +29,6 @@ import sys
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.exception import LieTopologyException
 
-"""
-class Pair( Serializable ):
-        
-    def __init__(self, key = None, value = None):
-        
-        # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
-        
-        self.key = key
-        self.value = value
-"""
-
 class ContiguousMap( Serializable ):
 
     def __init__( self ):
@@ -74,6 +62,15 @@ class ContiguousMap( Serializable ):
 
             return key,value
 
+    def front( self ):
+        (key, value) = self._items[0]
+
+        return value
+
+    def back( self ):
+        (key, value) = self._items[-1]
+
+        return value
 
     def clear( self ):
         self._indices.clear()

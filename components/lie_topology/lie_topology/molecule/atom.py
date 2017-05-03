@@ -30,34 +30,9 @@ from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 
-class ForceFieldAtomDescription( Serializable ):
-    
-    def __init__( self ):
-        
-        # Call the base class constructor with the parameters it needs
-        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
-
-    	# Mass type, to be combined with a force field input
-        self.mass_type = None
-        
-        # Van der waals type, to be combined with a force field input
-        self.vdw_type = None
-        
-        # Coulombic type, to be combined with a force field input
-        self.coulombic_type = None
-        
-        # Charge group indiciation
-        self.charge_group = None
-        
-        # Exclusion assignment, may include external atoms in chains
-        self.exclusions = None
-        
-        # Virtual site treatment
-        self.virtual_site = None
-
 class Atom( Serializable ):
     
-    def __init__( self, name = None, element = None, identifier = None, united = None, aromatic = None,\
+    def __init__( self, name = None, element = None, identifier = None, aromatic = None,\
                   occupancy = None, bfactor = None ):
         
         # Call the base class constructor with the parameters it needs
@@ -72,9 +47,6 @@ class Atom( Serializable ):
         # Identifier number defined by external sources
         self.identifier = identifier
         
-        # Indicates if this atom is part of the united group
-        self.united = united
-
         # Indicates if this atom is part of an aromatic system
         self.aromatic = aromatic
         
@@ -84,9 +56,22 @@ class Atom( Serializable ):
         # If from a crystallographic source store the bfactor
         self.bfactor = bfactor
 
-        # Description for an all atom treatment
-        self.all_atom_parameters = None
+        # Mass type, to be combined with a force field input
+        self.mass_type = None
         
-        # Description for an united atom 
-        self.united_atom_parameters = None
+        # Van der waals type, to be combined with a force field input
+        self.vdw_type = None
+        
+        # Coulombic type, to be combined with a force field input
+        # NOTE, cane be either a direct charge OR 
+        self.coulombic_type = None
+        
+        # Polarizability type, to be combined with a force field input
+        self.polarizable_type = None
+
+        # Charge group indiciation
+        self.charge_group = None
+        
+        # Virtual site treatment
+        self.virtual_site = None
 

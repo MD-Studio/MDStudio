@@ -27,22 +27,12 @@
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.exception import LieTopologyException
 
-class PhysicalConstants( Serializable ):
+class ForceFieldReference( Serializable ):
     
-    def __init__( self ):
-
+    def __init__( self, name = None ):
+        
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        #  1.0/(4.0*PI*EPS0) (EPS0 is the permittivity of vacuum)
-        self.four_pi_eps0_i = 0.1389354E+03
-
-        # Planck's constant HBAR = H/(2* PI)
-        self.plancks_constant = 0.6350780E-01
-
-        # Speed of light (in nm/ps)
-        self.speed_of_light = 2.9979245800E05
-
-        # Boltzmann's constant
-        self.boltzmann_constant = 8.31441E-03
-
+        # name to refer to a force field type
+        self.name = name

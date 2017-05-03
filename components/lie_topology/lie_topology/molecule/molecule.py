@@ -28,6 +28,7 @@ from lie_topology.common.serializable  import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception     import LieTopologyException
 from lie_topology.molecule.atom        import Atom
+
 class Molecule( Serializable ):
     
     def __init__( self, name = None, identifier = None ):
@@ -64,8 +65,8 @@ class Molecule( Serializable ):
 
         self.atoms.insert(kwargs["name"], Atom(**kwargs) )
 
-    def __eq__(self, other):
+    # def __eq__(self, other):
 
-        # reduce to basic types and abuse python buildin
-        # comparison
-        return self.OnSerialize() == other.OnSerialize()
+    #     # reduce to basic types and abuse python buildin
+    #     # comparison
+    #     return self.OnSerialize() == other.OnSerialize()

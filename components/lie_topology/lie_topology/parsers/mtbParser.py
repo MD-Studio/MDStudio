@@ -26,21 +26,118 @@
 
 import sys
 import os
+import json
 import numpy as np
 
 from lie_topology.common.tokenizer   import Tokenizer
 from lie_topology.common.exception   import LieTopologyException
+from lie_topology.filetypes.buildingBlock import BuildingBlock
+from lie_topology.molecule.molecule  import Molecule
+from lie_topology.forcefield.charge  import ChargeType
+from lie_topology.forcefield.reference import ForceFieldReference
 
-def _ParsePhysConst(block, structure):
+def _ParseTitle(block, mtb_file):
+
+    mtb_file.title = ' '.join(block)
+
+def _ParseForcefield(block, mtb_file):
+
+    pass
+
+def _ParseLinkExcl(block, mtb_file):
+
+    mtb_file.exclusion_distance = int( block[0] )
+
+def _ParsePhysConst(block, mtb_file):
+
+    mtb_file.physical_constants.four_pi_eps0_i     = float( block[0] )
+    mtb_file.physical_constants.plancks_constant   = float( block[1] )
+    mtb_file.physical_constants.speed_of_light     = float( block[2] )
+    mtb_file.physical_constants.boltzmann_constant = float( block[3] )
+
+def _ParsePrecedingExclusions( block, solute, count, it ):
+
+    ## We totally ignore exclusions right now
+    ## They are generated on the fly
+
+    for excluIndex in range ( 0, count ):
+
+        index = block[it + 0]
+        numNeighbours = int( block[it + 1] )
+
+        it += 2
+        
+        #ignore
+        it += numNeighbours
+            
+    return it
+
+def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
+
+    cgIndex = 0
+
+    for atom in range ( 0, count ):
+            
+        index          = int( block[it + 0] )
+        name           = block[it + 1]
+        vdwGroup       = block[it + 2]
+        massGroup      = block[it + 3]
+        charge         = block[it + 4]
+        chargeGroup_fl = int( block[it + 5] )
+        numNeighbours  = int( block[it + 6] )
+        
+        if chargeGroup_fl == 1:
+            cgIndex += 1
+
+        solute.AddAtom( name=name, identifier=index )
+        atom = solute.atoms.back()
+        
+        # These parameters are externally defined
+        # Therefore we can only reference to them at this point
+        atom.mass_type = ForceFieldReference( name=massGroup )
+        atom.vdw_type  = ForceFieldReference( name=vdwGroup )
+        
+        # These are define here on the spot
+        atom.coulombic_type = ChargeType( charge=charge )
+        atom.charge_group   = cgIndex
+      
+        it += 7
+
+        if exclusions:
+            it += numNeighbours
+        
+def _ParseSoluteBuildingBlock(block, mtb_file):
+
+    solute = Molecule()
+    solute.name = block[0]
+
+    numAtoms = int( block[1] )
+    numExclu = int( block[2] )
+
+    # Handle preceding exclusions
+    it = _ParsePrecedingExclusions( block, solute, numExclu, 3 )
+
+    # Parse full atom description
+    it = _ParseSoluteAtoms( block, solute, numAtoms - numExclu, it, True )
+
+    # Parse trailing atoms in ( for chains )
+    it = _ParseSoluteAtoms( block, solute, numExclu, it, False )
+
+    print json.dumps( solute.OnSerialize(), indent=2 )
 
 def ParseMtb( ifstream ):
 
     # Parser map
     parseFunctions = dict()
+    parseFunctions["TITLE"] = _ParseTitle
+    parseFunctions["FORCEFIELD"] = _ParseForcefield
+    parseFunctions["PHYSICALCONSTANTS"] = _ParsePhysConst
+    parseFunctions["LINKEXCLUSIONS"] = _ParseLinkExcl
+    parseFunctions["MTBUILDBLSOLUTE"] = _ParseSoluteBuildingBlock
 
     tokenizer = Tokenizer( ifstream )
 
-    solutes = []
+    mtb_file = BuildingBlock()
 
     ## Uses occurance map to be order agnostic
     for blockName, block in tokenizer.Blocks():
@@ -50,6 +147,6 @@ def ParseMtb( ifstream ):
             raise LieTopologyException("ParseMtb", "Unknown mtb block %s" % (blockName) )
         
         # Read data
-        parseFunctions[blockName]( block, structure )
+        parseFunctions[blockName]( block, mtb_file )
         
-    return structures
+    return mtb_file
