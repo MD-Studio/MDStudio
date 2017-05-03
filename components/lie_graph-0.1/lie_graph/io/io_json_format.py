@@ -44,7 +44,7 @@ def read_json(json_format):
     
     # Determine graph class to use
     graph_object = Graph()
-    if parsed.get('root') != None:
+    if parsed['graph'].get('root') != None:
         graph_object = GraphAxis()
     
     # Init graph meta-data attributes
@@ -53,6 +53,12 @@ def read_json(json_format):
     
     # Init graph nodes
     for node_key,node_value in parsed['nodes'].items():
+        
+        # JSON objects don't accept integers as dictionary keys
+        # If graph.auto_nid equals True, course node_key to integer
+        if graph_object.auto_nid:
+            node_key = int(node_key)
+        
         graph_object.nodes[node_key] = node_value
     
     # Init graph edges
