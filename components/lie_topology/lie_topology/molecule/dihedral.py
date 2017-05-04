@@ -38,7 +38,7 @@ class Dihedral( Serializable ):
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the dihedral, length should be 4
-        self.atom_indices = []
+        self.atom_names = []
         
         # Dihedral type in the force field
         self.dihedral_type = None

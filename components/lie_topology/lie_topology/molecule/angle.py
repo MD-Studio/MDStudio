@@ -38,7 +38,7 @@ class Angle( Serializable ):
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the angle, length should be 3
-        self.atom_indices = []
+        self.atom_names = []
         
         # Angle type in the force field
         self.angle_type = None

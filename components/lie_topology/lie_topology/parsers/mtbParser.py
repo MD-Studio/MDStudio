@@ -33,7 +33,10 @@ from lie_topology.common.tokenizer        import Tokenizer
 from lie_topology.common.exception        import LieTopologyException
 from lie_topology.filetypes.buildingBlock import BuildingBlock
 from lie_topology.molecule.molecule       import Molecule
-from lie_topology.forcefield.forcefield   import ChargeType
+from lie_topology.molecule.bond           import Bond
+from lie_topology.molecule.angle          import Angle
+from lie_topology.molecule.dihedral       import Dihedral
+from lie_topology.forcefield.forcefield   import CoulombicType
 from lie_topology.forcefield.reference    import ForceFieldReference
 
 def _ParseTitle(block, mtb_file):
@@ -77,7 +80,7 @@ def _ParseSoluteBonds( block, solute, it ):
     numBonds = int( block[it] ) 
     it+=1
 
-    for bondIndex in range ( 0, numBonds ):
+    for i in range ( 0, numBonds ):
 
         # Minus one as gromos uses fortran indices
         index_i = int( block[it+0] ) - 1
@@ -87,13 +90,96 @@ def _ParseSoluteBonds( block, solute, it ):
         atom_i_name = solute.atoms.keyAt( index_i )
         atom_j_name = solute.atoms.keyAt( index_j )
         
-        print( atom_i_name, atom_j_name)
+        bond = Bond( atom_names=[atom_i_name,atom_j_name],\
+                     bond_type=bond_type  ) 
 
+        solute.bonds.append( bond )
+        
         it+=3
     
     return it
 
+def _ParseSoluteAngles( block, solute, it ):
 
+    numAngles = int( block[it] ) 
+    it+=1
+
+    for i in range ( 0, numAngles ):
+
+        # Minus one as gromos uses fortran indices
+        index_i = int( block[it+0] ) - 1
+        index_j = int( block[it+1] ) - 1
+        index_k = int( block[it+2] ) - 1
+        angle_type = ForceFieldReference( block[it+3] )
+
+        atom_i_name = solute.atoms.keyAt( index_i )
+        atom_j_name = solute.atoms.keyAt( index_j )
+        atom_k_name = solute.atoms.keyAt( index_k )
+
+        angle = Angle( atom_names=[atom_i_name,atom_j_name, atom_k_name],\
+                       angle_type=angle_type  ) 
+
+        solute.angles.append( angle )
+        
+        it+=4
+    
+    return it
+
+def _ParseSoluteDihedrals( block, solute, it ):
+
+    numAngles = int( block[it] ) 
+    it+=1
+
+    for i in range ( 0, numAngles ):
+
+        # Minus one as gromos uses fortran indices
+        index_i = int( block[it+0] ) - 1
+        index_j = int( block[it+1] ) - 1
+        index_k = int( block[it+2] ) - 1
+        index_l = int( block[it+3] ) - 1
+        dihedral_type = ForceFieldReference( block[it+4] )
+
+        atom_i_name = solute.atoms.keyAt( index_i )
+        atom_j_name = solute.atoms.keyAt( index_j )
+        atom_k_name = solute.atoms.keyAt( index_k )
+        atom_l_name = solute.atoms.keyAt( index_k )
+
+        dihedral = Dihedral( atom_names=[atom_i_name,atom_j_name, atom_k_name, atom_l_name],\
+                             dihedral_type=dihedral_type  ) 
+
+        solute.dihedrals.append( dihedral )
+        
+        it+=5
+    
+    return it
+
+def _ParseSoluteImpropers( block, solute, it ):
+
+    numAngles = int( block[it] ) 
+    it+=1
+
+    for i in range ( 0, numAngles ):
+
+        # Minus one as gromos uses fortran indices
+        index_i = int( block[it+0] ) - 1
+        index_j = int( block[it+1] ) - 1
+        index_k = int( block[it+2] ) - 1
+        index_l = int( block[it+3] ) - 1
+        dihedral_type = ForceFieldReference( block[it+4] )
+
+        atom_i_name = solute.atoms.keyAt( index_i )
+        atom_j_name = solute.atoms.keyAt( index_j )
+        atom_k_name = solute.atoms.keyAt( index_k )
+        atom_l_name = solute.atoms.keyAt( index_k )
+
+        dihedral = Dihedral( atom_names=[atom_i_name,atom_j_name, atom_k_name, atom_l_name],\
+                             dihedral_type=dihedral_type  ) 
+
+        solute.impropers.append( dihedral )
+        
+        it+=5
+    
+    return it
 
 def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
 
@@ -122,7 +208,7 @@ def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
         atom.vdw_type  = ForceFieldReference( name=vdwGroup )
         
         # These are define here on the spot
-        atom.coulombic_type = ChargeType( charge=charge )
+        atom.coulombic_type = CoulombicType( charge=charge )
         atom.charge_group   = cgIndex
       
         it += 7
@@ -151,6 +237,19 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
 
     # Parse bond data
     it = _ParseSoluteBonds( block, solute, it )
+
+    # Parse angle data
+    it = _ParseSoluteAngles( block, solute, it )
+
+    # Parse improper data
+    it = _ParseSoluteImpropers( block, solute, it )
+
+    # Parse dihedral data
+    it = _ParseSoluteDihedrals( block, solute, it )
+    
+    numVdwExceptions = int( tokenStream[it] )
+    if ( numVdwExceptions > 0 ):
+        raise PygromosException( "_ParseSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
     print json.dumps( solute.OnSerialize(), indent=2 )
 

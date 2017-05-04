@@ -32,25 +32,25 @@ from lie_topology.common.exception import LieTopologyException
 
 class Bond( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, atom_names=[], bond_type=None, aromatic=None, bond_order=None, united=None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the bond, length should be 2
-        self.atom_indices = []
+        self.atom_names = atom_names
         
         # Bond type in the force field
-        self.bond_type = None
+        self.bond_type = bond_type
         
         # Indicates if this bond is part of an aromatic system
-        self.aromatic = None
+        self.aromatic = aromatic
         
         # Indicates the bond order of this bond
-        self.bond_order = None
+        self.bond_order = bond_order
         
         # Indicates if this bond is part of the united atom system
-        self.united = None
+        self.united = united
         
     
     
