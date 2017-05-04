@@ -30,7 +30,8 @@ from lie_topology.common.exception import LieTopologyException
 
 class CoulombicType( Serializable ):
     
-    def __init__( self, name = None, charge = None ):
+    def __init__( self, name = None, charge = None, polarizability = None, cos_charge = None,\
+                  damping_level = None, damping_power = None  ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -40,6 +41,18 @@ class CoulombicType( Serializable ):
 
         # coulombic charge of this type
         self.charge = charge
+
+        # isotropic atomic polarizability
+        self.polarizability = polarizability
+
+        # charge on the cos particle
+        self.cos_charge = cos_charge
+
+        # damping level
+        self.damping_level = damping_level
+
+        # damping power
+        self.damping_power = damping_power
 
 
 class VdwType( Serializable ):

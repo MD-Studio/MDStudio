@@ -32,19 +32,19 @@ from lie_topology.common.exception import LieTopologyException
 
 class Angle( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, atom_names = None, angle_type = None, united = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the angle, length should be 3
-        self.atom_names = []
+        self.atom_names = atom_names
         
         # Angle type in the force field
-        self.angle_type = None
+        self.angle_type = angle_type
         
         # Indicates if this angle is part of the united atom system
-        self.united = None
+        self.united = united
         
     
     

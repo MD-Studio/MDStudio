@@ -36,6 +36,7 @@ from lie_topology.molecule.molecule       import Molecule
 from lie_topology.molecule.bond           import Bond
 from lie_topology.molecule.angle          import Angle
 from lie_topology.molecule.dihedral       import Dihedral
+from lie_topology.molecule.vsite          import InPlaneSite
 from lie_topology.forcefield.forcefield   import CoulombicType
 from lie_topology.forcefield.reference    import ForceFieldReference
 
@@ -218,22 +219,59 @@ def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
     
     return it
 
-def _ParseSoluteBuildingBlock(block, mtb_file):
+def _ParseAtomicPolarizabilities(block, solute, it ):
 
-    solute = Molecule()
-    solute.name = block[0]
+    count = int( block[it] )
+    it+=1
 
-    numAtoms = int( block[1] )
-    numExclu = int( block[2] )
+    for i in range ( 0, count ):
+        
+        # Minus one as gromos uses fortran indices
+        index          = int(   block[it + 0] ) - 1
+        polarizability = float( block[it + 0] )
+        cos_charge     = float( block[it + 0] )  
+        damping_level  = float( block[it + 0] )  
+        damping_power  = float( block[it + 0] )  
+        gamma          = float( block[it + 0] )  
+        offset_i       = int(   block[it + 0] ) - 1
+        offset_j       = int(   block[it + 0] ) - 1
+         
+        atom_name, atom = solute.atoms.at( index )
+
+        atom.coulombic_type.polarizability = polarizability
+        atom.coulombic_type.cos_charge     = cos_charge
+        atom.coulombic_type.damping_level  = damping_level
+        atom.coulombic_type.damping_power  = damping_power
+
+        if gamma != 0.0:
+
+            atom_i_name = solute.atoms.keyAt( offset_i )
+            atom_j_name = solute.atoms.keyAt( offset_j )
+
+            atom.vsite = InPlaneSite( atom_names=[atom_i_name,atom_j_name], gamma=gamma )
+            
+
+        it += 8
+
+    return it
+
+def _ParseAtomicData( block, solute, it ):
+
+    numAtoms = int( block[it+0] )
+    numExclu = int( block[it+1] )
 
     # Handle preceding exclusions
-    it = _ParsePrecedingExclusions( block, solute, numExclu, 3 )
+    it = _ParsePrecedingExclusions( block, solute, numExclu, it+2 )
 
     # Parse full atom description
     it = _ParseSoluteAtoms( block, solute, numAtoms - numExclu, it, True )
 
     # Parse trailing atoms in ( for chains )
     it = _ParseSoluteAtoms( block, solute, numExclu, it, False )
+
+    return it
+
+def _ParseBondedData(block, solute, it ):
 
     # Parse bond data
     it = _ParseSoluteBonds( block, solute, it )
@@ -246,8 +284,31 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
 
     # Parse dihedral data
     it = _ParseSoluteDihedrals( block, solute, it )
+
+    return it
+
+def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
+
+    solute = Molecule()
+    solute.name = block[0]
+
+    it = _ParseAtomicData( block, solute, 1 )
+    it = _ParseAtomicPolarizabilities(block, solute, it )
+    it = _ParseBondedData( block, solute, it )
     
     numVdwExceptions = int( tokenStream[it] )
+    if ( numVdwExceptions > 0 ):
+        raise PygromosException( "_ParsePolarizableSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
+
+def _ParseSoluteBuildingBlock(block, mtb_file):
+
+    solute = Molecule()
+    solute.name = block[0]
+
+    it = _ParseAtomicData( block, solute, 1 )
+    it = _ParseBondedData( block, solute, it )
+    
+    numVdwExceptions = int( block[it] )
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParseSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
