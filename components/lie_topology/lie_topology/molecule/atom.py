@@ -33,7 +33,9 @@ from lie_topology.common.exception import LieTopologyException
 class Atom( Serializable ):
     
     def __init__( self, name = None, element = None, identifier = None, aromatic = None,\
-                  occupancy = None, bfactor = None ):
+                  occupancy = None, bfactor = None, mass_type = None, vdw_type = None,\
+                  coulombic_type = None, charge_group = None, virtual_site = None,\
+                  preceding = None, trailing = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
@@ -57,18 +59,23 @@ class Atom( Serializable ):
         self.bfactor = bfactor
 
         # Mass type, to be combined with a force field input
-        self.mass_type = None
+        self.mass_type = mass_type
         
         # Van der waals type, to be combined with a force field input
-        self.vdw_type = None
+        self.vdw_type = vdw_type
         
         # Coulombic type, to be combined with a force field input
         # NOTE, cane be either a direct charge OR 
-        self.coulombic_type = None
+        self.coulombic_type = coulombic_type
         
         # Charge group indiciation
-        self.charge_group = None
+        self.charge_group = charge_group
         
         # Virtual site treatment
-        self.virtual_site = None
+        self.virtual_site = virtual_site
 
+        # Preceding in the building block (for chain topology)
+        self.preceding = preceding
+
+        # Trailing in the building block (for chain topology)
+        self.trailing = trailing

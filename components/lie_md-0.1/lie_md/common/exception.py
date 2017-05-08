@@ -24,27 +24,10 @@
 # @endcond
 #
 
-import json
-
-from lie_topology.common.serializable import Serializable
-from lie_topology.common.contiguousMap import ContiguousMap
-from lie_topology.common.exception import LieTopologyException
-
-class Angle( Serializable ):
+class LieMdException(Exception):
     
-    def __init__( self, atom_references = None, angle_type = None, united = None ):
-        
+    def __init__(self, location, message):
+
         # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
-
-        # Indices of the atoms involved in the angle, length should be 3
-        self.atom_references = atom_references
+        super(Exception, self).__init__(location+"::"+message)
         
-        # Angle type in the force field
-        self.angle_type = angle_type
-        
-        # Indicates if this angle is part of the united atom system
-        self.united = united
-        
-    
-    

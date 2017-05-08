@@ -21,7 +21,7 @@ def main():
             
     #         print json.dumps( structCpy.topology.OnSerialize(), indent=2 )
 
-    with open( "../tests/data/mtb/1007.all.mtb", 'r') as ifstream:    
+    with open( "../tests/data/mtb/2016H66_pept.mtb", 'r') as ifstream:    
         
         mtb_file = ParseMtb( ifstream )
 

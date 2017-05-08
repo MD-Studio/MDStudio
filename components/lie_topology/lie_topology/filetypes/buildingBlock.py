@@ -30,9 +30,10 @@ import numpy as np
 
 from lie_topology.common.tokenizer     import Tokenizer
 from lie_topology.common.exception     import LieTopologyException
-from lie_topology.forcefield.physconst import PhysicalConstants
 from lie_topology.common.contiguousMap import ContiguousMap
-
+from lie_topology.forcefield.physconst import PhysicalConstants
+from lie_topology.molecule.group       import Group 
+from lie_topology.molecule.molecule    import Molecule
 
 class BuildingBlock(object):
 
@@ -48,3 +49,36 @@ class BuildingBlock(object):
         # Solutes present in the mtb
         self.groups = ContiguousMap()
 
+        # Solvents present in the mtb
+        self.solvents = ContiguousMap()
+
+    def AddGroup( self, **kwargs ):
+
+        if not "name" in kwargs:
+
+            raise LieTopologyException("BuildingBlock::AddGroup", "Name is a required argument" )
+
+        self.groups.insert( kwargs["name"], Group( **kwargs ) )
+    
+    def AddSolvent( self, **kwargs ):
+
+        if "molecule" in kwargs:
+
+            mol = kwargs["molecule"]
+            if not mol.name:
+
+                raise LieTopologyException("BuildingBlock::AddSolvent", "Name is a required argument" )
+
+            self.groups.insert( mol.name, kwargs["molecule"] )
+
+        else:
+
+            if not "name" in kwargs:
+
+                raise LieTopologyException("BuildingBlock::AddSolvent", "Name is a required argument" )
+
+            self.groups.insert( kwargs["name"], Molecule( **kwargs ) )
+
+    def GetGroup( self, name ):
+
+        return self.groups[name]

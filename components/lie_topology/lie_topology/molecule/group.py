@@ -47,7 +47,11 @@ class Group( Serializable ):
 
     def AddSolute( self, **kwargs ):
 
-        self.solutes.append( Molecule(**kwargs) )
+        if  "molecule" in kwargs:
+            self.solutes.append(kwargs["molecule"])
+
+        else:
+            self.solutes.append( Molecule(**kwargs) )
 
     def GetSolutesByName( self, name ):
 

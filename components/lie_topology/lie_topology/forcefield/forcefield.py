@@ -57,7 +57,7 @@ class CoulombicType( Serializable ):
 
 class VdwType( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, c6 = None, c6_14 = None, c12 = None, c12_14 = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -65,29 +65,29 @@ class VdwType( Serializable ):
         # name to refer to the type
         self.name = name
 
-        self.c6     = 0.0
-        self.c6_14  = 0.0
-        self.c12    = [ 0.0, 0.0, 0.0 ]
-        self.c12_14 = 0.0
+        self.c6     = c6
+        self.c6_14  = c6_14
+        self.c12    = c12
+        self.c12_14 = c12_14
         self.matrix = dict()
         
 
 class VdwMixed( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, c6 = None, c6_14 = None, c12 = None, c12_14 = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         self.types = []
-        self.c6 = 0.0
-        self.c6_14 = 0.0
-        self.c12 = 0.0
-        self.c12_14 = 0.0
+        self.c6     = c6
+        self.c6_14  = c6_14
+        self.c12    = c12
+        self.c12_14 = c12_14
         
 class MassType( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, name = None, identifier = None, mass = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -95,12 +95,12 @@ class MassType( Serializable ):
         # name to refer to the type
         self.name = name
 
-        self.identifier = -1
-        self.mass       = 0.0
+        self.identifier = identifier
+        self.mass       = mass
       
 class BondType( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, name = None, fc_quartic = None, fc_harmonic = None, b0 = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -108,14 +108,14 @@ class BondType( Serializable ):
         # name to refer to the type
         self.name = name
 
-        self.fc_quartic = 0.0
-        self.fc_harmonic = 0.0
-        self.b0 = 0.0
+        self.fc_quartic = fc_quartic
+        self.fc_harmonic = fc_harmonic
+        self.b0 = b0
     
         
 class AngleType( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, name = None, fc_non_harmonic = None, fc_harmonic = None, angle0 = None  ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -123,14 +123,14 @@ class AngleType( Serializable ):
         # name to refer to the type
         self.name = name
 
-        self.fc_non_harmonic = 0.0
-        self.fc_harmonic = 0.0
-        self.angle0 = 0.0
+        self.fc_non_harmonic = fc_non_harmonic
+        self.fc_harmonic = fc_harmonic
+        self.angle0 = angle0
     
 
 class DihedralType( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, name = None, fc = None, phaseShift = None, multiplicity = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -138,14 +138,14 @@ class DihedralType( Serializable ):
         # name to refer to the type
         self.name = name
 
-        self.fc = 0.0
-        self.phaseShift = 0.0
-        self.multiplicity = 1
+        self.fc = fc
+        self.phaseShift = phaseShift
+        self.multiplicity = multiplicity
 
-        
+
 class ImproperType( Serializable ):
     
-    def __init__( self  ):
+    def __init__( self, name = None, fc = None, angle0 = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -153,5 +153,5 @@ class ImproperType( Serializable ):
         # name to refer to the type
         self.name = name
 
-        self.fc = 0.0
-        self.angle0 = 0.0
+        self.fc = fc
+        self.angle0 = angle0

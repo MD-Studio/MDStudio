@@ -30,13 +30,13 @@ from lie_topology.common.exception import LieTopologyException
 
 class InPlaneSite( Serializable ):
     
-    def __init__( self, atom_names = [], gamma = None ):
+    def __init__( self, atom_references = [], gamma = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the vsite, length should be 2
-        self.atom_names = atom_names
+        self.atom_references = atom_references
         
         # Offset along the defined vector
         self.gamma = gamma

@@ -32,13 +32,13 @@ from lie_topology.common.exception import LieTopologyException
 
 class Dihedral( Serializable ):
     
-    def __init__( self, atom_names = [], dihedral_type = None, united = None ):
+    def __init__( self, atom_references = [], dihedral_type = None, united = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the dihedral, length should be 4
-        self.atom_names = atom_names
+        self.atom_references = atom_references
         
         # Dihedral type in the force field
         self.dihedral_type = dihedral_type

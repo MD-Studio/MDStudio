@@ -129,6 +129,10 @@ class ContiguousMap( Serializable ):
     
         return self.find( key )
     
+    def __len__( self ):
+    
+        return self.size()
+
     def __contains__(self, key):
 
         return self.find( key ) != None

@@ -37,16 +37,34 @@ from lie_topology.molecule.bond           import Bond
 from lie_topology.molecule.angle          import Angle
 from lie_topology.molecule.dihedral       import Dihedral
 from lie_topology.molecule.vsite          import InPlaneSite
-from lie_topology.forcefield.forcefield   import CoulombicType
+from lie_topology.molecule.extern         import GromosExternAtom
+from lie_topology.forcefield.forcefield   import CoulombicType, BondType
 from lie_topology.forcefield.reference    import ForceFieldReference
 
 def _ParseTitle(block, mtb_file):
 
     mtb_file.title = ' '.join(block)
 
+def _ParseVersion(block, mtb_file):
+
+    pass
+
 def _ParseForcefield(block, mtb_file):
 
     pass
+
+def _GenerateBondedReference( solute, index ):
+
+    ref = None
+
+    # if not within index boundaries, its an external ref
+    if index >= 0 and index < len(solute.atoms):
+        ref = solute.atoms.keyAt( index )
+    
+    else:
+        ref = GromosExternAtom(index=index)
+
+    return ref
 
 def _ParseLinkExcl(block, mtb_file):
 
@@ -87,11 +105,11 @@ def _ParseSoluteBonds( block, solute, it ):
         index_i = int( block[it+0] ) - 1
         index_j = int( block[it+1] ) - 1
         bond_type = ForceFieldReference( block[it+2] )
-
-        atom_i_name = solute.atoms.keyAt( index_i )
-        atom_j_name = solute.atoms.keyAt( index_j )
         
-        bond = Bond( atom_names=[atom_i_name,atom_j_name],\
+        atom_i_ref = _GenerateBondedReference( solute, index_i )
+        atom_j_ref = _GenerateBondedReference( solute, index_j )
+        
+        bond = Bond( atom_references=[atom_i_ref,atom_j_ref],\
                      bond_type=bond_type  ) 
 
         solute.bonds.append( bond )
@@ -113,11 +131,11 @@ def _ParseSoluteAngles( block, solute, it ):
         index_k = int( block[it+2] ) - 1
         angle_type = ForceFieldReference( block[it+3] )
 
-        atom_i_name = solute.atoms.keyAt( index_i )
-        atom_j_name = solute.atoms.keyAt( index_j )
-        atom_k_name = solute.atoms.keyAt( index_k )
+        atom_i_ref = _GenerateBondedReference( solute, index_i )
+        atom_j_ref = _GenerateBondedReference( solute, index_j )
+        atom_k_ref = _GenerateBondedReference( solute, index_k )
 
-        angle = Angle( atom_names=[atom_i_name,atom_j_name, atom_k_name],\
+        angle = Angle( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref],\
                        angle_type=angle_type  ) 
 
         solute.angles.append( angle )
@@ -140,12 +158,12 @@ def _ParseSoluteDihedrals( block, solute, it ):
         index_l = int( block[it+3] ) - 1
         dihedral_type = ForceFieldReference( block[it+4] )
 
-        atom_i_name = solute.atoms.keyAt( index_i )
-        atom_j_name = solute.atoms.keyAt( index_j )
-        atom_k_name = solute.atoms.keyAt( index_k )
-        atom_l_name = solute.atoms.keyAt( index_k )
+        atom_i_ref = _GenerateBondedReference( solute, index_i )
+        atom_j_ref = _GenerateBondedReference( solute, index_j )
+        atom_k_ref = _GenerateBondedReference( solute, index_k )
+        atom_l_name = _GenerateBondedReference( solute, index_k )
 
-        dihedral = Dihedral( atom_names=[atom_i_name,atom_j_name, atom_k_name, atom_l_name],\
+        dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
                              dihedral_type=dihedral_type  ) 
 
         solute.dihedrals.append( dihedral )
@@ -168,12 +186,12 @@ def _ParseSoluteImpropers( block, solute, it ):
         index_l = int( block[it+3] ) - 1
         dihedral_type = ForceFieldReference( block[it+4] )
 
-        atom_i_name = solute.atoms.keyAt( index_i )
-        atom_j_name = solute.atoms.keyAt( index_j )
-        atom_k_name = solute.atoms.keyAt( index_k )
-        atom_l_name = solute.atoms.keyAt( index_k )
+        atom_i_ref = _GenerateBondedReference( solute, index_i )
+        atom_j_ref = _GenerateBondedReference( solute, index_j )
+        atom_k_ref = _GenerateBondedReference( solute, index_k )
+        atom_l_name = _GenerateBondedReference( solute, index_k )
 
-        dihedral = Dihedral( atom_names=[atom_i_name,atom_j_name, atom_k_name, atom_l_name],\
+        dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
                              dihedral_type=dihedral_type  ) 
 
         solute.impropers.append( dihedral )
@@ -182,7 +200,7 @@ def _ParseSoluteImpropers( block, solute, it ):
     
     return it
 
-def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
+def _ParseSoluteAtoms( block, solute, count, it, trailing ):
 
     cgIndex = 0
 
@@ -195,12 +213,11 @@ def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
         massGroup      = block[it + 3]
         charge         = block[it + 4]
         chargeGroup_fl = int( block[it + 5] )
-        numNeighbours  = int( block[it + 6] )
         
         if chargeGroup_fl == 1:
             cgIndex += 1
 
-        solute.AddAtom( name=name, identifier=index )
+        solute.AddAtom( name=name, identifier=index, trailing=trailing )
         atom = solute.atoms.back()
         
         # These parameters are externally defined
@@ -212,14 +229,19 @@ def _ParseSoluteAtoms( block, solute, count, it, exclusions ):
         atom.coulombic_type = CoulombicType( charge=charge )
         atom.charge_group   = cgIndex
       
-        it += 7
+        if not trailing:
+            # parse number of exclusions
+            numNeighbours = int( block[it + 6] )
 
-        if exclusions:
-            it += numNeighbours
+            # then add the numbers of neighbours + 1 for the
+            # count location
+            it += numNeighbours + 1
     
+        it += 6
+
     return it
 
-def _ParseAtomicPolarizabilities(block, solute, it ):
+def _ParseAtomicPolarizabilities(block, solute, it):
 
     count = int( block[it] )
     it+=1
@@ -228,13 +250,13 @@ def _ParseAtomicPolarizabilities(block, solute, it ):
         
         # Minus one as gromos uses fortran indices
         index          = int(   block[it + 0] ) - 1
-        polarizability = float( block[it + 0] )
-        cos_charge     = float( block[it + 0] )  
-        damping_level  = float( block[it + 0] )  
-        damping_power  = float( block[it + 0] )  
-        gamma          = float( block[it + 0] )  
-        offset_i       = int(   block[it + 0] ) - 1
-        offset_j       = int(   block[it + 0] ) - 1
+        polarizability = float( block[it + 1] )
+        cos_charge     = float( block[it + 2] )  
+        damping_level  = float( block[it + 3] )  
+        damping_power  = float( block[it + 4] )  
+        gamma          = float( block[it + 5] )  
+        offset_i       = int(   block[it + 6] ) - 1
+        offset_j       = int(   block[it + 7] ) - 1
          
         atom_name, atom = solute.atoms.at( index )
 
@@ -245,17 +267,70 @@ def _ParseAtomicPolarizabilities(block, solute, it ):
 
         if gamma != 0.0:
 
-            atom_i_name = solute.atoms.keyAt( offset_i )
-            atom_j_name = solute.atoms.keyAt( offset_j )
+            atom_i_ref = _GenerateBondedReference( solute, offset_i )
+            atom_j_ref = _GenerateBondedReference( solute, offset_j )
 
-            atom.vsite = InPlaneSite( atom_names=[atom_i_name,atom_j_name], gamma=gamma )
+            atom.vsite = InPlaneSite( atom_references=[atom_i_ref,atom_j_ref], gamma=gamma )
             
-
         it += 8
 
     return it
 
-def _ParseAtomicData( block, solute, it ):
+def _ParseSolventAtoms(block, solvent, it):
+
+    count = int( block[it] )
+    it+=1
+
+    for atom in range ( 0, count ):
+        
+        # Minus one as gromos uses fortran indices
+        index          = int( block[it + 0] )  - 1
+        name           = block[it + 1]
+        vdwGroup       = block[it + 2]
+        massGroup      = block[it + 3]
+        charge         = block[it + 4]
+
+        solvent.AddAtom( name=name, identifier=index )
+        atom = solvent.atoms.back()
+        
+        # These parameters are externally defined
+        # Therefore we can only reference to them at this point
+        atom.mass_type = ForceFieldReference( name=massGroup )
+        atom.vdw_type  = ForceFieldReference( name=vdwGroup )
+        
+        # These are define here on the spot
+        atom.coulombic_type = CoulombicType( charge=charge )
+
+        it += 5
+
+    return it
+
+def _ParseSolventConstraints(block, solvent, it):
+
+    numConstr = int( block[it] ) 
+    it+=1
+
+    for i in range ( 0, numConstr ):
+
+        # Minus one as gromos uses fortran indices
+        index_i = int( block[it+0] ) - 1
+        index_j = int( block[it+1] ) - 1
+        bond_length = float( block[it+2] )
+        
+        atom_i_ref = _GenerateBondedReference( solvent, index_i )
+        atom_j_ref = _GenerateBondedReference( solvent, index_j )
+        
+        bond_type = BondType( b0 = bond_length )
+        bond = Bond( atom_references=[atom_i_ref,atom_j_ref],\
+                     bond_type=bond_type  ) 
+
+        solvent.bonds.append( bond )
+        
+        it+=3
+    
+    return it
+
+def _ParseAtomicData( block, solute, it):
 
     numAtoms = int( block[it+0] )
     numExclu = int( block[it+1] )
@@ -264,10 +339,25 @@ def _ParseAtomicData( block, solute, it ):
     it = _ParsePrecedingExclusions( block, solute, numExclu, it+2 )
 
     # Parse full atom description
-    it = _ParseSoluteAtoms( block, solute, numAtoms - numExclu, it, True )
+    it = _ParseSoluteAtoms( block, solute, numAtoms - numExclu, it, False )
 
     # Parse trailing atoms in ( for chains )
-    it = _ParseSoluteAtoms( block, solute, numExclu, it, False )
+    it = _ParseSoluteAtoms( block, solute, numExclu, it, True )
+
+    return it
+
+def _ParseBlendData( block, solute, it ):
+
+    numAtoms   = int( block[it+0] )
+    numReplace = int( block[it+1] )
+
+    # Parse full atom description
+    numFullAtoms = numAtoms - max( 0, numReplace)
+    it = _ParseSoluteAtoms( block, solute, numFullAtoms, it+2, False )
+
+    # Parse trailing atoms in ( for chains )
+    if numReplace > 0:
+        it = _ParseSoluteAtoms( block, solute, numReplace, it, True )
 
     return it
 
@@ -300,6 +390,9 @@ def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParsePolarizableSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
+    mtb_group = mtb_file.GetGroup("POLARIZABLE_SOLUTES")
+    mtb_group.AddSolute(molecule=solute)
+
 def _ParseSoluteBuildingBlock(block, mtb_file):
 
     solute = Molecule()
@@ -312,22 +405,67 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParseSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
-    print json.dumps( solute.OnSerialize(), indent=2 )
+    mtb_group = mtb_file.GetGroup("SOLUTES")
+    mtb_group.AddSolute(molecule=solute)
+
+def _ParseBlendBuildingBlock(block, mtb_file):
+
+    solute = Molecule()
+    solute.name = block[0]
+
+    it = _ParseBlendData( block, solute, 1 )
+    it = _ParseBondedData( block, solute, it )
+    
+    mtb_group = mtb_file.GetGroup("BLENDS")
+    mtb_group.AddSolute(molecule=solute)
+
+def _ParseSolventBuildingBlock(block, mtb_file):
+
+    solvent = Molecule()
+    solvent.name = block[0]
+
+    it = _ParseSolventAtoms( block, solvent, 1 )
+    it = _ParseSolventConstraints( block, solvent, it )
+    
+    mtb_file.AddSolvent(molecule=solvent)
+
+def _ParsePolarizableSolventBuildingBlock(block, mtb_file):
+
+    solvent = Molecule()
+    solvent.name = block[0]
+
+    it = _ParseSolventAtoms( block, solvent, 1 )
+    it = _ParseAtomicPolarizabilities(block, solute, it )
+    it = _ParseSolventConstraints( block, solvent, it )
+    
+    numVdwExceptions = int( block[it] )
+    if ( numVdwExceptions > 0 ):
+        raise PygromosException( "_ParsePolarizableSolventBuildingBlock", "MTB van der Waals exceptions not supported" )
+
+    mtb_file.AddSolvent(molecule=solvent)
 
 def ParseMtb( ifstream ):
 
     # Parser map
     parseFunctions = dict()
-    parseFunctions["TITLE"] = _ParseTitle
-    parseFunctions["FORCEFIELD"] = _ParseForcefield
-    parseFunctions["PHYSICALCONSTANTS"] = _ParsePhysConst
-    parseFunctions["LINKEXCLUSIONS"] = _ParseLinkExcl
-    parseFunctions["MTBUILDBLSOLUTE"] = _ParseSoluteBuildingBlock
+    parseFunctions["TITLE"]               = _ParseTitle
+    parseFunctions["FORCEFIELD"]          = _ParseForcefield
+    parseFunctions["MAKETOPVERSION"]      = _ParseVersion
+    parseFunctions["PHYSICALCONSTANTS"]   = _ParsePhysConst
+    parseFunctions["LINKEXCLUSIONS"]      = _ParseLinkExcl
+    parseFunctions["MTBUILDBLSOLUTE"]     = _ParseSoluteBuildingBlock
+    parseFunctions["MTBUILDBLPOLSOLUTE"]  = _ParsePolarizableSoluteBuildingBlock
+    parseFunctions["MTBUILDBLSOLVENT"]    = _ParseSolventBuildingBlock
+    parseFunctions["MTBUILDBLPOLSOLVENT"] = _ParsePolarizableSolventBuildingBlock
+    parseFunctions["MTBUILDBLEND"]        = _ParseBlendBuildingBlock
 
     tokenizer = Tokenizer( ifstream )
 
     mtb_file = BuildingBlock()
-
+    mtb_file.AddGroup( name="BLENDS" )
+    mtb_file.AddGroup( name="SOLUTES" )
+    mtb_file.AddGroup( name="POLARIZABLE_SOLUTES" )
+   
     ## Uses occurance map to be order agnostic
     for blockName, block in tokenizer.Blocks():
         
