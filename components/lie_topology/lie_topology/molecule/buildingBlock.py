@@ -28,14 +28,14 @@ import sys
 import os
 import numpy as np
 
-from lie_topology.common.tokenizer     import Tokenizer
+from lie_topology.common.serializable  import Serializable
 from lie_topology.common.exception     import LieTopologyException
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.forcefield.physconst import PhysicalConstants
 from lie_topology.molecule.group       import Group 
 from lie_topology.molecule.molecule    import Molecule
 
-class BuildingBlock(object):
+class BuildingBlock( Serializable ):
 
     def __init__(self):
 
@@ -79,6 +79,6 @@ class BuildingBlock(object):
 
             self.groups.insert( kwargs["name"], Molecule( **kwargs ) )
 
-    def GetGroup( self, name ):
+    def GroupByName( self, name ):
 
         return self.groups[name]

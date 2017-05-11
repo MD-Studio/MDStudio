@@ -24,8 +24,10 @@
 # @endcond
 #
 
-class AbstractDriver( object ):
+NM_TO_ANGSTROM = 10.0
 
-    def __init__( self ):
+ANGSTROM_TO_NM = 1.0 / NM_TO_ANGSTROM
 
-        pass
+
+
+

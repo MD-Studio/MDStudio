@@ -32,16 +32,43 @@ from lie_topology.molecule.molecule import Molecule
 
 class Topology( Serializable ):
     
-    def __init__( self ):
+    def __init__( self, solvent = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
         
         # Solutes present in this topology
-        self.groups = ContiguousMap()
+        self._groups = ContiguousMap()
 
         # Solvent present in this topology
-        self.solvent = None
+        self._solvent = solvent
+
+    def atomByIndex(self, index):
+        
+        # could be speed up a lot by storing a linear version of the topology
+        # for now if its fast enough there is not reason to do this
+        it = 0
+        for group in self._groups.values():
+            for molecule in group.molecules:
+
+                numAtoms = len(molecule.atoms)
+                
+                if index >= it and index < ( it + numAtoms):
+                    return molecule.atoms.at( index - it )
+                
+                it += numAtoms
+
+        return None
+
+    @property
+    def groups(self):
+
+        return self._groups
+
+    @property
+    def solvent(self):
+
+        return self._solvent
 
     def AddGroup( self, **kwargs ):
 
@@ -49,29 +76,29 @@ class Topology( Serializable ):
 
             raise LieTopologyException("Topology::AddGroup", "Name is a required argument" )
 
-        self.groups.insert( kwargs["name"], Group( **kwargs ) )
+        self._groups.insert( kwargs["name"], Group( **kwargs ) )
 
-    def GetGroup( self, name ):
+    def GroupByName( self, name ):
 
-        return self.groups[name]
+        return self._groups[name]
     
     def OnSerialize( self, logger = None ):   
 
         result = {}
         
-        if self.groups:
+        if self._groups:
             ser_keys = []
             ser_groups = []
             
-            for ikey, igroup in self.groups.items():
+            for ikey, igroup in self._groups.items():
                 ser_keys.append( ikey )
                 ser_groups.append( igroup.OnSerialize(logger) )
                 
             result["groups"] = { "keys" : ser_keys, "values" : ser_groups }
 
-        if self.solvent:
+        if self._solvent:
 
-            ser_solvent = self.solvent.OnSerialize(logger)
+            ser_solvent = self._solvent.OnSerialize(logger)
             result["solvent"] = ser_solvent
         
         return result
@@ -102,12 +129,12 @@ class Topology( Serializable ):
                 group = Group()
                 group.OnDeserialize(item, logger)
 
-                self.groups.insert( key, group )
+                self._groups.insert( key, group )
             
         if "solvent" in data:
             
-            self.solvent = Molecule()
-            self.solvent.OnDeserialize(data["solvent"], logger)
+            self._solvent = Molecule()
+            self._solvent.OnDeserialize(data["solvent"], logger)
 
 
                     

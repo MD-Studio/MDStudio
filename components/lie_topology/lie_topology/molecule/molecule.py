@@ -31,31 +31,32 @@ from lie_topology.molecule.atom        import Atom
 
 class Molecule( Serializable ):
     
-    def __init__( self, name = None, identifier = None ):
+    def __init__( self, name = None, identifier = None, \
+                  bonds = None, angles = None, dihedrals = None, impropers = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Name of the solutes
-        self.name = name
+        self._name = name
     
         # Identifier number defined by external sources
-        self.identifier = identifier
+        self._identifier = identifier
 
         # Atoms of this solute
-        self.atoms = ContiguousMap()
+        self._atoms = ContiguousMap()
         
         # Bonds of this solute
-        self.bonds = list()
+        self._bonds = bonds
         
         # Angles of this solute
-        self.angles = list()
+        self._angles = angles
         
         # Dihedrals of this solute
-        self.dihedrals = list()
+        self._dihedrals = dihedrals
         
         # Impropers of this solute
-        self.impropers = list()
+        self._impropers = impropers
 
     def AddAtom(self, **kwargs ):
 
@@ -64,9 +65,68 @@ class Molecule( Serializable ):
             raise LieTopologyException("Molecule::AddAtom", "Name is a required argument" )
 
         self.atoms.insert(kwargs["name"], Atom(**kwargs) )
+    
+    def AddBond( self, bond ):
 
-    # def __eq__(self, other):
+        if not isinstance(self._bonds, list):
+            self._bonds = []
 
-    #     # reduce to basic types and abuse python buildin
-    #     # comparison
-    #     return self.OnSerialize() == other.OnSerialize()
+        self._bonds.append( bond )
+
+    def AddAngle( self, angle ):
+
+        if not isinstance(self._angles, list):
+            self._angles = []
+
+        self._angles.append( angle )
+
+    def AddImproper( self, improper ):
+
+        if not isinstance(self._impropers, list):
+            self._impropers = []
+
+        self._impropers.append( improper )
+    
+    def AddDihedral( self, dihedral ):
+
+        if not isinstance(self._dihedrals, list):
+            self._dihedrals = []
+
+        self._dihedrals.append( dihedral )
+
+    @property
+    def name(self):
+
+        return self._name
+
+    @property
+    def identifier(self):
+
+        return self._identifier
+
+    @property
+    def atoms(self):
+
+        return self._atoms
+
+    @property
+    def bonds(self):
+
+        return self._bonds
+    
+    @property
+    def angles(self):
+
+        return self._angles
+
+    @property
+    def dihedrals(self):
+
+        return self._dihedrals
+
+    @property
+    def impropers(self):
+
+        return self._impropers
+
+    

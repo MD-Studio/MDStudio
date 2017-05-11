@@ -31,33 +31,49 @@ from lie_topology.molecule.molecule import Molecule
 
 class Group( Serializable ):
     
-    def __init__( self, name = None, chainid = None ):
+    def __init__( self, name = None, chain_id  = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
         
         # full name of the group
-        self.name = name
+        self._name = name
 
         # chainid like in pdb
-        self.chainid = chainid
+        self._chain_id = chain_id 
 
         # Solutes present in this topology
-        self.solutes = list()
+        self._molecules = list()
 
-    def AddSolute( self, **kwargs ):
+
+    @property
+    def name(self):
+
+        return self._name
+
+    @property
+    def chain_id(self):
+
+        return self._chain_id
+
+    @property
+    def molecules(self):
+
+        return self._molecules
+
+    def AddMolecule( self, **kwargs ):
 
         if  "molecule" in kwargs:
-            self.solutes.append(kwargs["molecule"])
+            self._molecules.append(kwargs["molecule"])
 
         else:
-            self.solutes.append( Molecule(**kwargs) )
+            self._molecules.append( Molecule(**kwargs) )
 
     def GetSolutesByName( self, name ):
 
         olist = []
 
-        for solute in self.solutes:
+        for solute in self._molecules:
 
             if solute.name == name:
 
@@ -67,4 +83,4 @@ class Group( Serializable ):
     
     def GetSoluteByIndex( self, index ):
     
-        return self.solutes[index]
+        return self._molecules[index]

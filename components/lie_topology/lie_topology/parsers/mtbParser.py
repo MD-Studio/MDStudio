@@ -29,17 +29,17 @@ import os
 import json
 import numpy as np
 
-from lie_topology.common.tokenizer        import Tokenizer
-from lie_topology.common.exception        import LieTopologyException
-from lie_topology.filetypes.buildingBlock import BuildingBlock
-from lie_topology.molecule.molecule       import Molecule
-from lie_topology.molecule.bond           import Bond
-from lie_topology.molecule.angle          import Angle
-from lie_topology.molecule.dihedral       import Dihedral
-from lie_topology.molecule.vsite          import InPlaneSite
-from lie_topology.molecule.extern         import GromosExternAtom
-from lie_topology.forcefield.forcefield   import CoulombicType, BondType
-from lie_topology.forcefield.reference    import ForceFieldReference
+from lie_topology.common.tokenizer          import Tokenizer
+from lie_topology.common.exception          import LieTopologyException
+from lie_topology.collections.buildingBlock import BuildingBlock
+from lie_topology.molecule.molecule         import Molecule
+from lie_topology.molecule.bond             import Bond
+from lie_topology.molecule.angle            import Angle
+from lie_topology.molecule.dihedral         import Dihedral
+from lie_topology.molecule.vsite            import InPlaneSite
+from lie_topology.molecule.extern           import GromosExternAtom
+from lie_topology.forcefield.forcefield     import CoulombicType, BondType
+from lie_topology.forcefield.reference      import ForceFieldReference
 
 def _ParseTitle(block, mtb_file):
 
@@ -112,7 +112,7 @@ def _ParseSoluteBonds( block, solute, it ):
         bond = Bond( atom_references=[atom_i_ref,atom_j_ref],\
                      bond_type=bond_type  ) 
 
-        solute.bonds.append( bond )
+        solute.AddBond( bond )
         
         it+=3
     
@@ -138,7 +138,7 @@ def _ParseSoluteAngles( block, solute, it ):
         angle = Angle( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref],\
                        angle_type=angle_type  ) 
 
-        solute.angles.append( angle )
+        solute.AddAngle( angle )
         
         it+=4
     
@@ -166,7 +166,7 @@ def _ParseSoluteDihedrals( block, solute, it ):
         dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
                              dihedral_type=dihedral_type  ) 
 
-        solute.dihedrals.append( dihedral )
+        solute.AddDihedral( dihedral )
         
         it+=5
     
@@ -194,7 +194,7 @@ def _ParseSoluteImpropers( block, solute, it ):
         dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
                              dihedral_type=dihedral_type  ) 
 
-        solute.impropers.append( dihedral )
+        solute.AddImproper( dihedral )
         
         it+=5
     
@@ -390,8 +390,8 @@ def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParsePolarizableSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
-    mtb_group = mtb_file.GetGroup("POLARIZABLE_SOLUTES")
-    mtb_group.AddSolute(molecule=solute)
+    mtb_group = mtb_file.GroupByName("POLARIZABLE_SOLUTES")
+    mtb_group.AddMolecule(molecule=solute)
 
 def _ParseSoluteBuildingBlock(block, mtb_file):
 
@@ -405,8 +405,8 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParseSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
-    mtb_group = mtb_file.GetGroup("SOLUTES")
-    mtb_group.AddSolute(molecule=solute)
+    mtb_group = mtb_file.GroupByName("SOLUTES")
+    mtb_group.AddMolecule(molecule=solute)
 
 def _ParseBlendBuildingBlock(block, mtb_file):
 
@@ -416,8 +416,8 @@ def _ParseBlendBuildingBlock(block, mtb_file):
     it = _ParseBlendData( block, solute, 1 )
     it = _ParseBondedData( block, solute, it )
     
-    mtb_group = mtb_file.GetGroup("BLENDS")
-    mtb_group.AddSolute(molecule=solute)
+    mtb_group = mtb_file.GroupByName("BLENDS")
+    mtb_group.AddMolecule(molecule=solute)
 
 def _ParseSolventBuildingBlock(block, mtb_file):
 

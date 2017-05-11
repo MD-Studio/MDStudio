@@ -33,7 +33,7 @@ from lie_topology.common.exception import LieTopologyException
 class Atom( Serializable ):
     
     def __init__( self, name = None, element = None, identifier = None, aromatic = None,\
-                  occupancy = None, bfactor = None, mass_type = None, vdw_type = None,\
+                  occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
                   coulombic_type = None, charge_group = None, virtual_site = None,\
                   preceding = None, trailing = None ):
         
@@ -56,7 +56,7 @@ class Atom( Serializable ):
         self.occupancy = occupancy
 
         # If from a crystallographic source store the bfactor
-        self.bfactor = bfactor
+        self.b_factor = b_factor
 
         # Mass type, to be combined with a force field input
         self.mass_type = mass_type

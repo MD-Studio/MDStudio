@@ -39,22 +39,22 @@ from lie_topology.molecule.group     import Group
 
 def _AppendTopological( activeTopology, resNum, resName, atomName, atomNum ):
 
-    activeGroup = activeTopology.GetGroup("solute")
+    activeGroup = activeTopology.GroupByName("solute")
 
     if not activeGroup:
         
         activeTopology.AddGroup( name="solute"  )
-        activeGroup = activeTopology.GetGroup("solute")
+        activeGroup = activeTopology.GroupByName("solute")
 
         #as this is a new group we are sure that this doesnt contain a residue yet
-        activeGroup.AddSolute( name=resName, identifier=resNum )
+        activeGroup.AddMolecule( name=resName, identifier=resNum )
 
     lastResidue = activeGroup.GetSoluteByIndex( -1 )
 
     if resName != lastResidue.name or\
        resNum != lastResidue.identifier:
 
-        activeGroup.AddSolute( name=resName, identifier=resNum )
+        activeGroup.AddMolecule( name=resName, identifier=resNum )
         lastResidue = activeGroup.GetSoluteByIndex( -1 )
     
     lastResidue.AddAtom( name=atomName, identifier=atomNum )
