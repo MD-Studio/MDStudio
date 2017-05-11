@@ -75,7 +75,8 @@ class Topology( Serializable ):
         if not "name" in kwargs:
 
             raise LieTopologyException("Topology::AddGroup", "Name is a required argument" )
-
+        
+        kwargs["parent"] = self
         self._groups.insert( kwargs["name"], Group( **kwargs ) )
 
     def GroupByName( self, name ):

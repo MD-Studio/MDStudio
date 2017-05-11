@@ -31,11 +31,13 @@ from lie_topology.molecule.molecule import Molecule
 
 class Group( Serializable ):
     
-    def __init__( self, name = None, chain_id  = None ):
+    def __init__( self, parent = None, name = None, chain_id  = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
         
+        self._parent = parent
+
         # full name of the group
         self._name = name
 
@@ -62,7 +64,8 @@ class Group( Serializable ):
         return self._molecules
 
     def AddMolecule( self, **kwargs ):
-
+        
+        kwargs["parent"] = self
         if  "molecule" in kwargs:
             self._molecules.append(kwargs["molecule"])
 

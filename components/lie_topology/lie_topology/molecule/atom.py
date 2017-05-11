@@ -32,13 +32,16 @@ from lie_topology.common.exception import LieTopologyException
 
 class Atom( Serializable ):
     
-    def __init__( self, name = None, element = None, identifier = None, aromatic = None,\
+    def __init__( self, parent = None, name = None, element = None, identifier = None, aromatic = None,\
                   occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
                   coulombic_type = None, charge_group = None, virtual_site = None,\
                   preceding = None, trailing = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+
+        # parent molecule
+        self.parent = parent
 
         # Name of the atom
         self.name = name
@@ -79,3 +82,7 @@ class Atom( Serializable ):
 
         # Trailing in the building block (for chain topology)
         self.trailing = trailing
+
+    def GenerateLocation(self):
+
+        molParent = self.parent

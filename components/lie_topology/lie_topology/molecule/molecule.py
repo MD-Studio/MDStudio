@@ -31,11 +31,14 @@ from lie_topology.molecule.atom        import Atom
 
 class Molecule( Serializable ):
     
-    def __init__( self, name = None, identifier = None, \
+    def __init__( self, parent = None, name = None, identifier = None, \
                   bonds = None, angles = None, dihedrals = None, impropers = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
+
+        # Parent group of this molecule
+        self._parent = parent
 
         # Name of the solutes
         self._name = name
@@ -63,7 +66,8 @@ class Molecule( Serializable ):
         if not "name" in kwargs:
 
             raise LieTopologyException("Molecule::AddAtom", "Name is a required argument" )
-
+        
+        kwargs["parent"] = self
         self.atoms.insert(kwargs["name"], Atom(**kwargs) )
     
     def AddBond( self, bond ):

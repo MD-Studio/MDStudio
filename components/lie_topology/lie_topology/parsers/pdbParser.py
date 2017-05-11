@@ -90,8 +90,6 @@ def _ParseAtom(line, bookKeeping, structures):
     element        =        line[76:78].strip()
     charge         =        line[78:80].strip() 
     
-    print( b_factor )
-
     # Test if there is an active structure
     if len(structures) == 0:
         structures.append( Structure() )
