@@ -62,7 +62,7 @@ class WAMPTaskMetaData(object):
         self._metadata['system_user'] = getuser()
         
         # Validate against schema
-        jsonschema.validate(self._metadata, liestudio_task_schema)
+        self.validate()
         
         self._allowed_status_labels = liestudio_task_schema['properties']['status']['enum']
         self._initialised = True
@@ -180,3 +180,7 @@ class WAMPTaskMetaData(object):
             del self._metadata['password']
         
         return self._metadata
+    
+    def validate(self):
+        
+        jsonschema.validate(self._metadata, liestudio_task_schema)

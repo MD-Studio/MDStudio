@@ -8,6 +8,7 @@ import copy
 from   autobahn.wamp          import auth, cryptosign
 from   autobahn.twisted.wamp  import ApplicationSession
 from   twisted.internet.defer import inlineCallbacks
+from   twisted.internet       import reactor
 from   pymongo                import MongoClient
 
 from   lie_config             import ConfigHandler
@@ -376,6 +377,10 @@ class LieApplicationSession(ApplicationSession):
         # Init WAMP logging
         self.logger = WampLogging(wamp=self, log_level=self.package_config.get('global_log_level', 'info'))
         
+        # Add self.disconnect to Event trigger in order to get propper shutdown
+        # and exit of reactor event loop on Ctrl-C e.d.
+        reactor.addSystemEventTrigger('before', 'shutdown', self.disconnect)
+        
         # Call onRun hook.
         self.onRun(details)
         
@@ -397,20 +402,6 @@ class LieApplicationSession(ApplicationSession):
         # Call onExit hook
         self.onExit(details)
     
-    # @inlineCallbacks
-    # def list_methods(self):
-    #     """
-    #     Returns a list of available modules
-    #     """
-    #
-    #     methods = {}
-    #     modules = yield self.call("wamp.registration.list")
-    #     for module in modules['exact']:
-    #         module = yield self.call("wamp.registration.get", module)
-    #         methods[module['uri']] = module
-    #
-    #     return methods
-    
     def task(self, method, *args, **kwargs):
         """
         Wrapper around ApplicationSession `call` method.
@@ -428,7 +419,6 @@ class LieApplicationSession(ApplicationSession):
         else:    
             session_config = self.session_config
         
-        print(session_config())
         return self.call(method, session=session_config(), *args, **kwargs)
     
     # Class placeholder methods. Override these for custom events during 
