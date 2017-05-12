@@ -52,7 +52,32 @@ class Bond( Serializable ):
         
         # Indicates the bond order of this bond
         self._bond_order = bond_order
-        
+    
+    @property
+    def atom_references(self):
+
+        return self._atom_references
+
+    @property
+    def bond_type(self):
+
+        return self._bond_type
+
+    @property
+    def aromatic(self):
+
+        return self._aromatic
+
+    @property
+    def bond_order(self):
+
+        return self._bond_order
+    
+    @atom_references.setter
+    def atom_references(self, value):
+
+        self._atom_references = value
+
     def OnSerialize( self, logger = None ):   
 
         result = {}

@@ -47,6 +47,21 @@ class Angle( Serializable ):
         # Angle type in the force field
         self._angle_type = angle_type
     
+    @property
+    def atom_references(self):
+
+        return self._atom_references
+
+    @property
+    def angle_type(self):
+
+        return self._angle_type
+
+    @atom_references.setter
+    def atom_references(self, value):
+
+        self._atom_references = value
+
     def OnSerialize( self, logger = None ):   
 
         result = {}

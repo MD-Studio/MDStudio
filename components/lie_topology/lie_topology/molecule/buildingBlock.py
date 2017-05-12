@@ -52,6 +52,41 @@ class BuildingBlock( Serializable ):
         # Solvents present in the mtb
         self._solvents = ContiguousMap()
 
+    @property
+    def title(self):
+
+        return self._title
+
+    @property
+    def exclusion_distance(self):
+
+        return self._exclusion_distance
+
+    @property
+    def physical_constants(self):
+
+        return self._physical_constants
+
+    @property
+    def groups(self):
+
+        return self._groups
+
+    @property
+    def solvents(self):
+
+        return self._solvents
+
+    @title.setter
+    def title(self, value):
+
+        self._title = value
+
+    @exclusion_distance.setter
+    def exclusion_distance(self, value):
+
+        self._exclusion_distance = value
+
     def AddGroup( self, **kwargs ):
 
         if not "name" in kwargs:
@@ -105,3 +140,10 @@ class BuildingBlock( Serializable ):
         DeserializeObjTypes( ["physical_constants"], [PhysicalConstants], data, self.__dict__, logger, '_')
         DeserializeContiguousMapsTypes( ["groups", "solvents"], [Group, Molecule], data, self.__dict__, logger, '_' )
         
+        # patch bonded references
+        for group in self._groups.values():
+            for molecule in group.molecules.values():
+                molecule.ResolveNamedReferences( self, molecule )
+        
+        for solvent in self._solvents.values():
+            solvent.ResolveNamedReferences( None, solvent )

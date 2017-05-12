@@ -104,5 +104,12 @@ class Topology( Serializable ):
         DeserializeContiguousMapsTypes( ["groups"], [Group], data, self.__dict__, logger, '_', self )
         DeserializeObjTypes( ["solvent"], [Molecule], data, self.__dict__, logger, '_')
         
+        # patch bonded references
+        for group in self._groups:
+            for molecule in group.molecules:
+                molecule.ResolveNamedReferences( self, molecule )
 
-                    
+        if self._solvent:
+            self._solvent.ResolveNamedReferences( None, self._solvent )
+            
+

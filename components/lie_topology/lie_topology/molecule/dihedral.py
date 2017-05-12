@@ -46,7 +46,21 @@ class Dihedral( Serializable ):
         
         # Dihedral type in the force field
         self._dihedral_type = dihedral_type
+    
+    @property
+    def atom_references(self):
 
+        return self._atom_references
+
+    @property
+    def dihedral_type(self):
+
+        return self._dihedral_type
+
+    @atom_references.setter
+    def atom_references(self, value):
+
+        self._atom_references = value
 
     def OnSerialize( self, logger = None ):   
 

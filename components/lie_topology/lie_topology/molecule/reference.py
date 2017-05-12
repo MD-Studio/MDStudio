@@ -44,36 +44,32 @@ class AtomReference( Serializable ):
         # index of the atm
         self._external_index = external_index
     
-    def UpcastFromMolecule( self, molecule ):
-
-        if not self._atom_name:
-            return self
+    def TryLink( self, root, referencing_molecule ):
         
         ## Try to find the linking atom
         ## While the molecule includes this reference
         ## in e.g. a bond, this reference could still point
         ## to a different molecule
-        target_molecule = molecule
-        target_group = molecule.group
+        target_molecule = None
+        target_group = None
 
         if self._group_name:
             # if we have a groupname find the root
 
-            if not target_group:
-                LieTopologyException("AtomReference::UpcastFromMolecule", "molecule does not contain a group reference")
+            if root is None:
+                raise LieTopologyException("AtomReference::UpcastFromMolecule", "a valid root object wasnt passed")
                 
-            parent = group.parent
-                
-            if not parent:
-                LieTopologyException("AtomReference::UpcastFromMolecule", "group does not contain a parent reference")
-
-            target_group = parent.groups[self._group_name]
+            target_group = root.groups[self._group_name]
 
         if self._molecule_name:
 
-            if not target_group:
-                LieTopologyException("AtomReference::UpcastFromMolecule", "molecule does not contain a group reference")
+            if target_group is None:
+                raise LieTopologyException("AtomReference::UpcastFromMolecule", "molecule does not contain a group reference")
 
-            target_molecule = target_group[self._molecule_name]
+            target_molecule = target_group.molecules[self._molecule_name]
         
-        return target_molecule[self._atom_name]
+        if self._atom_name is None or\
+           target_molecule is None:
+            return self
+
+        return target_molecule.atoms[self._atom_name]

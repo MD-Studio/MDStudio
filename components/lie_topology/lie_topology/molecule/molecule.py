@@ -190,3 +190,23 @@ class Molecule( Serializable ):
         DeserializeObjArrays( ["bonds", "angles", "impropers", "dihedrals"],\
                               [ Bond, Angle, Dihedral, Dihedral ],\
                               data, self.__dict__, logger, '_')
+    
+    # these are standard named reference that result from
+    # a serialization
+    def ResolveNamedReferences( self, root_obj ):
+
+        # next thing we want to do is attach bonded connections
+        for cat in["_bonds", "_angles", "_impropers", "_dihedrals"]:
+            category = self.__dict__[cat]
+
+            if not category is None:
+                for item in category:
+
+                    new_references = []
+                    for ref in item.atom_references:
+
+                        # in this step we resolve the named reference objects to
+                        # actual atom objects
+                        new_references.append( ref.TryLink(root_obj) )
+                    
+                    item.atom_references = new_references
