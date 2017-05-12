@@ -103,7 +103,7 @@ class Bond( Serializable ):
                 ref_obj.OnDeserialize(reference, logger)
                 
                 self._atom_references.append(ref_obj)
-                
+
         if "bond_type" in data:
             localData = data["bond_type"]
 
