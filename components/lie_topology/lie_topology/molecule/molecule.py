@@ -24,10 +24,13 @@
 # @endcond
 #
 
-from lie_topology.common.serializable  import Serializable
+from lie_topology.common.serializable  import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception     import LieTopologyException
 from lie_topology.molecule.atom        import Atom
+from lie_topology.molecule.bond        import Bond
+from lie_topology.molecule.angle       import Angle
+from lie_topology.molecule.dihedral    import Dihedral
 
 class Molecule( Serializable ):
     
@@ -38,7 +41,7 @@ class Molecule( Serializable ):
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Parent group of this molecule
-        self._parent = parent
+        self._group = parent
 
         # Name of the solutes
         self._name = name
@@ -99,6 +102,11 @@ class Molecule( Serializable ):
         self._dihedrals.append( dihedral )
 
     @property
+    def group(self):
+
+        return self._group
+
+    @property
     def name(self):
 
         return self._name
@@ -133,4 +141,52 @@ class Molecule( Serializable ):
 
         return self._impropers
 
+    @group.setter
+    def group(self, value):
+
+        self._group = value
+
+    @bonds.setter
+    def bonds(self, value):
+
+        self._bonds = value
     
+    @angles.setter
+    def angles(self, value):
+
+        self._angles = value
+
+    @dihedrals.setter
+    def dihedrals(self, value):
+
+        self._dihedrals = value
+
+    @impropers.setter
+    def impropers(self, value):
+
+        self._impropers = value
+
+    def OnSerialize( self, logger = None ):   
+
+        result = {}
+        
+        SerializeFlatTypes( ["name", "identifier"], self.__dict__, result, '_' )
+        SerializeContiguousMaps( ["atoms"], self.__dict__, result, logger, '_' )
+        SerializeObjArrays( ["bonds", "angles", "impropers", "dihedrals"],  self.__dict__, result, logger, '_' )
+
+        return result
+
+    def OnDeserialize( self, data, logger = None ):
+
+        if not IsBasicMap(data):
+            raise LieTopologyException( "Molecule::OnDeserialize", "Deserialize data presented is not a map" )
+        
+        for cat, value in data.items():
+            if not self._IsValidCategory( cat ):
+    	       logger.warning("Molecule::OnDeserialize category %s not valid for deserialization" % ( cat ) )
+        
+        DeserializeFlatTypes( ["name", "identifier"], data, self.__dict__, '_' )
+        DeserializeContiguousMapsTypes( ["atoms"], [Atom], data, self.__dict__, logger, '_', self  )
+        DeserializeObjArrays( ["bonds", "angles", "impropers", "dihedrals"],\
+                              [ Bond, Angle, Dihedral, Dihedral ],\
+                              data, self.__dict__, logger, '_')

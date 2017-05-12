@@ -28,12 +28,20 @@ from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 
-class GromosExternAtom( Serializable ):
+class AtomReference( Serializable ):
     
-    def __init__( self, index=None ):
+    def __init__( self, group_name=None, molecule_name=None, atom_name=None, external_index=None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
         
+        self._group_name = group_name
+
+        self._molecule_name = molecule_name
+
+        self._atom_name = atom_name
+
         # index of the atm
-        self.index = index
+        self._external_index = external_index
+
+

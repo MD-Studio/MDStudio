@@ -43,11 +43,115 @@ def IsBasicMap( value ):
 
 def IsBasicSequence( value ):
 
-    return isinstance( value, ( list, tuple ) )
+    return isinstance( value, ( list, tuple, set ) )
 
 def IsNumpyType( value ):
 
     return isinstance( value, np.ndarray )
+
+def SerializeFlatTypes( targets, source, result, prefix='_' ):
+
+    for itemName in targets:
+        item = source["%s%s" % ( prefix, itemName )]
+        if  not ( item is None ):
+            result[itemName] = item
+
+def SerializeObjTypes( targets, source, result, logger, prefix='_' ):
+
+    for itemName in targets:
+        item = source["%s%s" % ( prefix, itemName )]
+        if item:
+            result[itemName] = item.OnSerialize(logger)
+
+def SerializeObjArrays( targets, source, result, logger, prefix='_' ):
+
+    for itemName in targets:
+        array = source["%s%s" % ( prefix, itemName )]
+        if not array is None:
+
+            ser_values = []
+            
+            for ivalue in array:
+                #ser_keys.append( ikey )
+                ser_values.append( ivalue.OnSerialize(logger) )
+
+            result[itemName] = ser_values
+
+def SerializeNumpyTypes( targets, source, result, prefix='_' ):
+
+    for itemName in targets:
+        item = source["%s%s" % ( prefix, itemName )]
+        if IsNumpyType(item):
+            result[itemName] = item.tolist()
+
+def SerializeContiguousMaps( targets, source, result, logger, prefix='_' ):
+
+    for itemName in targets:
+        item = source["%s%s" % ( prefix, itemName )]
+        if item:
+            #ser_keys = []
+            ser_values = []
+            
+            for ivalue in item.values():
+                #ser_keys.append( ikey )
+                ser_values.append( ivalue.OnSerialize(logger) )
+                
+            result[itemName] = ser_values
+
+def DeserializeFlatTypes( targets, source, result, prefix='_' ):
+
+    for itemName in targets:
+            
+        if itemName in source:
+            item = source[itemName]
+            result["%s%s" % ( prefix, itemName )] = item
+
+def DeserializeObjTypes( targets, objTypes, source, result, logger, prefix='_' ):
+
+    for itemName, objtype in zip(targets, objTypes):
+        outname = "%s%s" % ( prefix, itemName )
+        result[outname] = objtype()
+        result[outname].OnDeserialize(source[itemName], logger)
+
+def DeserializeObjArrays( targets, objTypes, source, result, logger, prefix='_' ):
+
+    for itemName, objtype in zip(targets, objTypes):
+        if itemName in source:
+
+            outname = "%s%s" % ( prefix, itemName )
+            result[outname] = []
+            
+            for item in source[itemName]:
+
+                obj = objtype()
+                obj.OnDeserialize(item, logger)
+                result[outname].append(obj)
+
+def DeserializeNumpyTypes( targets, source, result, prefix='_' ):
+
+    for itemName in targets:
+        if itemName in source:
+            item = source[itemName]
+            result["%s%s" % ( prefix, itemName )] = np.array( item )
+
+def DeserializeContiguousMapsTypes( targets, objTypes, source, result, logger, prefix='_', parent = None ):
+
+    for itemName, objtype in zip(targets, objTypes):
+
+        if itemName in source:
+            data = source[itemName]
+            outname = "%s%s" % ( prefix, itemName )
+            
+            for item in data:
+
+                if parent:
+                    value = objtype( parent=parent )
+                else:
+                    value = objtype()
+
+                value.OnDeserialize(item, logger)
+
+                result[outname].insert( value.name, value )
 
 def _IsValid( value ):
 
@@ -153,11 +257,17 @@ class Serializable( object ):
         
         self._moduleName = moduleName
         self._className = className
+        self._ignore_list = set()
         
     def _IsValidCategory( self, cat ):
         
-        return cat in self.__dict__
+        prvt_cat="_%s" % (cat)
+        return cat in self.__dict__ or prvt_cat in self.__dict__
     
+    def _IgnoreCategory( self, cat ):
+
+        self._ignore_list.add(cat)
+
     def OnDeserialize( self, data, logger = None ):
         
         if not IsBasicMap(data):
@@ -165,7 +275,7 @@ class Serializable( object ):
         
         for cat, value in data.items():
             
-            if self._IsValidCategory( cat ):
+            if self._IsValidCategory( cat ) and not cat in self._ignore_list:
     	       
                valChain =  _DeserializeValueChain( value, logger ) 
                
@@ -182,10 +292,10 @@ class Serializable( object ):
         
         rvalue = {}
         for cat, value in self.__dict__.items():
-            
-            valChain =  _SerializeValueChain( value, logger )
-            
-            if _IsValid( valChain ):
-    	       	rvalue[cat] = valChain
+            if  not cat in self._ignore_list:
+                valChain =  _SerializeValueChain( value, logger )
+                
+                if _IsValid( valChain ):
+                    rvalue[cat] = valChain
             
         return rvalue

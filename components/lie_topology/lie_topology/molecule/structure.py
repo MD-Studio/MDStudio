@@ -26,7 +26,7 @@
 
 import numpy as np
 
-from lie_topology.common.serializable import Serializable, IsBasicMap, IsNumpyType
+from lie_topology.common.serializable import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.topology import Topology
@@ -203,20 +203,24 @@ class Structure( Serializable ):
 
         result = {}
         
-        for itemName in ("name", "description" ):
-            item = self.__dict__["_%s" % ( itemName )]
-            if item:
-                result[itemName] = item
+        SerializeFlatTypes( ("name", "description"), self.__dict__, result, '_' )
+        SerializeObjTypes( ("step", "topology", "lattice" ), self.__dict__, result, logger, '_' )
+        SerializeNumpyTypes( ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ), self.__dict__, result, '_' )
+        
+        # for itemName in ("name", "description" ):
+        #     item = self.__dict__["_%s" % ( itemName )]
+        #     if item:
+        #         result[itemName] = item
 
-        for itemName in ("step", "topology", "lattice" ):
-            item = self.__dict__["_%s" % ( itemName )]
-            if item:
-                result[itemName] = item.OnSerialize(logger)
+        # for itemName in ("step", "topology", "lattice" ):
+        #     item = self.__dict__["_%s" % ( itemName )]
+        #     if item:
+        #         result[itemName] = item.OnSerialize(logger)
 
-        for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
-            item = self.__dict__["_%s" % ( itemName )]
-            if IsNumpyType(item):
-                result[itemName] = item.tolist()
+        # for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
+        #     item = self.__dict__["_%s" % ( itemName )]
+        #     if IsNumpyType(item):
+        #         result[itemName] = item.tolist()
 
         return result
     
@@ -229,26 +233,28 @@ class Structure( Serializable ):
             if not self._IsValidCategory( cat ):
     	       logger.warning("Structure::OnDeserialize category %s not valid for deserialization" % ( cat ) )
         
-        for itemName in ("name", "description" ):
-            
-            if itemName in data:
-                item = data[itemName]
-                self.__dict__["_%s" % ( itemName )] = item
+        DeserializeFlatTypes( ("name", "description" ), data, self.__dict__, '_' )
+        DeserializeObjTypes( ("step", "topology", "lattice"), [Time, Topology,Lattice ],\
+                             data, self.__dict__, logger, '_')
+        DeserializeNumpyTypes( ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ),\
+                               data, self.__dict__, '_' )
 
-        if "step" in data:
-            self.step = Time()
-            self.step.OnDeserialize(data["step"], logger)
+                        
 
-        if "topology" in data:
-            self.topology = Topology()
-            self.topology.OnDeserialize(data["topology"], logger)
+        # if "step" in data:
+        #     self.step = Time()
+        #     self.step.OnDeserialize(data["step"], logger)
+
+        # if "topology" in data:
+        #     self.topology = Topology()
+        #     self.topology.OnDeserialize(data["topology"], logger)
         
-        if "lattice" in data:
-            self.lattice = Lattice()
-            self.lattice.OnDeserialize(data["lattice"], logger)
+        # if "lattice" in data:
+        #     self.lattice = Lattice()
+        #     self.lattice.OnDeserialize(data["lattice"], logger)
 
-        for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
+        # for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
 
-            if itemName in data:
-                item = data[itemName]
-                self.__dict__["_%s" % ( itemName )] = np.array( item )
+        #     if itemName in data:
+        #         item = data[itemName]
+        #         self.__dict__["_%s" % ( itemName )] = np.array( item )

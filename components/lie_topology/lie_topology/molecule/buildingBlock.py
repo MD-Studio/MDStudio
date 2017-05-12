@@ -28,7 +28,7 @@ import sys
 import os
 import numpy as np
 
-from lie_topology.common.serializable  import Serializable
+from lie_topology.common.serializable  import *
 from lie_topology.common.exception     import LieTopologyException
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.forcefield.physconst import PhysicalConstants
@@ -37,48 +37,71 @@ from lie_topology.molecule.molecule    import Molecule
 
 class BuildingBlock( Serializable ):
 
-    def __init__(self):
+    def __init__(self, title = None, exclusion_distance = None):
 
-        self.title = None
+        self._title = title
 
-        self.exclusion_distance = 2
+        self._exclusion_distance = exclusion_distance
 
         # Physical constants
-        self.physical_constants = PhysicalConstants()
+        self._physical_constants = PhysicalConstants()
         
         # Solutes present in the mtb
-        self.groups = ContiguousMap()
+        self._groups = ContiguousMap()
 
         # Solvents present in the mtb
-        self.solvents = ContiguousMap()
+        self._solvents = ContiguousMap()
 
     def AddGroup( self, **kwargs ):
 
         if not "name" in kwargs:
 
             raise LieTopologyException("BuildingBlock::AddGroup", "Name is a required argument" )
-
-        self.groups.insert( kwargs["name"], Group( **kwargs ) )
+        
+        kwargs["parent"] = self
+        self._groups.insert( kwargs["name"], Group( **kwargs ) )
     
     def AddSolvent( self, **kwargs ):
 
         if "molecule" in kwargs:
 
-            mol = kwargs["molecule"]
-            if not mol.name:
-
+            molecule = kwargs["molecule"]
+            if not molecule.name:
                 raise LieTopologyException("BuildingBlock::AddSolvent", "Name is a required argument" )
 
-            self.groups.insert( mol.name, kwargs["molecule"] )
+            self._solvents.insert( molecule.name, kwargs["molecule"] )
 
         else:
-
             if not "name" in kwargs:
-
                 raise LieTopologyException("BuildingBlock::AddSolvent", "Name is a required argument" )
-
-            self.groups.insert( kwargs["name"], Molecule( **kwargs ) )
+            
+            self._solvents.insert( kwargs["name"], Molecule( **kwargs ) )
 
     def GroupByName( self, name ):
 
-        return self.groups[name]
+        return self._groups[name]
+    
+    def OnSerialize( self, logger = None ):   
+
+        result = {}
+        
+        SerializeFlatTypes(["title", "exclusion_distance"], self.__dict__, result, '_' )
+        SerializeObjTypes( ["physical_constants"], self.__dict__, result, logger, '_' )
+        SerializeContiguousMaps( ["groups"], self.__dict__, result, logger, '_' )
+        SerializeContiguousMaps( ["solvents"], self.__dict__, result, logger, '_' )
+
+        return result
+    
+    def OnDeserialize( self, data, logger = None ):
+
+        if not IsBasicMap(data):
+            raise LieTopologyException( "Topology::OnDeserialize", "Deserialize data presented is not a map" )
+        
+        for cat, value in data.items():
+            if not self._IsValidCategory( cat ):
+    	       logger.warning("Serializable::OnDeserialize category %s not valid for deserialization" % ( cat ) )
+        
+        DeserializeFlatTypes( ["title", "exclusion_distance"], data, self.__dict__, '_' )
+        DeserializeObjTypes( ["physical_constants"], [PhysicalConstants], data, self.__dict__, logger, '_')
+        DeserializeContiguousMapsTypes( ["groups", "solvents"], [Group, Molecule], data, self.__dict__, logger, '_' )
+        

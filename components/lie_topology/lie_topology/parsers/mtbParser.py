@@ -31,13 +31,13 @@ import numpy as np
 
 from lie_topology.common.tokenizer          import Tokenizer
 from lie_topology.common.exception          import LieTopologyException
-from lie_topology.collections.buildingBlock import BuildingBlock
+from lie_topology.molecule.buildingBlock import BuildingBlock
 from lie_topology.molecule.molecule         import Molecule
 from lie_topology.molecule.bond             import Bond
 from lie_topology.molecule.angle            import Angle
 from lie_topology.molecule.dihedral         import Dihedral
 from lie_topology.molecule.vsite            import InPlaneSite
-from lie_topology.molecule.extern           import GromosExternAtom
+from lie_topology.molecule.reference        import AtomReference
 from lie_topology.forcefield.forcefield     import CoulombicType, BondType
 from lie_topology.forcefield.reference      import ForceFieldReference
 
@@ -59,10 +59,10 @@ def _GenerateBondedReference( solute, index ):
 
     # if not within index boundaries, its an external ref
     if index >= 0 and index < len(solute.atoms):
-        ref = solute.atoms.keyAt( index )
+        ref = solute.atoms.at( index )
     
     else:
-        ref = GromosExternAtom(index=index)
+        ref = AtomReference(external_index=index)
 
     return ref
 
@@ -310,6 +310,9 @@ def _ParseSolventConstraints(block, solvent, it):
     numConstr = int( block[it] ) 
     it+=1
 
+    if solvent.bonds is None:
+        solvent.bonds = []
+
     for i in range ( 0, numConstr ):
 
         # Minus one as gromos uses fortran indices
@@ -320,7 +323,7 @@ def _ParseSolventConstraints(block, solvent, it):
         atom_i_ref = _GenerateBondedReference( solvent, index_i )
         atom_j_ref = _GenerateBondedReference( solvent, index_j )
         
-        bond_type = BondType( b0 = bond_length )
+        bond_type = BondType( bond0 = bond_length )
         bond = Bond( atom_references=[atom_i_ref,atom_j_ref],\
                      bond_type=bond_type  ) 
 
@@ -395,8 +398,7 @@ def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
 
 def _ParseSoluteBuildingBlock(block, mtb_file):
 
-    solute = Molecule()
-    solute.name = block[0]
+    solute = Molecule( name=block[0] )
 
     it = _ParseAtomicData( block, solute, 1 )
     it = _ParseBondedData( block, solute, it )
@@ -410,9 +412,8 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
 
 def _ParseBlendBuildingBlock(block, mtb_file):
 
-    solute = Molecule()
-    solute.name = block[0]
-
+    solute = Molecule(name=block[0])
+    
     it = _ParseBlendData( block, solute, 1 )
     it = _ParseBondedData( block, solute, it )
     
@@ -421,8 +422,7 @@ def _ParseBlendBuildingBlock(block, mtb_file):
 
 def _ParseSolventBuildingBlock(block, mtb_file):
 
-    solvent = Molecule()
-    solvent.name = block[0]
+    solvent = Molecule(name=block[0])
 
     it = _ParseSolventAtoms( block, solvent, 1 )
     it = _ParseSolventConstraints( block, solvent, it )
@@ -431,8 +431,7 @@ def _ParseSolventBuildingBlock(block, mtb_file):
 
 def _ParsePolarizableSolventBuildingBlock(block, mtb_file):
 
-    solvent = Molecule()
-    solvent.name = block[0]
+    solvent = Molecule(name=block[0])
 
     it = _ParseSolventAtoms( block, solvent, 1 )
     it = _ParseAtomicPolarizabilities(block, solute, it )

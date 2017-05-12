@@ -26,11 +26,13 @@
 
 import json
 
-from lie_topology.common.serializable import Serializable
+from lie_topology.common.serializable import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.atom import Atom
+from lie_topology.molecule.reference import AtomReference
 from lie_topology.forcefield.forcefield import BondType
+from lie_topology.forcefield.reference import ForceFieldReference
 
 class Bond( Serializable ):
     
@@ -57,40 +59,65 @@ class Bond( Serializable ):
         
         if not (self._atom_references is None):
 
-            ser_keys = []
-            
+            ser_values = []
             for item in self._atom_references:
 
-                if isinstance(item, str):
-                    ser_keys.append( item )
+                if isinstance(item, Atom):
+                    item = item.ToReference()
 
-                elif isinstance(item, Atom):
-                    ser_keys.append( item.name )
-                
-                else:
-                    ser_keys.append( item.OnSerialize(logger) )
+                ser_values.append( item.OnSerialize(logger) )
 
-            result["atom_references"] = ser_keys
+            result["atom_references"] = ser_values
         
         if self._bond_type:
 
             type_str = None
-            if isinstance(self._bond_type, str):
-                type_str = self._bond_type
+            if isinstance(self._bond_type, ForceFieldReference):
+                type_str = self._bond_type.name
 
             elif isinstance(self._bond_type, BondType):
-                type_str = self._bond_type.name
+                type_str = self._bond_type.OnSerialize(logger)
                 
             else:
-                 type_str = self._bond_type.OnSerialize(logger)
+                print(self._bond_type)
+                raise LieTopologyException("Bond::OnSerialize","Unknown bond type") 
         
             result["bond_type"] = type_str    
 
-        for itemName in ("aromatic", "bond_order"):
-            item = self.__dict__["_%s" % ( itemName )]
-            if item:
-                result[itemName] = item
+        
+        SerializeFlatTypes( ["aromatic", "bond_order"], self.__dict__, result, '_' )
 
         return result
+
+    def OnDeserialize( self, data, logger = None ):
+
+        if "atom_references" in data:
+            self._atom_references = []
+
+            for reference in data["atom_references"]:
+
+                if not isinstance(reference, dict):
+                    raise LieTopologyException("Bond::OnDeserialize","Unknown bond reference") 
+                    
+                ref_obj = AtomReference()
+                ref_obj.OnDeserialize(reference, logger)
+                
+                self._atom_references.append(ref_obj)
+                
+        if "bond_type" in data:
+            localData = data["bond_type"]
+
+            if isinstance(localData, str):
+                self._bond_type = ForceFieldReference( name=localData )
+
+            elif isinstance(localData, dict):
+                self._bond_type = BondType()
+                self._bond_type.OnDeserialize(localData, logger)
+                
+            else:
+                 raise LieTopologyException("Bond::OnSerialize","Unknown bond type") 
+
+
+        DeserializeFlatTypes( ["aromatic", "bond_order"], data, self.__dict__, '_' )
     
     

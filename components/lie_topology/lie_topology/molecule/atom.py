@@ -29,6 +29,7 @@ import json
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
+from lie_topology.molecule.reference import AtomReference
 
 class Atom( Serializable ):
     
@@ -39,9 +40,10 @@ class Atom( Serializable ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+        self._IgnoreCategory("molecule")
 
         # parent molecule
-        self.parent = parent
+        self.molecule = parent
 
         # Name of the atom
         self.name = name
@@ -83,6 +85,18 @@ class Atom( Serializable ):
         # Trailing in the building block (for chain topology)
         self.trailing = trailing
 
-    def GenerateLocation(self):
+    def ToReference(self):
 
-        molParent = self.parent
+        atom_name=self.name
+        molecule_name=None
+        group_name=None
+        
+        molecule = self.molecule
+        if molecule:
+            molecule_name=molecule.name
+
+            group = molecule.group
+            if group:
+                group_name=group.name
+        
+        return AtomReference( atom_name=atom_name,molecule_name=molecule_name,group_name=group_name )

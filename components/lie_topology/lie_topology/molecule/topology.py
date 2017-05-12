@@ -87,21 +87,9 @@ class Topology( Serializable ):
 
         result = {}
         
-        if self._groups:
-            ser_keys = []
-            ser_groups = []
-            
-            for ikey, igroup in self._groups.items():
-                ser_keys.append( ikey )
-                ser_groups.append( igroup.OnSerialize(logger) )
-                
-            result["groups"] = { "keys" : ser_keys, "values" : ser_groups }
+        SerializeContiguousMaps( ["groups"], self.__dict__, result, logger, '_' )
+        SerializeObjTypes( ["solvent"], self.__dict__, result, logger, '_' )
 
-        if self._solvent:
-
-            ser_solvent = self._solvent.OnSerialize(logger)
-            result["solvent"] = ser_solvent
-        
         return result
     
     def OnDeserialize( self, data, logger = None ):
@@ -113,29 +101,8 @@ class Topology( Serializable ):
             if not self._IsValidCategory( cat ):
     	       logger.warning("Serializable::OnDeserialize category %s not valid for deserialization" % ( cat ) )
         
-        if "groups" in data:
-            
-            groupData = data["groups"]
-            groupData_keys = groupData["keys"]
-            groupData_values = groupData["values"]
-            
-            if len(groupData_keys) != len(groupData_values):
-                raise LieTopologyException( "Topology::OnDeserialize", "For group data, number of keys did not match number of items" )
-
-            for i in range(0,len(groupData_keys) ):
-
-                key = groupData_keys[i]
-                item = groupData_values[i]
-
-                group = Group()
-                group.OnDeserialize(item, logger)
-
-                self._groups.insert( key, group )
-            
-        if "solvent" in data:
-            
-            self._solvent = Molecule()
-            self._solvent.OnDeserialize(data["solvent"], logger)
-
+        DeserializeContiguousMapsTypes( ["groups"], [Group], data, self.__dict__, logger, '_', self )
+        DeserializeObjTypes( ["solvent"], [Molecule], data, self.__dict__, logger, '_')
+        
 
                     

@@ -29,6 +29,10 @@ import json
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
+from lie_topology.molecule.atom import Atom
+from lie_topology.molecule.reference import AtomReference
+from lie_topology.forcefield.forcefield import DihedralType,ImproperType
+from lie_topology.forcefield.reference import ForceFieldReference
 
 class Dihedral( Serializable ):
     
@@ -38,13 +42,69 @@ class Dihedral( Serializable ):
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the dihedral, length should be 4
-        self.atom_references = atom_references
+        self._atom_references = atom_references
         
         # Dihedral type in the force field
-        self.dihedral_type = dihedral_type
+        self._dihedral_type = dihedral_type
+
+
+    def OnSerialize( self, logger = None ):   
+
+        result = {}
         
-        # Indicates if this dihedral is part of the united atom system
-        self.united = united
+        if not (self._atom_references is None):
+
+            ser_values = []
+            for item in self._atom_references:
+
+                if isinstance(item, Atom):
+                    item = item.ToReference()
+
+                ser_values.append( item.OnSerialize(logger) )
+
+            result["atom_references"] = ser_values
         
-    
-    
+        if self._dihedral_type:
+
+            type_str = None
+            if isinstance(self._dihedral_type, ForceFieldReference):
+                type_str = self._dihedral_type.name
+
+            elif isinstance(self._dihedral_type, (DihedralType, ImproperType)):
+                type_str = self._dihedral_type.OnSerialize(logger)
+                
+            else:
+                print(self._dihedral_type)
+                raise LieTopologyException("Dihedral::OnSerialize","Unknown dihedral type") 
+        
+            result["dihedral_type"] = type_str    
+
+        return result
+
+    def OnDeserialize( self, data, logger = None ):
+
+        if "atom_references" in data:
+            self._atom_references = []
+
+            for reference in data["atom_references"]:
+
+                if not isinstance(reference, dict):
+                    raise LieTopologyException("Dihedral::OnDeserialize","Unknown dihedral reference") 
+                    
+                ref_obj = AtomReference()
+                ref_obj.OnDeserialize(reference, logger)
+                
+                self._atom_references.append(ref_obj)
+                
+        if "dihedral_type" in data:
+            localData = data["dihedral_type"]
+
+            if isinstance(localData, str):
+                self._dihedral_type = ForceFieldReference( name=localData )
+
+            elif isinstance(localData, dict):
+                self._dihedral_type = DihedralType()
+                self._dihedral_type.OnDeserialize(localData, logger)
+                
+            else:
+                 raise LieTopologyException("Dihedral::OnSerialize","Unknown dihedral type") 

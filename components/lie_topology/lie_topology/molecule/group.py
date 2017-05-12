@@ -24,7 +24,7 @@
 # @endcond
 #
 
-from lie_topology.common.serializable import Serializable
+from lie_topology.common.serializable import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.molecule import Molecule 
@@ -36,6 +36,7 @@ class Group( Serializable ):
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
         
+        # parent topology
         self._parent = parent
 
         # full name of the group
@@ -45,8 +46,12 @@ class Group( Serializable ):
         self._chain_id = chain_id 
 
         # Solutes present in this topology
-        self._molecules = list()
+        self._molecules = ContiguousMap()
 
+    @property
+    def parent(self):
+
+        return self._parent
 
     @property
     def name(self):
@@ -63,27 +68,55 @@ class Group( Serializable ):
 
         return self._molecules
 
+    @parent.setter
+    def parent(self, value):
+
+        self._parent = value
+
+
     def AddMolecule( self, **kwargs ):
-        
-        kwargs["parent"] = self
+  
         if  "molecule" in kwargs:
-            self._molecules.append(kwargs["molecule"])
+            molecule = kwargs["molecule"]
+            molecule.group = self
+            self._molecules.insert( molecule.name, molecule )
 
         else:
-            self._molecules.append( Molecule(**kwargs) )
+            kwargs["parent"] = self
+            self._molecules.append( kwargs["name"], Molecule(**kwargs) )
 
-    def GetSolutesByName( self, name ):
+    def GetSoluteByName( self,  ):
 
-        olist = []
+        result = None
 
-        for solute in self._molecules:
+        if name in self._molecules:
 
-            if solute.name == name:
+            result = solute
 
-                olist.append(solute)
-
-        return olist
+        return result
     
     def GetSoluteByIndex( self, index ):
     
-        return self._molecules[index]
+        return self._molecules.at(index)
+    
+    def OnSerialize( self, logger = None ):   
+
+        result = {}
+        
+        SerializeFlatTypes( ["name", "chain_id"], self.__dict__, result, '_' )
+        SerializeContiguousMaps( ["molecules"], self.__dict__, result, logger, '_' )
+
+        return result
+
+    def OnDeserialize( self, data, logger = None ):
+
+        if not IsBasicMap(data):
+            raise LieTopologyException( "Group::OnDeserialize", "Deserialize data presented is not a map" )
+        
+        for cat, value in data.items():
+            if not self._IsValidCategory( cat ):
+    	       logger.warning("Group::OnDeserialize category %s not valid for deserialization" % ( cat ) )
+        
+        DeserializeFlatTypes( ["name", "chain_id"], data, self.__dict__, '_' )
+        DeserializeContiguousMapsTypes( ["molecules"], [Molecule], data, self.__dict__, logger, '_', self )
+

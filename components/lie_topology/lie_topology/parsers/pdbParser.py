@@ -110,7 +110,7 @@ def _AppendBond( topology, atomIndex1, atomIndex2 ):
     atom_1 = topology.atomByIndex( atomIndex1 )
     atom_2 = topology.atomByIndex( atomIndex2 )
 
-    print( atom_1.name, atom_2.name )
+    print( atom_1, atom_2 )
 
 def _ParseConnect(line, bookKeeping, structures):
 
