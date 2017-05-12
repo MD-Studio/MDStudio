@@ -1,5 +1,5 @@
-lie_logger.tests package
-========================
+lie\_logger\.tests package
+==========================
 
 .. automodule:: lie_logger.tests
     :members:

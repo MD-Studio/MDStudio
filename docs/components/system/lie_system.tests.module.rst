@@ -1,5 +1,5 @@
-lie_system.tests.module package
-===============================
+lie\_system\.tests\.module package
+==================================
 
 .. automodule:: lie_system.tests.module
     :members:
@@ -9,8 +9,8 @@ lie_system.tests.module package
 Submodules
 ----------
 
-lie_system.tests.module.system_test module
-------------------------------------------
+lie\_system\.tests\.module\.system\_test module
+-----------------------------------------------
 
 .. automodule:: lie_system.tests.module.system_test
     :members:

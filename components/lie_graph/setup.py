@@ -24,7 +24,7 @@
 from setuptools import setup, find_packages
 
 distribution_name = 'lie_graph'
-test_requirements = ['unittest2']
+test_requirements = ['unittest2', 'asq']
 
 setup(
     name=distribution_name,

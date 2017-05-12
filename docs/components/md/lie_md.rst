@@ -1,5 +1,5 @@
-lie_md package
-==============
+lie\_md package
+===============
 
 .. automodule:: lie_md
     :members:
@@ -9,8 +9,8 @@ lie_md package
 Submodules
 ----------
 
-lie_md.wamp_services module
----------------------------
+lie\_md\.wamp\_services module
+------------------------------
 
 .. automodule:: lie_md.wamp_services
     :members:

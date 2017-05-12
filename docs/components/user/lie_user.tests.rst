@@ -1,5 +1,5 @@
-lie_user.tests package
-======================
+lie\_user\.tests package
+========================
 
 .. automodule:: lie_user.tests
     :members:

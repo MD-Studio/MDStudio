@@ -1,5 +1,5 @@
-lie_structures package
-======================
+lie\_structures package
+=======================
 
 .. automodule:: lie_structures
     :members:
@@ -9,8 +9,8 @@ lie_structures package
 Submodules
 ----------
 
-lie_structures.wamp_services module
------------------------------------
+lie\_structures\.wamp\_services module
+--------------------------------------
 
 .. automodule:: lie_structures.wamp_services
     :members:

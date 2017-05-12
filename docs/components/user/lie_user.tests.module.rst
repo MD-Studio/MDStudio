@@ -1,5 +1,5 @@
-lie_user.tests.module package
-=============================
+lie\_user\.tests\.module package
+================================
 
 .. automodule:: lie_user.tests.module
     :members:
@@ -9,8 +9,8 @@ lie_user.tests.module package
 Submodules
 ----------
 
-lie_user.tests.module.user_tests module
----------------------------------------
+lie\_user\.tests\.module\.user\_tests module
+--------------------------------------------
 
 .. automodule:: lie_user.tests.module.user_tests
     :members:

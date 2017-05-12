@@ -1,5 +1,5 @@
-lie_db.tests.module package
-===========================
+lie\_db\.tests\.module package
+==============================
 
 .. automodule:: lie_db.tests.module
     :members:
@@ -9,8 +9,8 @@ lie_db.tests.module package
 Submodules
 ----------
 
-lie_db.tests.module.db_test module
-----------------------------------
+lie\_db\.tests\.module\.db\_test module
+---------------------------------------
 
 .. automodule:: lie_db.tests.module.db_test
     :members:

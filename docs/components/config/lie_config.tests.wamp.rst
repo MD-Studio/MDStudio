@@ -1,5 +1,5 @@
-lie_config.tests.wamp package
-=============================
+lie\_config\.tests\.wamp package
+================================
 
 .. automodule:: lie_config.tests.wamp
     :members:
@@ -9,8 +9,8 @@ lie_config.tests.wamp package
 Submodules
 ----------
 
-lie_config.tests.wamp.api_test module
--------------------------------------
+lie\_config\.tests\.wamp\.api\_test module
+------------------------------------------
 
 .. automodule:: lie_config.tests.wamp.api_test
     :members:

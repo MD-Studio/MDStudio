@@ -1,5 +1,5 @@
-lie_docking.tests.wamp package
-==============================
+lie\_docking\.tests\.wamp package
+=================================
 
 .. automodule:: lie_docking.tests.wamp
     :members:
@@ -9,8 +9,8 @@ lie_docking.tests.wamp package
 Submodules
 ----------
 
-lie_docking.tests.wamp.api_test module
---------------------------------------
+lie\_docking\.tests\.wamp\.api\_test module
+-------------------------------------------
 
 .. automodule:: lie_docking.tests.wamp.api_test
     :members:

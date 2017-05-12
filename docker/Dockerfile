@@ -9,6 +9,7 @@ RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     apt-get clean
 
 RUN python -m pip install pipenv
+RUN python -m pip install green
 
 # ssh:
 ADD docker/insecure_id_rsa /tmp/id_rsa 

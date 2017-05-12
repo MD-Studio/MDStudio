@@ -1,5 +1,5 @@
-lie_db.tests package
-====================
+lie\_db\.tests package
+======================
 
 .. automodule:: lie_db.tests
     :members:

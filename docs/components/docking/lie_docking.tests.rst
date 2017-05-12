@@ -1,5 +1,5 @@
-lie_docking.tests package
-=========================
+lie\_docking\.tests package
+===========================
 
 .. automodule:: lie_docking.tests
     :members:

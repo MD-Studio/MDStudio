@@ -1,5 +1,5 @@
-lie_logger package
-==================
+lie\_logger package
+===================
 
 .. automodule:: lie_logger
     :members:
@@ -16,32 +16,32 @@ Subpackages
 Submodules
 ----------
 
-lie_logger.log_serializer module
---------------------------------
+lie\_logger\.log\_serializer module
+-----------------------------------
 
 .. automodule:: lie_logger.log_serializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_logger.settings module
---------------------------
+lie\_logger\.settings module
+----------------------------
 
 .. automodule:: lie_logger.settings
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_logger.system_logger module
--------------------------------
+lie\_logger\.system\_logger module
+----------------------------------
 
 .. automodule:: lie_logger.system_logger
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_logger.wamp_services module
--------------------------------
+lie\_logger\.wamp\_services module
+----------------------------------
 
 .. automodule:: lie_logger.wamp_services
     :members:

@@ -1,5 +1,5 @@
-lie_config.tests.module package
-===============================
+lie\_config\.tests\.module package
+==================================
 
 .. automodule:: lie_config.tests.module
     :members:
@@ -9,40 +9,40 @@ lie_config.tests.module package
 Submodules
 ----------
 
-lie_config.tests.module.config_test module
-------------------------------------------
+lie\_config\.tests\.module\.config\_test module
+-----------------------------------------------
 
 .. automodule:: lie_config.tests.module.config_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_config.tests.module.decorator_class module
-----------------------------------------------
+lie\_config\.tests\.module\.decorator\_class module
+---------------------------------------------------
 
 .. automodule:: lie_config.tests.module.decorator_class
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_config.tests.module.decorator_test module
----------------------------------------------
+lie\_config\.tests\.module\.decorator\_test module
+--------------------------------------------------
 
 .. automodule:: lie_config.tests.module.decorator_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_config.tests.module.io_test module
---------------------------------------
+lie\_config\.tests\.module\.io\_test module
+-------------------------------------------
 
 .. automodule:: lie_config.tests.module.io_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_config.tests.module.orm_test module
----------------------------------------
+lie\_config\.tests\.module\.orm\_test module
+--------------------------------------------
 
 .. automodule:: lie_config.tests.module.orm_test
     :members:

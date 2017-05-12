@@ -1,5 +1,5 @@
-lie_graph.tests package
-=======================
+lie\_graph\.tests package
+=========================
 
 .. automodule:: lie_graph.tests
     :members:
@@ -16,8 +16,8 @@ Subpackages
 Submodules
 ----------
 
-lie_graph.tests.__main__ module
--------------------------------
+lie\_graph\.tests\.\_\_main\_\_ module
+--------------------------------------
 
 .. automodule:: lie_graph.tests.__main__
     :members:

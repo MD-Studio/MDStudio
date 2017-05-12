@@ -1,5 +1,5 @@
-lie_config.tests package
-========================
+lie\_config\.tests package
+==========================
 
 .. automodule:: lie_config.tests
     :members:

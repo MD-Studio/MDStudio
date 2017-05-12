@@ -1,5 +1,5 @@
-lie_docking package
-===================
+lie\_docking package
+====================
 
 .. automodule:: lie_docking
     :members:
@@ -16,56 +16,56 @@ Subpackages
 Submodules
 ----------
 
-lie_docking.clustering module
------------------------------
+lie\_docking\.clustering module
+-------------------------------
 
 .. automodule:: lie_docking.clustering
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_docking.docking_base module
--------------------------------
+lie\_docking\.docking\_base module
+----------------------------------
 
 .. automodule:: lie_docking.docking_base
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_docking.docking_settings module
------------------------------------
+lie\_docking\.docking\_settings module
+--------------------------------------
 
 .. automodule:: lie_docking.docking_settings
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_docking.plants_conf module
-------------------------------
+lie\_docking\.plants\_conf module
+---------------------------------
 
 .. automodule:: lie_docking.plants_conf
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_docking.plants_docking module
----------------------------------
+lie\_docking\.plants\_docking module
+------------------------------------
 
 .. automodule:: lie_docking.plants_docking
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_docking.utils module
-------------------------
+lie\_docking\.utils module
+--------------------------
 
 .. automodule:: lie_docking.utils
     :members:
     :undoc-members:
     :show-inheritance:
 
-lie_docking.wamp_services module
---------------------------------
+lie\_docking\.wamp\_services module
+-----------------------------------
 
 .. automodule:: lie_docking.wamp_services
     :members:
