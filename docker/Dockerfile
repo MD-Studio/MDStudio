@@ -5,7 +5,7 @@ RUN apt-get update && \
 
 RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     apt-get install nodejs && \
-    npm i -g gulp gulp-cli typescript typings && \
+    npm i -g gulp gulp-cli typescript typings bower && \
     apt-get clean
 
 RUN python -m pip install pipenv

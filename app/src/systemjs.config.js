@@ -17,16 +17,14 @@
         'rxjs': 'npm:rxjs',
         'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js',
         'ngx-cookie': 'npm:ngx-cookie/bundles/ngx-cookie.umd.js',
-        'primeng': 'npm:primeng',
-
-        'autobahn': 'npm:autobahn/index.js',
-        'when': 'npm:when/when',
-        'cbor': 'npm:cbor/lib/cbor.js',
-        'when': 'npm:when/when'
+        'primeng': 'npm:primeng'
     };
 
     // packages tells the System loader how to load when no filename and/or no extension
     var packages = {
+        '': {
+          defaultExtension: 'js'
+        },
         'rxjs': {
             defaultExtension: 'js'
         },
@@ -36,12 +34,6 @@
         },
         'primeng': {
             defaultExtension: 'js'
-        },
-        'autobahn': {
-            defaultExtension: 'js'
-        },
-        '': {
-          defaultExtension: 'js'
         }
     };
 

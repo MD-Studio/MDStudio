@@ -5,7 +5,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Connection, Session, IConnectionOptions} from 'autobahn';
+declare var autobahn: any;
 
 @Injectable()
 export class WampService {
@@ -33,7 +33,7 @@ export class WampService {
     
     this.active = true;
     
-    return new Connection({
+    return new autobahn.Connection({
       transports: [
         { 'type': 'websocket', 'url': 'wss://localhost:8080/ws' },
         { 'type': 'longpoll', 'url': 'https://localhost:8080/lp' }
