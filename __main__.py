@@ -128,7 +128,7 @@ def bootstrap_app(args):
     components = ComponentManager(config=config)
     components.add_searchpath(venvpath, prefix='lie_')
 
-    init_docker_build(components, config)
+    init_dev_build(components, config)
 
     init_debug_hook(config)
 
@@ -184,7 +184,7 @@ def init_debug_hook(config):
             startDebugMode()
 
 
-def init_docker_build(components, config):
+def init_dev_build(components, config):
     """
     Adds local development files
 

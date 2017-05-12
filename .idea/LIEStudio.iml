@@ -3,15 +3,6 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/components" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_config-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_db-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_docking-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_logger-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_md-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_structures-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_system-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_user-0.1" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/components/lie_graph-0.1" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/components/lie_config/lie_config" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/components/lie_atb/lie_atb" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/components/lie_db/lie_db" isTestSource="false" />

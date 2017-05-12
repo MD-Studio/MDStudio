@@ -14,15 +14,3 @@ Subpackages
     lie_user.tests.module
     lie_user.tests.wamp
 
-Submodules
-----------
-
-lie_user.tests.__main__ module
-------------------------------
-
-.. automodule:: lie_user.tests.__main__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-

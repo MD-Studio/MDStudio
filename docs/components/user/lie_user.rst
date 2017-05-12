@@ -6,6 +6,13 @@ lie_user package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_user.tests
+
 Submodules
 ----------
 

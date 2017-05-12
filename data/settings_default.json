@@ -2,7 +2,7 @@
     "crossbar": {
         "start": {
             "cbdir": "{system.app_path}/data/crossbar/", 
-            "config": "{crossbar.start.cbdir}config.json", 
+            "config": "{crossbar.start.cbdir}config_notls.json",
             "logdir": "{system.app_path}/data/logs", 
             "loglevel": "info", 
             "logtofile": true

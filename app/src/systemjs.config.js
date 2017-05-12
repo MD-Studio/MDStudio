@@ -1,56 +1,85 @@
-(function(global) {
-  
-  // map tells the System loader where to look for things
-  var map = {
-    '@angular/core': 'node_modules/@angular/core/bundles/core.umd.js',
-    '@angular/common': 'node_modules/@angular/common/bundles/common.umd.js',
-    '@angular/compiler': 'node_modules/@angular/compiler/bundles/compiler.umd.js',
-    '@angular/platform-browser': 'node_modules/@angular/platform-browser/bundles/platform-browser.umd.js',
-    '@angular/platform-browser-dynamic': 'node_modules/@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
-    '@angular/http': 'node_modules/@angular/http/bundles/http.umd.js',
-    '@angular/router': 'node_modules/@angular/router/bundles/router.umd.js',
-    '@angular/forms': 'node_modules/@angular/forms/bundles/forms.umd.js',
+(function (global) {
 
-    'rxjs':                       'node_modules/rxjs',
-    'angular-in-memory-web-api':  'node_modules/angular-in-memory-web-api/bundles/in-memory-web-api.umd.js',
-    'angular2-cookie':             'node_modules/angular2-cookie',
-    'primeng':                    'node_modules/primeng',
-  };
+    // map tells the System loader where to look for things
+    var map = {
+        '@angular/core': 'npm:@angular/core/bundles/core.umd.js',
+        '@angular/common': 'npm:@angular/common/bundles/common.umd.js',
+        '@angular/compiler': 'npm:@angular/compiler/bundles/compiler.umd.js',
+        '@angular/platform-browser': 'npm:@angular/platform-browser/bundles/platform-browser.umd.js',
+        '@angular/platform-browser-dynamic': 'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
+        '@angular/platform-browser/animations': 'npm:@angular/platform-browser/bundles/platform-browser-animations.umd.js',
+        '@angular/animations': 'npm:@angular/animations/bundles/animations.umd.js',
+        '@angular/animations/browser': 'npm:@angular/animations/bundles/animations-browser.umd.js',
+        '@angular/http': 'npm:@angular/http/bundles/http.umd.js',
+        '@angular/router': 'npm:@angular/router/bundles/router.umd.js',
+        '@angular/forms': 'npm:@angular/forms/bundles/forms.umd.js',
 
-  // packages tells the System loader how to load when no filename and/or no extension
-  var packages = {
-    'rxjs':                       { defaultExtension: 'js' },
-    'angular2-cookie':            { main: 'core.js',  defaultExtension: 'js' },
-    'primeng':                    { defaultExtension: 'js' },
-  };
+        'rxjs': 'npm:rxjs',
+        'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js',
+        'ngx-cookie': 'npm:ngx-cookie/bundles/ngx-cookie.umd.js',
+        'primeng': 'npm:primeng',
 
-  var packageNames = [
-    '@angular/common',
-    '@angular/compiler',
-    '@angular/core',
-    '@angular/forms',
-    '@angular/http',
-    '@angular/platform-browser',
-    '@angular/platform-browser-dynamic',
-    '@angular/router',
-    '@angular/testing',
-    '@angular/upgrade'
-  ];
+        'autobahn': 'npm:autobahn/index.js',
+        'when': 'npm:when/when',
+        'cbor': 'npm:cbor/lib/cbor.js',
+        'when': 'npm:when/when'
+    };
 
-  // add package entries for angular packages in the form '@angular/common': { main: 'index.js', defaultExtension: 'js' }
-  packageNames.forEach(function(pkgName) {
-    packages[pkgName] = { main: 'index.js', defaultExtension: 'js' };
-  });
+    // packages tells the System loader how to load when no filename and/or no extension
+    var packages = {
+        'rxjs': {
+            defaultExtension: 'js'
+        },
+        'angular2-cookie': {
+            main: 'core.js',
+            defaultExtension: 'js'
+        },
+        'primeng': {
+            defaultExtension: 'js'
+        },
+        'autobahn': {
+            defaultExtension: 'js'
+        },
+        '': {
+          defaultExtension: 'js'
+        }
+    };
 
-  var config = {
-    defaultJSExtensions: true,
-    map: map,
-    packages: packages
-  }
+    var packageNames = [
+        '@angular/animations',
+        '@angular/common',
+        '@angular/compiler',
+        '@angular/core',
+        '@angular/forms',
+        '@angular/http',
+        '@angular/platform-browser',
+        '@angular/platform-browser-dynamic',
+        '@angular/router',
+        '@angular/testing',
+        '@angular/upgrade'
+    ];
 
-  // filterSystemConfig - index.html's chance to modify config before we register it.
-  if (global.filterSystemConfig) { global.filterSystemConfig(config); }
+    // add package entries for angular packages in the form '@angular/common': { main: 'index.js', defaultExtension: 'js' }
+    packageNames.forEach(function (pkgName) {
+        packages[pkgName] = {
+            defaultExtension: 'js'
+        };
+    });
 
-  System.config(config);
+    var config = {
+        paths: {
+            // paths serve as alias
+            'npm:': 'node_modules/'
+        },
+        map: map,
+        packages: packages
+    }
+
+    // filterSystemConfig - index.html's chance to modify config before we register it.
+    if (global.filterSystemConfig) {
+        global.filterSystemConfig(config);
+    }
+
+    System.config(config);
 
 })(this);

@@ -17,6 +17,14 @@ lie_config.tests.module.config_test module
     :undoc-members:
     :show-inheritance:
 
+lie_config.tests.module.decorator_class module
+----------------------------------------------
+
+.. automodule:: lie_config.tests.module.decorator_class
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie_config.tests.module.decorator_test module
 ---------------------------------------------
 
@@ -29,14 +37,6 @@ lie_config.tests.module.io_test module
 --------------------------------------
 
 .. automodule:: lie_config.tests.module.io_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-lie_config.tests.module.module_decorator_test module
-----------------------------------------------------
-
-.. automodule:: lie_config.tests.module.module_decorator_test
     :members:
     :undoc-members:
     :show-inheritance:
