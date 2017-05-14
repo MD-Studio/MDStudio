@@ -33,11 +33,13 @@ RUN echo "" >> ~/.bashrc && \
     echo 'alias docs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
     echo 'alias serve="(cd /app/app; /usr/bin/gulp serve)"' >> ~/.bashrc && \
     echo 'alias compile="(cd /app/app; /usr/bin/gulp compile)"' >> ~/.bashrc && \
+    echo 'alias helpme="(/app/docker/welcome.sh)"' >> ~/.bashrc && \
     echo "" >> ~/.bashrc && \
     echo 'source /app/.venv/bin/activate' >> ~/.bashrc && \
     echo 'export MONGO_HOST=mongo' >> ~/.bashrc && \
     echo 'export IS_DOCKER=1' >> ~/.bashrc && \
-    echo 'cd /app' >> ~/.bashrc
+    echo 'cd /app' >> ~/.bashrc && \
+    echo 'helpme' >> ~/.bashrc
 
 
 ADD docker/.bash_profile ~/.bash_profile

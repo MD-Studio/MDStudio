@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 echo 'Running installer' &>> docker/.INSTALLING
 
+        head ~/.bashrc -n -1 > /tmp/.bashrc
+        mv /tmp/.bashrc ~/.bashrc
+        echo "alias root='touch /tmp/noexit; exit'" >> ~/.bashrc
+        chown lieuser /home/lieuser/.bashrc
+        echo "helpme" >> /home/lieuser/.bashrc
+        echo "alias lieuser='su lieuser -s $(which bash)'" >> ~/.bashrc
+        echo "[[ -f /tmp/noexit ]] && rm /tmp/noexit || exit" >> ~/.bashrc
+
 if [[ ! -d "/app/.venv" ]]; then
     bash installer.sh --setup --local-dev &>> docker/.INSTALLING
 fi
