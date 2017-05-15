@@ -1,8 +1,9 @@
+#!/usr/bin/env bash
 echo ''
 echo 'Copyright (c) 2017 LIEStudio, VU Amsterdam'
 echo 'In collaboration with Zefiros Software, www.zefiros.eu.'
 echo ''
-echo '====================== Welcome to the Docker image for LIEStudio ======================'
+echo '================ Welcome to the Docker image for LIEStudio ================'
 echo 'This container comes with some commands to make your work less complicated!'
 echo ''
 echo 'Usage:'
