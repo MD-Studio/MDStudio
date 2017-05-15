@@ -112,6 +112,10 @@
                             "type": "static",
                             "directory": "../../app/node_modules"
                         },
+                        "bower_components": {
+                            "type": "static",
+                            "directory": "../../app/bower_components"
+                        },
                         "help": {
                             "type": "static",
                             "directory": "../../docs/html"
