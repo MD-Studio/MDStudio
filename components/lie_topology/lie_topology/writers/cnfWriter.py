@@ -124,15 +124,11 @@ def _PrintLattice( ofstream, lattice ):
 
 
     ofstream.write( "GENBOX\n"+\
+                    "%-15.9f%-15.9f%-15.9f\n" % ( lattice.edge_lenghts[0], lattice.edge_lenghts[1], lattice.edge_lenghts[2] )+\
+                    "%-15.9f%-15.9f%-15.9f\n" % ( lattice.edge_angles[0],  lattice.edge_angles[1],  lattice.edge_angles[2] )+\
+                    "%-15.9f%-15.9f%-15.9f\n" % ( lattice.rotation[0],     lattice.rotation[1],     lattice.rotation[2] )+\
+                    "%-15.9f%-15.9f%-15.9f\n" % ( lattice.offset[0],       lattice.offset[1],       lattice.offset[2] )+\
                     "END\n" )
-
-    # self.result += "GENBOX\n"
-    # self.result += "1\n"
-    # self.result += "%-15.9f%-15.9f%-15.9f\n" % ( box.lx, box.ly, box.lz )
-    # self.result += "90.000000000   90.000000000   90.000000000\n"
-    # self.result += "0.000000000   -0.000000000    0.000000000\n"
-    # self.result += "0.000000000    0.000000000    0.000000000\n"
-    # self.result += "END\n"
 
 def WriteCnf( ofstream, structures ):
 
