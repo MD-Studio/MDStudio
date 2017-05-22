@@ -10,7 +10,6 @@ import shutil
 
 # Add modules in package to path so we can import them
 __rootpath__ = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
 from   autobahn.twisted.util    import sleep
 from   autobahn.twisted         import wamp
@@ -19,11 +18,11 @@ from   twisted.internet         import defer
 from   twisted.application      import service
 
 protein=None
-with open(os.path.join(__rootpath__, 'protein.mol2'), 'r') as pfile:
+with open(os.path.join(__rootpath__, '../files/protein.mol2'), 'r') as pfile:
     protein = pfile.read()
 
 ligand=None
-with open(os.path.join(__rootpath__, 'ligand.mol2'), 'r') as lfile:
+with open(os.path.join(__rootpath__, '../files/ligand.mol2'), 'r') as lfile:
     ligand = lfile.read()
 
 class WAMPUnitTestBase(wamp.ApplicationSession):

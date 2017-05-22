@@ -27,8 +27,8 @@ logging = Logger()
 class PlantsDockingTest(unittest.TestCase):
     
     workdir = None
-    ligand_file = os.path.join(__rootpath__, '../ligand.mol2')
-    protein_file = os.path.join(__rootpath__, '../protein.mol2')
+    ligand_file = os.path.join(__rootpath__, '../files/ligand.mol2')
+    protein_file = os.path.join(__rootpath__, '../files/protein.mol2')
     
     @classmethod
     def setUpClass(cls):
