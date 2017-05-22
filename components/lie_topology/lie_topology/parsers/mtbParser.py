@@ -392,7 +392,7 @@ def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParsePolarizableSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
-    mtb_group = mtb_file.GroupByName("POLARIZABLE_SOLUTES")
+    mtb_group = mtb_file.GroupByKey("POLARIZABLE_SOLUTES")
     mtb_group.AddMolecule(molecule=solute)
 
 def _ParseSoluteBuildingBlock(block, mtb_file):
@@ -406,7 +406,7 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParseSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
-    mtb_group = mtb_file.GroupByName("SOLUTES")
+    mtb_group = mtb_file.GroupByKey("SOLUTES")
     mtb_group.AddMolecule(molecule=solute)
 
 def _ParseBlendBuildingBlock(block, mtb_file):
@@ -416,7 +416,7 @@ def _ParseBlendBuildingBlock(block, mtb_file):
     it = _ParseBlendData( block, solute, 1 )
     it = _ParseBondedData( block, solute, it )
     
-    mtb_group = mtb_file.GroupByName("BLENDS")
+    mtb_group = mtb_file.GroupByKey("BLENDS")
     mtb_group.AddMolecule(molecule=solute)
 
 def _ParseSolventBuildingBlock(block, mtb_file):

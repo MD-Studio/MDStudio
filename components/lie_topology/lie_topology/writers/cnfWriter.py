@@ -142,9 +142,6 @@ def WriteCnf( ofstream, structures ):
         if structure.step is not None:
             _WriteStep( ofstream, structure.step )
         
-        if structure.lattice is not None:
-            _PrintLattice( ofstream, structure.lattice )
-        
         if structure.coordinates is not None:
             _PrintPositions( ofstream, structure )
 
@@ -154,6 +151,7 @@ def WriteCnf( ofstream, structures ):
         if structure.forces is not None:
             _PrintForces( ofstream, structure )
         
-        
+        if structure.lattice is not None:
+            _PrintLattice( ofstream, structure.lattice )
 
     #fileHandle.write( self.result )

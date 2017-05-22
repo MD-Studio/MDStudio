@@ -23,7 +23,15 @@ def main():
         with open( "../tests/data/cnf/test_write.cnf", 'w') as ofstream:
             
             WriteCnf( ofstream, pdb_structures )
+    
+    with open( "../tests/data/cnf/md_fX_apixaban_1.cnf", 'r') as ifstream:
 
+        cnf_structures = ParseCnf( ifstream )
+
+        with open( "../tests/data/cnf/test_write2.cnf", 'w') as ofstream:
+            
+            WriteCnf( ofstream, cnf_structures )
+        
     # with open( "../tests/data/cnf/md_fX_apixaban_1.cnf", 'r') as ifstream:
         
     #      structures = ParseCnf( ifstream )

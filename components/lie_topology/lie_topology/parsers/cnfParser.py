@@ -39,14 +39,14 @@ from lie_topology.molecule.group     import Group
 
 def _AppendTopological( activeTopology, resNum, resName, atomName, atomNum ):
 
-    activeGroup = activeTopology.GroupByName("solute")
+    activeGroup = activeTopology.GroupByKey("solute")
 
     moleculeName = "%s::%i" % ( resName, resNum )
 
     if not activeGroup:
         
         activeTopology.AddGroup( key="solute"  )
-        activeGroup = activeTopology.GroupByName("solute")
+        activeGroup = activeTopology.GroupByKey("solute")
 
         #as this is a new group we are sure that this doesnt contain a residue yet
         activeGroup.AddMolecule( key=moleculeName, type_name=resName, identifier=resNum )
