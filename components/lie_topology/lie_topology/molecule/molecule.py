@@ -207,6 +207,6 @@ class Molecule( Serializable ):
 
                         # in this step we resolve the named reference objects to
                         # actual atom objects
-                        new_references.append( ref.TryLink(root_obj) )
+                        new_references.append( ref.TryLink(root_obj, self) )
                     
                     item.atom_references = new_references

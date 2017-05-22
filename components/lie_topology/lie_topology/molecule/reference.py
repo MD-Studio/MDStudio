@@ -64,9 +64,15 @@ class AtomReference( Serializable ):
         if self._molecule_name:
 
             if target_group is None:
-                raise LieTopologyException("AtomReference::UpcastFromMolecule", "molecule does not contain a group reference")
 
-            target_molecule = target_group.molecules[self._molecule_name]
+                if self._molecule_name == referencing_molecule.name:
+                    target_molecule = referencing_molecule
+
+                else:
+                    raise LieTopologyException("AtomReference::UpcastFromMolecule", "molecule does not contain a group reference")
+            
+            else:
+                target_molecule = target_group.molecules[self._molecule_name]
         
         if self._atom_name is None or\
            target_molecule is None:

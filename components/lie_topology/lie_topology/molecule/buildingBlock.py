@@ -143,7 +143,7 @@ class BuildingBlock( Serializable ):
         # patch bonded references
         for group in self._groups.values():
             for molecule in group.molecules.values():
-                molecule.ResolveNamedReferences( self, molecule )
+                molecule.ResolveNamedReferences( self )
         
         for solvent in self._solvents.values():
-            solvent.ResolveNamedReferences( None, solvent )
+            solvent.ResolveNamedReferences( None )
