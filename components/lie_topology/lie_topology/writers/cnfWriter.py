@@ -107,7 +107,7 @@ def _PrintForces( ofstream, structure ):
     forces_string = _TopologicalFormat( structure.topology, structure.forces )
 
     ofstream.write( "FREEFORCE\n"+\
-                    "# Note lie_topology does not recognice differences between free and cons force"
+                    "# Note lie_topology does not recognice differences between free and cons force"+\
                     forces_string+\
                     "END\n" )
 
