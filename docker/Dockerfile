@@ -34,6 +34,7 @@ RUN echo "" >> ~/.bashrc && \
     echo 'alias serve="(cd /app/app; /usr/bin/gulp serve)"' >> ~/.bashrc && \
     echo 'alias compile="(cd /app/app; /usr/bin/gulp compile)"' >> ~/.bashrc && \
     echo 'alias helpme="(/app/docker/welcome.sh)"' >> ~/.bashrc && \
+    echo 'alias test="(cd /app; green test.py)"' >> ~/.bashrc && \
     echo "" >> ~/.bashrc && \
     echo 'source /app/.venv/bin/activate' >> ~/.bashrc && \
     echo 'export MONGO_HOST=mongo' >> ~/.bashrc && \
@@ -46,4 +47,4 @@ ADD docker/.bash_profile ~/.bash_profile
 
 WORKDIR /app/
 
-ENTRYPOINT ["bash", "/app/docker/docker-entrypoint.sh" ] 
+ENTRYPOINT ["bash", "/app/docker/docker-entrypoint.sh"]
