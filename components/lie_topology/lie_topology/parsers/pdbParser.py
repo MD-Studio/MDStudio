@@ -41,7 +41,7 @@ class PdbBookKeeping(object):
 
         pass
 
-def _ParseVoid(line, bookKeeping, structures):
+def _Void(line, bookKeeping, structures):
 
     # voids currently unsupported entries
     pass
@@ -61,18 +61,20 @@ def _ValidateAndAppendTopology( lastStructure, atom_number, atom_name, residue_n
     if len(lastTopology.groups) == 0 or\
        chain != lastTopology.groups.back().chain_id:
 
-       lastTopology.AddGroup( name=chain, chain_id=chain )
+       lastTopology.AddGroup( key=chain, chain_id=chain )
 
     lastChain = lastTopology.groups.back()
 
+    molecule_name = "%s::%i" % ( residue_name, residue_number )
+
     # test of we need to add a new residue
     if len(lastChain.molecules) == 0 or\
-       residue_number != lastChain.molecules[-1].identifier:
+       molecule_name != lastChain.molecules.back().key:
 
-       lastChain.AddMolecule( name=residue_name, identifier=residue_number )
+       lastChain.AddMolecule( key=molecule_name, type_name=residue_name, identifier=residue_number )
 
-    lastResidue = lastChain.molecules[-1]
-    lastResidue.AddAtom( name = atom_name, element = element, identifier = atom_number,\
+    lastResidue = lastChain.molecules.back()
+    lastResidue.AddAtom( key = atom_name, type_name = atom_name, element = element, identifier = atom_number,\
                          occupancy = occupancy, b_factor = b_factor  )
 
 def _ParseAtom(line, bookKeeping, structures):
@@ -99,11 +101,11 @@ def _ParseAtom(line, bookKeeping, structures):
     _ValidateAndAppendTopology( lastStructure, atom_number, atom_name, residue_number, residue_name, chain,\
                                 occupancy, b_factor, element )
     
-    if not isinstance( lastStructure.coordinates, np.ndarray ):
-        lastStructure.coordinates = np.array([x, y, z])
+    if lastStructure.coordinates is None:
+        lastStructure.coordinates = [[x, y, z]]
 
     else:
-        np.append(lastStructure.coordinates,[x, y, z])
+        lastStructure.coordinates.append( [x, y, z] )
 
 def _AppendBond( topology, atomIndex1, atomIndex2 ):
 
@@ -157,55 +159,80 @@ def _ParseConnect(line, bookKeeping, structures):
         _AppendBond( lastStructure, from_index, to_index4 )
 
 
+def _ParseCrystal(line, bookKeeping, structures):
+
+    side_a  = float( line[6:15].strip() )
+    side_b  = float( line[15:24].strip() )
+    side_c  = float( line[24:33].strip() )
+    alpha   = float( line[33:40].strip() )
+    beta    = float( line[40:47].strip() )
+    gamma   = float( line[47:54].strip() )
+
+    space_group = line[55:66].strip()
+    z_value = line[66:70].strip()
+
+    if len(structures) == 0:
+        raise LieTopologyException("ParsePdb::_ParseCrystal", "No structures present" )
+    
+    lastStructure = structures[-1]
+
+    lastStructure.lattice = Lattice()
+
+    # lenghts of the a,b & c edges, should be a vec3
+    lastStructure.lattice.edge_lenghts = [ side_a, side_b, side_c ]
+    lastStructure.lattice.edge_angles = [ alpha, beta, gamma ]
+    lastStructure.lattice.rotation = [ 0.0, 0.0, 0.0 ]
+    lastStructure.lattice.offset = [ 0.0, 0.0, 0.0 ]
+
 def ParsePdb( ifstream ):
     
     # Parser map
     parseFunctions = dict()
-    parseFunctions["HEADER"]  = _ParseVoid
-    parseFunctions["OBSLTE"]  = _ParseVoid
-    parseFunctions["TITLE"]   = _ParseVoid
-    parseFunctions["SPLT"]    = _ParseVoid
-    parseFunctions["CAVEAT"]  = _ParseVoid
-    parseFunctions["COMPND"]  = _ParseVoid
-    parseFunctions["SOURCE"]  = _ParseVoid
-    parseFunctions["KEYWDS"]  = _ParseVoid
-    parseFunctions["EXPDTA"]  = _ParseVoid
-    parseFunctions["NUMMDL"]  = _ParseVoid
-    parseFunctions["MDLTYP"]  = _ParseVoid
-    parseFunctions["AUTHOR"]  = _ParseVoid
-    parseFunctions["REVDAT"]  = _ParseVoid
-    parseFunctions["SPRSDE"]  = _ParseVoid
-    parseFunctions["JRNL"]    = _ParseVoid
-    parseFunctions["REMARKS"] = _ParseVoid
-    parseFunctions["DBREF"]   = _ParseVoid
-    parseFunctions["DBREF1"]  = _ParseVoid 
-    parseFunctions["DBREF2"]  = _ParseVoid
-    parseFunctions["SEQADV"]  = _ParseVoid
-    parseFunctions["SEQRES"]  = _ParseVoid
-    parseFunctions["MODRES"]  = _ParseVoid
-    parseFunctions["HET"]     = _ParseVoid
-    parseFunctions["FORMUL"]  = _ParseVoid
-    parseFunctions["HETNAM"]  = _ParseVoid 
-    parseFunctions["HETSYN"]  = _ParseVoid
-    parseFunctions["HELIX"]   = _ParseVoid
-    parseFunctions["SHEET"]   = _ParseVoid
-    parseFunctions["SSBOND"]  = _ParseVoid
-    parseFunctions["LINK"]    = _ParseVoid
-    parseFunctions["CISPEP"]  = _ParseVoid
-    parseFunctions["SITE"]    = _ParseVoid
-    parseFunctions["CRYST1"]  = _ParseVoid
-    parseFunctions["MTRIXn"]  = _ParseVoid
-    parseFunctions["ORIGXn"]  = _ParseVoid
-    parseFunctions["SCALEn"]  = _ParseVoid
-    parseFunctions["MODEL"]   = _ParseVoid
+    parseFunctions["HEADER"]  = _Void
+    parseFunctions["OBSLTE"]  = _Void
+    parseFunctions["TITLE"]   = _Void
+    parseFunctions["SPLT"]    = _Void
+    parseFunctions["CAVEAT"]  = _Void
+    parseFunctions["COMPND"]  = _Void
+    parseFunctions["SOURCE"]  = _Void
+    parseFunctions["KEYWDS"]  = _Void
+    parseFunctions["EXPDTA"]  = _Void
+    parseFunctions["NUMMDL"]  = _Void
+    parseFunctions["MDLTYP"]  = _Void
+    parseFunctions["AUTHOR"]  = _Void
+    parseFunctions["REVDAT"]  = _Void
+    parseFunctions["SPRSDE"]  = _Void
+    parseFunctions["JRNL"]    = _Void
+    parseFunctions["REMARKS"] = _Void
+    parseFunctions["DBREF"]   = _Void
+    parseFunctions["DBREF1"]  = _Void 
+    parseFunctions["DBREF2"]  = _Void
+    parseFunctions["SEQADV"]  = _Void
+    parseFunctions["SEQRES"]  = _Void
+    parseFunctions["MODRES"]  = _Void
+    parseFunctions["HET"]     = _Void
+    parseFunctions["FORMUL"]  = _Void
+    parseFunctions["HETNAM"]  = _Void 
+    parseFunctions["HETSYN"]  = _Void
+    parseFunctions["HELIX"]   = _Void
+    parseFunctions["SHEET"]   = _Void
+    parseFunctions["SSBOND"]  = _Void
+    parseFunctions["LINK"]    = _Void
+    parseFunctions["CISPEP"]  = _Void
+    parseFunctions["SITE"]    = _Void
+    parseFunctions["CRYST1"]  = _ParseCrystal
+    parseFunctions["MTRIXn"]  = _Void
+    parseFunctions["ORIGXn"]  = _Void
+    parseFunctions["SCALEn"]  = _Void
+    parseFunctions["MODEL"]   = _Void
     parseFunctions["ATOM"]    = _ParseAtom
-    parseFunctions["ANISOU"]  = _ParseVoid
-    parseFunctions["TER"]     = _ParseVoid
+    parseFunctions["ANISOU"]  = _Void
+    parseFunctions["TER"]     = _Void
     parseFunctions["HETATM"]  = _ParseAtom
-    parseFunctions["ENDMDL"]  = _ParseVoid
+    parseFunctions["ENDMDL"]  = _Void
     parseFunctions["CONECT"]  = _ParseConnect
-    parseFunctions["MASTER"]  = _ParseVoid
-    parseFunctions["END"]     = _ParseVoid
+    parseFunctions["MASTER"]  = _Void
+    parseFunctions["END"]     = _Void
 
     bookKeeping = PdbBookKeeping()
 
@@ -226,5 +253,10 @@ def ParsePdb( ifstream ):
             raise LieTopologyException("ParsePdb", "Unknown pdb block %s" % (blockName) )
         
         parseFunctions[blockName]( line, bookKeeping, structures )
+
+    # make sure coordinates are nd_arrays now
+    for structure in structures:
+        structure.coordinates = np.array( structure.coordinates )
+
 
     return structures        

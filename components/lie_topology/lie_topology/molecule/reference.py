@@ -30,16 +30,16 @@ from lie_topology.common.exception import LieTopologyException
 
 class AtomReference( Serializable ):
     
-    def __init__( self, group_name=None, molecule_name=None, atom_name=None, external_index=None ):
+    def __init__( self, group_key=None, molecule_key=None, atom_key=None, external_index=None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
         
-        self._group_name = group_name
+        self._group_key = group_key
 
-        self._molecule_name = molecule_name
+        self._molecule_key = molecule_key
 
-        self._atom_name = atom_name
+        self._atom_key = atom_key
 
         # index of the atm
         self._external_index = external_index
@@ -53,29 +53,29 @@ class AtomReference( Serializable ):
         target_molecule = None
         target_group = None
 
-        if self._group_name:
+        if self._group_key:
             # if we have a groupname find the root
 
             if root is None:
                 raise LieTopologyException("AtomReference::UpcastFromMolecule", "a valid root object wasnt passed")
                 
-            target_group = root.groups[self._group_name]
+            target_group = root.groups[self._group_key]
 
-        if self._molecule_name:
+        if self._molecule_key:
 
             if target_group is None:
 
-                if self._molecule_name == referencing_molecule.name:
+                if self._molecule_key == referencing_molecule.key:
                     target_molecule = referencing_molecule
 
                 else:
                     raise LieTopologyException("AtomReference::UpcastFromMolecule", "molecule does not contain a group reference")
             
             else:
-                target_molecule = target_group.molecules[self._molecule_name]
+                target_molecule = target_group.molecules[self._molecule_key]
         
-        if self._atom_name is None or\
+        if self._atom_key is None or\
            target_molecule is None:
             return self
 
-        return target_molecule.atoms[self._atom_name]
+        return target_molecule.atoms[self._atom_key]

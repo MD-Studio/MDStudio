@@ -217,13 +217,13 @@ def _ParseSoluteAtoms( block, solute, count, it, trailing ):
         if chargeGroup_fl == 1:
             cgIndex += 1
 
-        solute.AddAtom( name=name, identifier=index, trailing=trailing )
+        solute.AddAtom( key=name, type_name=name, identifier=index, trailing=trailing )
         atom = solute.atoms.back()
         
         # These parameters are externally defined
         # Therefore we can only reference to them at this point
-        atom.mass_type = ForceFieldReference( name=massGroup )
-        atom.vdw_type  = ForceFieldReference( name=vdwGroup )
+        atom.mass_type = ForceFieldReference( key=massGroup )
+        atom.vdw_type  = ForceFieldReference( key=vdwGroup )
         
         # These are define here on the spot
         atom.coulombic_type = CoulombicType( charge=charge )
@@ -290,13 +290,13 @@ def _ParseSolventAtoms(block, solvent, it):
         massGroup      = block[it + 3]
         charge         = block[it + 4]
 
-        solvent.AddAtom( name=name, identifier=index )
+        solvent.AddAtom( key=name, type_name=name, identifier=index )
         atom = solvent.atoms.back()
         
         # These parameters are externally defined
         # Therefore we can only reference to them at this point
-        atom.mass_type = ForceFieldReference( name=massGroup )
-        atom.vdw_type  = ForceFieldReference( name=vdwGroup )
+        atom.mass_type = ForceFieldReference( key=massGroup )
+        atom.vdw_type  = ForceFieldReference( key=vdwGroup )
         
         # These are define here on the spot
         atom.coulombic_type = CoulombicType( charge=charge )
@@ -382,8 +382,7 @@ def _ParseBondedData(block, solute, it ):
 
 def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
 
-    solute = Molecule()
-    solute.name = block[0]
+    solute = Molecule( key=block[0], type_name=block[0] )
 
     it = _ParseAtomicData( block, solute, 1 )
     it = _ParseAtomicPolarizabilities(block, solute, it )
@@ -398,7 +397,7 @@ def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
 
 def _ParseSoluteBuildingBlock(block, mtb_file):
 
-    solute = Molecule( name=block[0] )
+    solute = Molecule( key=block[0], type_name=block[0] )
 
     it = _ParseAtomicData( block, solute, 1 )
     it = _ParseBondedData( block, solute, it )
@@ -412,7 +411,7 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
 
 def _ParseBlendBuildingBlock(block, mtb_file):
 
-    solute = Molecule(name=block[0])
+    solute = Molecule( key=block[0], type_name=block[0] )
     
     it = _ParseBlendData( block, solute, 1 )
     it = _ParseBondedData( block, solute, it )
@@ -422,7 +421,7 @@ def _ParseBlendBuildingBlock(block, mtb_file):
 
 def _ParseSolventBuildingBlock(block, mtb_file):
 
-    solvent = Molecule(name=block[0])
+    solvent = Molecule(key=block[0], type_name=block[0])
 
     it = _ParseSolventAtoms( block, solvent, 1 )
     it = _ParseSolventConstraints( block, solvent, it )
@@ -431,7 +430,7 @@ def _ParseSolventBuildingBlock(block, mtb_file):
 
 def _ParsePolarizableSolventBuildingBlock(block, mtb_file):
 
-    solvent = Molecule(name=block[0])
+    solvent = Molecule(key=block[0], type_name=block[0])
 
     it = _ParseSolventAtoms( block, solvent, 1 )
     it = _ParseAtomicPolarizabilities(block, solute, it )
@@ -461,9 +460,9 @@ def ParseMtb( ifstream ):
     tokenizer = Tokenizer( ifstream )
 
     mtb_file = BuildingBlock()
-    mtb_file.AddGroup( name="BLENDS" )
-    mtb_file.AddGroup( name="SOLUTES" )
-    mtb_file.AddGroup( name="POLARIZABLE_SOLUTES" )
+    mtb_file.AddGroup( key="BLENDS" )
+    mtb_file.AddGroup( key="SOLUTES" )
+    mtb_file.AddGroup( key="POLARIZABLE_SOLUTES" )
    
     ## Uses occurance map to be order agnostic
     for blockName, block in tokenizer.Blocks():

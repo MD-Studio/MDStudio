@@ -31,7 +31,7 @@ from lie_topology.molecule.molecule import Molecule
 
 class Group( Serializable ):
     
-    def __init__( self, parent = None, name = None, chain_id  = None ):
+    def __init__( self, parent = None, key = None, chain_id  = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
@@ -39,8 +39,8 @@ class Group( Serializable ):
         # parent topology
         self._parent = parent
 
-        # full name of the group
-        self._name = name
+        # full key of the group
+        self._key = key
 
         # chainid like in pdb
         self._chain_id = chain_id 
@@ -49,14 +49,23 @@ class Group( Serializable ):
         self._molecules = ContiguousMap()
 
     @property
+    def atom_count(self):
+        count = 0
+        
+        for molecule in self._molecules.values():
+            count += molecule.atom_count
+        
+        return count
+
+    @property
     def parent(self):
 
         return self._parent
 
     @property
-    def name(self):
+    def key(self):
 
-        return self._name
+        return self._key
 
     @property
     def chain_id(self):
@@ -79,17 +88,17 @@ class Group( Serializable ):
         if  "molecule" in kwargs:
             molecule = kwargs["molecule"]
             molecule.group = self
-            self._molecules.insert( molecule.name, molecule )
+            self._molecules.insert( molecule.key, molecule )
 
         else:
             kwargs["parent"] = self
-            self._molecules.append( kwargs["name"], Molecule(**kwargs) )
+            self._molecules.insert( kwargs["key"], Molecule(**kwargs) )
 
-    def GetSoluteByName( self,  ):
+    def GetSoluteByKey( self,  ):
 
         result = None
 
-        if name in self._molecules:
+        if key in self._molecules:
 
             result = solute
 
@@ -103,7 +112,7 @@ class Group( Serializable ):
 
         result = {}
         
-        SerializeFlatTypes( ["name", "chain_id"], self.__dict__, result, '_' )
+        SerializeFlatTypes( ["key", "chain_id"], self.__dict__, result, '_' )
         SerializeContiguousMaps( ["molecules"], self.__dict__, result, logger, '_' )
 
         return result
@@ -117,6 +126,6 @@ class Group( Serializable ):
             if not self._IsValidCategory( cat ):
     	       logger.warning("Group::OnDeserialize category %s not valid for deserialization" % ( cat ) )
         
-        DeserializeFlatTypes( ["name", "chain_id"], data, self.__dict__, '_' )
+        DeserializeFlatTypes( ["key", "chain_id"], data, self.__dict__, '_' )
         DeserializeContiguousMapsTypes( ["molecules"], [Molecule], data, self.__dict__, logger, '_', self )
 

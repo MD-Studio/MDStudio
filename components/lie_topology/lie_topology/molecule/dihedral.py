@@ -82,7 +82,7 @@ class Dihedral( Serializable ):
 
             type_str = None
             if isinstance(self._dihedral_type, ForceFieldReference):
-                type_str = self._dihedral_type.name
+                type_str = self._dihedral_type.key
 
             elif isinstance(self._dihedral_type, (DihedralType, ImproperType)):
                 type_str = self._dihedral_type.OnSerialize(logger)

@@ -31,14 +31,14 @@ from lie_topology.common.contiguousMap import ContiguousMap
 
 class CoulombicType( Serializable ):
     
-    def __init__( self, name = None, charge = None, polarizability = None, cos_charge = None,\
+    def __init__( self, key = None, charge = None, polarizability = None, cos_charge = None,\
                   damping_level = None, damping_power = None  ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to the charge type
-        self.name = name
+        # key to refer to the charge type
+        self.key = key
 
         # coulombic charge of this type
         self.charge = charge
@@ -58,13 +58,13 @@ class CoulombicType( Serializable ):
 
 class VdwType( Serializable ):
     
-    def __init__( self, name = None, type_name = None, c6 = None, c6_14 = None, c12 = None, c12_14 = None, matrix = None ):
+    def __init__( self, key = None, type_name = None, c6 = None, c6_14 = None, c12 = None, c12_14 = None, matrix = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to the type
-        self.name = name
+        # key to refer to the type
+        self.key = key
 
         # specific type name as name could be anything
         self.type_name = type_name
@@ -95,16 +95,27 @@ class VdwMixed( Serializable ):
         self.c12    = c12
         
         self.c12_14 = c12_14
+
+class VdwSpecAtom( Serializable ):
+
+    def __init__( self, index = None, c6 = None, c12 = None ):
+
+        self.index = index 
+
+        self.c6     = c6
+
+        self.c12    = c12
         
+
 class MassType( Serializable ):
     
-    def __init__( self, name = None, mass = None, type_name = None ):
+    def __init__( self, key = None, mass = None, type_name = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to the type
-        self.name = name
+        # key to refer to the type
+        self.key = key
 
         # mass of the type
         self.mass = mass
@@ -114,13 +125,13 @@ class MassType( Serializable ):
       
 class BondType( Serializable ):
     
-    def __init__( self, name = None, fc_quartic = None, fc_harmonic = None, bond0 = None ):
+    def __init__( self, key = None, fc_quartic = None, fc_harmonic = None, bond0 = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to the type
-        self.name = name
+        # key to refer to the type
+        self.key = key
 
         self.fc_quartic = fc_quartic
 
@@ -131,13 +142,13 @@ class BondType( Serializable ):
         
 class AngleType( Serializable ):
     
-    def __init__( self, name = None, fc_cos_harmonic = None, fc_harmonic = None, angle0 = None  ):
+    def __init__( self, key = None, fc_cos_harmonic = None, fc_harmonic = None, angle0 = None  ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to the type
-        self.name = name
+        # key to refer to the type
+        self.key = key
 
         self.fc_cos_harmonic = fc_cos_harmonic
 
@@ -148,13 +159,13 @@ class AngleType( Serializable ):
 
 class DihedralType( Serializable ):
     
-    def __init__( self, name = None, force_constant = None, phaseShift = None, multiplicity = None ):
+    def __init__( self, key = None, force_constant = None, phaseShift = None, multiplicity = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to the type
-        self.name = name
+        # key to refer to the type
+        self.key = key
 
         self.force_constant = force_constant
 
@@ -165,13 +176,13 @@ class DihedralType( Serializable ):
 
 class ImproperType( Serializable ):
     
-    def __init__( self, name = None, force_constant = None, angle0 = None ):
+    def __init__( self, key = None, force_constant = None, angle0 = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to the type
-        self.name = name
+        # key to refer to the type
+        self.key = key
 
         self.force_constant = force_constant
 
@@ -180,9 +191,9 @@ class ImproperType( Serializable ):
 
 class ForceField( Serializable ):
     
-    def __init__( self, name = None, description = None, linkexclusions = None, physicalconstants = None ):
+    def __init__( self, key = None, description = None, linkexclusions = None, physicalconstants = None ):
         
-        self.name = name
+        self.key = key
         self.description = description
         self.linkexclusions = linkexclusions
         self.physicalconstants = physicalconstants
@@ -190,6 +201,7 @@ class ForceField( Serializable ):
         self.masstypes     = ContiguousMap()
         self.vdwtypes      = ContiguousMap()
         self.vdwmixed      = ContiguousMap()
+        self.special_vdw   = ContiguousMap()
         self.coultypes     = ContiguousMap()
         self.bondtypes     = ContiguousMap()
         self.angletypes    = ContiguousMap()

@@ -89,32 +89,32 @@ class BuildingBlock( Serializable ):
 
     def AddGroup( self, **kwargs ):
 
-        if not "name" in kwargs:
+        if not "key" in kwargs:
 
-            raise LieTopologyException("BuildingBlock::AddGroup", "Name is a required argument" )
+            raise LieTopologyException("BuildingBlock::AddGroup", "key is a required argument" )
         
         kwargs["parent"] = self
-        self._groups.insert( kwargs["name"], Group( **kwargs ) )
+        self._groups.insert( kwargs["key"], Group( **kwargs ) )
     
     def AddSolvent( self, **kwargs ):
 
         if "molecule" in kwargs:
 
             molecule = kwargs["molecule"]
-            if not molecule.name:
-                raise LieTopologyException("BuildingBlock::AddSolvent", "Name is a required argument" )
+            if not molecule.key:
+                raise LieTopologyException("BuildingBlock::AddSolvent", "key is a required argument" )
 
-            self._solvents.insert( molecule.name, kwargs["molecule"] )
+            self._solvents.insert( molecule.key, kwargs["molecule"] )
 
         else:
-            if not "name" in kwargs:
-                raise LieTopologyException("BuildingBlock::AddSolvent", "Name is a required argument" )
+            if not "key" in kwargs:
+                raise LieTopologyException("BuildingBlock::AddSolvent", "key is a required argument" )
             
-            self._solvents.insert( kwargs["name"], Molecule( **kwargs ) )
+            self._solvents.insert( kwargs["key"], Molecule( **kwargs ) )
 
-    def GroupByName( self, name ):
+    def GroupByKey( self, key ):
 
-        return self._groups[name]
+        return self._groups[key]
     
     def OnSerialize( self, logger = None ):   
 

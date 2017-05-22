@@ -1,0 +1,66 @@
+MTBUILDBLSOLUTE
+# RNME
+G235
+# number of atoms, number of preceding exclusions
+# NMAT, NLIN
+    6    0
+# preceding exclusions
+# ATOM           MAE MSAE
+# atoms
+# The total charge within a charge group is given in the comments.
+# ATOM  ANM IACM MASS  CGM   ICGM  MAE  MSAE                group charge
+    1   C1   16    5  -0.081   0    3    2    3    4
+    2   C2   12   12   0.646   0    4    3    4    5    6
+    3   O1    1   16  -0.598   1    1    4                  # -0.033
+    4   N1    6   14  -0.413   0    2    5    6
+    5   H4   59    1   0.329   0    1    6
+    6   C3   16    5   0.117   1    0                       #  0.033
+# N Polarizable atoms
+  6
+# Foreach polarizable atoms  
+# index polarizability (nm³) cos_charge(e) damping_level damping_power gamma  offset_i  offset_j    
+  1     1.8                  -8.0          0.0           0.0           0.0    2         3
+  
+    ...
+
+    
+
+# total charge of the molecule:  -0.000
+# residue group charges redistributed:  0.000   0.000
+# bonds
+#  NB
+    5
+# Alternative bond types are placed in comments.
+#  IB   JB   MCB
+    1    2   26 	#  27   
+    2    3    5 	
+    2    4   13 	
+    4    5   55 	#  non-standard 
+    4    6   58 	#  non-standard 
+# bond angles
+# NBA
+    6
+# Alternative angle types are placed in comments.
+#  IB   JB   KB   MCB
+    1    2    3   30 	
+    1    2    4   19 	
+    3    2    4   33 	
+    2    4    5   23 	
+    2    4    6   31 	
+    5    4    6   23 	
+# improper dihedrals 
+# NIDA
+    2
+#  IB   JB   KB   LB   MCB
+    2    1    3    4    1
+    4    2    6    5    1
+# Dihedrals
+# MCBs values have not been optimized. Possible alternatives are in comments.
+# NDA
+    1
+#  IB   JB   KB   LB   MCB
+    1    2    4    6   14    # C,H|N|C|O,C
+# LJ Exceptions
+# NEX
+    0
+END

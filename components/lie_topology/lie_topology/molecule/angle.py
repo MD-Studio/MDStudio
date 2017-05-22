@@ -82,7 +82,7 @@ class Angle( Serializable ):
 
             type_str = None
             if isinstance(self._angle_type, ForceFieldReference):
-                type_str = self._angle_type.name
+                type_str = self._angle_type.key
 
             elif isinstance(self._angle_type, AngleType):
                 type_str = self._angle_type.OnSerialize(logger)
@@ -114,7 +114,7 @@ class Angle( Serializable ):
             localData = data["angle_type"]
 
             if isinstance(localData, str):
-                self._angle_type = ForceFieldReference( name=localData )
+                self._angle_type = ForceFieldReference( key=localData )
 
             elif isinstance(localData, dict):
                 self._angle_type = AngleType()

@@ -41,23 +41,25 @@ def _AppendTopological( activeTopology, resNum, resName, atomName, atomNum ):
 
     activeGroup = activeTopology.GroupByName("solute")
 
+    moleculeName = "%s::%i" % ( resName, resNum )
+
     if not activeGroup:
         
-        activeTopology.AddGroup( name="solute"  )
+        activeTopology.AddGroup( key="solute"  )
         activeGroup = activeTopology.GroupByName("solute")
 
         #as this is a new group we are sure that this doesnt contain a residue yet
-        activeGroup.AddMolecule( name=resName, identifier=resNum )
+        activeGroup.AddMolecule( key=moleculeName, type_name=resName, identifier=resNum )
 
     lastResidue = activeGroup.GetSoluteByIndex( -1 )
 
-    if resName != lastResidue.name or\
+    if moleculeName != lastResidue.key or\
        resNum != lastResidue.identifier:
 
-        activeGroup.AddMolecule( name=resName, identifier=resNum )
+        activeGroup.AddMolecule( key=moleculeName, type_name=resName, identifier=resNum )
         lastResidue = activeGroup.GetSoluteByIndex( -1 )
     
-    lastResidue.AddAtom( name=atomName, identifier=atomNum )
+    lastResidue.AddAtom( key=atomName, type_name=atomName, identifier=atomNum )
 
 def _ParseTitle(block, structure):
 

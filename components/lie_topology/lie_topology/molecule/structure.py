@@ -55,16 +55,24 @@ class Time( Serializable ):
 
         return self._time
 
+    @model_number.setter
+    def model_number(self, value):
+        self._model_number = value
+
+    @time.setter
+    def time(self, value):
+        self._time = value
+
 class Structure( Serializable ):
     
-    def __init__( self, name = None, description = None, step = None, coordinates = None, velocities = None,\
+    def __init__( self, key = None, description = None, step = None, coordinates = None, velocities = None,\
                   cos_offsets = None, lattice_shifs = None, forces = None, topology = None, lattice = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
 
         # Name of the structure
-        self._name = name
+        self._key = key
 
         # Name of the 
         self._description = description
@@ -94,9 +102,9 @@ class Structure( Serializable ):
         self._lattice = lattice
 
     @property
-    def name(self):
+    def key(self):
 
-        return self._name
+        return self._key
 
     @property
     def description(self):
@@ -144,10 +152,10 @@ class Structure( Serializable ):
         return self._lattice
 
     #####
-    @name.setter
-    def name(self, value):
+    @key.setter
+    def key(self, value):
 
-        self._name = value
+        self._key = value
 
     @description.setter
     def description(self, value):
@@ -189,13 +197,8 @@ class Structure( Serializable ):
 
         self._topology = value
 
-    @topology.setter
-    def topology(self, value):
-
-        self._topology = value
-
     @lattice.setter
-    def topology(self, value):
+    def lattice(self, value):
 
         self._lattice = value
 
@@ -203,25 +206,10 @@ class Structure( Serializable ):
 
         result = {}
         
-        SerializeFlatTypes( ("name", "description"), self.__dict__, result, '_' )
+        SerializeFlatTypes( ("key", "description"), self.__dict__, result, '_' )
         SerializeObjTypes( ("step", "topology", "lattice" ), self.__dict__, result, logger, '_' )
         SerializeNumpyTypes( ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ), self.__dict__, result, '_' )
         
-        # for itemName in ("name", "description" ):
-        #     item = self.__dict__["_%s" % ( itemName )]
-        #     if item:
-        #         result[itemName] = item
-
-        # for itemName in ("step", "topology", "lattice" ):
-        #     item = self.__dict__["_%s" % ( itemName )]
-        #     if item:
-        #         result[itemName] = item.OnSerialize(logger)
-
-        # for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
-        #     item = self.__dict__["_%s" % ( itemName )]
-        #     if IsNumpyType(item):
-        #         result[itemName] = item.tolist()
-
         return result
     
     def OnDeserialize( self, data, logger = None ):
@@ -233,28 +221,8 @@ class Structure( Serializable ):
             if not self._IsValidCategory( cat ):
     	       logger.warning("Structure::OnDeserialize category %s not valid for deserialization" % ( cat ) )
         
-        DeserializeFlatTypes( ("name", "description" ), data, self.__dict__, '_' )
+        DeserializeFlatTypes( ("key", "description" ), data, self.__dict__, '_' )
         DeserializeObjTypes( ("step", "topology", "lattice"), [Time, Topology,Lattice ],\
                              data, self.__dict__, logger, '_')
         DeserializeNumpyTypes( ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ),\
                                data, self.__dict__, '_' )
-
-                        
-
-        # if "step" in data:
-        #     self.step = Time()
-        #     self.step.OnDeserialize(data["step"], logger)
-
-        # if "topology" in data:
-        #     self.topology = Topology()
-        #     self.topology.OnDeserialize(data["topology"], logger)
-        
-        # if "lattice" in data:
-        #     self.lattice = Lattice()
-        #     self.lattice.OnDeserialize(data["lattice"], logger)
-
-        # for itemName in ("coordinates", "velocities", "cos_offsets", "lattice_shifs", "forces" ):
-
-        #     if itemName in data:
-        #         item = data[itemName]
-        #         self.__dict__["_%s" % ( itemName )] = np.array( item )

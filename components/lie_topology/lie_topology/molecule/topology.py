@@ -24,7 +24,7 @@
 # @endcond
 #
 
-from lie_topology.common.serializable import Serializable, IsBasicMap
+from lie_topology.common.serializable import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.group import Group 
@@ -59,6 +59,24 @@ class Topology( Serializable ):
                 it += numAtoms
 
         return None
+    
+    @property
+    def solute_atom_count(self):
+        count = 0
+        
+        for group in self._groups.values():
+            count += group.atom_count
+        
+        return count
+
+    @property
+    def solvent_atom_count(self):
+
+        if self._solvent is not None:
+            return self._solvent.atom_count
+
+        else:
+            return 0
 
     @property
     def groups(self):
@@ -72,16 +90,16 @@ class Topology( Serializable ):
 
     def AddGroup( self, **kwargs ):
 
-        if not "name" in kwargs:
+        if not "key" in kwargs:
 
-            raise LieTopologyException("Topology::AddGroup", "Name is a required argument" )
+            raise LieTopologyException("Topology::AddGroup", "key is a required argument" )
         
         kwargs["parent"] = self
-        self._groups.insert( kwargs["name"], Group( **kwargs ) )
+        self._groups.insert( kwargs["key"], Group( **kwargs ) )
 
-    def GroupByName( self, name ):
+    def GroupByKey( self, key ):
 
-        return self._groups[name]
+        return self._groups[key]
     
     def OnSerialize( self, logger = None ):   
 
@@ -105,11 +123,11 @@ class Topology( Serializable ):
         DeserializeObjTypes( ["solvent"], [Molecule], data, self.__dict__, logger, '_')
         
         # patch bonded references
-        for group in self._groups:
-            for molecule in group.molecules:
-                molecule.ResolveNamedReferences( self, molecule )
+        for group in self._groups.values():
+            for molecule in group.molecules.values():
+                molecule.ResolveNamedReferences( self )
 
         if self._solvent:
-            self._solvent.ResolveNamedReferences( None, self._solvent )
+            self._solvent.ResolveNamedReferences( None )
             
 

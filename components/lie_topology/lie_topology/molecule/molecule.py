@@ -34,7 +34,7 @@ from lie_topology.molecule.dihedral    import Dihedral
 
 class Molecule( Serializable ):
     
-    def __init__( self, parent = None, name = None, identifier = None, \
+    def __init__( self, parent = None, key = None, type_name = None, identifier = None, \
                   bonds = None, angles = None, dihedrals = None, impropers = None ):
         
         # Call the base class constructor with the parameters it needs
@@ -43,9 +43,12 @@ class Molecule( Serializable ):
         # Parent group of this molecule
         self._group = parent
 
-        # Name of the solutes
-        self._name = name
-    
+        # key of the solutes, must be unique
+        self._key = key
+        
+        # Type name of the molecule (e.g. for residues GLY,GLU etc.)
+        self._type_name = type_name
+
         # Identifier number defined by external sources
         self._identifier = identifier
 
@@ -66,12 +69,12 @@ class Molecule( Serializable ):
 
     def AddAtom(self, **kwargs ):
 
-        if not "name" in kwargs:
+        if not "key" in kwargs:
 
-            raise LieTopologyException("Molecule::AddAtom", "Name is a required argument" )
+            raise LieTopologyException("Molecule::AddAtom", "Key is a required argument" )
         
         kwargs["parent"] = self
-        self.atoms.insert(kwargs["name"], Atom(**kwargs) )
+        self.atoms.insert(kwargs["key"], Atom(**kwargs) )
     
     def AddBond( self, bond ):
 
@@ -102,15 +105,25 @@ class Molecule( Serializable ):
         self._dihedrals.append( dihedral )
 
     @property
+    def atom_count(self):
+        return self._atoms.size()
+
+
+    @property
     def group(self):
 
         return self._group
 
     @property
-    def name(self):
+    def key(self):
 
-        return self._name
+        return self._key
+    
+    @property
+    def type_name(self):
 
+        return self._type_name
+        
     @property
     def identifier(self):
 
@@ -170,7 +183,7 @@ class Molecule( Serializable ):
 
         result = {}
         
-        SerializeFlatTypes( ["name", "identifier"], self.__dict__, result, '_' )
+        SerializeFlatTypes( ["key", "identifier"], self.__dict__, result, '_' )
         SerializeContiguousMaps( ["atoms"], self.__dict__, result, logger, '_' )
         SerializeObjArrays( ["bonds", "angles", "impropers", "dihedrals"],  self.__dict__, result, logger, '_' )
 
@@ -185,7 +198,7 @@ class Molecule( Serializable ):
             if not self._IsValidCategory( cat ):
     	       logger.warning("Molecule::OnDeserialize category %s not valid for deserialization" % ( cat ) )
         
-        DeserializeFlatTypes( ["name", "identifier"], data, self.__dict__, '_' )
+        DeserializeFlatTypes( ["key", "identifier"], data, self.__dict__, '_' )
         DeserializeContiguousMapsTypes( ["atoms"], [Atom], data, self.__dict__, logger, '_', self  )
         DeserializeObjArrays( ["bonds", "angles", "impropers", "dihedrals"],\
                               [ Bond, Angle, Dihedral, Dihedral ],\

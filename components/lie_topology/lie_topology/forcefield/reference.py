@@ -29,10 +29,10 @@ from lie_topology.common.exception import LieTopologyException
 
 class ForceFieldReference( Serializable ):
     
-    def __init__( self, name = None ):
+    def __init__( self, key = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
-        # name to refer to a force field type
-        self.name = name
+        # key to refer to a force field type
+        self.key = key

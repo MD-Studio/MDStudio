@@ -98,7 +98,7 @@ class Bond( Serializable ):
 
             type_str = None
             if isinstance(self._bond_type, ForceFieldReference):
-                type_str = self._bond_type.name
+                type_str = self._bond_type.key
 
             elif isinstance(self._bond_type, BondType):
                 type_str = self._bond_type.OnSerialize(logger)
@@ -133,7 +133,7 @@ class Bond( Serializable ):
             localData = data["bond_type"]
 
             if isinstance(localData, str):
-                self._bond_type = ForceFieldReference( name=localData )
+                self._bond_type = ForceFieldReference( key=localData )
 
             elif isinstance(localData, dict):
                 self._bond_type = BondType()

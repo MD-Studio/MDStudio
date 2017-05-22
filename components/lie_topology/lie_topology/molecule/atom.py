@@ -33,8 +33,8 @@ from lie_topology.molecule.reference import AtomReference
 
 class Atom( Serializable ):
     
-    def __init__( self, parent = None, name = None, element = None, identifier = None, aromatic = None,\
-                  occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
+    def __init__( self, parent = None, key = None, type_name = None, element = None, identifier = None,\
+                  aromatic = None, occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
                   coulombic_type = None, charge_group = None, virtual_site = None,\
                   preceding = None, trailing = None ):
         
@@ -45,9 +45,12 @@ class Atom( Serializable ):
         # parent molecule
         self.molecule = parent
 
-        # Name of the atom
-        self.name = name
+        # key of the atom
+        self.key = key
         
+        # actual name of the atom type
+        self.type_name = type_name
+
         # Element of the atom
         self.element = element
         
@@ -87,16 +90,16 @@ class Atom( Serializable ):
 
     def ToReference(self):
 
-        atom_name=self.name
-        molecule_name=None
-        group_name=None
+        atom_key=self.key
+        molecule_key=None
+        group_key=None
         
         molecule = self.molecule
         if molecule:
-            molecule_name=molecule.name
+            molecule_key=molecule.key
 
             group = molecule.group
             if group:
-                group_name=group.name
+                group_key=group.key
         
-        return AtomReference( atom_name=atom_name,molecule_name=molecule_name,group_name=group_name )
+        return AtomReference( atom_key=atom_key,molecule_key=molecule_key,group_key=group_key )

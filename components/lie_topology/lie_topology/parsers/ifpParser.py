@@ -31,7 +31,7 @@ import numpy as np
 
 from lie_topology.common.tokenizer        import Tokenizer
 from lie_topology.common.exception        import LieTopologyException
-from lie_topology.forcefield.forcefield   import ForceField, MassType, BondType, AngleType
+from lie_topology.forcefield.forcefield   import *
 
 def _ParseTitle(block, forcefield):
 
@@ -39,7 +39,7 @@ def _ParseTitle(block, forcefield):
 
 def _ParseForceField(block, forcefield):
 
-    forcefield.name = block[0]
+    forcefield.key = block[0]
 
 def _ParseMakeTopVersion(block, forcefield):
 
@@ -61,7 +61,7 @@ def _ParseMassTypes(block, forcefield):
         mass      = float( block[ it + 1 ] )
         type_name = block[ it + 2 ]
         
-        massType = MassType( name=type_code, mass=mass, type_name=type_name )
+        massType = MassType( key=type_code, mass=mass, type_name=type_name )
         forcefield.masstypes.insert( type_code, massType )
             
         it+=3
@@ -83,7 +83,7 @@ def _ParseBondTypes(block, forcefield):
         fc_harmonic = float( block[ it + 2 ] )
         bond0       = float( block[ it + 3 ] )
         
-        bond = BondType( name=bond_type, fc_quartic=fc_quartic, fc_harmonic=fc_harmonic, bond0=bond0)
+        bond = BondType( key=bond_type, fc_quartic=fc_quartic, fc_harmonic=fc_harmonic, bond0=bond0)
         forcefield.bondtypes.insert( bond_type, bond )
 
         it+=4
@@ -105,7 +105,7 @@ def _ParseAngleTypes(block, forcefield):
         fc_harmonic     = float( block[ it + 2 ] )
         angle0          = float( block[ it + 3 ] )
         
-        angle = AngleType( name=angle_type, fc_cos_harmonic=fc_cos_harmonic, fc_harmonic=fc_harmonic, angle0=angle0 ) 
+        angle = AngleType( key=angle_type, fc_cos_harmonic=fc_cos_harmonic, fc_harmonic=fc_harmonic, angle0=angle0 ) 
         forcefield.angletypes.insert( angle_type,  angle )
 
         it+=4
@@ -126,7 +126,7 @@ def _ParseImproperTypes(block, forcefield):
         force_constant = float( block[ it + 1 ] )
         angle0         = float( block[ it + 2 ] )
         
-        improper = ImproperType(name=improper_type, force_constant=force_constant, angle0=angle0 )
+        improper = ImproperType(key=improper_type, force_constant=force_constant, angle0=angle0 )
         forcefield.impropertypes.insert( improper_type,  improper )
 
         it+=3
@@ -148,7 +148,7 @@ def _ParseDihedralTypes(block, forcefield):
         phaseShift     = float( block[ it + 2 ] )
         multiplicity   = int(   block[ it + 3 ] )
         
-        dihedral = DihedralType(name=dihedral_type, force_constant=force_constant, phaseShift=phaseShift, multiplicity=multiplicity)
+        dihedral = DihedralType(key=dihedral_type, force_constant=force_constant, phaseShift=phaseShift, multiplicity=multiplicity)
         forcefield.dihedraltypes.insert( dihedral_type,  dihedral )
 
         it+=4
@@ -178,7 +178,7 @@ def _ParseVdwTypes(block, forcefield):
         
         it+=8
         
-        vdw_type = VdwType( name=vdw_type, type_name=name, c6=c6, c6_14=c6_14,\
+        vdw_type = VdwType( key=vdw_type, type_name=name, c6=c6, c6_14=c6_14,\
                             c12=[c12_1, c12_2, c12_3], c12_14=c12_14  )
 
         forcefield.vdwtypes.insert( vdw_type,  vdw_type )
@@ -187,7 +187,7 @@ def _ParseVdwTypes(block, forcefield):
         matrix = []
         for j in range( 0, nratt ):
             
-            matEntry = int( tokenStream[ it  ] )
+            matEntry = int( block[ it  ] )
             matrix.append(matEntry)
 
             # 
@@ -213,31 +213,53 @@ def _ParseVdwTypes(block, forcefield):
 
 def _ParseVdwMixed(block, forcefield):
 
-    nrpr = int( len(tokenStream) / 6 )
+    nrpr = int( len(block) / 6 )
         
-    if len( tokenStream ) % 6 != 0:
+    if len( block ) % 6 != 0:
         
         raise PygromosException( "IfpParser::ReadVdwMixed", "Vdw mixed block has incorrect number of arguments!" ) 
     
     it = 0
     for i in range( 0, nrpr ):
         
-        ref1 = int( tokenStream[ it + 0 ] )
-        ref2 = int( tokenStream[ it + 1 ] )	
+        ref1 = int( block[ it + 0 ] )-1
+        ref2 = int( block[ it + 1 ] )-1
         
-        c6     = float( tokenStream[ it + 2 ] )
-        c12    = float( tokenStream[ it + 3 ] )
-        c6_14  = float( tokenStream[ it + 4 ] )
-        c12_14 = float( tokenStream[ it + 5 ] )
+        c6     = float( block[ it + 2 ] )
+        c12    = float( block[ it + 3 ] )
+        c6_14  = float( block[ it + 4 ] )
+        c12_14 = float( block[ it + 5 ] )
         
         ref1_name = forcefield.vdwtypes.keyAt(ref1)
         ref2_name = forcefield.vdwtypes.keyAt(ref2)
 
         mixed = VdwMixed( references=[ref1_name,ref2_name], c6=c6, c12=c12, c6_14=c6_14, c12_14=c12_14 )
         type_name = "%s::%s" % ( ref1_name, ref2_name )
-        forcefield.vdwmixed.Insert( type_name, mixed ) 
+        forcefield.vdwmixed.insert( type_name, mixed ) 
 
         it += 6
+
+def _ParseSpecialVdwAtom(block, forcefield):
+
+    nrpr = int( len(block) / 3 )
+        
+    if len( block ) % 3 != 0:
+        
+        raise PygromosException( "IfpParser::ParseSpecialVdwAtom", "Vdw spec atom block has incorrect number of arguments!" ) 
+    
+    it = 0
+    for i in range( 0, nrpr ):
+        
+        index = int( block[ it + 0 ] )-1
+        
+        c6     = float( block[ it + 1 ] )
+        c12    = float( block[ it + 2 ] )
+
+        special = VdwSpecAtom( index=index, c6=c6, c12=c12 )
+        type_name = "%s::%s" % ( "special_", str(index) )
+        forcefield.special_vdw.insert( type_name, special ) 
+
+        it += 3
 
 def ParseIfp( ifstream ):
 
@@ -253,6 +275,7 @@ def ParseIfp( ifstream ):
     parseFunctions["TORSDIHEDRALTYPECODE"]  = _ParseDihedralTypes
     parseFunctions["SINGLEATOMLJPAIR"]      = _ParseVdwTypes
     parseFunctions["MIXEDATOMLJPAIR"]       = _ParseVdwMixed
+    parseFunctions["SPECATOMLJPAIR"]        = _ParseSpecialVdwAtom
 
     tokenizer = Tokenizer( ifstream )
 

@@ -109,9 +109,10 @@ def DeserializeFlatTypes( targets, source, result, prefix='_' ):
 def DeserializeObjTypes( targets, objTypes, source, result, logger, prefix='_' ):
 
     for itemName, objtype in zip(targets, objTypes):
-        outname = "%s%s" % ( prefix, itemName )
-        result[outname] = objtype()
-        result[outname].OnDeserialize(source[itemName], logger)
+        if itemName in source:
+            outname = "%s%s" % ( prefix, itemName )
+            result[outname] = objtype()
+            result[outname].OnDeserialize(source[itemName], logger)
 
 def DeserializeObjArrays( targets, objTypes, source, result, logger, prefix='_' ):
 
@@ -151,7 +152,7 @@ def DeserializeContiguousMapsTypes( targets, objTypes, source, result, logger, p
 
                 value.OnDeserialize(item, logger)
 
-                result[outname].insert( value.name, value )
+                result[outname].insert( value.key, value )
 
 def _IsValid( value ):
 
