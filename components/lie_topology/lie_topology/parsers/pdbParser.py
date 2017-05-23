@@ -39,7 +39,21 @@ class PdbBookKeeping(object):
 
     def __init__(self):
 
-        pass
+        self.start_model = False
+
+def _AssuredLastStructure( structures ):
+
+    # Test if there is an active structure
+    if len(structures) == 0:
+        structures.append( Structure() )
+
+    lastStructure = structures[-1]
+
+    # test if there is an active topology
+    if not lastStructure.topology:
+        lastStructure.topology = Topology()
+
+    return lastStructure
 
 def _Void(line, bookKeeping, structures):
 
@@ -49,19 +63,22 @@ def _Void(line, bookKeeping, structures):
 def _ValidateAndAppendTopology( lastStructure, atom_number, atom_name, residue_number, residue_name, chain,\
                                 occupancy, b_factor, element ):
     
-    
     lastTopology = lastStructure.topology
 
-    # test if there is an active topology
-    if not lastTopology:
-        lastTopology = Topology()
-        lastStructure.topology = lastTopology
-
     # test if we need to add a new chain
-    if len(lastTopology.groups) == 0 or\
-       chain != lastTopology.groups.back().chain_id:
+    if len(lastTopology.groups) == 0:
+        lastTopology.AddGroup( key=chain, chain_id=chain )
+    
+    elif chain != lastTopology.groups.back().chain_id:
 
-       lastTopology.AddGroup( key=chain, chain_id=chain )
+       # if the last group was empty re-use it
+       num_mol = lastTopology.groups.back().molecules.size()
+       if num_mol == 0:
+            lastTopology.groups.back().key = chain
+            lastTopology.groups.back().chain_id = chain
+
+       else: 
+            lastTopology.AddGroup( key=chain, chain_id=chain )
 
     lastChain = lastTopology.groups.back()
 
@@ -92,12 +109,7 @@ def _ParseAtom(line, bookKeeping, structures):
     element        =        line[76:78].strip()
     charge         =        line[78:80].strip() 
     
-    # Test if there is an active structure
-    if len(structures) == 0:
-        structures.append( Structure() )
-
-    lastStructure = structures[-1]
-
+    lastStructure =  _AssuredLastStructure( structures )
     _ValidateAndAppendTopology( lastStructure, atom_number, atom_name, residue_number, residue_name, chain,\
                                 occupancy, b_factor, element )
     
@@ -125,7 +137,7 @@ def _ParseConnect(line, bookKeeping, structures):
     if len(structures) == 0:
         raise LieTopologyException("ParsePdb::_ParseConnect", "No structures present" )
     
-    lastStructure = structures[-1]
+    lastStructure = _AssuredLastStructure( structures )
     lastTopology = lastStructure.topology
 
     # test if there is an active topology
@@ -171,11 +183,7 @@ def _ParseCrystal(line, bookKeeping, structures):
     space_group = line[55:66].strip()
     z_value = line[66:70].strip()
 
-    if len(structures) == 0:
-        raise LieTopologyException("ParsePdb::_ParseCrystal", "No structures present" )
-    
-    lastStructure = structures[-1]
-
+    lastStructure =  _AssuredLastStructure( structures )
     lastStructure.lattice = Lattice()
 
     # lenghts of the a,b & c edges, should be a vec3
@@ -183,6 +191,32 @@ def _ParseCrystal(line, bookKeeping, structures):
     lastStructure.lattice.edge_angles = [ alpha, beta, gamma ]
     lastStructure.lattice.rotation = [ 0.0, 0.0, 0.0 ]
     lastStructure.lattice.offset = [ 0.0, 0.0, 0.0 ]
+
+
+def _ParseTer(line, bookKeeping, structures):
+
+    lastStructure =  _AssuredLastStructure( structures )
+    lastTopology = lastStructure.topology
+
+    lastTopology.AddGroup( key='-', chain_id='-' )
+
+
+def _ParseStartModel(line, bookKeeping, structures):
+
+    if bookKeeping.start_model:
+
+        raise LieTopologyException("ParsePdb::_ParseStartModel", "Found a MODEL statement before the last one was closed" )
+
+    bookKeeping.start_model = True
+    structures.append( Structure() )
+
+def _ParseEndModel( line, bookKeeping, structures ):
+
+    if not bookKeeping.start_model:
+
+        raise LieTopologyException("ParsePdb::_ParseStartModel", "Found an ENDMDL statement before opening with MODEL" )
+    
+    bookKeeping.start_model = False
 
 def ParsePdb( ifstream ):
     
@@ -224,12 +258,12 @@ def ParsePdb( ifstream ):
     parseFunctions["MTRIXn"]  = _Void
     parseFunctions["ORIGXn"]  = _Void
     parseFunctions["SCALEn"]  = _Void
-    parseFunctions["MODEL"]   = _Void
+    parseFunctions["MODEL"]   = _ParseStartModel
     parseFunctions["ATOM"]    = _ParseAtom
     parseFunctions["ANISOU"]  = _Void
-    parseFunctions["TER"]     = _Void
+    parseFunctions["TER"]     = _ParseTer
     parseFunctions["HETATM"]  = _ParseAtom
-    parseFunctions["ENDMDL"]  = _Void
+    parseFunctions["ENDMDL"]  = _ParseEndModel
     parseFunctions["CONECT"]  = _ParseConnect
     parseFunctions["MASTER"]  = _Void
     parseFunctions["END"]     = _Void
@@ -257,6 +291,5 @@ def ParsePdb( ifstream ):
     # make sure coordinates are nd_arrays now
     for structure in structures:
         structure.coordinates = np.array( structure.coordinates )
-
 
     return structures        

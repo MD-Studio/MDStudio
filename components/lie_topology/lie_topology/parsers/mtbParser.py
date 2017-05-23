@@ -31,7 +31,7 @@ import numpy as np
 
 from lie_topology.common.tokenizer          import Tokenizer
 from lie_topology.common.exception          import LieTopologyException
-from lie_topology.molecule.buildingBlock import BuildingBlock
+from lie_topology.molecule.blueprint        import Blueprint
 from lie_topology.molecule.molecule         import Molecule
 from lie_topology.molecule.bond             import Bond
 from lie_topology.molecule.angle            import Angle
@@ -459,7 +459,7 @@ def ParseMtb( ifstream ):
 
     tokenizer = Tokenizer( ifstream )
 
-    mtb_file = BuildingBlock()
+    mtb_file = Blueprint()
     mtb_file.AddGroup( key="BLENDS" )
     mtb_file.AddGroup( key="SOLUTES" )
     mtb_file.AddGroup( key="POLARIZABLE_SOLUTES" )

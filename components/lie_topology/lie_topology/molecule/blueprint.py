@@ -35,7 +35,7 @@ from lie_topology.forcefield.physconst import PhysicalConstants
 from lie_topology.molecule.group       import Group 
 from lie_topology.molecule.molecule    import Molecule
 
-class BuildingBlock( Serializable ):
+class Blueprint( Serializable ):
 
     def __init__(self, title = None, exclusion_distance = None):
 
@@ -91,7 +91,7 @@ class BuildingBlock( Serializable ):
 
         if not "key" in kwargs:
 
-            raise LieTopologyException("BuildingBlock::AddGroup", "key is a required argument" )
+            raise LieTopologyException("Blueprint::AddGroup", "key is a required argument" )
         
         kwargs["parent"] = self
         self._groups.insert( kwargs["key"], Group( **kwargs ) )
@@ -102,13 +102,13 @@ class BuildingBlock( Serializable ):
 
             molecule = kwargs["molecule"]
             if not molecule.key:
-                raise LieTopologyException("BuildingBlock::AddSolvent", "key is a required argument" )
+                raise LieTopologyException("Blueprint::AddSolvent", "key is a required argument" )
 
             self._solvents.insert( molecule.key, kwargs["molecule"] )
 
         else:
             if not "key" in kwargs:
-                raise LieTopologyException("BuildingBlock::AddSolvent", "key is a required argument" )
+                raise LieTopologyException("Blueprint::AddSolvent", "key is a required argument" )
             
             self._solvents.insert( kwargs["key"], Molecule( **kwargs ) )
 

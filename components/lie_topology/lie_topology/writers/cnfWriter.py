@@ -28,6 +28,7 @@ import sys
 import os
 import numpy as np
 
+from copy import deepcopy
 from lie_topology.common.exception   import LieTopologyException
 
 def _PrintHeader( ofstream ):
@@ -55,7 +56,7 @@ def _MoleculeFormat( molecule, array, n_residue, n_atom ):
         atom_name   = atom.type_name
         xyz         = array[n_atom]
             
-        mol_type_string += "%5i %-5s %-5s%7s%15.9f%15.9f%15.9f \n" %\
+        mol_type_string += "%5i %-5s %-5s %7s %15.9f %15.9f %15.9f\n" %\
         ( molecule_number, molecule_name, atom_name, atom_number, xyz[0], xyz[1], xyz[2] )
         
         n_atom+=1
@@ -142,19 +143,66 @@ def _PrintForces( ofstream, structure ):
                     solvent_string+\
                     "END\n" )
 
+def _PrintLatticeShifts( ofstream, structure ):
+
+    lattice_string = ""
+
+    for sx_sy_sz in structure.lattice_shifs:
+
+        #mol_type_string += "%15.9f%15.9f%15.9f \n" %\
+        lattice_string += "%5i %5i %5i\n" % ( sx_sy_sz[0], sx_sy_sz[1], sx_sy_sz[2] )
+
+    ofstream.write( "LATTICESHIFTS\n"+\
+                    lattice_string+\
+                    "END\n" )
+
+def _PrintCosDisplacements( ofstream, structure ):
+
+    cos_offset_string = ""
+
+    for cx_cy_cz in structure.cos_offsets:
+
+        cos_offset_string += "%15.9f %15.9f %15.9f\n" % ( cx_cy_cz[0], cx_cy_cz[1], cx_cy_cz[2] )
+
+    ofstream.write( "COSDISPLACEMENTS\n"+\
+                    cos_offset_string+\
+                    "END\n" )
+
 def _PrintLattice( ofstream, lattice ):
 
     box_type = None
-    
-    if lattice.edge_lenghts is None or\
-       lattice.edge_angles  is None or\
-       lattice.rotation     is None or\
-       lattice.offset       is None:
+    edge_lenghts = lattice.edge_lenghts
+    edge_angles  = lattice.edge_angles
+    rotation     = lattice.rotation
+    offset       = lattice.offset
 
-        raise LieTopologyException( "CnfGenerator::_PrintLattice", "Full lattice definition is required")
+    if rotation is None:
+        rotation = [0.0, 0.0, 0.0]
+    
+    if offset is None:
+        offset = [0.0, 0.0, 0.0]
+
+    if edge_lenghts is None or\
+       lattice.edge_angles  is None:
+
+        raise LieTopologyException( "CnfGenerator::_PrintLattice", "Lattice edge and angle definition is required")
+
+    if edge_lenghts[0] == 0.0 and\
+       edge_lenghts[1] == 0.0 and\
+       edge_lenghts[2] == 0.0:
+        box_type = 0
+    
+    elif edge_angles[0] == 90.0 and\
+         edge_angles[1] == 90.0 and\
+         edge_angles[2] == 90.0:
+        box_type = 1
+    
+    else:
+        box_type = 2
 
 
     ofstream.write( "GENBOX\n"+\
+                    "%5i\n" % ( box_type )+\
                     "%-15.9f%-15.9f%-15.9f\n" % ( lattice.edge_lenghts[0], lattice.edge_lenghts[1], lattice.edge_lenghts[2] )+\
                     "%-15.9f%-15.9f%-15.9f\n" % ( lattice.edge_angles[0],  lattice.edge_angles[1],  lattice.edge_angles[2] )+\
                     "%-15.9f%-15.9f%-15.9f\n" % ( lattice.rotation[0],     lattice.rotation[1],     lattice.rotation[2] )+\
@@ -181,8 +229,15 @@ def WriteCnf( ofstream, structures ):
         
         if structure.forces is not None:
             _PrintForces( ofstream, structure )
-        
+
+        if structure.lattice_shifs is not None:
+            _PrintLatticeShifts( ofstream, structure )
+
+        if structure.cos_offsets is not None:
+            _PrintCosDisplacements( ofstream, structure )
+
         if structure.lattice is not None:
             _PrintLattice( ofstream, structure.lattice )
-
+        
+        
     #fileHandle.write( self.result )

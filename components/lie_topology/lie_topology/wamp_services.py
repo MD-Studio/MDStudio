@@ -34,6 +34,34 @@ class TopologyWampApi(LieApplicationSession):
         
         self.logger.error('Topology.parse_structure not in use yet')
      
+
+
+    # @wamp.register(u'liestudio.topology.ParsePdb')
+    # def ParsePdb( file ):
+    #     pass
+
+    # @wamp.register(u'liestudio.topology.ParseCnf')
+    # def ParseCnf( file ):
+    #     pass
+
+    # @wamp.register(u'liestudio.topology.ParseCnf')
+    # def ParseByType( file, extension = None ):
+    #     pass   
+    #     if ".cnf" in extensiondict:
+
+    #         A
+    #     elif extension == ".pdb":
+
+    #         B
+        
+
+    # @wamp.register(u'liestudio.topology.ParseCnf')
+    # def RegisterParser( extension, function ):
+        
+    #     extensiondict[extension] = function
+
+
+
 def make(config):
     """
     Component factory
