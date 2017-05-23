@@ -81,7 +81,6 @@ def _ValidateAndAppendTopology( lastStructure, atom_number, atom_name, residue_n
             lastTopology.AddGroup( key=chain, chain_id=chain )
 
     lastChain = lastTopology.groups.back()
-
     molecule_name = "%s::%i" % ( residue_name, residue_number )
 
     # test of we need to add a new residue

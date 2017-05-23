@@ -25,16 +25,23 @@
 #
 
 
+import sys
+import os
+import numpy as np
+
+from lie_topology.common.exception   import LieTopologyException
+from lie_topology.molecule.structure import Structure
+from lie_topology.molecule.topology  import Topology
+
 def ParseGro( ifstream ):
     
     # Gro files contain a single structure 
     # and a single nameless group
     structures = []
-    structure.AddGroup( key=' ', chain_id=' ' )
-    structure_group = structure.groups.back()
+    structure_group = None 
 
-    recorded_title = False
-    recorded_n_atom = False
+    record_title = True
+    record_n_atom = True
 
     n_atom = 0
     coords = []
@@ -43,22 +50,68 @@ def ParseGro( ifstream ):
     ## Uses occurance map to be order agnostic
     for line in ifstream:
 
-        line = line.strip()
-        if len(line) == 0:
+        if len(line.strip()) == 0:
             continue
 
-        if not recorded_title:
-            structure.title = line
-            recorded_title = True
+        if record_title:
+
+            #start adding a enew structure
+            structure = Structure( description=line )
+            structure.topology = Topology()
+            structure.topology.AddGroup( key=' ', chain_id=' ' )
+            structure_group = structure.topology.groups.back()
+            structures.append(structure)
             
-        elif not recorded_n_atom:
+
+            coords = []
+            velocities = []
+
+            record_title = False
+            
+        elif record_n_atom:
             n_atom=int(line)
+            record_n_atom = False
         
         elif n_atom == 0:
-            # then record box info
-        
+            # then record box info & reset
+
+
+            record_title = True
+            record_n_atom = True
+
         else: 
 
+            if len(line) < 68:
+                raise LieTopologyException("ParseGro","Line length in gro file is below expected 68 characters")
 
+            residue_number = int(   line[0:5].strip() )
+            residue_name   =        line[5:10].strip()
+            atom_name      =        line[10:15].strip()
+            atom_number    = int(   line[15:20].strip() )
+            
+            x              = float( line[20:28].strip() ) 
+            y              = float( line[28:36].strip() ) 
+            z              = float( line[36:44].strip() )
+
+            vx             = float( line[44:52].strip() ) 
+            vy             = float( line[52:60].strip() ) 
+            vz             = float( line[60:68].strip() )
+
+            molecule_name = "%s::%i" % ( residue_name, residue_number )
+
+            # test of we need to add a new residue
+            if len(structure_group.molecules) == 0 or\
+                molecule_name != structure_group.molecules.back().key:
+
+                structure_group.AddMolecule( key=molecule_name, type_name=residue_name, identifier=residue_number )
+
+            lastResidue = structure_group.molecules.back()
+            lastResidue.AddAtom( key = atom_name, type_name = atom_name, identifier = atom_number )
+
+            coords.append([x, y, z])
+            velocities.append([vx, vy, vz])
+
+            # subtract expected atom
+            n_atom-=1
 
     return structures

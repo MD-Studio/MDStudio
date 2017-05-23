@@ -9,6 +9,7 @@ from lie_topology.parsers.mtbParser import ParseMtb
 from lie_topology.parsers.cnfParser import ParseCnf
 from lie_topology.parsers.ifpParser import ParseIfp
 from lie_topology.parsers.pdbParser import ParsePdb
+from lie_topology.parsers.groParser import ParseGro
 
 from lie_topology.writers.cnfWriter import WriteCnf
 
@@ -33,6 +34,14 @@ def main():
             
             WriteCnf( ofstream, cnf_structures )
     
+    with open( "../tests/data/gro/run1_combined_pbc.gro", 'r') as ifstream:
+
+        gro_structures = ParseGro( ifstream )
+
+        with open( "../tests/data/cnf/test_write3.cnf", 'w') as ofstream:
+            
+            WriteCnf( ofstream, gro_structures )
+
     #v1(x)     v2(y)     v3(z)     v1(y)     v1(z)     v2(x)     v2(z)    v3(x)     v3(y)
     #7.52775   7.52775   5.32290   0.00000   0.00000   0.00000   0.00000   3.76386   3.76386
     v1 = [ 7.52775, 0.0, 0.0 ]
