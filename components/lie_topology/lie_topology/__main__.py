@@ -10,6 +10,7 @@ from lie_topology.parsers.cnfParser import ParseCnf
 from lie_topology.parsers.ifpParser import ParseIfp
 from lie_topology.parsers.pdbParser import ParsePdb
 from lie_topology.parsers.groParser import ParseGro
+from lie_topology.parsers.sdfParser import ParseSdf
 
 from lie_topology.writers.cnfWriter import WriteCnf
 
@@ -42,26 +43,13 @@ def main():
             
             WriteCnf( ofstream, gro_structures )
 
-    #v1(x)     v2(y)     v3(z)     v1(y)     v1(z)     v2(x)     v2(z)    v3(x)     v3(y)
-    #7.52775   7.52775   5.32290   0.00000   0.00000   0.00000   0.00000   3.76386   3.76386
-    v1 = [ 7.52775, 0.0, 0.0 ]
-    v2 = [ 0.00000, 7.52775, 0.00000 ]
-    v3 = [ 3.76386, 3.76386, 5.32290 ]
+    with open( "../tests/data/sdf/BHC2.sdf", 'r') as ifstream:
 
-    test_lattice = BoxVectorsToLattice( v1, v2, v3 )
+        sdf_structures = ParseSdf( ifstream )
 
-    print v1
-    print v2
-    print v3
-    print( "CONV" )
-    print test_lattice.edge_lenghts
-    print test_lattice.edge_angles
-    print( "CONV" )
-
-    lattice_vectors = LatticeToBoxVectors( test_lattice )
-    print lattice_vectors[0]
-    print lattice_vectors[1]
-    print lattice_vectors[2]
+        with open( "../tests/data/cnf/test_write4.cnf", 'w') as ofstream:
+            
+            WriteCnf( ofstream, sdf_structures )     
 
     # with open( "../tests/data/cnf/md_fX_apixaban_1.cnf", 'r') as ifstream:
         

@@ -34,7 +34,7 @@ from lie_topology.molecule.reference import AtomReference
 class Atom( Serializable ):
     
     def __init__( self, parent = None, key = None, type_name = None, element = None, identifier = None,\
-                  aromatic = None, occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
+                  sybyl = None, occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
                   coulombic_type = None, charge_group = None, virtual_site = None,\
                   preceding = None, trailing = None ):
         
@@ -58,7 +58,7 @@ class Atom( Serializable ):
         self.identifier = identifier
         
         # Indicates if this atom is part of an aromatic system
-        self.aromatic = aromatic
+        self.sybyl = sybyl
         
         # If from a crystallographic source store the occupancy
         self.occupancy = occupancy

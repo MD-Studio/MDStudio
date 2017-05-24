@@ -26,6 +26,8 @@
 
 import json
 
+from enum import Enum
+
 from lie_topology.common.serializable import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
@@ -33,6 +35,50 @@ from lie_topology.molecule.atom import Atom
 from lie_topology.molecule.reference import AtomReference
 from lie_topology.forcefield.forcefield import BondType
 from lie_topology.forcefield.reference import ForceFieldReference
+
+class SybelBond(Enum):
+    single = 1
+    double = 2
+    triple = 3 
+    aromatic = 4
+    amide = 5
+
+    def FromString( istr ):
+
+        rvalue = None
+
+        if istr == "1" or istr == "2" or istr == "3":
+            rvalue = int(istr)
+
+        elif istr == "ar":
+            rvalue = SybelBond.aromatic
+
+        elif istr == "am":
+            rvalue = SybelBond.amide
+
+        else:   
+            raise LieTopologyException("SybelBond::FromString", "Unknown type %s" %(istr))
+    
+        return rvalue
+
+    def ToString( ienum ):
+
+        rvalue = None
+
+        if istr >= SybelBond.single and\
+           istr <= SybelBond.triple:
+            rvalue = str(ienum)
+
+        elif istr == SybelBond.aromatic:
+            rvalue = "ar"
+
+        elif istr == SybelBond.amide:
+            rvalue = "am"
+
+        else:   
+            raise LieTopologyException("SybelBond::ToString", "Unknown type %i" %(ienum))
+
+        return rvalue
 
 class Bond( Serializable ):
     
@@ -47,11 +93,8 @@ class Bond( Serializable ):
         # Bond type in the force field
         self._bond_type = bond_type
         
-        # Indicates if this bond is part of an aromatic system
-        self._aromatic = aromatic
-        
         # Indicates the bond order of this bond
-        self._bond_order = bond_order
+        self._sybyl = sybyl
     
     @property
     def atom_references(self):
@@ -77,6 +120,21 @@ class Bond( Serializable ):
     def atom_references(self, value):
 
         self._atom_references = value
+
+    @bond_type.setter
+    def bond_type(self, value):
+
+        self._bond_type = value
+
+    @aromatic.setter
+    def aromatic(self, value):
+
+        self._aromatic = value
+
+    @bond_order.setter
+    def bond_order(self, value):
+
+        self._bond_order = value
 
     def OnSerialize( self, logger = None ):   
 

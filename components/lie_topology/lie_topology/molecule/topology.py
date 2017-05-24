@@ -49,7 +49,7 @@ class Topology( Serializable ):
         # for now if its fast enough there is not reason to do this
         it = 0
         for group in self._groups.values():
-            for molecule in group.molecules:
+            for molecule in group.molecules.values():
 
                 numAtoms = len(molecule.atoms)
                 

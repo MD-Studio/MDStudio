@@ -34,6 +34,7 @@ from lie_topology.common.exception   import LieTopologyException
 from lie_topology.common.constants   import ANGSTROM_TO_NM
 from lie_topology.molecule.structure import Structure
 from lie_topology.molecule.topology  import Topology
+from lie_topology.molecule.bond      import Bond
 
 class PdbBookKeeping(object):
 
@@ -123,7 +124,10 @@ def _AppendBond( topology, atomIndex1, atomIndex2 ):
     atom_1 = topology.atomByIndex( atomIndex1 )
     atom_2 = topology.atomByIndex( atomIndex2 )
 
-    print( atom_1, atom_2 )
+    if atom_1.molecule is None:
+        raise LieTopologyException("ParsePdb::_ParseConnect", "Attaching bond requires molecule links in the atoms" )
+
+    atom_1.molecule.AddBond( Bond( atom_references=[atom_1,atom_2] ) )
 
 def _ParseConnect(line, bookKeeping, structures):
 
