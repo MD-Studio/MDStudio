@@ -12,8 +12,8 @@ RUN python -m pip install pipenv
 RUN python -m pip install green
 
 # ssh:
-ADD docker/insecure_id_rsa /tmp/id_rsa 
-ADD docker/insecure_id_rsa.pub /tmp/id_rsa.pub 
+ADD insecure_id_rsa /tmp/id_rsa 
+ADD insecure_id_rsa.pub /tmp/id_rsa.pub 
 
 ARG INSTALL_WORKSPACE_SSH=false
 ENV INSTALL_WORKSPACE_SSH ${INSTALL_WORKSPACE_SSH}
@@ -43,7 +43,7 @@ RUN echo "" >> ~/.bashrc && \
     echo 'helpme' >> ~/.bashrc
 
 
-ADD docker/.bash_profile ~/.bash_profile
+ADD .bash_profile ~/.bash_profile
 
 WORKDIR /app/
 

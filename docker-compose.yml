@@ -15,8 +15,8 @@ services:
 
     workspace:
         build:
-            context: .
-            dockerfile: docker/Dockerfile
+            context: ./docker
+            dockerfile: Dockerfile
             args:
                 - INSTALL_WORKSPACE_SSH=true
         volumes_from:
