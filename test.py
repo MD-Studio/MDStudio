@@ -1,11 +1,10 @@
 from __future__ import absolute_import
 
-import imp
-import os
-import re
+import sys
 from glob import glob
 
-import sys
+import os
+import re
 import unittest2
 
 __root_path__ = os.path.dirname(os.path.abspath(__file__))
@@ -20,27 +19,28 @@ def list_components_tests(search_path):
     return found
 
 
-def load_studio_tests(suite, loader, dir, type):
-    if os.path.isdir(os.path.realpath(os.path.join(dir, type))):
-        start_dir = os.path.realpath(os.path.join(dir, type))
-        top_level_dir = os.path.realpath(os.path.join(dir, '../'))
+def load_studio_tests(suite, loader, cdir, ctype):
+    if os.path.isdir(os.path.realpath(os.path.join(cdir, ctype))):
+        start_dir = os.path.realpath(os.path.join(cdir, ctype))
+        top_level_dir = os.path.realpath(os.path.join(cdir, '../'))
         tests = loader.discover(start_dir, "*_test.py", top_level_dir)
         suite.addTests(tests)
 
+
+# noinspection PyUnusedLocal
 def load_tests(loader, tests, pattern):
     search_path = os.path.join(__root_path__, 'components/')
 
     for g in glob(os.path.join(search_path, '*/')):
         sys.path.append(os.path.realpath(os.path.join(g, '../')))
 
-
     # Add all tests.
-    alltests = unittest2.TestSuite()
+    all_tests = unittest2.TestSuite()
     for name, path in list_components_tests(search_path).items():
         print("Loading '{}' from '{}'".format(name, path))
-        load_studio_tests(alltests, loader, path, "tests/module/")
+        load_studio_tests(all_tests, loader, path, "tests/module/")
 
-    return alltests
+    return all_tests
 
 
 if __name__ == '__main__':
