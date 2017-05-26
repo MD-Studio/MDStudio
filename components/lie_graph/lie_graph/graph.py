@@ -413,7 +413,7 @@ class Graph(object):
             if not edge[1] in self.adjacency[edge[0]]:
                 self.adjacency[edge[0]].append(edge[1])
             
-            logger.debug('Add edge between node {0}-{1} with attributes {2}'.format(edge[0],edge[1],attr))
+            #logger.debug('Add edge between node {0}-{1} with attributes {2}'.format(edge[0],edge[1],attr))
         
         return edges_to_add[0]
     
@@ -481,7 +481,7 @@ class Graph(object):
             if nid in self.nodes:
                 raise GraphException('Node {0} already assigned'.format(nid))
         
-        logger.debug('Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
+        #logger.debug('Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
         
         # Prepaire node data dictionary
         node_data = {'nid':nid, '_id':self._nodeid}
@@ -607,7 +607,7 @@ class Graph(object):
             if not k in notcopy:
                 class_copy.__dict__[k] = copy.deepcopy(v)
         
-        logger.debug('Return {0} copy of graph {1}'.format('deep' if deep else 'shallow', repr(self)))
+        #logger.debug('Return {0} copy of graph {1}'.format('deep' if deep else 'shallow', repr(self)))
         
         return class_copy
     
@@ -913,7 +913,7 @@ class Graph(object):
                     logger.warning('Node {0} not part of edge list node {1}'.format(*edge))
                 
                 del self.edges[edge]
-                logger.debug('Removed edge {0} from graph'.format(edge))
+                #logger.debug('Removed edge {0} from graph'.format(edge))
             else:
                 logger.warning('Unable to remove edge {0}. No such edge ID'.format(edge))
     
@@ -958,7 +958,7 @@ class Graph(object):
             del self.adjacency[node]
             del self.nodes[node]
             
-            logger.debug('Removed node {0} with {1} connecting edges from graph'.format(node, len(edges)))
+            #logger.debug('Removed node {0} with {1} connecting edges from graph'.format(node, len(edges)))
         else:
             logger.warning('Unable to remove node {0}. No such node ID'.format(node))
     

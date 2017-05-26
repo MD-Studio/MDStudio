@@ -280,11 +280,9 @@ class PrintingObserver(object):
     :type datefmt:       string
     """
 
-    def __init__(self, out='stdout', format_event='{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n',
+    def __init__(self, out=sys.stdout, format_event='{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n',
                  datefmt='%Y-%m-%d %H:%M:%S', **kwargs):
-        self._out = sys.stdout
-        if out == 'stderr':
-            self._out = sys.stderr
+        self._out = open(out, 'w') if out == os.devnull else out
 
         self._format_event = format_event
         self._datefmt = datefmt

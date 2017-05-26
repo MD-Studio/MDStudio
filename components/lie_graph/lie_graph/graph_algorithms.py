@@ -56,7 +56,7 @@ def dfs(graph, root, method='dfs', max_depth=10000):
     stack_pop = -1
     if method == 'bfs':
         stack_pop = 0
-    logger.debug('dfs search method set to: {0}'.format(method))
+    #logger.debug('dfs search method set to: {0}'.format(method))
     
     visited = []
     stack   = [root.nid]
@@ -83,7 +83,7 @@ def dfs_paths(graph, start, goal, method='dfs'):
     stack_pop = -1
     if method == 'bfs':
         stack_pop = 0
-    logger.debug('dfs search method set to: {0}'.format(method))
+    #logger.debug('dfs search method set to: {0}'.format(method))
     
     stack = [(start, [start])]
     while stack:
