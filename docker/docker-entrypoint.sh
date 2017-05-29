@@ -21,7 +21,6 @@ fi
 rm /app/.isntfs
 
 if [ "$user" != "root" ]; then
-
     uid=$(id -u $user 2> /dev/null || echo -1)
     if [ $uid -lt 0 ]; then
         uid=$user
@@ -37,23 +36,18 @@ if [ "$user" != "root" ]; then
         echo $(adduser --uid $(echo $uid) --gid $(echo $gid) --system lieuser) >> /tmp/.INSTALLING
         user="lieuser"
 
-        head ~/.bashrc -n -1 > /tmp/.bashrc
-        mv /tmp/.bashrc ~/.bashrc
-        sed -i '/alias helpme/d' ~/.bashrc
-        echo 'alias helpme="(/app/docker/welcome.sh; /app/docker/welcome-user.sh)"' >> ~/.bashrc
-        echo "alias root='touch /tmp/noexit; exit'" >> ~/.bashrc
-        cp ~/.bashrc /home/lieuser/.bashrc
-        sed -i '/python \/app\/docker\/progress.py/d' /home/lieuser/.bashrc
-        chown lieuser /home/lieuser/.bashrc
-        echo "helpme" >> /home/lieuser/.bashrc
-        echo "alias lieuser='su lieuser -s $(which bash)'" >> ~/.bashrc
-        echo "echo 'Switching to user $user'" >> ~/.bashrc
-        echo "su lieuser -s $(which bash)" >> ~/.bashrc
-        echo "[[ -f /tmp/noexit ]] && rm /tmp/noexit || exit" >> ~/.bashrc
+        sed -i 's/USERMODE=0/USERMODE=1/g' ~/.bashrc
+        cp -t /home/lieuser/ ~/.bashrc ~/.bashrc_all ~/.bashrc_user
+        chown lieuser /home/lieuser/*
+        echo 'source ~/.bashrc_root' >> ~/.bashrc
+        echo 'source ~/.bashrc_user' >> /home/lieuser/.bashrc
+
         echo "Default user is now $user" >> /tmp/.INSTALLING
     else
         group='liegroup'
     fi
+
+    # Get correct user
     user=$(getent passwd "$uid" | cut -d: -f1)
 fi
 

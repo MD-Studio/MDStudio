@@ -29,22 +29,14 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
 ;fi
 
 RUN echo "" >> ~/.bashrc && \
-    echo 'python /app/docker/progress.py' >> ~/.bashrc && \
-    echo 'alias livedocs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
-    echo 'alias docs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
-    echo 'alias serve="(cd /app/app; /usr/bin/gulp serve)"' >> ~/.bashrc && \
-    echo 'alias compile="(cd /app/app; /usr/bin/gulp compile)"' >> ~/.bashrc && \
-    echo 'alias helpme="(/app/docker/welcome.sh)"' >> ~/.bashrc && \
-    echo 'alias test="(cd /app; green test.py)"' >> ~/.bashrc && \
-    echo "" >> ~/.bashrc && \
-    echo 'source /app/.venv/bin/activate' >> ~/.bashrc && \
-    echo 'export MONGO_HOST=mongo' >> ~/.bashrc && \
-    echo 'export IS_DOCKER=1' >> ~/.bashrc && \
-    echo 'cd /app' >> ~/.bashrc && \
-    echo 'helpme' >> ~/.bashrc
+    echo 'export USERMODE=0' >> ~/.bashrc && \
+    echo 'source ~/.bashrc_all' >> ~/.bashrc
 
 
-ADD .bash_profile ~/.bash_profile
+ADD .bash_profile /root/.bash_profile
+ADD .bashrc_all   /root/.bashrc_all
+ADD .bashrc_root  /root/.bashrc_root
+ADD .bashrc_user  /root/.bashrc_user
 
 WORKDIR /app/
 

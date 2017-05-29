@@ -6,7 +6,6 @@ completed = False
 lineCount = 0
 
 if os.path.exists('/tmp/.INSTALLINGDONE'):
-    print('Already installed')
     exit()
 
 while not completed:
