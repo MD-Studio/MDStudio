@@ -6,6 +6,7 @@ alias compile="(cd /app/app; /usr/bin/gulp compile)"
 alias helpme='(/app/docker/welcome.sh; [[ "$USERMODE" == "1" ]] && /app/docker/welcome-user.sh; echo "")'
 alias lietest="(cd /app; green lietest.py)"
 alias liecov="(cd /app; coverage run lietest.py && coverage html)"
+alias liebandit="(cd /app; bandit -r components/ -f html -o build/bandit/index.html)"
 
 source /app/.venv/bin/activate
 export MONGO_HOST=mongo

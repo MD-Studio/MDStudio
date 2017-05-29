@@ -34,4 +34,4 @@ ignore_errors = True
 
 
 [html]
-directory = htmlcov
+directory = build/htmlcov

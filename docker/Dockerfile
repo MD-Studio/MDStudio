@@ -10,6 +10,7 @@ RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
 
 RUN python -m pip install pipenv
 RUN python -m pip install green
+RUN python -m pip install bandit
 
 # ssh:
 ADD insecure_id_rsa /tmp/id_rsa 

@@ -14,5 +14,7 @@ echo '    serve           Start the web-server, watch for changes'
 echo '    compile         Compile the web resources'
 echo '    lietest         Runs the python unit tests'
 echo '    liecov          Runs the python unit tests with coverage reporting'
+echo '    liebandit       Runs security analysis on the lie components'
+
 echo ''
 echo ''
