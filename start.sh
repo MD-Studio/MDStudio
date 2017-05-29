@@ -2,11 +2,6 @@
 # build the docker containers
 docker-compose build
 
-# allows polling the installation process
-rm docker/.INSTALLING 2> /dev/null
-touch docker/.INSTALLING
-chmod 777 docker/.INSTALLING
-
 # for documentation
 mkdir -p docs/html 
 mkdir -p docs/html/_static
