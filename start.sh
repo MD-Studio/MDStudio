@@ -18,9 +18,6 @@ docker-compose stop
 # start the containers
 docker-compose up -d
 
-# display the installation progress
-sh -c 'tail -n +0 -f docker/.INSTALLING | { sed "/<<<<COMPLETED>>>>/ q" && kill $$ ;}' && (rm docker/.INSTALLING || true)
-
 # login into workspace
 if [ $OSTYPE == 'msys' ]; then
     winpty docker exec -it liestudio_workspace_1 bash -l

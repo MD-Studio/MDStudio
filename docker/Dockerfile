@@ -29,6 +29,7 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
 ;fi
 
 RUN echo "" >> ~/.bashrc && \
+    echo 'python /app/docker/progress.py' >> ~/.bashrc && \
     echo 'alias livedocs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
     echo 'alias docs="(cd /app/docs; /usr/bin/make livehtml)"' >> ~/.bashrc && \
     echo 'alias serve="(cd /app/app; /usr/bin/gulp serve)"' >> ~/.bashrc && \
