@@ -293,6 +293,7 @@ def ParsePdb( ifstream ):
 
     # make sure coordinates are nd_arrays now
     for structure in structures:
-        structure.coordinates = np.array( structure.coordinates )
+        if structure.coordinates is not None:
+            structure.coordinates = np.array( structure.coordinates )
 
     return structures        

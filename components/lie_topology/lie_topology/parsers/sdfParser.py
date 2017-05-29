@@ -170,7 +170,7 @@ def ParseSdf( ifstream ):
         elif header is None:
             structure.description+=line
             n_comment+=1
-
+            
             if n_comment > 3:
                 raise LieTopologyException("ParseSdf", "Found more than 3 comment lines before detecting the count line")
 

@@ -82,7 +82,7 @@ class SybelBond(Enum):
 
 class Bond( Serializable ):
     
-    def __init__( self, atom_references=None, bond_type=None, aromatic=None, bond_order=None ):
+    def __init__( self, atom_references=None, bond_type=None, aromatic=None, sybyl=None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )

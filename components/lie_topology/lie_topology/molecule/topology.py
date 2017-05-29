@@ -61,6 +61,11 @@ class Topology( Serializable ):
         return None
     
     @property
+    def atom_count(self):
+
+        return self.solute_atom_count + self.solvent_atom_count
+
+    @property
     def solute_atom_count(self):
         count = 0
         

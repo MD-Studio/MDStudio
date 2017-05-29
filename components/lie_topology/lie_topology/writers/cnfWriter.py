@@ -85,10 +85,17 @@ def _TopologicalFormat( topology, array ):
 
     top_type_string = ""
 
-    num_positions = len( array )
+    if not isinstance(array, np.ndarray):
+        raise LieTopologyException( "CnfGenerator::_TopologicalFormat", "Array writing requires a numpy array, not a flat python array" )
+
+    array_shape = array.shape
+    if len(array_shape) != 2 or array_shape[1] != 3:
+        raise LieTopologyException( "CnfGenerator::_TopologicalFormat", "Array writing requires a Nx3 input" )
+
+    num_array_values = array_shape[0]
     num_solute_atoms = topology.solute_atom_count
 
-    if num_positions < num_solute_atoms:
+    if num_array_values < num_solute_atoms:
         raise LieTopologyException( "CnfGenerator::_PrintPositions", "Writing of solute positions requires at least %i coordinates, currently %i present" % (num_solute_atoms, num_positions) )
 
     n_residue=0
