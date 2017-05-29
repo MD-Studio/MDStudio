@@ -62,13 +62,6 @@ if [[ ! -d "/app/.venv" ]]; then
     setuser $user ./installer.sh --setup --local-dev &>> /tmp/.INSTALLING
 fi
 
-echo 'Enabling debugging code' &>> /tmp/.INSTALLING
-# disable the debugger disabling code which spews a LOT of warnings
-sed -i 's/ sys.settrace(None)/ #sys.settrace(None)/g' /app/.venv/lib/python2.7/site-packages/twisted/internet/process.py
-
-echo 'Set mongo connection' &>> /tmp/.INSTALLING
-sed -i 's/"host": "localhost",/"host": "mongo",/g' /app/data/settings.json
-
 if [ -d /app/.pycharm_helpers/pydev/ ]; then
 
     if [ "$user" != "root" ]; then

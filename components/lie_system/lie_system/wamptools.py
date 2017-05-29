@@ -223,7 +223,7 @@ class LieApplicationSession(ApplicationSession):
         
         if not self._db and 'lie_db' in self.package_config:
             mongo_config = self.package_config.lie_db
-            client = mongodb_connect(host=mongo_config.get('host','localhost'),
+            client = mongodb_connect(host=os.getenv('MONGO_HOST', mongo_config.get('host','localhost')),
                                     port=mongo_config.get('port', 27017))
             self._db = client[mongo_config.get('dbname','liestudio')]
         
