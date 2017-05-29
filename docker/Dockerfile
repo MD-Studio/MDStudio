@@ -38,7 +38,8 @@ ADD .bash_profile /root/.bash_profile
 ADD .bashrc_all   /root/.bashrc_all
 ADD .bashrc_root  /root/.bashrc_root
 ADD .bashrc_user  /root/.bashrc_user
-RUN find /root -type f -name ".bashrc*" -exec chmod 644 {} \;
+# Fix permissions
+RUN find /root -type f -name ".bashrc*" -exec chmod 644 {} \; && chmod 644 /root/.bash_profile
 # Fix line-endings
 RUN find /root -type f -name ".bashrc*" -exec dos2unix {} \;
 

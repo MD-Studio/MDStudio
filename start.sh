@@ -13,6 +13,13 @@ docker-compose stop
 # start the containers
 docker-compose up -d
 
+echo 'Waiting for user creation'
+while [ ! -f docker/.USERDONE ]; do
+    sleep 0.2
+done
+
+rm docker/.USERDONE
+
 # login into workspace
 if [ $OSTYPE == 'msys' ]; then
     winpty docker exec -it liestudio_workspace_1 bash -l

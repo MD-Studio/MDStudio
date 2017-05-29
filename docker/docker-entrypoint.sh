@@ -50,6 +50,7 @@ if [ "$user" != "root" ]; then
     # Get correct user
     user=$(getent passwd "$uid" | cut -d: -f1)
 fi
+touch /app/docker/.USERDONE
 
 if [[ ! -d "/app/.venv" ]]; then
 
