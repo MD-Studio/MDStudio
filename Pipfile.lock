@@ -28,7 +28,7 @@
             "version": "==0.22.0"
         },
         "attrs": {
-            "version": "==17.1.0"
+            "version": "==17.2.0"
         },
         "autobahn": {
             "version": "==17.5.1"
@@ -57,6 +57,9 @@
         "cffi": {
             "version": "==1.10.0"
         },
+        "chardet": {
+            "version": "==3.0.3"
+        },
         "click": {
             "version": "==6.7"
         },
@@ -73,7 +76,7 @@
             "version": "==17.5.1"
         },
         "cryptography": {
-            "version": "==1.8.1"
+            "version": "==1.8.2"
         },
         "docutils": {
             "version": "==0.13.1"
@@ -106,7 +109,7 @@
             "version": "==0.7.1"
         },
         "incremental": {
-            "version": "==16.10.1"
+            "version": "==17.5.0"
         },
         "ipaddress": {
             "version": "==1.0.18"
@@ -199,13 +202,13 @@
             "version": "==3.12"
         },
         "requests": {
-            "version": "==2.14.2"
+            "version": "==2.16.5"
         },
         "sdnotify": {
             "version": "==0.3.1"
         },
         "service-identity": {
-            "version": "==16.0.0"
+            "version": "==17.0.0"
         },
         "setproctitle": {
             "version": "==1.1.10"
@@ -229,7 +232,7 @@
             "version": "==1.5.7"
         },
         "sphinx": {
-            "version": "==1.6.1"
+            "version": "==1.6.2"
         },
         "sphinx-autobuild": {
             "version": "==0.6.0"
@@ -266,6 +269,9 @@
         },
         "unittest2": {
             "version": "==1.1.0"
+        },
+        "urllib3": {
+            "version": "==1.21.1"
         },
         "watchdog": {
             "version": "==0.8.3"

@@ -166,7 +166,7 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
         between each should give at minimum 1 logfiles
         """
 
-        for logmessage in range(4):
+        for logmessage in range(2):
             self.logging.debug('Logging debug message {0}'.format(logmessage))
             self.logging.info('Logging info message {0}'.format(logmessage))
             self.logging.warn('Logging warn message {0}'.format(logmessage))
@@ -175,7 +175,7 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
             time.sleep(1)
 
         logfiles = glob.glob('{0}/rotatelogfile*.log'.format(os.path.dirname(self._currpath)))
-        self.assertTrue(len(logfiles) >= 4)
+        self.assertTrue(len(logfiles) >= 2)
 
 
 class LoggerPrintingObserverTest(unittest2.TestCase):

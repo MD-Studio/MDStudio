@@ -9,10 +9,10 @@ lie\_config\.tests\.wamp package
 Submodules
 ----------
 
-lie\_config\.tests\.wamp\.api\_test module
-------------------------------------------
+lie\_config\.tests\.wamp\.api module
+------------------------------------
 
-.. automodule:: lie_config.tests.wamp.api_test
+.. automodule:: lie_config.tests.wamp.api
     :members:
     :undoc-members:
     :show-inheritance:
