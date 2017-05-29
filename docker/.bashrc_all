@@ -1,12 +1,13 @@
 python3 /app/docker/progress.py
 alias livedocs="(cd /app/docs; /usr/bin/make livehtml)"
-alias docs="(cd /app/docs; /usr/bin/make livehtml)"
 alias serve="(cd /app/app; /usr/bin/gulp serve)"
 alias compile="(cd /app/app; /usr/bin/gulp compile)"
 alias helpme='(/app/docker/welcome.sh; [[ "$USERMODE" == "1" ]] && /app/docker/welcome-user.sh; echo "")'
 alias lietest="(cd /app; green lietest.py)"
 alias liecov="(cd /app; coverage run lietest.py && coverage html)"
 alias liebandit="(cd /app; bandit -r components/ -f html -o build/bandit/index.html)"
+alias liedocs="(cd /app/docs; /usr/bin/make livehtml)"
+alias liecheck="(cd /app; flake8 components && pepper8 -o build/flake8/index.html build/flake8/output.out)"
 
 source /app/.venv/bin/activate
 export MONGO_HOST=mongo
