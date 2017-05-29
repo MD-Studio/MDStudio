@@ -1,7 +1,7 @@
 FROM phusion/baseimage:latest
 
 RUN apt-get update && \
-    apt-get install -y python2.7 python-pip libffi-dev libssl-dev git sudo curl
+    apt-get install -y python2.7 python-pip libffi-dev libssl-dev git sudo curl dos2unix
 
 RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -- && \
     apt-get install nodejs && \
@@ -37,6 +37,9 @@ ADD .bash_profile /root/.bash_profile
 ADD .bashrc_all   /root/.bashrc_all
 ADD .bashrc_root  /root/.bashrc_root
 ADD .bashrc_user  /root/.bashrc_user
+RUN find /root -type f -name ".bashrc*" -exec chmod 644 {} \;
+# Fix line-endings
+RUN find /root -type f -name ".bashrc*" -exec dos2unix {} \;
 
 WORKDIR /app/
 
