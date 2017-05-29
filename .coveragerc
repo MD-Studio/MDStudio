@@ -1,7 +1,18 @@
 [run]
 branch = True
+omit =
+    # omit anything in the .venv directory
+    .venv/*
+    components/*/tests/*
+    lietest.py
+
+[paths]
+source =
+    lietests.py
+    components/**.py
 
 [report]
+show_missing = true
 # Regexes for lines to exclude from consideration
 exclude_lines =
     # Have to re-enable the standard pragma
@@ -21,5 +32,6 @@ exclude_lines =
 
 ignore_errors = True
 
+
 [html]
-directory = coverage_html_report
+directory = htmlcov
