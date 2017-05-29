@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Tests" type="tests" factoryName="Unittests" singleton="true">
+  <configuration default="false" name="Tests" type="tests" factoryName="Unittests" activateToolWindowBeforeRun="false" singleton="true">
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
@@ -42,7 +42,7 @@
     <option name="_new_pattern" value="&quot;&quot;" />
     <option name="_new_additionalArguments" value="&quot;&quot;" />
     <option name="_new_legacyInformationCopiedToNew" value="true" />
-    <option name="_new_target" value="&quot;$PROJECT_DIR$/test.py&quot;" />
+    <option name="_new_target" value="&quot;/app/lietests.py&quot;" />
     <option name="_new_targetType" value="&quot;PATH&quot;" />
     <method />
   </configuration>

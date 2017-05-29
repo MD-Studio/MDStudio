@@ -21,8 +21,8 @@ tests.
 import unittest
 import argparse
 
-import tests.module_test
-import tests.wamp_api_test
+import lietests.module_test
+import lietests.wamp_api_test
 
 def module_test_suite(args):
     """
@@ -35,13 +35,13 @@ def module_test_suite(args):
     
     if not args.no_module:
         print('Running lie_system unittests')
-        suite = loader.loadTestsFromModule(tests.module_test)
+        suite = loader.loadTestsFromModule(lietests.module_test)
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
     
     if not args.no_wamp:
         print('Running lie_system WAMP API test')
-        suite = loader.loadTestsFromModule(tests.wamp_api_test)
+        suite = loader.loadTestsFromModule(lietests.wamp_api_test)
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
 
