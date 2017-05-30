@@ -8,7 +8,7 @@ The ~/LIEStudio/components directory contains the Python packages for
 these modules that are installed using pip by the LIEStudio installer
 script. Any package dependencies will be resolved automatically.
 
-#### UnitTesting the components
+## UnitTesting the components
 Each component package contains a `tests` directory with a number of
 Python unittests. After activating the virtual environment, they can be 
 run as:
