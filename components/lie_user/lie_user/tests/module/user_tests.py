@@ -8,7 +8,8 @@ Unit tests for the user component
 TODO: Add wamp_services unittests
 """
 
-import os, sys
+import os
+import sys
 import unittest2
 import hashlib
 import string
@@ -21,7 +22,7 @@ try:
     from lie_db import BootstrapMongoDB
 
     dbenabled = True
-except:
+except BaseException:
     pass
 
 from lie_user.management import generate_password, hash_password, check_password, UserManager

@@ -22,26 +22,29 @@ ATB_OUTPUT = str
 
 API_RESPONSE = Dict[Any, Any]
 
+
 def stderr_write(a_str) -> None:
     stderr.write('API Client Debug: ' + a_str + '\n')
 
+
 def deserializer_fct_for(api_format: str) -> Callable[[str], API_RESPONSE]:
     if api_format == 'json':
-        deserializer_fct = lambda x: json.loads(x)
+        def deserializer_fct(x): return json.loads(x)
     elif api_format == 'yaml':
-        deserializer_fct = lambda x: yaml.load(x)
+        def deserializer_fct(x): return yaml.load(x)
     elif api_format == 'pickle':
-        deserializer_fct = lambda x: pickle.loads(x)
+        def deserializer_fct(x): return pickle.loads(x)
     else:
         raise Exception('Incorrect API serialization format.')
     return deserializer_fct
+
 
 class API(object):
     HOST = 'https://atb.uq.edu.au'
     TIMEOUT = 45
     API_FORMAT = 'json'
     ENCODING = 'utf-8'
-    
+
     def __init__(self, host: str = HOST, api_token: Optional[str] = None, debug: bool = False, timeout: int = TIMEOUT, api_format: str = API_FORMAT) -> None:
         # Attributes
         self.host = host
@@ -50,17 +53,17 @@ class API(object):
         self.debug = debug
         self.timeout = timeout
         self.deserializer_fct = deserializer_fct_for(api_format)
-        
+
         # API namespaces
         self.Molecules = Molecules(self)
         self.RMSD = RMSD(self)
-    
+
     def encoded(self, something: Any) -> Union[Dict[bytes, Any], bytes, None]:
         if type(something) == dict:
             return {self.encoded(key): self.encoded(value) for (key, value) in something.items()}
         elif type(something) in (str, int):
             return something.encode(self.ENCODING)
-        elif something == None:
+        elif something is None:
             return something
         else:
             raise Exception(
@@ -69,7 +72,7 @@ class API(object):
                     something,
                 )
             )
-    
+
     def safe_urlopen(self, url: str, data: Dict[str, Any] = {}, method: str = 'GET') -> str:
         data['api_token'] = self.api_token
         data['api_format'] = self.api_format
@@ -84,7 +87,7 @@ class API(object):
                 raise Exception('Unsupported HTTP method: {0}'.format(method))
             if self.debug:
                 print('Querying: {url}'.format(url=url), file=stderr)
-            
+
             if method == 'POST' and any([isinstance(value, bytes) or 'read' in dir(value) for (key, value) in data.items()]):
                 def file_for(content):
                     '''Cast a content object to a file for request.post'''
@@ -95,22 +98,22 @@ class API(object):
                         file_handler.write(
                             content if isinstance(content, bytes) else str(content).encode(),
                         )
-                        file_handler.seek(0) # Rewind the files to future .read()
+                        file_handler.seek(0)  # Rewind the files to future .read()
                         return file_handler
-                
-                files=dict(
+
+                files = dict(
                     [
                         (key, file_for(value))
                         for (key, value) in data.items()
                     ]
                 )
-                
+
                 request = post(
                     url,
                     files=files,
                 )
                 response_content = request.text
-                
+
                 if self.debug:
                     print('INFO: Will send binary data.')
             else:
@@ -135,11 +138,11 @@ class API(object):
             #if e and 'fp' in e.__dict__: stderr_write( "Response was:\n\n{0}".format(e.fp.read().decode()) )
             raise e
         return response_content
-    
+
     def deserialize(self, an_object: Any) -> Any:
         try:
             return self.deserializer_fct(an_object)
-        except:
+        except BaseException:
             print(an_object)
             raise
 
@@ -166,34 +169,36 @@ class ATB_Mol(object):
         self.commercial_set = molecule_dict['commercial_set']
         self.user_label = molecule_dict['user_label']
         self.moltype = molecule_dict['moltype']
-        
+
         # Convert "None" or u"None" to Python None
-        for key,value in self.__dict__.items():
+        for key, value in self.__dict__.items():
             if value in ("None", u"None"):
                 self.__dict__[key] = None
-    
+
     def __repr__(self) -> str:
         self_dict = deepcopy(self.__dict__)
         del self_dict['api']
         return yaml.dump(self_dict)
-    
+
     def download_file(self, **kwargs) -> Union[None, ATB_OUTPUT]:
-        if 'molid' in kwargs: del kwargs['molid']
+        if 'molid' in kwargs:
+            del kwargs['molid']
         return self.api.Molecules.download_file(molid=self.molid, **kwargs)
-    
+
     def generate_mol_data(self, **kwargs) -> bool:
-        if 'molid' in kwargs: del kwargs['molid']
+        if 'molid' in kwargs:
+            del kwargs['molid']
         return self.api.Molecules.generate_mol_data(molid=self.molid, **kwargs)
-     
+
 
 class RMSD(API):
-    
+
     def __init__(self, api: API) -> None:
         self.api = api
-    
+
     def url(self, api_endpoint: str) -> str:
         return self.api.host + '/api/current/' + self.__class__.__name__.lower() + '/' + api_endpoint + '.py'
-    
+
     def align(self, **kwargs) -> API_RESPONSE:
         assert 'molids' in kwargs or ('reference_pdb' in kwargs and 'pdb_0' in kwargs), MISSING_VALUE
         if 'molids' in kwargs:
@@ -203,7 +208,7 @@ class RMSD(API):
                 assert ',' in kwargs['molids']
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method='POST')
         return self.api.deserialize(response_content)
-    
+
     def matrix(self, **kwargs) -> API_RESPONSE:
         assert 'molids' in kwargs or ('reference_pdb' in kwargs and 'pdb_0' in kwargs), MISSING_VALUE
         if 'molids' in kwargs:
@@ -216,7 +221,7 @@ class RMSD(API):
 
 
 class Molecules(API):
-    
+
     def __init__(self, api: API) -> None:
         self.api = api
         self.download_urls = {
@@ -229,10 +234,10 @@ class Molecules(API):
             'itp_aa': ('download_file', dict(outputType='top', file='rtp_allatom', ffVersion="54A7"),),
             'itp_ua': ('download_file', dict(outputType='top', file='rtp_uniatom', ffVersion="54A7"),),
         }
-    
+
     def url(self, api_endpoint: str) -> str:
         return self.api.host + '/api/current/' + self.__class__.__name__.lower() + '/' + api_endpoint + '.py'
-    
+
     def search(self, **kwargs) -> Any:
         return_type = kwargs['return_type'] if 'return_type' in kwargs else 'molecules'
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method='GET')
@@ -243,9 +248,9 @@ class Molecules(API):
             return data[return_type]
         else:
             raise Exception('Unknow return_type: {0}'.format(return_type))
-    
+
     def download_file(self, **kwargs: Dict[str, Any]) -> Union[None, ATB_OUTPUT]:
-        
+
         def write_to_file_or_return(response_content, deserializer_fct) -> Union[None, ATB_OUTPUT]:
             # Either write response to file 'fnme', or return its content
             if 'fnme' in kwargs:
@@ -255,7 +260,7 @@ class Molecules(API):
                 return None
             else:
                 return deserializer_fct(response_content)
-        
+
         if all([key in kwargs for key in ('atb_format', 'molid')]):
             # Construct donwload.py request based on requested file format
             atb_format = str(kwargs['atb_format'])
@@ -267,29 +272,30 @@ class Molecules(API):
         else:
             # Forward all the keyword arguments to download_file.py
             response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method='GET')
-            deserializer_fct = lambda x: x
+
+            def deserializer_fct(x): return x
         return write_to_file_or_return(response_content, deserializer_fct)
-    
+
     def duplicated_inchis(self, **kwargs) -> API_RESPONSE:
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method='GET')
         return self.api.deserialize(response_content)['inchi_key']
-    
+
     def generate_mol_data(self, **kwargs) -> API_RESPONSE:
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method='GET')
         return self.api.deserialize(response_content)
-    
+
     def molid(self, molid: ATB_MOLID = None) -> ATB_Mol:
         parameters = dict(molid=molid)
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=parameters, method='GET')
         data = self.api.deserialize(response_content)
         return ATB_Mol(self.api, data['molecule'])
-    
+
     def structure_search(self, method: str = 'POST', **kwargs) -> API_RESPONSE:
-        assert all([ arg in kwargs for arg in ('structure', 'netcharge', 'structure_format') ])
+        assert all([arg in kwargs for arg in ('structure', 'netcharge', 'structure_format')])
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs, method="GET")
         return self.api.deserialize(response_content)
-    
+
     def submit(self, request: str = 'POST', **kwargs) -> API_RESPONSE:
-        assert all([ arg in kwargs for arg in ('netcharge', 'pdb', 'public', 'moltype') ])
+        assert all([arg in kwargs for arg in ('netcharge', 'pdb', 'public', 'moltype')])
         response_content = self.api.safe_urlopen(self.url(inspect.stack()[0][3]), data=kwargs)
         return self.api.deserialize(response_content)

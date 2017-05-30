@@ -19,63 +19,65 @@ sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 # if the file does not exists we skip the tests involved
 exec_path = os.path.join(__rootpath__, '../../../bin/plants_darwin')
 
-from   twisted.logger             import Logger
-from   lie_docking.plants_docking import PlantsDocking
-from   lie_docking.utils          import prepaire_work_dir
+from twisted.logger import Logger
+from lie_docking.plants_docking import PlantsDocking
+from lie_docking.utils import prepaire_work_dir
 
 logging = Logger()
+
+
 class PlantsDockingTest(unittest.TestCase):
-    
+
     workdir = None
     ligand_file = os.path.join(__rootpath__, '../files/ligand.mol2')
     protein_file = os.path.join(__rootpath__, '../files/protein.mol2')
-    
+
     @classmethod
     def setUpClass(cls):
         """
         PlantsDockingTest class setup
-      
+
         Read structure files for docking
         """
-        
+
         with open(cls.protein_file, 'r') as pfile:
             cls.protein = pfile.read()
-        
+
         with open(cls.ligand_file, 'r') as lfile:
             cls.ligand = lfile.read()
-    
+
     def tearDown(self):
         """
         tearDown method called after each unittest to cleanup
         the working directory
         """
-        
+
         if self.workdir and os.path.exists(self.workdir):
             shutil.rmtree(self.workdir)
-    
+
     def test_plants_faultyworkdir(self):
         """
-        Docking is unable to start if the working directory 
+        Docking is unable to start if the working directory
         is not available and cannot be created
         """
-        
+
         plants = PlantsDocking(workdir='/Users/_dummy_user/lie_docking-0.1/tests/plants_docking',
                                exec_path=exec_path,
-                               bindingsite_center=[7.79934,9.49666,3.39229])
-        
+                               bindingsite_center=[7.79934, 9.49666, 3.39229])
+
         self.assertFalse(plants.run(self.protein, self.ligand))
-    
+
     def test_plants_faultyexec(self):
         """
         Docking is unable to start if the PLANTS executable
         is not found
         """
-        
+
         self.workdir = prepaire_work_dir(__rootpath__, create=True)
         plants = PlantsDocking(workdir=self.workdir,
                                exec_path='/Users/_dummy_user/lie_docking-0.1/tests/plants',
-                               bindingsite_center=[7.79934,9.49666,3.39229])
-        
+                               bindingsite_center=[7.79934, 9.49666, 3.39229])
+
         self.assertFalse(plants.run(self.protein, self.ligand))
 
     @unittest.skipIf(not os.path.exists(exec_path), "This test requires proprietary software")
@@ -83,13 +85,13 @@ class PlantsDockingTest(unittest.TestCase):
         """
         A working plants docking
         """
-        
+
         self.workdir = prepaire_work_dir(os.path.join(__rootpath__, '../'), create=True)
-        plants = PlantsDocking(workdir=self.workdir, 
+        plants = PlantsDocking(workdir=self.workdir,
                                exec_path=exec_path,
-                               bindingsite_center=[7.79934,9.49666,3.39229])
+                               bindingsite_center=[7.79934, 9.49666, 3.39229])
         self.assertTrue(plants.run(self.protein, self.ligand))
-        
+
         outputfiles = glob.glob('{0}/_entry_00001_conf_*.mol2'.format(self.workdir))
         self.assertEqual(len(outputfiles), plants._config['cluster_structures'])
         self.assertEqual(len(outputfiles), len(plants.results()))

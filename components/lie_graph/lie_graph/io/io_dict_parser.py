@@ -4,48 +4,50 @@ import pprint
 import os
 import logging as logger
 
-from   ..graph_helpers      import GraphException
-from   ..graph              import Graph
-from   ..graph_axis_methods import closest_to
-from   ..graph_algorithms   import dijkstra_shortest_path
-from   .io_helpers          import _nest_flattened_dict
+from ..graph_helpers import GraphException
+from ..graph import Graph
+from ..graph_axis_methods import closest_to
+from ..graph_algorithms import dijkstra_shortest_path
+from .io_helpers import _nest_flattened_dict
 
-def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'): 
+
+def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'):
 
     assert isinstance(dictionary, dict), TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(dictionary)))
-    
+
     graph.node_data_tag = keystring
     rootnid = graph.add_node('config')
     graph.root = rootnid
-    
+
     def _walk_dict(key, item, rootnid):
-    
+
         nid = graph.add_node(key)
-        graph.add_edge(rootnid,nid)
-    
+        graph.add_edge(rootnid, nid)
+
         if isinstance(item, dict):
-            for k,v in sorted(item.items()):
+            for k, v in sorted(item.items()):
                 _walk_dict(k, v, nid)
         else:
             graph.nodes[nid][valuestring] = item
-            
-    for k,v in sorted(dictionary.items()):
+
+    for k, v in sorted(dictionary.items()):
         _walk_dict(k, v, rootnid)
-    
+
     return graph
+
 
 def graph_to_dict(graph, keystring='key', valuestring=None, nested=True, sep='.',
                   path_method=dijkstra_shortest_path, default=None):
     """
     Export a graph to a (nested) dictionary
-    
+
     Convert graph representation of the dictionary tree into a dictionary
     using a nested or flattened representation of the dictionary hierarchy.
 
     In a flattened representation, the keys are concatinated using the `sep`
     seperator.
     Dictionary keys and values are obtained from the node attributes using
-    `keystring` and `valuestring` that are set to graph node_key_tag and 
+    `keystring` and `valuestring` that are set to graph node_key_tag and
     node_data_tag by default.
 
     The hierarchy in the dictionary is determined by calculating the
@@ -75,23 +77,23 @@ def graph_to_dict(graph, keystring='key', valuestring=None, nested=True, sep='.'
     TODO: in the end, (parts) of this method could be generalized into a
           graph_to_dict function part of graph_io in the lie_graph lib.
     """
-    
+
     # Graph should inherit from Graph baseclass
     if not isinstance(graph, Graph):
         raise GraphException('Graph {0} not a valid "Graph" object'.format(type(graph)))
-    
+
     # No nodes, return empty dict
     if not len(graph.nodes):
         return {}
-    
+
     # Resolve node dictionary attributes for value
     valuestring = valuestring or graph.node_data_tag
 
     # Determine rootnode relative to which hierarchy is resolved
-    if graph.root == None:
+    if graph.root is None:
         rootnodes = [min(graph.nodes.keys())]
         logging.debug('No root node defined, set to node with _id: {0}'.format(rootnodes[0]))
-        
+
     if graph.root in graph.nodes:
         rootnodes = [graph.root]
     else:

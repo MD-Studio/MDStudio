@@ -50,5 +50,5 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

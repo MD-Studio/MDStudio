@@ -19,7 +19,7 @@ import unittest2
 # Add modules in package to path so we can import them
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from   twisted.logger import Logger, globalLogPublisher, LogLevel, LogLevelFilterPredicate, FilteringLogObserver
+from twisted.logger import Logger, globalLogPublisher, LogLevel, LogLevelFilterPredicate, FilteringLogObserver
 
 # Test import of the lie_db database drivers
 # If unable to import we cannot run the UserDatabaseTests
@@ -28,10 +28,11 @@ try:
     from lie_db import BootstrapMongoDB
 
     dbenabled = True
-except:
+except BaseException:
     pass
 
 from lie_logger.system_logger import *
+
 
 @unittest2.skipIf(dbenabled == False, "Not supported, no active LIE MongoDB.")
 class LoggerExportToMongodbObserverTest(unittest2.TestCase):
@@ -45,7 +46,7 @@ class LoggerExportToMongodbObserverTest(unittest2.TestCase):
     def setUpClass(cls):
         """
         LoggerExportToMongodbObserverTest class setup
-        
+
         * Bootstrap MongoDB with an empty test database
         * Write MongoDB log to local mongodb.log file
         """
@@ -68,7 +69,7 @@ class LoggerExportToMongodbObserverTest(unittest2.TestCase):
     def tearDownClass(cls):
         """
         LoggerExportToMongodbObserverTest class teardown
-        
+
         * Disconnect from MongoDB
         * Stop mongod process
         * Remove MongoDB test database and logfiles
@@ -101,7 +102,7 @@ class LoggerExportToMongodbObserverTest(unittest2.TestCase):
         When logging messages to the MongoDB database, the structured
         log messages are added to the db collection in batches of 10
         (log_cache_size argument to the observer).
-        
+
         Thus after logging 15 messages, 10 will be available in the db
         when we look for it, all logged at 'info' level
         """
@@ -133,7 +134,7 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
     def setUpClass(cls):
         """
         LoggerRotateFileLogObserverTest class setup
-        
+
         Init Twisted logger with RotateFileLogObserver logger
         """
 
@@ -149,7 +150,7 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
     def tearDownClass(cls):
         """
         LoggerRotateFileLogObserverTest class teardown
-        
+
         Remove RotateFileLogObserver from Twisted globalLogPublisher
         and remove logfile.
         """
@@ -159,9 +160,9 @@ class LoggerRotateFileLogObserverTest(unittest2.TestCase):
 
     def test_rotationfileobserver_timerotation(self):
         """
-        This test class configures the RotateFileLogObserver to 
+        This test class configures the RotateFileLogObserver to
         create a new log file after every 1 seconds past.
-        
+
         Logging a series of messages 1 times with 1 seconds delay
         between each should give at minimum 1 logfiles
         """
@@ -185,7 +186,7 @@ class LoggerPrintingObserverTest(unittest2.TestCase):
     def setUpClass(cls):
         """
         LoggerPrintingObserverTest class setup
-        
+
         Init Twisted logger with PritingObserver logger
         """
 
@@ -200,8 +201,8 @@ class LoggerPrintingObserverTest(unittest2.TestCase):
     def tearDownClass(cls):
         """
         LoggerPrintingObserverTest class teardown
-        
-        Remove PrintingObserver from Twisted globalLogPublisher 
+
+        Remove PrintingObserver from Twisted globalLogPublisher
         """
         pass
 

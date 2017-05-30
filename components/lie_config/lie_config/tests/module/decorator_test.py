@@ -15,7 +15,7 @@ import unittest2
 currpath = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 
-from   lie_config import get_config
+from lie_config import get_config
 
 
 class ConfigDecoratorTests(unittest2.TestCase):

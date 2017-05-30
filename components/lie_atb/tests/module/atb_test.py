@@ -18,26 +18,27 @@ import urllib2
 currpath = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 
-from   lie_atb          import ATBServerApi
-from   lie_atb.settings import SETTINGS
+from lie_atb import ATBServerApi
+from lie_atb.settings import SETTINGS
+
 
 class TestAPI(unittest2.TestCase):
-    
+
     _files_dir = os.path.join(currpath, 'files')
-    
+
     def setUp(self):
         """
         ConfigHandlerTests class setup
-        
+
         Init Automated Topology Builder server API
         """
-        
+
         self.api = ATBServerApi(api_token=SETTINGS['atb_api_token'],
                                 timeout=SETTINGS['atb_api_timeout'],
                                 debug=SETTINGS['atb_api_debug'],
                                 host=SETTINGS['atb_url'])
         self.files_to_delete = []
-    
+
     def tearDown(self):
         """
         Cleanup after each unit test
@@ -90,7 +91,7 @@ class TestAPI(unittest2.TestCase):
         molecules = self.api.Molecules.search(inchi_key=inchi)
         self.assertTrue(len(molecules) > 0)
         self.assertTrue(all([m.inchi_key == inchi for m in molecules]))
-    
+
     def test_molecule_query_rnme(self):
         """
         Test query for molecules using RNME code
@@ -154,7 +155,7 @@ class TestAPI(unittest2.TestCase):
 
         molecules = self.api.Molecules.search(has_pdb_hetId=True, curation_trust='0,1')
         self.assertTrue(len(molecules) > 0)
-        self.assertTrue(all([len(m.pdb_hetId) > 0 and m.curation_trust in [0,1] for m in molecules]))
+        self.assertTrue(all([len(m.pdb_hetId) > 0 and m.curation_trust in [0, 1] for m in molecules]))
 
     def test_molecule_query_bystructure(self):
         """
@@ -170,8 +171,8 @@ class TestAPI(unittest2.TestCase):
         with open(query_file) as pdb:
             result = self.api.Molecules.structure_search(structure_format='pdb', structure=pdb.read(), netcharge='*')
 
-        if result and type(result) == dict:
-           self.assertTrue(any([m['molid'] == 36825 for m in result['matches']]))
+        if result and isinstance(result, dict):
+            self.assertTrue(any([m['molid'] == 36825 for m in result['matches']]))
 
     def test_host_url_reachable(self):
         """
@@ -204,9 +205,9 @@ class TestAPI(unittest2.TestCase):
         valid_atb_token = ''
         try:
             response = api.Molecules.search(any='ethanol')
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             valid_atb_token = json.load(e)['error_msg']
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             valid_atb_token = json.load(e)['error_msg']
 
         self.assertEqual(valid_atb_token, u'Could not authenticate account')
@@ -374,12 +375,12 @@ class TestAPI(unittest2.TestCase):
         mol = molecule.download_file(file='pdb_allatom_optimised', outputType='top', ffVersion='54A7', hash='HEAD')
         try:
             response = self.api.Molecules.submit(pdb=mol, netcharge=0, moltype='heteromolecule', public=True)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             response = json.load(error)
 
         if response.get(u'status', None) == u'error':
-            if response.get(u'error_msg','').startswith('Your submission matched a previously'):
-                m = re.search('(?<=molid=)[0-9]*', response.get(u'error_msg',''))
+            if response.get(u'error_msg', '').startswith('Your submission matched a previously'):
+                m = re.search('(?<=molid=)[0-9]*', response.get(u'error_msg', ''))
                 if m:
                     molid = m.group()
                     if molid.isdigit():

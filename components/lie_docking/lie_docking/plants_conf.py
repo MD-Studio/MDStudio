@@ -33,30 +33,30 @@ PLANTS_CONF_FILE_TEMPLATE = textwrap.dedent("""
     chemplp_tors_weight          {chemplp_tors_weight}
     chemplp_lipo_weight          {chemplp_lipo_weight}
     chemplp_intercept_weight     {chemplp_intercept_weight}
-    
+
     # Input file specification
-    protein_file                 {protein_file} 
+    protein_file                 {protein_file}
     ligand_file                  {ligand_file}
-   
+
     # Output settings
     output_dir                   {output_dir}
     write_multi_mol2             {write_multi_mol2}
-    
+
     # Ligand settings
     flip_amide_bonds             {flip_amide_bonds}
     flip_planar_n                {flip_planar_n}
     flip_ring_corners            {flip_ring_corners}
     force_flipped_bonds_planarity {force_flipped_bonds_planarity}
     force_planar_bond_rotation   {force_planar_bond_rotation}
-    
+
     # Binding site definition
     bindingsite_center           {bindingsite_center[0]} {bindingsite_center[1]} {bindingsite_center[2]}
     bindingsite_radius           {bindingsite_radius}
-    
+
     # cluster algorithm
     cluster_structures           {cluster_structures}
     cluster_rmsd                 {cluster_rmsd}
-    
+
     # Writer
     write_ranking_links          {write_ranking_links}
     write_protein_bindingsite    {write_protein_bindingsite}

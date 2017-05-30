@@ -8,7 +8,7 @@ for each of the supported docking methods.
 SETTINGS = {
     'plants': {
         'exec_path': '{system.app_path}/bin/plants_{system.platform}',
-        'scoring_function': 'chemplp', #plp, plp95 or chemplp
+        'scoring_function': 'chemplp',  # plp, plp95 or chemplp
         'outside_binding_site_penalty': 50.0,
         'enable_sulphur_acceptors': 0,
         'ligand_intra_score': 'clash2',
@@ -36,7 +36,7 @@ SETTINGS = {
         'chemplp_lipo_weight': 0.0,
         'chemplp_intercept_weight': -20.0,
         'rescore_mode': 'simplex',
-        'search_speed': 'speed1', #speed1, speed2, speed4
+        'search_speed': 'speed1',  # speed1, speed2, speed4
         'protein_file': 'protein.mol2',
         'ligand_file': 'ligand.mol2',
         'output_dir': '.',
@@ -46,7 +46,7 @@ SETTINGS = {
         'flip_ring_corners': 0,
         'force_flipped_bonds_planarity': 0,
         'force_planar_bond_rotation': 1,
-        'bindingsite_center': [0.0,0.0,0.0],
+        'bindingsite_center': [0.0, 0.0, 0.0],
         'bindingsite_radius': 12,
         'cluster_structures': 50,
         'cluster_rmsd': 1.0,
@@ -59,5 +59,5 @@ SETTINGS = {
         'write_protein_splitted': 0,
         'write_per_atom_scores': 0,
         'merge_multi_conf_output': 0
-    }    
+    }
 }

@@ -5,13 +5,13 @@
 
 ###Basic graph structure
 A graph represented by a Graph class is an object that stores nodes, edges and
-adjacency information in seperate GraphDict classes. A GraphDict class is a 
-subclass of the standard Python dictionary and collections MutableMappings 
+adjacency information in seperate GraphDict classes. A GraphDict class is a
+subclass of the standard Python dictionary and collections MutableMappings
 Abstract Base Class (ABC).
 
 The nodes and edges GraphDict objects store node and edge attributes respectivly
 based on the node ID (nid).
-The graph GraphDict object stores node adjacency and is the primary store for 
+The graph GraphDict object stores node adjacency and is the primary store for
 the graph topology.
 
 ###Node ID
@@ -22,9 +22,9 @@ itself could be any hasable object however but the '\_id' attribute will always 
 numeric.
 
 ###Graph directionality
-A graph is undirected by default storing an two edges for every connected node, 
+A graph is undirected by default storing an two edges for every connected node,
 one in each direction.
-Change the graph is_directed attribute to True will ensure that every every newly 
+Change the graph is_directed attribute to True will ensure that every every newly
 added edge is directed. Directed and undirected edges can be mixed in the same
 graph.
 
@@ -46,25 +46,25 @@ the keys in the nodes and edges GraphDict objects.
 By default this means that the subgraphs are fully isolated from the parent graph.
 Returning a single node using getnodes will have no neigbors.
 This may not be desirable in circumstances where you want a view over nodes but
-retain connectivity with nodes outside of the view. This behaviour is enabled by 
+retain connectivity with nodes outside of the view. This behaviour is enabled by
 switching the Graph is_masked to False.
 """
 
 import os
 
-__module__    = 'lie_graph'
+__module__ = 'lie_graph'
 __docformat__ = 'restructuredtext'
-__version__   = '{major:d}.{minor:d}'.format(major=0, minor=1)
-__author__    = 'Marc van Dijk'
-__status__    = 'pre-release beta1'
-__date__      = '15 april 2016'
-__licence__   = 'Apache Software License 2.0'
-__url__       = 'https://github.com/NLeSC/LIEStudio'
+__version__ = '{major:d}.{minor:d}'.format(major=0, minor=1)
+__author__ = 'Marc van Dijk'
+__status__ = 'pre-release beta1'
+__date__ = '15 april 2016'
+__licence__ = 'Apache Software License 2.0'
+__url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
-__rootpath__  = os.path.dirname(__file__)
-__all__       = ['Graph', 'GraphAxis', 'GraphORM']
+__rootpath__ = os.path.dirname(__file__)
+__all__ = ['Graph', 'GraphAxis', 'GraphORM']
 
 # Component imports
-from    .graph              import Graph
-from    .graph_axis_class   import GraphAxis
-from    .graph_orm          import GraphORM
+from .graph import Graph
+from .graph_axis_class import GraphAxis
+from .graph_orm import GraphORM

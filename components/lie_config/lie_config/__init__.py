@@ -21,7 +21,7 @@ stored as JSON file
 
     import json
     import lie_config
-    
+
     config = lie_config.get_config()
     config.load(json.load(open('config.json')))
 
@@ -42,38 +42,40 @@ extends it with functions to:
 
 import os
 
-__module__    = 'lie_config'
+__module__ = 'lie_config'
 __docformat__ = 'restructuredtext'
-__version__   = '{major:d}.{minor:d}'.format(major=0, minor=1)
-__author__    = 'Marc van Dijk'
-__status__    = 'pre-release beta1'
-__date__      = '15 april 2016'
-__licence__   = 'Apache Software License 2.0'
-__url__       = 'https://github.com/NLeSC/LIEStudio'
+__version__ = '{major:d}.{minor:d}'.format(major=0, minor=1)
+__author__ = 'Marc van Dijk'
+__status__ = 'pre-release beta1'
+__date__ = '15 april 2016'
+__licence__ = 'Apache Software License 2.0'
+__url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
-__rootpath__  = os.path.dirname(__file__)
-__all__       = ['get_config','ConfigHandler','configwrapper','config_to_json']
+__rootpath__ = os.path.dirname(__file__)
+__all__ = ['get_config', 'ConfigHandler', 'configwrapper', 'config_to_json']
 
 # For Python => 3.3, import inspect.signature
 # else import funcsigs backport.
 try:
     from inspect import signature
-except:
+except BaseException:
     from funcsigs import signature
 
 # Component imports
 from .config_handler import ConfigHandler
-from .config_io      import config_to_json
+from .config_io import config_to_json
 
 # Runtime wide configuration store
 configurations = {}
 
+
 def get_config(name='default'):
-    
-    if not name in configurations:
+
+    if name not in configurations:
         configurations[name] = ConfigHandler()
-    
+
     return configurations.get(name, None)
+
 
 class configwrapper(object):
     """
@@ -113,25 +115,25 @@ class configwrapper(object):
     :param confighandler: specific ConfigHandler instance to get configuration from
     :type confighandler:  str
     """
-    
+
     def __init__(self, instance=None, confighandler='default'):
-        
+
         self.instance = instance
-        if self.instance and not isinstance(self.instance, (tuple,list)):
+        if self.instance and not isinstance(self.instance, (tuple, list)):
             self.instance = [self.instance]
-        
+
         self.confighandler = confighandler
-    
+
     def __call__(self, func):
-        
+
         # If the instance names to fetch are not defined, use function or class name
         if not self.instance:
             self.instance = [func.__name__]
         query = ['*{0}*'.format(i) for i in self.instance]
-        
+
         # Get parameter names from the global config.
         settings = get_config(name=self.confighandler).search(query)
-        
+
         # Determine level at which to flatten config file
         levels = []
         for q in self.instance:
@@ -139,24 +141,24 @@ class configwrapper(object):
         level = 0
         if len(levels):
             level = min(levels)
-        settings = settings.flatten(resolve_order=self.instance, level=level+1)
-        
+        settings = settings.flatten(resolve_order=self.instance, level=level + 1)
+
         def wrapped_f(*args, **kwargs):
-            
+
             fsig = signature(func)
-            
+
             # Inspect the function for keyword arguments.
             # Replace by settings value if not defined in kwargs
             for param in fsig.parameters.values():
-                if not param.default == param.empty and not param.name in kwargs and param.name in settings:
+                if param.default == param.empty and param.name in kwargs and param.name not not in settings:
                     kwargs[param.name] = settings[param.name]
-            
+
             # If kwargs is defined in the functions arguments,
             # add all other keyword arguments not yet defined
             if 'kwargs' in fsig.parameters:
-                for k,v in settings.dict(nested=True).items():
-                    if not k in kwargs:
+                for k, v in settings.dict(nested=True).items():
+                    if k not in kwargs:
                         kwargs[k] = v
-            
+
             return func(*args, **kwargs)
         return wrapped_f

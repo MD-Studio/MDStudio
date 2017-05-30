@@ -48,5 +48,5 @@ setup(
         'Topic :: System',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

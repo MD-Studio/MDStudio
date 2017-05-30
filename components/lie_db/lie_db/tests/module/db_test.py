@@ -33,7 +33,6 @@ class DatabaseTest(unittest.TestCase):
 
     @unittest.skipIf(os.getenv('IS_DOCKER', False), "In the docker version, we always run mongodb")
     def test_start_stop_local_database(self):
-
         """
         Test start/stop of a local MongoDB server and load of
         the application database
@@ -53,7 +52,6 @@ class DatabaseTest(unittest.TestCase):
 
     @unittest.skipIf(os.getenv('IS_DOCKER', False), "In the docker version, we always run mongodb")
     def test_not_running_database(self):
-
         """
         Test connecting to a MongoDB server that does not exist
         """
@@ -64,7 +62,6 @@ class DatabaseTest(unittest.TestCase):
 
     @unittest.skipIf(os.getenv('IS_DOCKER', False), "In the docker version, we always run mongodb")
     def test_running_database(self):
-
         """
         Test connecting to a MongoDB server that exists
         """
@@ -83,7 +80,6 @@ class DatabaseTest(unittest.TestCase):
         self.assertTrue(self.db.stop())
 
     def tearDown(self):
-
         """
         Cleanup temporary MongoDB database files after unittest.
         """

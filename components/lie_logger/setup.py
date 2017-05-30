@@ -4,7 +4,7 @@
 # package: lie_db
 # file: setup.py
 #
-# Part of ‘lie_logger’, a package providing system wide and distributed 
+# Part of ‘lie_logger’, a package providing system wide and distributed
 # logging for the LIEStudio package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -37,7 +37,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['twisted','autobahn'],
+    install_requires=['twisted', 'autobahn'],
     test_suite="tests",
     include_package_data=True,
     zip_safe=True,
@@ -53,5 +53,5 @@ setup(
         'Topic :: System :: Logging',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

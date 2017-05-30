@@ -4,7 +4,7 @@
 # package: lie_config
 # file: setup.py
 #
-# Part of ‘lie_config’, a package providing program wide and dynamic 
+# Part of ‘lie_config’, a package providing program wide and dynamic
 # configuration for the various modules in LIEStudio package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -37,7 +37,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['funcsigs','twisted','autobahn', 'pyyaml'],
+    install_requires=['funcsigs', 'twisted', 'autobahn', 'pyyaml'],
     include_package_data=True,
     zip_safe=True,
     entry_points={
@@ -52,5 +52,5 @@ setup(
         'Topic :: Utilities',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

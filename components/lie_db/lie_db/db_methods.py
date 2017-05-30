@@ -17,6 +17,7 @@ from pymongo.errors import ConnectionFailure
 
 from .settings import APP_COLLECTION
 
+
 def get_host(settings):
     """
     Adds support to host switching needed for docker builds
@@ -43,7 +44,7 @@ def init_mongodb(settings):
     db = db.connect()
     appdata = db['{0}_data'.format(settings.get('dbname'))].find_one()
     logging.info('Initiate {application} database. Version: {version}, user: {user}'.format(**appdata))
-    
+
     return db
 
 
@@ -59,21 +60,23 @@ def exit_mongodb(settings):
                           port=settings.get('port'))
     db.stop(terminate_mongod_on_exit=settings.get('terminate_mongod_on_exit', False))
 
+
 def mongodb_connect(host=os.getenv('MONGO_HOST', 'localhost'), port=27017, **kwargs):
     """
     Connect to a running MongoDB database
-    
+
     :param host: URL of the database
     :param port: port number
     :type port:  int
     """
-    
+
     # A port number is sometimes defined as a python long (L) by for instances
-    # databases or serializers. The MongoClient class does not exept this. 
+    # databases or serializers. The MongoClient class does not exept this.
     port = int(port)
-    
+
     client = MongoClient(host=host, port=port, **kwargs)
     return client
+
 
 class BootstrapMongoDB(object):
     """
@@ -162,10 +165,10 @@ class BootstrapMongoDB(object):
         # Init Mongo Client without immediately connecting. Set connect- and
         # server Selection timeout to 2 sec. for fast connection probing.
         client = mongodb_connect(host=self._host,
-                                port=self._port,
-                                connect=False,
-                                connectTimeoutMS=2000,
-                                serverSelectionTimeoutMS=2000)
+                                 port=self._port,
+                                 connect=False,
+                                 connectTimeoutMS=2000,
+                                 serverSelectionTimeoutMS=2000)
 
         # Try to establish connection
         try:
@@ -281,7 +284,7 @@ class BootstrapMongoDB(object):
         if self.isrunning:
             logging.info('MongoDB already running')
             return True
-        
+
         # Check if we need to connect to a local or remote database
         if self.isremote:
             logging.info('Connect to remote database. Not starting local database')
@@ -346,7 +349,7 @@ class BootstrapMongoDB(object):
             logging.info('Stopped mongod process')
         else:
             logging.info('Not stopping mongod process')
-            
+
         return True
 
     def restart(self):

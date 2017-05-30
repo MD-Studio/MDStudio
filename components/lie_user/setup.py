@@ -37,7 +37,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['twisted','autobahn','werkzeug'],
+    install_requires=['twisted', 'autobahn', 'werkzeug'],
     test_suite="tests.module_test_suite",
     include_package_data=True,
     zip_safe=True,
@@ -53,5 +53,5 @@ setup(
         'Topic :: System :: Systems Administration :: Authentication/Directory',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

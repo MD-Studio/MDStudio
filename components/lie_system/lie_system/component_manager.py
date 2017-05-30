@@ -10,7 +10,7 @@ import os
 import sys
 import pkgutil
 
-from   twisted.logger import Logger
+from twisted.logger import Logger
 
 
 def import_error(pkg):
@@ -20,7 +20,7 @@ def import_error(pkg):
 class ComponentManager(object):
     """
     LIEStudio application component manager
-    
+
     :param config: component settings required for initiation
                    and exit routines
     :type config:  :py:class:`dict` or :lie_system:ConfigHandler instance
@@ -67,7 +67,7 @@ class ComponentManager(object):
                        search_method=lambda self, searchpath: self._list_components(searchpath)):
         """
         Add a component search path to the manager
-        
+
         Add all Python modules (packages), or optionally those
         starting with `prefix` in the specified search path to
         the ComponentManager
@@ -94,22 +94,22 @@ class ComponentManager(object):
         self.logging.debug("Added {0} components from search path: {1}".format(len(components), searchpath))
 
         # Add component directory to sys.path and self._searchpath
-        if not searchpath in self._searchpath:
+        if searchpath not in self._searchpath:
             self._searchpath.append(searchpath)
-        if not searchpath in sys.path:
+        if searchpath not in sys.path:
             sys.path.append(searchpath)
 
     def component_settings(self, components=None):
-        """ 
+        """
         Load component settings
-        
+
         Components may expose public settings as Python dictionary
         using the `settings` attribute in the module __init__.py file
-        
-        This fuctions queries all the components managed by the 
+
+        This fuctions queries all the components managed by the
         ComponentManager or a subset provided by the `components`
         attribute for public settings and will try to retrieve them.
-        
+
         :param components: components to retrieve public settings for.
         :type components:  list of strings
         :rtype:            :py:class:`dict`
@@ -133,7 +133,7 @@ class ComponentManager(object):
     def get_component(self, component, do_reload=False):
         """
         Load module by name
-      
+
         By default the module is not reloaded if already loaded
         unless `do_reload` equals true.
         """
@@ -156,7 +156,7 @@ class ComponentManager(object):
     def bootstrap(self, components=None, order=[]):
         """
         Bootstrap components by calling their `oninit` function
-        
+
         :param components: components to bootstrap. Defaults to all components
                            managed by the ComponentManager.
         :type components:  list of strings
@@ -172,7 +172,7 @@ class ComponentManager(object):
 
         if len(order):
             order = [c for c in order if c in components]
-            order.extend([c for c in components if not c in order])
+            order.extend([c for c in components if c not in order])
             components = order
 
         init_count = 1
@@ -187,13 +187,13 @@ class ComponentManager(object):
                         oninit(self._config[component], self._config)
 
                     init_count += 1
-        
+
         self.logging.debug('Run bootstrap for {0} components. ({1} checked)'.format(init_count, len(components)))
 
     def shutdown(self, components=None, order=[]):
         """
         Shutdown components by calling their `onexit` function
-        
+
         :param components: components to shutdown. Defaults to all components
                            managed by the ComponentManager.
         :type components:  list of strings
@@ -212,7 +212,7 @@ class ComponentManager(object):
 
         if len(order):
             order = [c for c in order if c in components]
-            order = [c for c in components if not c in order] + order
+            order = [c for c in components if c not in order] + order
             components = order
 
         self.logging.debug('Application shutdown procedure for {0} components'.format(len(components)))

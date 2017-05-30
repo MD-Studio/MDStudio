@@ -53,5 +53,5 @@ setup(
         'Topic :: Database',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

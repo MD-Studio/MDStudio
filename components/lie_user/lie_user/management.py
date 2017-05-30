@@ -22,13 +22,13 @@ except ImportError:
     # Python 2
     from urlparse import urlparse
 
-from   pymongo import MongoClient
-from   pymongo.errors import ServerSelectionTimeoutError
-from   werkzeug.security import generate_password_hash, check_password_hash
-from   twisted.logger import Logger
+from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError
+from werkzeug.security import generate_password_hash, check_password_hash
+from twisted.logger import Logger
 
-from   settings import USER_TEMPLATE, PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE, SETTINGS
-from   sendmail import Email
+from settings import USER_TEMPLATE, PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE, SETTINGS
+from sendmail import Email
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
@@ -37,6 +37,7 @@ db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
 
 
 logging = Logger()
+
 
 def init_user(settings, config):
     """
@@ -86,7 +87,6 @@ def init_user(settings, config):
 
 
 def exit_user(settings):
-
     """
     User component exit routines
 
@@ -117,21 +117,21 @@ def exit_user(settings):
 def generate_password(password_length=10, min_length=8):
     """
     Create random password of length `password_length`
-    
+
     Random characters are picked from the combined collection
     of ascii letters, digits and punctuation marks.
-    
+
     :param password_length: length of random password
     :type password_length:  int
     :param min_length:      not generate passwords with less characters
-    :type min_length:       int 
+    :type min_length:       int
     """
 
     # Should not generate passwords smaller then min_length characters
     if password_length < min_length:
-      logging.warn('Unable to generate password with less then {0} characters ({1})'.format(
-        min_length, password_length))
-      return
+        logging.warn('Unable to generate password with less then {0} characters ({1})'.format(
+            min_length, password_length))
+        return
 
     # Import (pseudo)-random number generator
     try:
@@ -148,7 +148,7 @@ def generate_password(password_length=10, min_length=8):
 
     # Pick random characters from three character collections based on partitioning
     charcollection = (string.ascii_letters, string.digits, string.punctuation)
-    password = str().join([ myrg.choice(charcollection[i]) for i,c in enumerate(chargroups) for _ in range(c)])
+    password = str().join([myrg.choice(charcollection[i]) for i, c in enumerate(chargroups) for _ in range(c)])
 
     logging.debug('Generate {0} character random password: {1}'.format(password_length, password))
     return password
@@ -165,7 +165,7 @@ def hash_password(password, key_derivation='pbkdf2', hash_method='sha256', salt_
     Look at Python's hashlib documentation for information on supported hashing
     algorithms and Werkzeug security documentation on the generate_password_hash
     method.
-  
+
     .. note:: Best to only use hashing methods from the hashlib.algorithms_guaranteed
               collection.
 
@@ -218,7 +218,7 @@ def check_password(password_hash, password):
 def is_valid_ipv4_address(address):
     """
     Check validitie of an IPv4 address
-    
+
     :param address: address to check
     :type address:  str
     :rtype:         bool
@@ -241,7 +241,7 @@ def is_valid_ipv4_address(address):
 def is_valid_ipv6_address(address):
     """
     Check validitie of an IPv6 address
-    
+
     :param address: address to check
     :type address:  str
     :rtype:         bool
@@ -258,7 +258,7 @@ def resolve_domain(url, scheme=''):
     """
     Resolve a domain of a url irrespective if the url contains a scheme,
     an IP or domain name or a port number
-    
+
     :param url:    url to resolve domain for
     :type url:     str
     :param scheme: scheme of the url, blank by default
@@ -272,14 +272,14 @@ def resolve_domain(url, scheme=''):
         url = url.lstrip('http://')
 
     # Split on port number if any and parse
-    url_spec = urlparse(url.rsplit(':',1)[0], scheme=scheme)
+    url_spec = urlparse(url.rsplit(':', 1)[0], scheme=scheme)
     domain = url_spec.netloc
 
     # Check if valid ip
     if is_valid_ipv4_address(domain) or is_valid_ipv6_address(domain):
         try:
             domain = socket.gethostbyaddr(domain)[0]
-        except:
+        except BaseException:
             pass
 
     return domain
@@ -290,12 +290,12 @@ def ip_domain_based_access(domain, blacklist=[]):
     Filter access based on client IP or domain information.
     If the domain is contained in a domain blacklist return
     False to deny access, otherwise return True.
-    
+
     :param domain:    domain to check access for against black list.
     :type domain:     str
     :param blacklist: domains to blacklist with support for wildcards
     :type blacklist:  list
-    
+
     :rtype:           bool
     """
 
@@ -332,45 +332,45 @@ class UserManager(object):
         self.session_id = key
 
         users = db['users']
-        users.update_one({'uid': self.user['uid']}, {'$set':{'session_id': self.session_id}})
+        users.update_one({'uid': self.user['uid']}, {'$set': {'session_id': self.session_id}})
 
         logging.debug('Open session: {0} for user {1}'.format(self.session_id, self.user['uid']))
 
     def retrieve_password(self, email):
         """
         Retrieve password by email
-        
+
         The email message template for user account password retrieval
         is stored in the PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE variable.
-        
-        * Locates the user in the database by email which should be a 
+
+        * Locates the user in the database by email which should be a
           unique and persistent identifier.
         * Generate a new random password
         * Send the new password to the users email once. If the email
           could not be send, abort the procedure
         * Save the new password in the database.
-        
+
         :param email: email address to search user for
         :type email:  string
         """
 
         user = self.get_user({'email': email})
         if not user:
-          logging.info('No user with email {0}'.format(email))
-          return
+            logging.info('No user with email {0}'.format(email))
+            return
 
         new_password = generate_password()
         user['password'] = hash_password(new_password)
         logging.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
 
         with Email() as email:
-          email.send(
-            email,
-            PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE.format(password=new_password, user=user['username']),
-            'Password retrieval request for LIEStudio'
-          )
-          self.user = user
-          self.save()
+            email.send(
+                email,
+                PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE.format(password=new_password, user=user['username']),
+                'Password retrieval request for LIEStudio'
+            )
+            self.user = user
+            self.save()
 
         return user
 
@@ -396,7 +396,7 @@ class UserManager(object):
             logging.debug('No such user')
 
         logging.info('{status} login attempt for user: {user}',
-            status='Correct' if check else 'Incorrect', user=username)
+                     status='Correct' if check else 'Incorrect', user=username)
 
         return check
 
@@ -408,7 +408,7 @@ class UserManager(object):
         :rtype:  bool
         """
 
-        if self.user and self.user.get('session_id', None) != None:
+        if self.user and self.user.get('session_id', None) is not None:
             users = db['users']
             users.update_one({'session_id': self.user['session_id']}, {'$set': {'session_id': None}})
 
@@ -520,5 +520,5 @@ class UserManager(object):
         """
 
         if self.user:
-          users = db['users']
-          users.replace_one({'_id':self.user['_id']}, self.user)
+            users = db['users']
+            users.replace_one({'_id': self.user['_id']}, self.user)
