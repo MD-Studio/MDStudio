@@ -141,7 +141,7 @@ class GraphAxis(Graph):
     def neighbors(self, node=None, return_nids=False):
         """
         Return de neighbor nodes of the node.
-    
+        
         ..  note:: if the current graph is a subgraph view (is_view == True) of
                    the parent graph than only the neighbor nodes represented by
                    the subgraph will be considered.

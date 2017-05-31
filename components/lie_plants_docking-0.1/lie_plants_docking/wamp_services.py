@@ -17,10 +17,9 @@ from   twisted.internet.defer              import inlineCallbacks
 from   lie_plants_docking.docking_settings import SETTINGS
 from   lie_plants_docking.plants_docking   import PlantsDocking
 from   lie_plants_docking.utils            import prepaire_work_dir
-from   lie_system                          import LieApplicationSession, WAMPMessageEnvelope
+from   lie_system                          import LieApplicationSession
 
 class DockingWampApi(LieApplicationSession):
-
     """
     Docking WAMP methods.
     
