@@ -14,7 +14,7 @@ import unittest2
 
 def module_test_suite():
     """
-    Run lie_config module unit tests
+    Run lie_graph module unit tests
     """
 
     loader = unittest2.TestLoader()
