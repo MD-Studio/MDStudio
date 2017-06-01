@@ -10,9 +10,11 @@ class GraphORM(object):
 
         self._node_orm_mapping = {}
         self._edge_orm_mapping = {}
+        self._node_mapping = {}
+        self._edge_mapping = {}
         self._class_name = 'Graph'
         self._inherit = inherit
-
+    
     def _class_factory(self, base_cls, classes):
         """
         Factory for custom Graph classes
@@ -48,6 +50,22 @@ class GraphORM(object):
         base_cls = type(base_cls_name, tuple(base_cls_mro), {'adjacency': None, 'nodes': None, 'edges': None})
         return base_cls
 
+    @property
+    def mapped_node_types(self):
+        """
+        Returns a dictionary with all mapped node attributes
+        """
+
+        return self._node_mapping
+
+    @property
+    def mapped_edge_types(self):
+        """
+        Returns a dictionary with all mapped edge attributes
+        """
+
+        return self._edge_mapping
+
     def map_node(self, cls, node_attr=None, **kwargs):
         """
         Assign a class to be mapped to a node based on node attributes
@@ -69,6 +87,11 @@ class GraphORM(object):
 
         matching_rules.update(kwargs)
         assert len(matching_rules) > 0, 'No node attribute matching rules defined for ORM class: {0}'.format(cls)
+
+        for k,v in matching_rules.items():
+            if k not in self._node_mapping:
+                self._node_mapping[k] = []
+            self._node_mapping[k].append(v)
 
         self._node_orm_mapping[cls] = set(matching_rules.items())
 
@@ -93,6 +116,11 @@ class GraphORM(object):
 
         matching_rules.update(kwargs)
         assert len(matching_rules) > 0, 'No edge attribute matching rules defined for ORM class: {0}'.format(cls)
+
+        for k,v in matching_rules.items():
+            if k not in self._edge_mapping:
+                self._edge_mapping[k] = []
+            self._edge_mapping[k].append(v)
 
         self._edge_orm_mapping[cls] = set(matching_rules.items())
 
@@ -133,7 +161,7 @@ class GraphORM(object):
         for i in objects:
             attr = graph.attr(i)
             if isinstance(attr, dict):
-                query.extend(attr.items())
+                query.extend([(k,v) for k,v in attr.items() if not type(v) in (list,dict)])
 
         # query matching based on set operation, does not work for unhashable types
         try:
