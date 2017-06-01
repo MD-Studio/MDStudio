@@ -17,7 +17,7 @@ sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
 # this executable is proprietary, and thus cannot be installed by default
 # if the file does not exists we skip the tests involved
-exec_path = os.path.join(__rootpath__, '../../../bin/plants_darwin')
+exec_path = os.path.abspath(os.path.join(__rootpath__, '../../../../../bin/plants_darwin'))
 
 from twisted.logger import Logger
 from lie_plants_docking.plants_docking import PlantsDocking

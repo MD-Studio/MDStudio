@@ -55,8 +55,7 @@ class PlantsDocking(DockingBase):
     :type kwargs:       dict
     """
 
-    method = 'plants'
-    allowed_config_options = SETTINGS.get(method, {})
+    allowed_config_options = SETTINGS
     logging = Logger()
 
     def __init__(self, user_meta={}, **kwargs):
@@ -194,10 +193,10 @@ class PlantsDocking(DockingBase):
 
         exec_path = self._config.get('exec_path')
         if not os.path.exists(exec_path):
-            self.logging.error('{0} executable not available at: {1}'.format(self.method, exec_path), **self.user_meta)
+            self.logging.error('Plants executable not available at: {0}'.format(exec_path), **self.user_meta)
             return False
         if not os.access(exec_path, os.X_OK):
-            self.logging.error('{0} executable {1} does not have exacutable permissions'.format(self.method, exec_path), **self.user_meta)
+            self.logging.error('Plants executable {0} does not have exacutable permissions'.format(exec_path), **self.user_meta)
             return False
 
         if not self._config.get('bindingsite_center'):

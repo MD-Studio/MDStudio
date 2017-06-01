@@ -25,8 +25,8 @@ from lie_config.config_io import config_from_json
 from lie_system.wamp_schema import liestudio_task_schema
 
 class LieWampTaskMetadataTest(unittest.TestCase):
-
-    _currpath = os.path.abspath(__file__)
+    
+    _currpath = os.path.abspath(os.path.dirname(__file__))
 
     def test_task_default_metadata(self):
         """
@@ -41,12 +41,12 @@ class LieWampTaskMetadataTest(unittest.TestCase):
 
     def test_task_default_fromjson(self):
 
-        jsonmeta = json.load(open(os.path.join(self._currpath, 'default_task_metadata.json')))
+        jsonmeta = json.load(open(os.path.join(self._currpath, '../default_task_metadata.json')))
         metadata = WAMPTaskMetaData(metadata=jsonmeta)
 
     def test_task_prefilled_fromjson(self):
 
-        jsonmeta = json.load(open(os.path.join(self._currpath, 'prefilled_task_metadata.json')))
+        jsonmeta = json.load(open(os.path.join(self._currpath, '../prefilled_task_metadata.json')))
         metadata = WAMPTaskMetaData()
         metadata['authmethod'] = 'ticket'
 
