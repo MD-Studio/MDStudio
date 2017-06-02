@@ -35,7 +35,7 @@ from lie_topology.molecule.dihedral    import Dihedral
 class Molecule( Serializable ):
     
     def __init__( self, parent = None, key = None, type_name = None, identifier = None, \
-                  bonds = None, angles = None, dihedrals = None, impropers = None ):
+                  bonds = None, angles = None, dihedrals = None, impropers = None, replacing = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )

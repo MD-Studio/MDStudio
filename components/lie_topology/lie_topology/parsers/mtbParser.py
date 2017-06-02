@@ -392,8 +392,7 @@ def _ParsePolarizableSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParsePolarizableSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
-    mtb_group = mtb_file.GroupByKey("POLARIZABLE_SOLUTES")
-    mtb_group.AddMolecule(molecule=solute)
+    mtb_file.AddMolecule(molecule=solute)
 
 def _ParseSoluteBuildingBlock(block, mtb_file):
 
@@ -406,8 +405,7 @@ def _ParseSoluteBuildingBlock(block, mtb_file):
     if ( numVdwExceptions > 0 ):
         raise PygromosException( "_ParseSoluteBuildingBlock", "MTB van der Waals exceptions not supported" )
 
-    mtb_group = mtb_file.GroupByKey("SOLUTES")
-    mtb_group.AddMolecule(molecule=solute)
+    mtb_file.AddMolecule(molecule=solute)
 
 def _ParseBlendBuildingBlock(block, mtb_file):
 
@@ -416,8 +414,12 @@ def _ParseBlendBuildingBlock(block, mtb_file):
     it = _ParseBlendData( block, solute, 1 )
     it = _ParseBondedData( block, solute, it )
     
-    mtb_group = mtb_file.GroupByKey("BLENDS")
-    mtb_group.AddMolecule(molecule=solute)
+    # blends and molecule are different lists
+    # but we still have to check for name collisions
+    if mtb_file.FindMolecule( solute.key ) != None:
+        raise PygromosException( "_ParseSoluteBuildingBlock", "Blend name %s already present as molecule name" %(solute.key) )
+
+    mtb_file.AddBlend(molecule=solute)
 
 def _ParseSolventBuildingBlock(block, mtb_file):
 
@@ -460,10 +462,7 @@ def ParseMtb( ifstream ):
     tokenizer = Tokenizer( ifstream )
 
     mtb_file = Blueprint()
-    mtb_file.AddGroup( key="BLENDS" )
-    mtb_file.AddGroup( key="SOLUTES" )
-    mtb_file.AddGroup( key="POLARIZABLE_SOLUTES" )
-   
+    
     ## Uses occurance map to be order agnostic
     for blockName, block in tokenizer.Blocks():
         

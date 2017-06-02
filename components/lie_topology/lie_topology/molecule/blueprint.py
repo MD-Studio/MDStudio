@@ -47,7 +47,10 @@ class Blueprint( Serializable ):
         self._physical_constants = PhysicalConstants()
         
         # Solutes present in the mtb
-        self._groups = ContiguousMap()
+        self._molecules = ContiguousMap()
+
+        # Blends present in the mtb
+        self._blends = ContiguousMap()
 
         # Solvents present in the mtb
         self._solvents = ContiguousMap()
@@ -68,11 +71,6 @@ class Blueprint( Serializable ):
         return self._physical_constants
 
     @property
-    def groups(self):
-
-        return self._groups
-
-    @property
     def solvents(self):
 
         return self._solvents
@@ -87,15 +85,32 @@ class Blueprint( Serializable ):
 
         self._exclusion_distance = value
 
-    def AddGroup( self, **kwargs ):
+    def AddMolecule( self, **kwargs ):
+  
+        if  "molecule" in kwargs:
+            molecule = kwargs["molecule"]
+            if not molecule.key:
+                raise LieTopologyException("Blueprint::AddMolecule", "key is a required argument" )
 
-        if not "key" in kwargs:
+            self._molecules.insert( molecule.key, molecule )
 
-            raise LieTopologyException("Blueprint::AddGroup", "key is a required argument" )
-        
-        kwargs["parent"] = self
-        self._groups.insert( kwargs["key"], Group( **kwargs ) )
+        else:
+            kwargs["parent"] = self
+            self._molecules.insert( kwargs["key"], Molecule(**kwargs) )
     
+    def AddBlend( self, **kwargs ):
+  
+        if  "molecule" in kwargs:
+            molecule = kwargs["molecule"]
+            if not molecule.key:
+                raise LieTopologyException("Blueprint::AddBlend", "key is a required argument" )
+
+            self._blends.insert( molecule.key, molecule )
+
+        else:
+            kwargs["parent"] = self
+            self._blends.insert( kwargs["key"], Molecule(**kwargs) )
+
     def AddSolvent( self, **kwargs ):
 
         if "molecule" in kwargs:
@@ -111,11 +126,15 @@ class Blueprint( Serializable ):
                 raise LieTopologyException("Blueprint::AddSolvent", "key is a required argument" )
             
             self._solvents.insert( kwargs["key"], Molecule( **kwargs ) )
-
-    def GroupByKey( self, key ):
-
-        return self._groups[key]
     
+    def FindMolecule( self, molecule_name ):
+
+        return self._molecules.find( molecule_name )
+
+    def FindBlend( self, blend_name ):
+
+        return self._blends.find( blend_name )
+
     def OnSerialize( self, logger = None ):   
 
         result = {}

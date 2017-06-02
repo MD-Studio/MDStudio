@@ -63,23 +63,6 @@ def _MoleculeFormat( molecule, array, n_residue, n_atom ):
 
     return mol_type_string
 
-def _SolventFormat( solvent, array, n_residue, n_atom ):
-
-    top_type_string = ""
-
-    remainder = len(array) - n_residue
-    solvent_atom_count = solvent.atom_count
-    n_solv = remainder / solvent_atom_count
-
-    if (remainder % solvent_atom_count) != 0:
-        raise LieTopologyException( "CnfGenerator::_PrintPositions", "Mismatch between remaining array size and number of solvent atoms")
-    
-    for i in range(0, n_solv):
-
-        top_type_string += _MoleculeFormat( solvent, array, n_residue, n_atom )
-
-        n_residue+=1
-        n_atom+=solvent.atom_count
 
 def _TopologicalFormat( topology, array ):
 
@@ -93,10 +76,10 @@ def _TopologicalFormat( topology, array ):
         raise LieTopologyException( "CnfGenerator::_TopologicalFormat", "Array writing requires a Nx3 input" )
 
     num_array_values = array_shape[0]
-    num_solute_atoms = topology.solute_atom_count
+    atom_count = topology.atom_count
 
-    if num_array_values < num_solute_atoms:
-        raise LieTopologyException( "CnfGenerator::_PrintPositions", "Writing of solute positions requires at least %i coordinates, currently %i present" % (num_solute_atoms, num_positions) )
+    if num_array_values != atom_count:
+        raise LieTopologyException( "CnfGenerator::_PrintPositions", "Writing of solute positions requires %i coordinates, currently %i present" % (num_solute_atoms, num_positions) )
 
     n_residue=0
     n_atom=0
@@ -113,41 +96,26 @@ def _TopologicalFormat( topology, array ):
 def _PrintPositions( ofstream, structure ):
     
     position_string, n_residue, n_atom = _TopologicalFormat( structure.topology, structure.coordinates )
-    solvent_string = ""
-
-    if structure.topology.solvent is not None:
-        solvent_string = _MoleculeFormat( structure.topology.solvent, array, n_residue, n_atom )
 
     ofstream.write( "POSITION\n"+\
                     position_string+\
-                    solvent_string+\
                     "END\n" )
 
 def _PrintVelocities( ofstream, structure ):
     
     velocity_string, n_residue, n_atom = _TopologicalFormat( structure.topology, structure.velocities )
-    solvent_string = ""
-
-    if structure.topology.solvent is not None:
-        solvent_string = _MoleculeFormat( structure.topology.solvent, array, n_residue, n_atom )
 
     ofstream.write( "VELOCITY\n"+\
                     velocity_string+\
-                    solvent_string+\
                     "END\n" )
 
 def _PrintForces( ofstream, structure ):
     
     forces_string, n_residue, n_atom = _TopologicalFormat( structure.topology, structure.forces )
-    solvent_string = ""
-
-    if structure.topology.solvent is not None:
-        solvent_string = _MoleculeFormat( structure.topology.solvent, array, n_residue, n_atom )
 
     ofstream.write( "FREEFORCE\n"+\
                     "# Note lie_topology does not recognice differences between free and cons force"+\
                     forces_string+\
-                    solvent_string+\
                     "END\n" )
 
 def _PrintLatticeShifts( ofstream, structure ):
@@ -245,6 +213,3 @@ def WriteCnf( ofstream, structures ):
 
         if structure.lattice is not None:
             _PrintLattice( ofstream, structure.lattice )
-        
-        
-    #fileHandle.write( self.result )

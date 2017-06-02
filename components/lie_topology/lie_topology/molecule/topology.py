@@ -63,12 +63,7 @@ class Topology( Serializable ):
     @property
     def atom_count(self):
 
-        return self.solute_atom_count + self.solvent_atom_count
-
-    @property
-    def solute_atom_count(self):
         count = 0
-        
         for group in self._groups.values():
             count += group.atom_count
         
