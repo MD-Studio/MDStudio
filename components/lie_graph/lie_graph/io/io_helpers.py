@@ -5,6 +5,27 @@ import os
 import collections
 import json
 import StringIO
+import logging
+
+from   .. import __version__
+
+def _check_lie_graph_version(version=None):
+    """
+    Check if the graph version of the file is (backwards) compatible with
+    the current lie_graph module vesion
+    """
+    
+    try:
+        version = float(version)
+    except:
+        logging.error('No valid lie_graph version identifier {0}'.format(version))
+        return False
+    
+    if version > float(__version__):
+        logging.error('Graph made with a newer version of lie_graph {0}, you have {1}'.format(version, __version__))
+        return False
+        
+    return True    
 
 
 def _open_anything(source, mode='r'):

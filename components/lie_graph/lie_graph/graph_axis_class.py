@@ -5,6 +5,8 @@ Graph axis methods
 
 Class for traversing and querying (sub)graph hierarchy with respect to a root
 node.
+
+TODO: Some of the axis methods don't work for directed graphs
 """
 
 from itertools import combinations
@@ -112,7 +114,9 @@ class GraphAxis(Graph):
         Return all leaf nodes in the (sub)graph
 
         Leaf nodes are identified as those nodes having one edge only.
-
+        This equals one adjacency node in a undirectional graph and no adjacency
+        nodes in a directed graph.
+        
         :param include_root: include the root node if it is a leaf
         :type include_root:  bool
 
@@ -122,8 +126,12 @@ class GraphAxis(Graph):
                              graph object representing the selection
         :type return_nids:   bool
         """
-
-        leaves = [node for node in self.nodes() if len(self.adjacency[node]) == 1]
+        
+        if self.is_directed:
+            leaves = [node for node in self.nodes() if len(self.adjacency[node]) == 0]
+        else:
+            leaves = [node for node in self.nodes() if len(self.adjacency[node]) == 1]
+        
         if not include_root and self.root in leaves:
             leaves.remove(self.root)
 

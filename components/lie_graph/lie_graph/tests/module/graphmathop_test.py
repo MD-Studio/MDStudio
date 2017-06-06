@@ -11,8 +11,6 @@ import string
 import unittest2
 import random
 
-from asq.initiators import query
-
 # Add modules in package to path so we can import them
 currpath = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(currpath, '..')))

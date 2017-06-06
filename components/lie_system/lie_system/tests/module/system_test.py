@@ -9,9 +9,8 @@ Unit tests for the lie_config component
 import os
 import sys
 import unittest
+import getpass
 import json
-import copy
-import glob
 
 # Add modules in package to path so we can import them
 currpath = os.path.dirname(__file__)
@@ -23,38 +22,43 @@ PY3 = sys.version_info.major == 3
 
 from lie_system import *
 from lie_config.config_io import config_from_json
+from lie_system.wamp_schema import liestudio_task_schema
 
+class LieWampTaskMetadataTest(unittest.TestCase):
+    
+    _currpath = os.path.abspath(os.path.dirname(__file__))
 
-class LieWampTaskTest(unittest.TestCase):
-    """
-    Unittest system WAMP messaging
-    """
-
-    _currpath = os.path.abspath(__file__)
-    _settings_json = os.path.join(os.path.dirname(_currpath), '../system_wamp_test.json')
-
-    def setUp(self):
+    def test_task_default_metadata(self):
         """
-        SystemWAMPmessagingTest class setup
-
-        Load test settings file from system_wamp_test.json
+        Test default WAMP task metadata generation
         """
 
-        self.data = config_from_json(self._settings_json)
-        #self.settings = LieWampTask()
+        metadata = WAMPTaskMetaData()
+        required = liestudio_task_schema['required']
 
-    def test_task_setup(self):
+        self.assertItemsEqual(metadata.dict().keys(), required)
+        self.assertEqual(metadata.system_user, getpass.getuser())
 
-        # Empty Task
-        # print(self.settings)
+    def test_task_default_fromjson(self):
 
-        # Loading a predefined task
-        # self.settings.load(self.data)
-        # self.settings._validate()
+        jsonmeta = json.load(open(os.path.join(self._currpath, '../default_task_metadata.json')))
+        metadata = WAMPTaskMetaData(metadata=jsonmeta)
 
-        # Get _wampTask in _inputDict
-        #_inputDict = self.settings._inputDict.ligandFile._wampTask
+    def test_task_prefilled_fromjson(self):
 
-        # self.settings._resolve_config_level()
-        # print(self.settings)
-        pass
+        jsonmeta = json.load(open(os.path.join(self._currpath, '../prefilled_task_metadata.json')))
+        metadata = WAMPTaskMetaData()
+        metadata['authmethod'] = 'ticket'
+
+    def test_task_metadata_setter(self):
+
+        metadata = WAMPTaskMetaData()
+
+        # Test option based attributes
+        failed = False
+        try:
+            metadata.status = 'hello'
+        except LookupError:
+            failed = True
+
+        self.assertTrue(failed)

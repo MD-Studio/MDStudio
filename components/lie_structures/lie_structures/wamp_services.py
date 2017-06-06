@@ -12,10 +12,9 @@ import time
 
 from autobahn import wamp
 from autobahn.wamp.types import RegisterOptions
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from lie_system import LieApplicationSession
-
 
 class StructuresWampApi(LieApplicationSession):
     """
@@ -35,7 +34,7 @@ class StructuresWampApi(LieApplicationSession):
 
         result = ''
         tmpdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/tmp'
-        structure_file = os.path.join(tmpdir, '{0}.mol2'.format(structure))
+        structure_file = os.path.join(tmpdir, structure)
         if os.path.exists(structure_file):
             with open(structure_file, 'r') as sf:
                 result = sf.read()
@@ -44,7 +43,9 @@ class StructuresWampApi(LieApplicationSession):
 
         self.log.info("Return structure: {structure}", structure=structure_file, **self.session_config.dict())
 
-        return {'result': result}
+        # Pack result in session
+        session['status'] = 'completed'
+        return {'result':result, 'session':session}
 
     def get_meta(self, meta, session=None):
 

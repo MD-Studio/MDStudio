@@ -16,7 +16,7 @@ def module_test_suite():
     """
     loader = unittest2.TestLoader()
 
-    print('Running lie_config unittests')
+    print('Running lie_graph unittests')
     suite = loader.discover(os.path.dirname(__file__), pattern='module_*.py')
     runner = unittest2.TextTestRunner(verbosity=2)
     runner.run(suite)
