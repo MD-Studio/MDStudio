@@ -25,6 +25,14 @@ lie\_graph\.io\.io\_helpers module
     :undoc-members:
     :show-inheritance:
 
+lie\_graph\.io\.io\_json\_format module
+---------------------------------------
+
+.. automodule:: lie_graph.io.io_json_format
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie\_graph\.io\.io\_pgf\_format module
 --------------------------------------
 

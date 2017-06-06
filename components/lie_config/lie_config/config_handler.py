@@ -460,7 +460,7 @@ class ConfigHandler(object):
                 value = self._config[self._keys[k]]
 
                 # Encode strings to UTF-8
-                if isinstance(value, str):
+                if isinstance(value, (str, unicode)):
                     value = value.encode('utf-8')
 
                 overview.append('{0}: {1}\n'.format(k, value))

@@ -90,7 +90,7 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
     for key, value in config.items():
 
         # parse key to string if needed
-        if not isinstance(key, str):
+        if not isinstance(key, (str, unicode)):
             key = str(key)
 
         new_key = str(parent_key + sep + key if parent_key else key).encode('utf-8')

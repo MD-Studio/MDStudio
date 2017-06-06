@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "754829db9dad8092f86abf537543c97c4f524959056c55d27e9139870b50d661"
+            "sha256": "0e3d0e318b34af2ce0fbac9604fe51f13d16880059247f6a784568cd1cbdf723"
         },
         "requires": {},
         "sources": [
@@ -32,6 +32,9 @@
         },
         "automat": {
             "version": "==0.6.0"
+        },
+        "autopep8": {
+            "version": "==1.3.2"
         },
         "babel": {
             "version": "==2.4.0"

@@ -1,7 +1,7 @@
-lie_docking
+lie_haddock
 ===========
 
 .. toctree::
    :maxdepth: 4
 
-   tests
+   lie_haddock
