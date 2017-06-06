@@ -14,31 +14,31 @@ import fnmatch
 import re
 
 try:
-  import _preamble
+    import _preamble
 except ImportError:
-  try:
-    sys.exc_clear()
-  except AttributeError:
-    # exc_clear() (and the requirement for it) has been removed from Py3
-    pass
+    try:
+        sys.exc_clear()
+    except AttributeError:
+        # exc_clear() (and the requirement for it) has been removed from Py3
+        pass
 
 # Package info
-__module__    = 'liestudio'
+__module__ = 'liestudio'
 __docformat__ = 'restructuredtext'
-__version__   = '{major:d}.{minor:d}.{micro:d}'.format(major=0, minor=1, micro=0)
-__author__    = 'Marc van Dijk'
-__status__    = 'pre-release beta1'
-__date__      = '19 april 2016'
+__version__ = '{major:d}.{minor:d}.{micro:d}'.format(major=0, minor=1, micro=0)
+__author__ = 'Marc van Dijk'
+__status__ = 'pre-release beta1'
+__date__ = '19 april 2016'
 __copyright__ = 'Copyright (c) 2016, VU University, Amsterdam, the Netherlands'
-__rootpath__  = os.path.dirname(os.path.abspath(__file__))
-__pyv__       = sys.version_info[0:2]
+__rootpath__ = os.path.dirname(os.path.abspath(__file__))
+__pyv__ = sys.version_info[0:2]
 
 # Check if Python virtual environment is in sys.path
 venv_path = os.getenv('VIRTUAL_ENV')
 venv_active = False
 
 for path in sys.path:
-    packages = '{}*/site-packages'.format( venv_path )
+    packages = '{}*/site-packages'.format(venv_path)
     if fnmatch.fnmatch(path, packages):
         venvpath = path
         venv_active = True
@@ -47,17 +47,18 @@ if not venv_active:
 
 
 # Import required system packages
-from  lie_system     import ComponentManager
-from  lie_config     import get_config, config_to_json
-from  twisted.logger import Logger
+from lie_system import ComponentManager
+from lie_config import get_config, config_to_json
+from twisted.logger import Logger
 
 logging = Logger()
+
 
 def _format_crossbar_cliargs(args):
     """
     Format crossbar configuration to a sys.argv list of command line arguments
     that can be parsed by the crossbar cli argparser.
-    
+
     :param args: crossbar configuration to format
     :type args:  ConfigHandler instance
     :rtype:      list
@@ -65,7 +66,7 @@ def _format_crossbar_cliargs(args):
 
     options = []
     commands = {}
-    for key,value in args.items():
+    for key, value in args.items():
 
         key_split = key.split('.')
 
@@ -83,7 +84,7 @@ def _format_crossbar_cliargs(args):
             else:
                 commands[key_split[0]].append(['--{0}'.format(key_split[1]), value])
         else:
-            logging.warn('Invalid crossbar CLI settings: {0} = {1}'.format(key,value))
+            logging.warn('Invalid crossbar CLI settings: {0} = {1}'.format(key, value))
 
     for command, args in commands.items():
         options.append(command)
@@ -124,25 +125,25 @@ def bootstrap_app(args):
     config['lie_logger.global_log_level'] = args.loglevel
 
     # Initiate ComponentManager with component search paths
-    # Only load modules with prefix 'lie_' from virtual environment site-packages 
+    # Only load modules with prefix 'lie_' from virtual environment site-packages
     components = ComponentManager(config=config)
     components.add_searchpath(venvpath, prefix='lie_')
 
-    init_docker_build(components, config)
+    init_dev_build(components, config)
 
     init_debug_hook(config)
 
-    for path in config.system.get('component_path',[]):
+    for path in config.system.get('component_path', []):
         components.add_searchpath(path)
 
     # Update application configuration with component settings
     # not yet defined.
     default_component_settings = components.component_settings()
     for component in default_component_settings:
-        if not component in config:
+        if component not in config:
             config.update({component: default_component_settings[component]})
 
-    # Bootstrap components  
+    # Bootstrap components
     components.bootstrap(order=config.system.bootstrap_order)
     components.shutdown_order = config.system.shutdown_order
 
@@ -184,25 +185,26 @@ def init_debug_hook(config):
             startDebugMode()
 
 
-def init_docker_build(components, config):
+def init_dev_build(components, config):
     """
     Adds local development files
 
     :param components: The component loader object
     :param config:  The configuration object
     """
-    if os.getenv('IS_DOCKER', False):
+    if config.system.get('is_dev_build', False) or os.getenv('IS_DOCKER', False):
         # noinspection PyUnusedLocal
         def list_components(self, search_path):
             found = {}
             for g in glob(os.path.join(search_path, '*/*/')):
-                match = re.match(r'(.*/(.*)-.*/\2)/', g)
+                match = re.match(r'(.*/(.*)/\2)/', g)
                 if match:
                     found[match.group(2)] = match.group(1)
             return found
 
         # in case we run in docker build mode
         components.add_searchpath(os.path.join(__rootpath__, 'components/'), prefix='lie_', search_method=list_components)
+
 
 if __name__ == '__main__':
 

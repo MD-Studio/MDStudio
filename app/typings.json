@@ -16,5 +16,8 @@
     "run-sequence": "github:DefinitelyTyped/DefinitelyTyped/run-sequence/run-sequence.d.ts#fbdc1b91125a87e62be3803f58aabb176cc2fd50",
     "systemjs": "github:DefinitelyTyped/DefinitelyTyped/systemjs/systemjs.d.ts#83af898254689400de8fb6495c34119ae57ec3fe",
     "when": "github:DefinitelyTyped/DefinitelyTyped/when/when.d.ts#cfc3e22a3d3e373903c8a4db515014ede84f9deb"
+  },
+  "dependencies": {
+    "autobahn": "registry:dt/autobahn#0.9.7+20170315155348"
   }
 }

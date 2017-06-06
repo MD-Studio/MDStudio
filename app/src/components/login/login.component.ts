@@ -16,7 +16,8 @@ import {Dialog,
         Button,
         InputSwitch,
         InputText}          from 'primeng/primeng';
-import {CookieService}      from 'angular2-cookie/core';
+import { CookieService } from 'ngx-cookie';
+import {CookieModule}       from 'ngx-cookie';
 
 // App imports
 import {UserService}        from '../../shared/services/src/user.service';
@@ -28,12 +29,12 @@ import {WampService}        from '../../shared/services/src/wamp.service';
   templateUrl:   'login.component.html',
   styleUrls :    ['login.component.css'],
   encapsulation: ViewEncapsulation.None,
-  providers:     [CookieService],
   host:          {'class' : 'ng-animate LoginComponent'}, 
 })
 
 @NgModule({
-  declarations: [Dialog, Button, InputText, InputSwitch]
+    imports: [CookieModule.forRoot()],
+    declarations: [Dialog, Button, InputText, InputSwitch]
 })
 export class LoginComponent {
   

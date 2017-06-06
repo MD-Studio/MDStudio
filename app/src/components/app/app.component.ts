@@ -15,6 +15,7 @@ import {Http,
 import {BrowserModule} from '@angular/platform-browser';
 import {Router,
         RouterModule}  from '@angular/router';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {DashboardComponent} from '../dashboard/dashboard.component'
 import {BootComponent} from '../boot/boot.component'
@@ -59,7 +60,7 @@ declare var jQuery: any;
 })
 
 @NgModule({
-  imports: [BrowserModule, AppRouting, HttpModule, MultiSelectModule, FormsModule, DataTableModule, ContextMenuModule, SliderModule, DialogModule, InputSwitchModule],
+  imports: [BrowserModule, AppRouting, HttpModule, MultiSelectModule, FormsModule, DataTableModule, ContextMenuModule, SliderModule, DialogModule, InputSwitchModule, BrowserAnimationsModule],
   declarations: [AppComponent, DashboardComponent, BootComponent, DockingComponent, MDComponent, LoggingComponent, LoginComponent, Button, PanelMenu, Menubar, PanelMenuSub, MenubarSub, nvD3],
   bootstrap: [ AppComponent ],
   providers: [UserService, WampService, Authorize] 

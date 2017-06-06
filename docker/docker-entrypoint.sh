@@ -1,27 +1,80 @@
-echo 'Running installer' &>> docker/.INSTALLING
+#!/usr/bin/env bash
 
-if [[ ! -d "/app/.venv" ]]; then   
-    bash installer.sh --setup --local-dev &>> docker/.INSTALLING
+# Make sure the installation output is clean
+rm /tmp/.INSTALLINGDONE
+rm /tmp/.INSTALLING
+
+user=$(ls -ld /app | awk '{print $3}')
+group=$(ls -ld /app | awk '{print $4')
+
+# check if the mounted filesystem is NTFS
+touch /app/.isntfs
+chmod /app/.isntfs 755
+chmod /app/.isntfs 777
+
+if [ $(stat -c %a /app/.isntfs) == '755' ]; then
+    user=1000
+    group=1000
+
+    echo "Detected NTFS mount on /app, enabling usermode" >> /tmp/.INSTALLING
+fi
+rm /app/.isntfs
+
+if [ "$user" != "root" ]; then
+    uid=$(id -u $user 2> /dev/null || echo -1)
+    if [ $uid -lt 0 ]; then
+        uid=$user
+        gid=$(cut -d: -f3 < <(getent group $group))
+        if [ "$gid" == "" ]; then
+            gid=$group
+            group='liegroup'
+            # Initialize liegroup
+            echo $(addgroup --gid $(echo $gid) liegroup) >> /tmp/.INSTALLING
+        fi
+
+        # Initialize lieuser
+        echo $(adduser --uid $(echo $uid) --gid $(echo $gid) --system lieuser) >> /tmp/.INSTALLING
+        user="lieuser"
+
+        sed -i 's/USERMODE=0/USERMODE=1/g' ~/.bashrc
+        cp -t /home/lieuser/ ~/.bashrc ~/.bashrc_all ~/.bashrc_user
+        chown lieuser /home/lieuser/*
+        echo 'source ~/.bashrc_root' >> ~/.bashrc
+        echo 'source ~/.bashrc_user' >> /home/lieuser/.bashrc
+
+        echo "Default user is now $user" >> /tmp/.INSTALLING
+    else
+        group='liegroup'
+    fi
+
+    # Get correct user
+    user=$(getent passwd "$uid" | cut -d: -f1)
+fi
+touch /app/docker/.USERDONE
+
+if [[ ! -d "/app/.venv" ]]; then
+
+    if [ "$user" != "root" ]; then
+        echo "Running installer.sh as $user" >> /tmp/.INSTALLING
+    else
+        echo 'Running installer' >> /tmp/.INSTALLING
+    fi
+
+    setuser $user ./installer.sh --setup --local-dev &>> /tmp/.INSTALLING
 fi
 
-echo 'Enabling debugging code' &>> docker/.INSTALLING
-# disable the debugger disabling code which spews a LOT of warnings
-sed -i 's/ sys.settrace(None)/ #sys.settrace(None)/g' /app/.venv/lib/python2.7/site-packages/twisted/internet/process.py
-
-echo 'Set mongo connection' &>> docker/.INSTALLING
-sed -i 's/"host": "localhost",/"host": "mongo",/g' /app/data/settings.json
-
-grep -q "source /app/.venv/bin/activate" ~/.bashrc || echo "source /app/.venv/bin/activate" >> ~/.bashrc
-grep -q "export MONGO_HOST=mongo" ~/.bashrc || echo "export MONGO_HOST=mongo" >> ~/.bashrc
-grep -q "export IS_DOCKER=1" ~/.bashrc || echo "export IS_DOCKER=1" >> ~/.bashrc
-
-echo 'Compiling pycharm helpers' &>> docker/.INSTALLING
 if [ -d /app/.pycharm_helpers/pydev/ ]; then
-    python /app/.pycharm_helpers/pydev/setup_cython.py build_ext --inplace &>> docker/.INSTALLING
+
+    if [ "$user" != "root" ]; then
+        echo "Compiling as $user" &>> /tmp/.INSTALLING
+    else
+        echo 'Compiling pycharm helpers' &>> /tmp/.INSTALLING
+    fi
+    setuser $user python /app/.pycharm_helpers/pydev/setup_cython.py build_ext --inplace &>> /tmp/.INSTALLING
 fi
 
 # notify the installation has been completed
-echo '<<<<COMPLETED>>>>' >> docker/.INSTALLING
+echo '<<<<COMPLETED>>>>' >> /tmp/.INSTALLING
 
 #execute the default phusion script
 /sbin/my_init

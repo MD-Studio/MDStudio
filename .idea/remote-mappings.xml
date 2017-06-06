@@ -27,6 +27,7 @@
         <remote-mappings server-id="python@ssh://root@127.0.0.1:65432/app/.venv/bin/python">
           <settings>
             <list>
+              <mapping local-root="$PROJECT_DIR$/.venv/lib" remote-root="/app/.venv/local/lib" />
               <mapping local-root="$PROJECT_DIR$" remote-root="/app" />
             </list>
           </settings>

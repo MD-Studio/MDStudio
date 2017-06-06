@@ -1,10 +1,6 @@
+#!/usr/bin/env bash
 # build the docker containers
 docker-compose build
-
-# allows polling the installation process
-rm docker/.INSTALLING 2> /dev/null
-touch docker/.INSTALLING
-chmod 777 docker/.INSTALLING
 
 # for documentation
 mkdir -p docs/html 
@@ -15,10 +11,18 @@ mkdir -p .pycharm_helpers
 docker-compose stop
 
 # start the containers
-docker-compose up --force-recreate -d
+docker-compose up -d
 
-# display the installation progress
-sh -c 'tail -n +0 -f docker/.INSTALLING | { sed "/<<<<COMPLETED>>>>/ q" && kill $$ ;}' && (rm docker/.INSTALLING || true)
+echo 'Waiting for user creation'
+while [ ! -f docker/.USERDONE ]; do
+    sleep 0.2
+done
+
+rm docker/.USERDONE
 
 # login into workspace
-docker exec -it liestudio_workspace_1 bash -l
+if [ $OSTYPE == 'msys' ]; then
+    winpty docker exec -it liestudio_workspace_1 bash -l
+else
+    docker exec -it liestudio_workspace_1 bash -l
+fi

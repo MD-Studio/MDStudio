@@ -5,7 +5,6 @@
  */
 
 import {Injectable} from '@angular/core';
-
 declare var autobahn: any;
 
 @Injectable()

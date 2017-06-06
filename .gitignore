@@ -211,3 +211,4 @@ app/src/**/*.map
 app/src/**/*.js
 app/gulpfile.js
 app/gulpfile.js.map
+app/bower_components/*
