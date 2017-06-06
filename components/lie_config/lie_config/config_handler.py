@@ -144,8 +144,8 @@ class ConfigHandler(object):
     def __contains__(self, key):
         """
         Implement class __contains__ method
-        This is the equivalent of the dict __contains__ method in that it only
-        checks the first level of a nested dictionary for the key.
+        This is the equivalent of the dict __contains__ method in thatin (str, unicode) it onin (str, unicode)in (str, unicode)ly
+        checks the first level of a nested dictionary for the key.in (str, unicode)
 
         The `contains` method checks for the presence of the key at any
         level.
@@ -154,7 +154,7 @@ class ConfigHandler(object):
         :rtype:  bool
         """
 
-        return key in self
+        return self.key_exists(key)
 
     def __eq__(self, other):
         """
@@ -460,7 +460,7 @@ class ConfigHandler(object):
                 value = self._config[self._keys[k]]
 
                 # Encode strings to UTF-8
-                if type(value) in (str, unicode):
+                if isinstance(value, str):
                     value = value.encode('utf-8')
 
                 overview.append('{0}: {1}\n'.format(k, value))
@@ -853,7 +853,7 @@ class ConfigHandler(object):
         """
 
         if self._freeze:
-            raise KeyError('Unable to clear freezed dictionary'.format(key))
+            raise KeyError('Unable to clear freezed dictionary')
 
         self._keys = []
         self._config.clear()
@@ -900,7 +900,7 @@ class ConfigHandler(object):
 
         return default
 
-    def has_key(self, key):
+    def key_exists(self, key):
         """
         Checks the first level of a nested dictionary for the key.
 

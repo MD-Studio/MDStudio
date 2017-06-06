@@ -90,11 +90,10 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
     for key, value in config.items():
 
         # parse key to string if needed
-        if type(key) not in (str, unicode):
-            logging.debug('Dictionary key {0} of type {1}. Parse to unicode'.format(key, type(key)))
-            key = unicode(key)
+        if not isinstance(key, str):
+            key = str(key)
 
-        new_key = unicode(parent_key + sep + key if parent_key else key)
+        new_key = str(parent_key + sep + key if parent_key else key).encode('utf-8')
         if isinstance(value, collections.MutableMapping):
             items.extend(_flatten_nested_dict(value, new_key, sep=sep).items())
         else:

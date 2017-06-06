@@ -150,7 +150,7 @@ class configwrapper(object):
             # Inspect the function for keyword arguments.
             # Replace by settings value if not defined in kwargs
             for param in fsig.parameters.values():
-                if param.default == param.empty and param.name in kwargs and param.name not not in settings:
+                if not (param.default == param.empty or param.name in kwargs) and param.name in settings:
                     kwargs[param.name] = settings[param.name]
 
             # If kwargs is defined in the functions arguments,
