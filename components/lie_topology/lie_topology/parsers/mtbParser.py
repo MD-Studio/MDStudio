@@ -361,6 +361,11 @@ def _ParseBlendData( block, solute, it ):
     # Parse trailing atoms in ( for chains )
     if numReplace > 0:
         it = _ParseSoluteAtoms( block, solute, numReplace, it, True )
+    else:
+        # insert preceding atoms to signal ones to delete
+        for i in range(0,abs(numReplace)):
+            solute.AddAtom( key="-%i"%(i), preceding=True )
+
 
     return it
 

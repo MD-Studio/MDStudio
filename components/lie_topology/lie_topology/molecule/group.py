@@ -129,3 +129,14 @@ class Group( Serializable ):
         DeserializeFlatTypes( ["key", "chain_id"], data, self.__dict__, '_' )
         DeserializeContiguousMapsTypes( ["molecules"], [Molecule], data, self.__dict__, logger, '_', self )
 
+    def Debug(self):
+
+        key = str(self._key) if self._key is not None else "?"
+        chain_id = str(self._chain_id) if self._chain_id is not None else "?"
+
+        aggregate = "[%7s %7s]\n" % (key, chain_id)
+        for molecule in self._molecules.values():
+
+            aggregate+=molecule.Debug()
+        
+        return aggregate

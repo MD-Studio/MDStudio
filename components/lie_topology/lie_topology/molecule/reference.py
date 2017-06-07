@@ -44,6 +44,30 @@ class AtomReference( Serializable ):
         # index of the atm
         self._external_index = external_index
     
+    @property
+    def group_key(self):
+        return self._group_key
+
+    @property 
+    def molecule_key(self):
+        return self._molecule_key
+
+    @property
+    def atom_key(self):
+        return self._atom_key
+    
+    @group_key.setter
+    def group_key(self,value):
+        self._group_key = value
+
+    @molecule_key.setter
+    def molecule_key(self,value):
+        self._molecule_key = value
+
+    @atom_key.setter
+    def atom_key(self,value):
+        self._atom_key = value
+
     def TryLink( self, root, referencing_molecule ):
         
         ## Try to find the linking atom

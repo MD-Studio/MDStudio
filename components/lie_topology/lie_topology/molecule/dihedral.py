@@ -36,7 +36,7 @@ from lie_topology.forcefield.reference import ForceFieldReference
 
 class Dihedral( Serializable ):
     
-    def __init__( self, atom_references = [], dihedral_type = None, united = None ):
+    def __init__( self, atom_references = None, dihedral_type = None, united = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )

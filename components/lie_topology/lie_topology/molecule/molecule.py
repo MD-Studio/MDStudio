@@ -108,6 +108,21 @@ class Molecule( Serializable ):
     def atom_count(self):
         return self._atoms.size()
 
+    @property
+    def preceding_count(self):
+        num=0
+        for atom in self._atoms.values():
+            if atom.preceding is True:
+                num+=1
+        return num
+
+    @property
+    def trailing_count(self):
+        num=0
+        for atom in self._atoms.values():
+            if atom.trailing is True:
+                num+=1
+        return num
 
     @property
     def group(self):
@@ -223,3 +238,17 @@ class Molecule( Serializable ):
                         new_references.append( ref.TryLink(root_obj, self) )
                     
                     item.atom_references = new_references
+
+    
+    def Debug(self):
+
+        key = str(self._key) if self._key is not None else "?"
+        type_name = str(self._type_name) if self._type_name is not None else "?"
+        identifier = str(self._identifier) if self._identifier is not None else "?"
+
+        aggregate = "%7s %7s %7s\n" % (key, type_name, identifier)
+        for atom in self._atoms.values():
+
+            aggregate+="\t"+atom.Debug()
+        
+        return aggregate

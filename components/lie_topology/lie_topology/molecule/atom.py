@@ -103,3 +103,14 @@ class Atom( Serializable ):
                 group_key=group.key
         
         return AtomReference( atom_key=atom_key,molecule_key=molecule_key,group_key=group_key )
+    
+    def Debug(self):
+        
+        # key of the atom
+        key        = str(self.key) if self.key is not None else "?"
+        type_name  = str(self.type_name) if self.type_name is not None else "?"
+        element    = str(self.element) if self.element is not None else "?"
+        identifier = str(self.identifier) if self.identifier is not None else "?"
+        sybyl      = str(self.sybyl) if self.sybyl is not None else "?"
+
+        return "%7s %7s %7s %7s %7s\n" % (key, type_name, element, identifier, sybyl)

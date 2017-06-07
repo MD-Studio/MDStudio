@@ -129,5 +129,13 @@ class Topology( Serializable ):
 
         if self._solvent:
             self._solvent.ResolveNamedReferences( None )
-            
+    
+    def Debug(self):
+
+        aggregate=""
+        for group in self._groups.values():
+
+            aggregate+=group.Debug()+"\n"
+        
+        return aggregate
 

@@ -13,7 +13,7 @@ from lie_topology.parsers.groParser import ParseGro
 from lie_topology.parsers.sdfParser import ParseSdf
 from lie_topology.parsers.mol2Parser import ParseMol2
 
-from lie_topology.utilities.makeTopology import MakeTopology
+from lie_topology.utilities.makeTopology import MakeSequence
 
 
 from lie_topology.writers.cnfWriter import WriteCnf
@@ -23,83 +23,81 @@ from lie_topology.molecule.crystal import BoxVectorsToLattice, LatticeToBoxVecto
 
 def main():
 
-    with open( "../tests/data/pdb/peptide.pdb", 'r') as ifstream:    
+    # with open( "../tests/data/pdb/peptide.pdb", 'r') as ifstream:    
         
-        pdb_structures = ParsePdb( ifstream )
+    #     pdb_structures = ParsePdb( ifstream )
         
-        with open( "../tests/data/cnf/test_write.cnf", 'w') as ofstream:
+    #     with open( "../tests/data/cnf/test_write.cnf", 'w') as ofstream:
             
-            WriteCnf( ofstream, pdb_structures )
+    #         WriteCnf( ofstream, pdb_structures )
     
-    with open( "../tests/data/cnf/md_fX_apixaban_1.cnf", 'r') as ifstream:
+    # with open( "../tests/data/cnf/md_fX_apixaban_1.cnf", 'r') as ifstream:
 
-        cnf_structures = ParseCnf( ifstream )
+    #     cnf_structures = ParseCnf( ifstream )
 
-        with open( "../tests/data/cnf/test_write2.cnf", 'w') as ofstream:
+    #     with open( "../tests/data/cnf/test_write2.cnf", 'w') as ofstream:
             
-            WriteCnf( ofstream, cnf_structures )
+    #         WriteCnf( ofstream, cnf_structures )
     
-    with open( "../tests/data/gro/run1_combined_pbc.gro", 'r') as ifstream:
+    # with open( "../tests/data/gro/run1_combined_pbc.gro", 'r') as ifstream:
 
-        gro_structures = ParseGro( ifstream )
+    #     gro_structures = ParseGro( ifstream )
 
-        with open( "../tests/data/cnf/test_write3.cnf", 'w') as ofstream:
+    #     with open( "../tests/data/cnf/test_write3.cnf", 'w') as ofstream:
             
-            WriteCnf( ofstream, gro_structures )
+    #         WriteCnf( ofstream, gro_structures )
 
-    with open( "../tests/data/sdf/BHC2.sdf", 'r') as ifstream:
+    # with open( "../tests/data/sdf/BHC2.sdf", 'r') as ifstream:
 
-        sdf_structures = ParseSdf( ifstream )
+    #     sdf_structures = ParseSdf( ifstream )
 
-        with open( "../tests/data/cnf/test_write4.cnf", 'w') as ofstream:
+    #     with open( "../tests/data/cnf/test_write4.cnf", 'w') as ofstream:
             
-            WriteCnf( ofstream, sdf_structures )     
+    #         WriteCnf( ofstream, sdf_structures )     
 
-    with open( "../tests/data/mol2/BHC2.mol2", 'r') as ifstream:
+    # with open( "../tests/data/mol2/BHC2.mol2", 'r') as ifstream:
 
-        mol2_structures = ParseMol2( ifstream )
+    #     mol2_structures = ParseMol2( ifstream )
 
-        with open( "../tests/data/cnf/test_write5.cnf", 'w') as ofstream:
+    #     with open( "../tests/data/cnf/test_write5.cnf", 'w') as ofstream:
             
-            WriteCnf( ofstream, mol2_structures )  
+    #         WriteCnf( ofstream, mol2_structures )  
 
 
     with open( "../tests/data/mtb/54a7.mtb", 'r') as mtb_ifstream,\
          open( "../tests/data/ifp/54a7.ifp", 'r') as ifp_ifstream:
 
-         blueprint = ParseMtb( mtb_ifstream )
-         forcefield = ParseIfp( ifp_ifstream )
+        blueprint = ParseMtb( mtb_ifstream )
+        forcefield = ParseIfp( ifp_ifstream )
 
-         MakeTopology( forcefield, blueprint, ["NH3+","ALA","GLY","COO-"], "SPC", [] )
+        topology = MakeSequence( forcefield, blueprint, ["NH3+","ALA","ALA","ALA","COO-"], "SPC", [] )
+        #  topology = MakeSequence( forcefield, blueprint,\
+        #        ["NH3+","ILE","VAL","GLY","GLY","GLN","GLU","CYS1","LYS","ASP","GLY",\
+        #         "GLU","CYS2","PRO","TRP","GLN","ALA","LEU","LEU","ILE","ASN",\
+        #         "GLU","GLU","ASN","GLU","GLY","PHE","CYS1","GLY","GLY","THR",\
+        #         "ILE","LEU","SER","GLU","PHE","TYR","ILE","LEU","THR","ALA",\
+        #         "ALA","HISA","CYS2","LEU","TYR","GLN","ALA","LYS","ARG","PHE",\
+        #         "LYS","VAL","ARG","VAL","GLY","ASP","ARG","ASN","THR","GLU",\
+        #         "GLN","GLU","GLU","GLY","GLY","GLU","ALA","VAL","HISA","GLU",\
+        #         "VAL","GLU","VAL","VAL","ILE","LYS","HISB","ASN","ARG","PHE",\
+        #         "THR","LYS","GLU","THR","TYR","ASP","PHE","ASP","ILE","ALA",\
+        #         "VAL","LEU","ARG","LEU","LYS","THR","PRO","ILE","THR","PHE",\
+        #         "ARG","MET","ASN","VAL","ALA","PRO","ALA","CYSH","LEU","PRO",\
+        #         "GLU","ARG","ASP","TRP","ALA","GLU","SER","THR","LEU","MET",\
+        #         "THR","GLN","LYS","THR","GLY","ILE","VAL","SER","GLY","PHE",\
+        #         "GLY","ARG","THR","HISB","GLU","LYS","GLY","ARG","GLN","SER",\
+        #         "THR","ARG","LEU","LYS","MET","LEU","GLU","VAL","PRO","TYR",\
+        #         "VAL","ASP","ARG","ASN","SER","CYS1","LYS","LEU","SER","SER",\
+        #         "SER","PHE","ILE","ILE","THR","GLN","ASN","MET","PHE","CYS2",\
+        #         "ALA","GLY","TYR","ASP","THR","LYS","GLN","GLU","ASP","ALA",\
+        #         "CYS1","GLN","GLY","ASP","SER","GLY","GLY","PRO","HISB","VAL",\
+        #         "THR","ARG","PHE","LYS","ASP","THR","TYR","PHE","VAL","THR",\
+        #         "GLY","ILE","VAL","SER","TRP","GLY","GLU","GLY","CYS2","ALA",\
+        #         "ARG","LYS","GLY","LYS","TYR","GLY","ILE","TYR","THR","LYS",\
+        #         "VAL","THR","ALA","PHE","LEU","LYS","TRP","ILE","ASP","ARG",\
+        #         "SER","MET","LYS","THR","COO-"], "SPC", []  )
 
-    # with open( "../tests/data/cnf/md_fX_apixaban_1.cnf", 'r') as ifstream:
-        
-    #      structures = ParseCnf( ifstream )
-    	
-    #      for struct in structures:
-            
-    #          structCpy = Structure()
-    #          structCpy.OnDeserialize( struct.OnSerialize() )
-            
-    #          print json.dumps( structCpy.topology.OnSerialize(), indent=2 )
-
-    # with open( "../tests/data/mtb/minimal.pept.mtb", 'r') as ifstream:    
-        
-    #     mtb_file = ParseMtb( ifstream )
-    #     debug1 = mtb_file.OnSerialize()
-    #     debug2 = BuildingBlock()
-    #     debug2.OnDeserialize( debug1 )
-    #     print yaml.dump( debug2.OnSerialize(), indent=2 )
-
-
-    # with open( "../tests/data/ifp/2016H66.ifp", 'r') as ifstream:    
-        
-    #       ifp_file = ParseIfp( ifstream )
-
-    # with open( "../tests/data/pdb/peptide.pdb", 'r') as ifstream:    
-        
-    #       pdb_file = ParsePdb( ifstream )
-
+        print (topology.Debug())
 
 if __name__ == '__main__':
 

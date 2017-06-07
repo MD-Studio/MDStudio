@@ -112,9 +112,9 @@ class Bond( Serializable ):
         return self._aromatic
 
     @property
-    def bond_order(self):
+    def sybyl(self):
 
-        return self._bond_order
+        return self._sybyl
     
     @atom_references.setter
     def atom_references(self, value):
@@ -131,10 +131,10 @@ class Bond( Serializable ):
 
         self._aromatic = value
 
-    @bond_order.setter
-    def bond_order(self, value):
+    @sybyl.setter
+    def sybyl(self, value):
 
-        self._bond_order = value
+        self._sybyl = value
 
     def OnSerialize( self, logger = None ):   
 
@@ -168,7 +168,7 @@ class Bond( Serializable ):
             result["bond_type"] = type_str    
 
         
-        SerializeFlatTypes( ["aromatic", "bond_order"], self.__dict__, result, '_' )
+        SerializeFlatTypes( ["aromatic", "sybyl"], self.__dict__, result, '_' )
 
         return result
 
@@ -201,6 +201,6 @@ class Bond( Serializable ):
                  raise LieTopologyException("Bond::OnSerialize","Unknown bond type") 
 
 
-        DeserializeFlatTypes( ["aromatic", "bond_order"], data, self.__dict__, '_' )
+        DeserializeFlatTypes( ["aromatic", "sybyl"], data, self.__dict__, '_' )
     
     
