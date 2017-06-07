@@ -24,14 +24,6 @@ lie\_system\.component\_manager module
     :undoc-members:
     :show-inheritance:
 
-lie\_system\.messaging module
------------------------------
-
-.. automodule:: lie_system.messaging
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 lie\_system\.wamp\_logging module
 ---------------------------------
 
@@ -40,10 +32,26 @@ lie\_system\.wamp\_logging module
     :undoc-members:
     :show-inheritance:
 
-lie\_system\.wamptools module
------------------------------
+lie\_system\.wamp\_schema module
+--------------------------------
 
-.. automodule:: lie_system.wamptools
+.. automodule:: lie_system.wamp_schema
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+lie\_system\.wamp\_taskmeta module
+----------------------------------
+
+.. automodule:: lie_system.wamp_taskmeta
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+lie\_system\.wamp\_tools module
+-------------------------------
+
+.. automodule:: lie_system.wamp_tools
     :members:
     :undoc-members:
     :show-inheritance:
