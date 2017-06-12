@@ -70,7 +70,7 @@ def main():
         blueprint = ParseMtb( mtb_ifstream )
         forcefield = ParseIfp( ifp_ifstream )
 
-        topology = MakeSequence( forcefield, blueprint, ["NH3+","ALA","ALA","ALA","COO-"], "SPC", [] )
+        topology = MakeSequence( forcefield, blueprint, ["NH3+","ALA","ALA","COO-"], "SPC", [] )
         #  topology = MakeSequence( forcefield, blueprint,\
         #        ["NH3+","ILE","VAL","GLY","GLY","GLN","GLU","CYS1","LYS","ASP","GLY",\
         #         "GLU","CYS2","PRO","TRP","GLN","ALA","LEU","LEU","ILE","ASN",\

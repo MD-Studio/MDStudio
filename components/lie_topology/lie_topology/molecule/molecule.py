@@ -251,4 +251,10 @@ class Molecule( Serializable ):
 
             aggregate+="\t"+atom.Debug()
         
+        for bond in self._bonds:
+            aggregate+="\t"+bond.Debug()
+
+        for angle in self._angles:
+            aggregate+="\t"+angle.Debug()
+
         return aggregate

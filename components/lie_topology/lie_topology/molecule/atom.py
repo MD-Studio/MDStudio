@@ -113,4 +113,4 @@ class Atom( Serializable ):
         identifier = str(self.identifier) if self.identifier is not None else "?"
         sybyl      = str(self.sybyl) if self.sybyl is not None else "?"
 
-        return "%7s %7s %7s %7s %7s\n" % (key, type_name, element, identifier, sybyl)
+        return "atom %7s %7s %7s %7s %7s\n" % (key, type_name, element, identifier, sybyl)

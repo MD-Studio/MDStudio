@@ -28,15 +28,21 @@ from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 
-class InPlaneSite( Serializable ):
-    
-    def __init__( self, atom_references = [], gamma = None ):
-        
+class Vsite( Serializable ):
+
+    def __init__( self, imodule, iclass, atom_references ):
+
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
         # Indices of the atoms involved in the vsite, length should be 2
         self.atom_references = atom_references
+
+class InPlaneSite( Vsite ):
+    
+    def __init__( self, atom_references = None, gamma = None ):
+
+        Vsite.__init__(self, self.__module__, self.__class__.__name__, atom_references)
         
         # Offset along the defined vector
         self.gamma = gamma

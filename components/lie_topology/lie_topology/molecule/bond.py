@@ -204,3 +204,35 @@ class Bond( Serializable ):
         DeserializeFlatTypes( ["aromatic", "sybyl"], data, self.__dict__, '_' )
     
     
+    def _DebugRef(self, atom_ref):
+
+        response = "?"
+
+        if isinstance(atom_ref, Atom):
+            response = atom_ref.ToReference().Debug()
+        else:
+            # mark as not yet resolved
+            response = "%s*" % (  atom_ref. Debug() )
+        
+        return response
+
+    def Debug(self):
+
+        safe_ref_1 = "?"
+        safe_ref_2 = "?"
+        safe_bond_type = "?"
+        safe_sybyl = self._sybyl if self._sybyl is not None else "?"
+
+        if self._atom_references and len(self._atom_references) == 2:
+            safe_ref_1 = self._DebugRef( self._atom_references[0] )
+            safe_ref_2 = self._DebugRef( self._atom_references[1] )
+
+        if self._bond_type:
+            if isinstance(self._bond_type, BondType):
+                safe_bond_type = "%s" % (self._bond_type.key)
+            else:
+                safe_bond_type = "%s*" % (self._bond_type.key)
+
+        # Indicates the bond order of this bond
+        return "bond %-25s %-25s %7s %7s\n" % (safe_ref_1, safe_ref_2, safe_bond_type, safe_sybyl)
+        

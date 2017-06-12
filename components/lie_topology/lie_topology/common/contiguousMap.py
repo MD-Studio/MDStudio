@@ -60,6 +60,14 @@ class ContiguousMap( Serializable ):
             del self._items[index]
             del self._indices[key]
 
+            #from index till end decrement their assigned index
+            for i in range(index, len(self._items)):
+                (key, value) = self._items[i]
+                self._indices[key]-=1
+
+                if i != self._indices[key]: 
+                    raise LieTopologyException( "ContiguousMap::Remove", "Internal error, indices mismatch" )
+
             return key,value
 
     def front( self ):

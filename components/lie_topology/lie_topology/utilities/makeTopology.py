@@ -42,9 +42,9 @@ class Bookkeeping(object):
 
     def __init__(self):
 
-        self.residue_index = 0
-        self.atom_index = 0
-        self.chain_length = 0
+        self.residue_index = 1
+        self.atom_index    = 1
+        self.chain_length  = 0
         self.blend_into = False
 
 ##
@@ -129,6 +129,22 @@ def _CopyDihedrals( src_molecule, dest_molecule, rename_dict ):
 
             dest_molecule.AddDihedral( Dihedral( atom_references=[ref_1,ref_2,ref_3,ref_4], dihedral_type=dihedral.dihedral_type ) )
 
+def _CopyVsite( vsite, rename_dict ):
+
+    response = None
+
+    if vsite is not None:
+        response = deepcopy( vsite )
+        response.atom_references = []
+
+        # generate deferred references
+        for atom_ref in vsite.atom_references:
+            deferred_ref = _GenerateReference( atom_ref, rename_dict )
+            response.atom_references.append( deferred_ref )
+
+    return response 
+
+
 def _CopyAtoms( src_molecule, dest_molecule, start_index, it_from, it_to ):
 
     # add atoms
@@ -140,11 +156,28 @@ def _CopyAtoms( src_molecule, dest_molecule, start_index, it_from, it_to ):
         # make sure we ignore preceding atoms that might be in blend data
         if atom.preceding is None or not atom.preceding:
 
+            vdw_type_cpy = None
+            mass_type_cpy = None
+            virtual_site_cpy = None
+            coulombic_type_cpy = None
+            
+            if atom.vdw_type:
+                vdw_type_cpy = deepcopy(atom.vdw_type)
+            
+            if atom.mass_type:
+                mass_type_cpy = deepcopy(atom.mass_type)
+
+            if atom.coulombic_type:
+                coulombic_type_cpy = deepcopy(atom.coulombic_type)
+            
+            if atom.virtual_site:
+                virtual_site_cpy = _CopyVsite(atom.virtual_site, rename_dict )
+
             dest_molecule.AddAtom(  key=key, type_name=atom.type_name, element=atom.element,\
                                     identifier=start_index, sybyl=atom.sybyl,\
-                                    mass_type=atom.mass_type, vdw_type=atom.vdw_type,\
-                                    coulombic_type=atom.coulombic_type, charge_group=atom.charge_group,\
-                                    virtual_site=atom.virtual_site, trailing=atom.trailing )
+                                    mass_type=mass_type_cpy, vdw_type=vdw_type_cpy,\
+                                    coulombic_type=coulombic_type_cpy, charge_group=atom.charge_group,\
+                                    virtual_site=virtual_site_cpy, trailing=atom.trailing )
                                     
             start_index+=1
             #print( atom.key )
@@ -152,18 +185,17 @@ def _CopyAtoms( src_molecule, dest_molecule, start_index, it_from, it_to ):
 def _AddBlend( solute_group, molecule, book_keeping ):
 
     print( "BLEND ", molecule.key )
-    linear_molecule_key = "%s_%i" % (molecule.key,book_keeping.residue_index)
-    linear_molecule = Molecule( key=linear_molecule_key, type_name=molecule.type_name, identifier=book_keeping.residue_index )
-
-    _CopyAtoms( molecule, linear_molecule, book_keeping.atom_index, 0, molecule.atom_count )
-    _CopyBonds( molecule, linear_molecule, {} )
-    _CopyAngles( molecule, linear_molecule, {} )
-    _CopyDihedrals( molecule, linear_molecule, {} )
+    
+    linear_molecule = None; 
+    rename_dict=dict()
 
     if molecule.trailing_count > 0:
-        if book_keeping.chain_length != 0:
+        if book_keeping.chain_length != 0 or book_keeping.blend_into:
             raise LieTopologyException("MakeTopology", "Can only use a blend start at chain length == 0")
         
+        linear_molecule_key = "%s_%i" % (molecule.key,book_keeping.residue_index)
+        linear_molecule = Molecule( key=linear_molecule_key, type_name=molecule.type_name, identifier=book_keeping.residue_index )
+
         # start a new  chain
         book_keeping.blend_into = True
         solute_group.AddMolecule( molecule=linear_molecule )
@@ -172,9 +204,34 @@ def _AddBlend( solute_group, molecule, book_keeping ):
         if book_keeping.chain_length == 0:
             raise LieTopologyException("MakeTopology", "Cannot cap an empty chain")
 
+        # this is were we apply the capping group
+        linear_molecule = solute_group.molecules.back()
+
+        #truncate the preceding atoms
+        preceding_count = molecule.preceding_count
+        previous_atom_count = linear_molecule.atom_count
+        if preceding_count >= previous_atom_count:
+            raise LieTopologyException("MakeTopology", "Preceding count of capping group is >= number of atoms previous molecule")
+
+        to_remove=[]
+        for i in range(0, preceding_count):
+            fetch_index=previous_atom_count-preceding_count+i
+            fetch_key=linear_molecule.atoms.keyAt(fetch_index)
+            to_remove.append(fetch_key)
+        
+        for remove_key in to_remove:
+            linear_molecule.atoms.remove(remove_key)
+
+        # reset length
+        book_keeping.chain_length=0
+
     else:
         raise LieTopologyException("MakeTopology", "Sequence item %s is not a chain start or cap, while blending was requested" % (molecule.key))
     
+    _CopyAtoms( molecule, linear_molecule, book_keeping.atom_index, 0, molecule.atom_count )
+    _CopyBonds( molecule, linear_molecule, rename_dict )
+    _CopyAngles( molecule, linear_molecule, rename_dict )
+    _CopyDihedrals( molecule, linear_molecule, rename_dict )
 
 def _AddSolute( solute_group, template_molecule, book_keeping ):
 
@@ -234,7 +291,7 @@ def _AddSolute( solute_group, template_molecule, book_keeping ):
 
     solute_group.AddMolecule( molecule=linear_molecule )
 
-    book_keeping.atom_index+=linear_molecule.atom_count
+    book_keeping.atom_index+=(it_end - it_start)
     book_keeping.chain_length+=1
     book_keeping.residue_index+=1
 

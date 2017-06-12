@@ -103,3 +103,15 @@ class AtomReference( Serializable ):
             return self
 
         return target_molecule.atoms[self._atom_key]
+    
+    def Debug(self):
+
+        if self._external_index:
+            return "(%i)" % (self._external_index)
+        
+        else:
+            safe_atom_key= self._atom_key if self._atom_key is not None else "?"
+            safe_group_key = self._group_key if self._group_key is not None else "?" 
+            safe_molecule_key = self._molecule_key if self._molecule_key is not None else "?" 
+
+            return "(%s,%s,%s)" % (safe_atom_key,safe_molecule_key,safe_group_key)
