@@ -13,6 +13,7 @@ import json
 import re
 
 from   autobahn               import wamp
+from lie_system import LieApplicationSession
 from   twisted.internet.defer import inlineCallbacks
 
 from   lie_amber              import *

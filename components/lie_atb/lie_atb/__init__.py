@@ -5,10 +5,11 @@ LIEStudio connector component for the Automated Topology Builder (ATB) server
 at https://atb.uq.edu.au
 
 When usig this component in scientific work please cite:
-- Malde AK, Zuo L, Breeze M, Stroet M, Poger D, Nair PC, Oostenbrink C, Mark AE.
-  An Automated force field Topology Builder (ATB) and repository: version 1.0.
-  Journal of Chemical Theory and Computation, 2011, 7(12), 4026-4037.
-  DOI: 10.1021/ct200196m
+
+ -  Malde AK, Zuo L, Breeze M, Stroet M, Poger D, Nair PC, Oostenbrink C, Mark AE.
+    An Automated force field Topology Builder (ATB) and repository: version 1.0.
+    Journal of Chemical Theory and Computation, 2011, 7(12), 4026-4037.
+    DOI: 10.1021/ct200196m
 """
 
 import os

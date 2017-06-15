@@ -92,11 +92,9 @@ class ATBWampApi(LieApplicationSession):
         :type pdb:        :py:str
         :param netcharge: charge of the molecule
         :type netcharge:  :py:int
-        :param moltype:   the type of molecule. Any in heteromolecule,
-                          amino acid, nucleic acid, sugar, lipid, solvent.
+        :param moltype:   the type of molecule. Any in heteromolecule, amino acid, nucleic acid, sugar, lipid, solvent.
         :type moltyple    :py:str
-        :param public:    either true or false, depending on whether of not
-                          you want the submitted molecule to be made public.
+        :param public:    either true or false, depending on whether of not you want the submitted molecule to be made public.
         :type public:     bool
         """
 
@@ -285,28 +283,32 @@ class ATBWampApi(LieApplicationSession):
 
         The ATB server molecules database can be queried using the
         ./api/v0.1/molecules/search.py endpoint using any of the following query
-        attributes or 'any' for a whildcard search. Multiple query attributes
+        attributes or 'any' for a wildcard search. Multiple query attributes
         will be chained using the AND logical operator.
 
-        iupac:              the official IUPAC name of the  molecule (str)
-        inchi_key:          the unique InChI code of the molecule (str)
-        common_name:        the common name of the molecule (str)
-        formula:            the molecular formula (e.a. C2H6O) (str)
-        maximum_qm_level:   string of comma seperated integers.
-        curation_trust:     level of expected accuracy of the molecule parameters
-                            as string of comma seperated integers. 0 by default:
-                            -1 = unfinished ATB molecule
-                             0 = finished ATB molecule
-                             1 = manual parameters from reliable users
-                             2 = manual parameters from official source
-        is_finished:        are calculations for the molecule still running
-        user_label:         any user specific label that may have been given to
+        - iupac:              the official IUPAC name of the  molecule (str)
+        - inchi_key:          the unique InChI code of the molecule (str)
+        - common_name:        the common name of the molecule (str)
+        - formula:            the molecular formula (e.a. C2H6O) (str)
+        - maximum_qm_level:   string of comma seperated integers.
+        - curation_trust:
+
+            level of expected accuracy of the molecule parameters
+            as string of comma separated integers. 0 by default:
+
+                 * -1 = unfinished ATB molecule
+                 * 0 = finished ATB molecule
+                 * 1 = manual parameters from reliable users
+                 * 2 = manual parameters from official source
+
+        - is_finished:        are calculations for the molecule still running
+        - user_label:         any user specific label that may have been given to
                             the molecule.
-        is_finished:        query for finished molecules only
-        max_atoms:          maximum number of atoms (int)
-        min_atoms:          minimum number of atoms (int)
-        has_pdb_hetId:      molecule has PDB heteroatom ID (bool)
-        match_partial:      enable partial matching of string attributes (bool)
+        - is_finished:        query for finished molecules only
+        - max_atoms:          maximum number of atoms (int)
+        - min_atoms:          minimum number of atoms (int)
+        - has_pdb_hetId:      molecule has PDB heteroatom ID (bool)
+        - match_partial:      enable partial matching of string attributes (bool)
                             False by default.
 
         Query values are case insensitive but the attributes (keys) are.

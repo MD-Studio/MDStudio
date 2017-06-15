@@ -6,7 +6,7 @@ alias helpme='(/app/docker/welcome.sh; [[ "$USERMODE" == "1" ]] && /app/docker/w
 alias lietest="(cd /app; green lietest.py)"
 alias liecov="(cd /app; coverage run lietest.py && coverage html)"
 alias liebandit="(cd /app; bandit -r components/ -f html -o build/bandit/index.html)"
-alias liedocs="(cd /app/docs; /usr/bin/make livehtml)"
+alias liedocs="(cd /app/docs; /usr/bin/make html)"
 alias liecheck="(cd /app; mkdir -p build/ build/flake8; flake8 components; pepper8 -o /app/build/flake8/index.html build/flake8/output.out)"
 alias liepep8="(cd /app; autopep8 --in-place --aggressive --aggressive --recursive --ignore E501,E24 --exclude="*.md" *.py)"
 

@@ -17,14 +17,6 @@ lie\_atb\.atb\_api\_py2 module
     :undoc-members:
     :show-inheritance:
 
-lie\_atb\.atb\_api\_py3 module
-------------------------------
-
-.. automodule:: lie_atb.atb_api_py3
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 lie\_atb\.settings module
 -------------------------
 
