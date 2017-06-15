@@ -162,7 +162,7 @@ class Blueprint( Serializable ):
         # patch bonded references
         for group in self._groups.values():
             for molecule in group.molecules.values():
-                molecule.ResolveNamedReferences( self )
+                molecule.ResolveReferences( self )
         
         for solvent in self._solvents.values():
-            solvent.ResolveNamedReferences( None )
+            solvent.ResolveReferences( None )

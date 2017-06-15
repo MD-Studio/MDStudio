@@ -26,41 +26,37 @@
 
 import json
 
+from copy import deepcopy
+
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.atom import Atom
+from lie_topology.molecule.bondedTerm import BondedTerm
 from lie_topology.molecule.reference import AtomReference
 from lie_topology.forcefield.forcefield import AngleType
 from lie_topology.forcefield.reference import ForceFieldReference
 
-class Angle( Serializable ):
+class Angle( BondedTerm ):
     
     def __init__( self, atom_references = None, angle_type = None, united = None ):
         
         # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
+        BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 3, atom_references )
 
-        # Indices of the atoms involved in the angle, length should be 3
-        self._atom_references = atom_references
-        
         # Angle type in the force field
         self._angle_type = angle_type
     
-    @property
-    def atom_references(self):
-
-        return self._atom_references
-
     @property
     def angle_type(self):
 
         return self._angle_type
 
-    @atom_references.setter
-    def atom_references(self, value):
+    def SafeCopy(self, molecule_key=None):
 
-        self._atom_references = value
+        angle_type = deepcopy( self._angle_type )
+
+        return Angle( atom_references=self._SafeCopyReferences(molecule_key), angle_type=angle_type )
 
     def OnSerialize( self, logger = None ):   
 

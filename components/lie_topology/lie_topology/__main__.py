@@ -15,8 +15,8 @@ from lie_topology.parsers.mol2Parser import ParseMol2
 
 from lie_topology.utilities.makeTopology import MakeSequence
 
-
 from lie_topology.writers.cnfWriter import WriteCnf
+from lie_topology.writers.gromosTopologyWriter import WriteGromosTopology
 
 from lie_topology.molecule.crystal import BoxVectorsToLattice, LatticeToBoxVectors
 
@@ -71,6 +71,14 @@ def main():
         forcefield = ParseIfp( ifp_ifstream )
 
         topology = MakeSequence( forcefield, blueprint, ["NH3+","ALA","ALA","COO-"], "SPC", [] )
+
+        print (topology.Debug())
+
+        with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
+            WriteGromosTopology( top_ofstream, topology, forcefield )
+            
+
+
         #  topology = MakeSequence( forcefield, blueprint,\
         #        ["NH3+","ILE","VAL","GLY","GLY","GLN","GLU","CYS1","LYS","ASP","GLY",\
         #         "GLU","CYS2","PRO","TRP","GLN","ALA","LEU","LEU","ILE","ASN",\
@@ -97,7 +105,7 @@ def main():
         #         "VAL","THR","ALA","PHE","LEU","LYS","TRP","ILE","ASP","ARG",\
         #         "SER","MET","LYS","THR","COO-"], "SPC", []  )
 
-        print (topology.Debug())
+        
 
 if __name__ == '__main__':
 

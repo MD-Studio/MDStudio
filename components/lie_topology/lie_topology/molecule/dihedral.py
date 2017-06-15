@@ -26,41 +26,42 @@
 
 import json
 
+from copy import deepcopy
+
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.atom import Atom
+from lie_topology.molecule.bondedTerm import BondedTerm
 from lie_topology.molecule.reference import AtomReference
 from lie_topology.forcefield.forcefield import DihedralType,ImproperType
 from lie_topology.forcefield.reference import ForceFieldReference
 
-class Dihedral( Serializable ):
+class Dihedral( BondedTerm ):
     
     def __init__( self, atom_references = None, dihedral_type = None, united = None ):
         
         # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
-
-        # Indices of the atoms involved in the dihedral, length should be 4
-        self._atom_references = atom_references
+        BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 4, atom_references )
         
         # Dihedral type in the force field
         self._dihedral_type = dihedral_type
     
     @property
-    def atom_references(self):
-
-        return self._atom_references
-
-    @property
     def dihedral_type(self):
 
         return self._dihedral_type
 
-    @atom_references.setter
-    def atom_references(self, value):
+    def SafeCopy(self, molecule_key=None):
 
-        self._atom_references = value
+        dihedral_type = deepcopy( self._dihedral_type )
+
+        # if force field object just store the key for now
+        if isinstance(dihedral_type,DihedralType) or\
+           isinstance(dihedral_type,ImproperType):
+            dihedral_type = ForceFieldReference( key=dihedral_type.key )
+
+        return Dihedral( atom_references=self._SafeCopyReferences(molecule_key), dihedral_type=dihedral_type )
 
     def OnSerialize( self, logger = None ):   
 

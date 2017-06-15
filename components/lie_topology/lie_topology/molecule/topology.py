@@ -30,6 +30,9 @@ from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.group import Group 
 from lie_topology.molecule.molecule import Molecule
 
+from lie_topology.forcefield.forcefield import ForceField
+from lie_topology.forcefield.reference import ForceFieldReference
+
 class Topology( Serializable ):
     
     def __init__( self, solvent = None ):
@@ -101,6 +104,50 @@ class Topology( Serializable ):
 
         return self._groups[key]
     
+    def _ResolveAtomForceFieldReference(self, molecule, forcefield):
+
+        for atom_key, atom in molecule.atoms.items():
+
+            vdw_type       = atom.vdw_type
+            mass_type      = atom.mass_type
+            coulombic_type = atom.coulombic_type
+            
+            # all of the force field types could be references
+            if vdw_type is not None and isinstance( vdw_type, ForceFieldReference):
+                if not vdw_type.key in forcefield.vdwtypes:
+                    raise LieTopologyException("Topology::_ResolveAtomForceFieldReference",\
+                                               "Vdw_type %s not found in forcefield"\
+                                                % ( vdw_type.key ) ) 
+                atom.vdw_type = forcefield.vdwtypes.find(vdw_type.key)
+            
+            if mass_type is not None and isinstance( mass_type, ForceFieldReference):
+                if not mass_type.key in forcefield.masstypes:
+                    raise LieTopologyException("Topology::_ResolveAtomForceFieldReference",\
+                                               "Mass_type %s not found in forcefield"\
+                                                % ( mass_type.key ) ) 
+                atom.mass_type = forcefield.masstypes.find(mass_type.key)
+            
+            if coulombic_type is not None and isinstance( coulombic_type, ForceFieldReference):
+                if not coulombic_type.key in forcefield.coultypes:
+                    raise LieTopologyException("Topology::_ResolveAtomForceFieldReference",\
+                                               "Coul_type %s not found in forcefield"\
+                                                % ( coulombic_type.key ) ) 
+                atom.coulombic_type = forcefield.coultypes.find(coulombic_type.key)
+
+    def ResolveForceFieldReferences( self, forcefield ):
+
+        if not isinstance(forcefield, ForceField):
+            raise LieTopologyException( "Topology::ResolveForceFieldReferences", "Forcefield input is not of type ForceField" )
+
+        ##
+        ## Resolve all references of type ForceFieldReference
+        ##
+
+        for group_key, group in self.groups.items():
+            for molecule_key, molecule in group.molecules.items():
+
+                 self._ResolveAtomForceFieldReference(molecule, forcefield)
+                 
     def OnSerialize( self, logger = None ):   
 
         result = {}
@@ -125,10 +172,10 @@ class Topology( Serializable ):
         # patch bonded references
         for group in self._groups.values():
             for molecule in group.molecules.values():
-                molecule.ResolveNamedReferences( self )
+                molecule.ResolveReferences( self )
 
         if self._solvent:
-            self._solvent.ResolveNamedReferences( None )
+            self._solvent.ResolveReferences( None )
     
     def Debug(self):
 

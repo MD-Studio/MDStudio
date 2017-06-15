@@ -161,7 +161,7 @@ def _ParseSoluteDihedrals( block, solute, it ):
         atom_i_ref = _GenerateBondedReference( solute, index_i )
         atom_j_ref = _GenerateBondedReference( solute, index_j )
         atom_k_ref = _GenerateBondedReference( solute, index_k )
-        atom_l_name = _GenerateBondedReference( solute, index_k )
+        atom_l_name = _GenerateBondedReference( solute, index_l )
 
         dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
                              dihedral_type=dihedral_type  ) 
@@ -211,7 +211,7 @@ def _ParseSoluteAtoms( block, solute, count, it, trailing ):
         name           = block[it + 1]
         vdwGroup       = block[it + 2]
         massGroup      = block[it + 3]
-        charge         = block[it + 4]
+        charge         = float( block[it + 4] )
         chargeGroup_fl = int( block[it + 5] )
         
         if chargeGroup_fl == 1:
@@ -288,7 +288,7 @@ def _ParseSolventAtoms(block, solvent, it):
         name           = block[it + 1]
         vdwGroup       = block[it + 2]
         massGroup      = block[it + 3]
-        charge         = block[it + 4]
+        charge         = float( block[it + 4] )
 
         solvent.AddAtom( key=name, type_name=name, identifier=index )
         atom = solvent.atoms.back()

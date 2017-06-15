@@ -24,6 +24,8 @@
 # @endcond
 #
 
+from copy import deepcopy
+
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
@@ -44,6 +46,13 @@ class AtomReference( Serializable ):
         # index of the atm
         self._external_index = external_index
     
+    def __eq__( self, other ):
+
+        return self._atom_key == other.atom_key and\
+               self._group_key == other.group_key and\
+               self._molecule_key == other.molecule_key and\
+               self._external_index == other.external_index
+
     @property
     def group_key(self):
         return self._group_key
@@ -56,6 +65,10 @@ class AtomReference( Serializable ):
     def atom_key(self):
         return self._atom_key
     
+    @property
+    def external_index(self):
+        return self._external_index
+
     @group_key.setter
     def group_key(self,value):
         self._group_key = value
@@ -67,6 +80,22 @@ class AtomReference( Serializable ):
     @atom_key.setter
     def atom_key(self,value):
         self._atom_key = value
+
+    @external_index.setter
+    def external_index(self,value):
+        self._external_index = value
+
+    def IsIndexedReference( self ):
+        
+        return self._external_index is not None
+
+    def IsNamedReference( self ):
+        
+        return self._atom_key is not None
+
+    def ToReference(self, molecule_key=None, group_key=None):
+
+        return deepcopy(self)
 
     def TryLink( self, root, referencing_molecule ):
         
@@ -98,11 +127,15 @@ class AtomReference( Serializable ):
             else:
                 target_molecule = target_group.molecules[self._molecule_key]
         
-        if self._atom_key is None or\
-           target_molecule is None:
-            return self
+        response = self
 
-        return target_molecule.atoms[self._atom_key]
+        if self._atom_key is not None and\
+           target_molecule is not None and\
+           self._atom_key in target_molecule.atoms:
+
+           response = target_molecule.atoms[self._atom_key]
+           
+        return response 
     
     def Debug(self):
 

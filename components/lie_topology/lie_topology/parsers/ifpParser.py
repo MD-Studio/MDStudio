@@ -167,7 +167,7 @@ def _ParseVdwTypes(block, forcefield):
     it = 1
     for i in range( 0, nratt ):
         
-        vdw_type = block[ it + 0 ]
+        vdw_key  = block[ it + 0 ]
         name     = block[ it + 1 ]
         c6       = float( block[ it + 2 ] )
         c12_1    = float( block[ it + 3 ] )
@@ -178,10 +178,10 @@ def _ParseVdwTypes(block, forcefield):
         
         it+=8
         
-        vdw_type = VdwType( key=vdw_type, type_name=name, c6=c6, c6_14=c6_14,\
+        vdw_type = VdwType( key=vdw_key, type_name=name, c6=c6, c6_14=c6_14,\
                             c12=[c12_1, c12_2, c12_3], c12_14=c12_14  )
 
-        forcefield.vdwtypes.insert( vdw_type,  vdw_type )
+        forcefield.vdwtypes.insert( vdw_key,  vdw_type )
 
         #now read in the matrix
         matrix = []

@@ -26,6 +26,8 @@
 
 import json
 
+from copy import deepcopy
+
 from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
@@ -87,6 +89,35 @@ class Atom( Serializable ):
 
         # Trailing in the building block (for chain topology)
         self.trailing = trailing
+
+    def SafeCopy(self, key=None):
+
+        if key is None:
+            key = self.key
+
+        vdw_type_cpy = None
+        mass_type_cpy = None
+        virtual_site_cpy = None
+        coulombic_type_cpy = None
+        
+        if self.vdw_type:
+            vdw_type_cpy = deepcopy(self.vdw_type)
+        
+        if self.mass_type:
+            mass_type_cpy = deepcopy(self.mass_type)
+
+        if self.coulombic_type:
+            coulombic_type_cpy = deepcopy(self.coulombic_type)
+        
+        if self.virtual_site:
+            virtual_site_cpy = _CopyVsite(self.virtual_site, rename_dict )
+
+        return Atom( key=key, type_name=self.type_name, element=self.element,\
+                     identifier=self.identifier, sybyl=self.sybyl,\
+                     mass_type=mass_type_cpy, vdw_type=vdw_type_cpy,\
+                     coulombic_type=coulombic_type_cpy, charge_group=self.charge_group,\
+                     virtual_site=virtual_site_cpy, trailing=self.trailing, preceding=self.preceding )
+
 
     def ToReference(self):
 

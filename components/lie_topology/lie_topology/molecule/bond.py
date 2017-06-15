@@ -32,6 +32,7 @@ from lie_topology.common.serializable import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.atom import Atom
+from lie_topology.molecule.bondedTerm import BondedTerm
 from lie_topology.molecule.reference import AtomReference
 from lie_topology.forcefield.forcefield import BondType
 from lie_topology.forcefield.reference import ForceFieldReference
@@ -80,26 +81,18 @@ class SybelBond(Enum):
 
         return rvalue
 
-class Bond( Serializable ):
+class Bond( BondedTerm ):
     
     def __init__( self, atom_references=None, bond_type=None, aromatic=None, sybyl=None ):
         
         # Call the base class constructor with the parameters it needs
-        Serializable.__init__(self, self.__module__, self.__class__.__name__ )
+        BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 2,  atom_references )
 
-        # Indices of the atoms involved in the bond, length should be 2
-        self._atom_references = atom_references
-        
         # Bond type in the force field
         self._bond_type = bond_type
         
         # Indicates the bond order of this bond
         self._sybyl = sybyl
-    
-    @property
-    def atom_references(self):
-
-        return self._atom_references
 
     @property
     def bond_type(self):
@@ -115,11 +108,6 @@ class Bond( Serializable ):
     def sybyl(self):
 
         return self._sybyl
-    
-    @atom_references.setter
-    def atom_references(self, value):
-
-        self._atom_references = value
 
     @bond_type.setter
     def bond_type(self, value):
@@ -135,6 +123,13 @@ class Bond( Serializable ):
     def sybyl(self, value):
 
         self._sybyl = value
+
+    def SafeCopy(self, molecule_key=None):
+
+        bond_type = deepcopy( self._bond_type )
+
+        return Bond( atom_references=self._SafeCopyReferences(molecule_key), 
+                     bond_type=bond_type, sybyl=self._sybyl )
 
     def OnSerialize( self, logger = None ):   
 

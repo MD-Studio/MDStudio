@@ -24,6 +24,8 @@
 # @endcond
 #
 
+from copy import deepcopy
+
 from lie_topology.common.serializable  import *
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception     import LieTopologyException
@@ -31,6 +33,7 @@ from lie_topology.molecule.atom        import Atom
 from lie_topology.molecule.bond        import Bond
 from lie_topology.molecule.angle       import Angle
 from lie_topology.molecule.dihedral    import Dihedral
+from lie_topology.molecule.reference   import AtomReference
 
 class Molecule( Serializable ):
     
@@ -55,52 +58,45 @@ class Molecule( Serializable ):
         # Atoms of this solute
         self._atoms = ContiguousMap()
         
-        # Bonds of this solute
-        self._bonds = bonds
+        # Bonds of this solute 
+        self._bonds = bonds if bonds is not None else []
         
         # Angles of this solute
-        self._angles = angles
+        self._angles = angles if angles is not None else []
         
         # Dihedrals of this solute
-        self._dihedrals = dihedrals
+        self._dihedrals = dihedrals if dihedrals is not None else []
         
         # Impropers of this solute
-        self._impropers = impropers
+        self._impropers = impropers if impropers is not None else []
 
     def AddAtom(self, **kwargs ):
-
-        if not "key" in kwargs:
-
-            raise LieTopologyException("Molecule::AddAtom", "Key is a required argument" )
         
-        kwargs["parent"] = self
-        self.atoms.insert(kwargs["key"], Atom(**kwargs) )
+        if "atom" in kwargs:
+            atom = kwargs["atom"]
+            atom.molecule = self
+            self.atoms.insert(atom.key, atom )
+
+        else:  
+            if not "key" in kwargs:
+                raise LieTopologyException("Molecule::AddAtom", "Key is a required argument" )
+
+            kwargs["parent"] = self
+            self.atoms.insert(kwargs["key"], Atom(**kwargs) )
     
     def AddBond( self, bond ):
-
-        if not isinstance(self._bonds, list):
-            self._bonds = []
 
         self._bonds.append( bond )
 
     def AddAngle( self, angle ):
 
-        if not isinstance(self._angles, list):
-            self._angles = []
-
         self._angles.append( angle )
 
     def AddImproper( self, improper ):
 
-        if not isinstance(self._impropers, list):
-            self._impropers = []
-
         self._impropers.append( improper )
     
     def AddDihedral( self, dihedral ):
-
-        if not isinstance(self._dihedrals, list):
-            self._dihedrals = []
 
         self._dihedrals.append( dihedral )
 
@@ -194,6 +190,67 @@ class Molecule( Serializable ):
 
         self._impropers = value
 
+    
+
+    # these are standard named reference that result from
+    # a serialization
+    def ResolveReferences( self, root_obj ):
+
+        # next thing we want to do is attach bonded connections
+        for cat in["_bonds", "_angles", "_impropers", "_dihedrals"]:
+            category = self.__dict__[cat]
+
+            if not category is None:
+                for item in category:
+
+                    new_references = []
+                    for reference in item.atom_references:
+                        
+                        # in this step we resolve the named reference objects to
+                        # actual atom objects
+                        if isinstance(reference, AtomReference):   
+                            new_reference = reference.TryLink(root_obj, self)
+                            new_references.append( new_reference )
+                        else:
+                            new_references.append( reference )
+                    
+                    item.atom_references = new_references
+
+    def _SafeCopyAtoms(self, dest_molecule):
+        # add atoms
+        #for key, atom in src_molecule.atoms.items():
+        for key, atom in self._atoms.items():
+
+            dest_molecule.AddAtom( atom=atom.SafeCopy() )
+                                   
+    def _SafeCopyBonded(self, dest_molecule, molecule_key):
+
+        for bond in self._bonds:
+            dest_molecule.AddBond( bond.SafeCopy(molecule_key) )
+        
+        for angle in self._angles:
+            dest_molecule.AddAngle( angle.SafeCopy(molecule_key) )
+        
+        for dihedral in self._dihedrals:
+            dest_molecule.AddDihedral( dihedral.SafeCopy(molecule_key) )
+        
+        for improper in self._impropers:
+            dest_molecule.AddImproper( improper.SafeCopy(molecule_key) )
+
+    def SafeCopy(self, molecule_key=None):
+
+        if molecule_key is None:
+            molecule_key = self._key
+
+        # start by making a new molecule
+        molecule_cpy = Molecule( key=molecule_key, type_name=self._type_name, identifier=self._identifier )
+
+        # next replace all direct obj references with indirect ones
+        self._SafeCopyAtoms(molecule_cpy)
+        self._SafeCopyBonded(molecule_cpy, molecule_key)
+
+        return molecule_cpy
+
     def OnSerialize( self, logger = None ):   
 
         result = {}
@@ -219,27 +276,7 @@ class Molecule( Serializable ):
                               [ Bond, Angle, Dihedral, Dihedral ],\
                               data, self.__dict__, logger, '_')
     
-    # these are standard named reference that result from
-    # a serialization
-    def ResolveNamedReferences( self, root_obj ):
 
-        # next thing we want to do is attach bonded connections
-        for cat in["_bonds", "_angles", "_impropers", "_dihedrals"]:
-            category = self.__dict__[cat]
-
-            if not category is None:
-                for item in category:
-
-                    new_references = []
-                    for ref in item.atom_references:
-
-                        # in this step we resolve the named reference objects to
-                        # actual atom objects
-                        new_references.append( ref.TryLink(root_obj, self) )
-                    
-                    item.atom_references = new_references
-
-    
     def Debug(self):
 
         key = str(self._key) if self._key is not None else "?"
@@ -247,14 +284,19 @@ class Molecule( Serializable ):
         identifier = str(self._identifier) if self._identifier is not None else "?"
 
         aggregate = "%7s %7s %7s\n" % (key, type_name, identifier)
+        index=1
         for atom in self._atoms.values():
+            aggregate+="\t%7i %s" % ( index, atom.Debug() )
+            index+=1
 
-            aggregate+="\t"+atom.Debug()
-        
+        index=1
         for bond in self._bonds:
-            aggregate+="\t"+bond.Debug()
+            aggregate+="\t%7i %s" % ( index, bond.Debug() )
+            index+=1
 
+        index=1
         for angle in self._angles:
-            aggregate+="\t"+angle.Debug()
+            aggregate+="\t%7i %s" % ( index, angle.Debug() )
+            index+=1
 
         return aggregate

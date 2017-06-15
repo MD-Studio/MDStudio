@@ -23,7 +23,12 @@
 #
 # @endcond
 
+import numpy as np
+
+from enum import Enum
 from copy import deepcopy
+
+from lie_graph import Graph
 
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.forcefield.forcefield import ForceField
@@ -36,300 +41,316 @@ from lie_topology.molecule.angle import Angle
 from lie_topology.molecule.atom import Atom
 from lie_topology.molecule.bond import Bond
 
+class BlendPosition(Enum):
+    chain_start = 1
+    chain_end = 2
 
+### ---------------------------------------------------------------------------------------------------------------------------
+### Attempt 2:
+### ---------------------------------------------------------------------------------------------------------------------------
 
-class Bookkeeping(object):
+def _GenerateMoleculeKey( molecule_name, index ):
 
-    def __init__(self):
+    return "%s_%i" % (molecule_name,index)
 
-        self.residue_index = 1
-        self.atom_index    = 1
-        self.chain_length  = 0
-        self.blend_into = False
+def _GenerateSequenceItem( template_molecule, sequence_index ):
 
-##
-## We generate references so that we can relink in the new molecule
-##
-def _GenerateRenameEntry( rtype, entry_name ):
+    print( "Sequence Item", template_molecule.key )
 
-    return "%s::%s" % ( rtype, entry_name )
-
-def _GenerateReference( ref_input, rename_dict ):
-    reference = None
-
-    if isinstance( ref_input, Atom ):
-        reference = ref_input.ToReference()
-
-    elif isinstance( ref_input, AtomReference ):
-        reference = deepcopy(ref_input)
-
-    else:
-        raise LieTopologyException("MakeTopology", "Unrecognised type of atom reference")  
+    linear_molecule_key = _GenerateMoleculeKey(template_molecule.key,sequence_index)
+    linear_molecule = template_molecule.SafeCopy( molecule_key=linear_molecule_key )
     
-    # test if we need to apply rename schemes
-    if reference.atom_key is not None:
-        rename_entry = _GenerateRenameEntry("a", reference.atom_key)
-        if rename_entry in rename_dict:
-            print( "DEBUG; renaming ", reference.atom_key, rename_dict[rename_entry] )
-            reference.atom_key = rename_dict[rename_entry]
-
-    if reference.molecule_key is not None:
-        rename_entry = _GenerateRenameEntry("m", reference.molecule_key)
-        if rename_entry in rename_dict:
-            print( "DEBUG; renaming ", reference.molecule_key, rename_dict[rename_entry] )
-            reference.molecule_key = rename_dict[rename_entry]
-    
-    if reference.group_key is not None:
-        rename_entry = _GenerateRenameEntry("g", reference.group_key)
-        if rename_entry in rename_dict:
-            print( "DEBUG; renaming ", reference.group_key, rename_dict[rename_entry] )
-            reference.group_key = rename_dict[rename_entry]
-
-    return reference
-
-def _CopyBonds( src_molecule, dest_molecule, rename_dict ):
-
-    if src_molecule.bonds:
-        for bond in src_molecule.bonds:
-
-            if len(bond.atom_references) != 2:
-                raise LieTopologyException("MakeTopology", "Bonds require 2 atom references")  
-
-            ref_1 = _GenerateReference( bond.atom_references[0], rename_dict )
-            ref_2 = _GenerateReference( bond.atom_references[1], rename_dict )
-
-            dest_molecule.AddBond( Bond( atom_references=[ref_1, ref_2], bond_type=bond.bond_type, sybyl=bond.sybyl ) ) 
-
-def _CopyAngles( src_molecule, dest_molecule, rename_dict ):
-
-    if src_molecule.angles:
-        for angle in src_molecule.angles:
-
-            if len(angle.atom_references) != 3:
-                raise LieTopologyException("MakeTopology", "Angles require 3 atom references")  
-
-            ref_1 = _GenerateReference( angle.atom_references[0], rename_dict )
-            ref_2 = _GenerateReference( angle.atom_references[1], rename_dict )
-            ref_3 = _GenerateReference( angle.atom_references[2], rename_dict )
-
-            dest_molecule.AddAngle( Angle( atom_references=[ref_1, ref_2,ref_3], angle_type=angle.angle_type ) )  
-
-def _CopyDihedrals( src_molecule, dest_molecule, rename_dict ):
-
-    if src_molecule.dihedrals:
-        for dihedral in src_molecule.dihedrals:
-
-            if len(dihedral.atom_references) != 4:
-                raise LieTopologyException("MakeTopology", "Dihedrals require 4 atom references")  
-
-            ref_1 = _GenerateReference( dihedral.atom_references[0], rename_dict )
-            ref_2 = _GenerateReference( dihedral.atom_references[1], rename_dict )
-            ref_3 = _GenerateReference( dihedral.atom_references[2], rename_dict )
-            ref_4 = _GenerateReference( dihedral.atom_references[3], rename_dict )
-
-            dest_molecule.AddDihedral( Dihedral( atom_references=[ref_1,ref_2,ref_3,ref_4], dihedral_type=dihedral.dihedral_type ) )
-
-def _CopyVsite( vsite, rename_dict ):
-
-    response = None
-
-    if vsite is not None:
-        response = deepcopy( vsite )
-        response.atom_references = []
-
-        # generate deferred references
-        for atom_ref in vsite.atom_references:
-            deferred_ref = _GenerateReference( atom_ref, rename_dict )
-            response.atom_references.append( deferred_ref )
-
-    return response 
+    return linear_molecule
 
 
-def _CopyAtoms( src_molecule, dest_molecule, start_index, it_from, it_to ):
+def _GeneratePlainSequence( blueprint, sequence, solute_group, chain_cap_map ):
 
-    # add atoms
-    #for key, atom in src_molecule.atoms.items():
-    for i in range(it_from, it_to):
-
-        key, atom=src_molecule.atoms.keyValueAt(i)
-
-        # make sure we ignore preceding atoms that might be in blend data
-        if atom.preceding is None or not atom.preceding:
-
-            vdw_type_cpy = None
-            mass_type_cpy = None
-            virtual_site_cpy = None
-            coulombic_type_cpy = None
-            
-            if atom.vdw_type:
-                vdw_type_cpy = deepcopy(atom.vdw_type)
-            
-            if atom.mass_type:
-                mass_type_cpy = deepcopy(atom.mass_type)
-
-            if atom.coulombic_type:
-                coulombic_type_cpy = deepcopy(atom.coulombic_type)
-            
-            if atom.virtual_site:
-                virtual_site_cpy = _CopyVsite(atom.virtual_site, rename_dict )
-
-            dest_molecule.AddAtom(  key=key, type_name=atom.type_name, element=atom.element,\
-                                    identifier=start_index, sybyl=atom.sybyl,\
-                                    mass_type=mass_type_cpy, vdw_type=vdw_type_cpy,\
-                                    coulombic_type=coulombic_type_cpy, charge_group=atom.charge_group,\
-                                    virtual_site=virtual_site_cpy, trailing=atom.trailing )
-                                    
-            start_index+=1
-            #print( atom.key )
-
-def _AddBlend( solute_group, molecule, book_keeping ):
-
-    print( "BLEND ", molecule.key )
-    
-    linear_molecule = None; 
-    rename_dict=dict()
-
-    if molecule.trailing_count > 0:
-        if book_keeping.chain_length != 0 or book_keeping.blend_into:
-            raise LieTopologyException("MakeTopology", "Can only use a blend start at chain length == 0")
-        
-        linear_molecule_key = "%s_%i" % (molecule.key,book_keeping.residue_index)
-        linear_molecule = Molecule( key=linear_molecule_key, type_name=molecule.type_name, identifier=book_keeping.residue_index )
-
-        # start a new  chain
-        book_keeping.blend_into = True
-        solute_group.AddMolecule( molecule=linear_molecule )
-
-    elif molecule.preceding_count > 0:
-        if book_keeping.chain_length == 0:
-            raise LieTopologyException("MakeTopology", "Cannot cap an empty chain")
-
-        # this is were we apply the capping group
-        linear_molecule = solute_group.molecules.back()
-
-        #truncate the preceding atoms
-        preceding_count = molecule.preceding_count
-        previous_atom_count = linear_molecule.atom_count
-        if preceding_count >= previous_atom_count:
-            raise LieTopologyException("MakeTopology", "Preceding count of capping group is >= number of atoms previous molecule")
-
-        to_remove=[]
-        for i in range(0, preceding_count):
-            fetch_index=previous_atom_count-preceding_count+i
-            fetch_key=linear_molecule.atoms.keyAt(fetch_index)
-            to_remove.append(fetch_key)
-        
-        for remove_key in to_remove:
-            linear_molecule.atoms.remove(remove_key)
-
-        # reset length
-        book_keeping.chain_length=0
-
-    else:
-        raise LieTopologyException("MakeTopology", "Sequence item %s is not a chain start or cap, while blending was requested" % (molecule.key))
-    
-    _CopyAtoms( molecule, linear_molecule, book_keeping.atom_index, 0, molecule.atom_count )
-    _CopyBonds( molecule, linear_molecule, rename_dict )
-    _CopyAngles( molecule, linear_molecule, rename_dict )
-    _CopyDihedrals( molecule, linear_molecule, rename_dict )
-
-def _AddSolute( solute_group, template_molecule, book_keeping ):
-
-    print( "SOLUTE ", template_molecule.key )
-
-    rename_dict=dict()
-    it_start = 0
-    it_end = template_molecule.atom_count
-    
-    linear_molecule_key = "%s_%i" % (template_molecule.key,book_keeping.residue_index)
-    linear_molecule = Molecule( key=linear_molecule_key, type_name=template_molecule.type_name, identifier=book_keeping.residue_index )
-    
-    # make sure we update references to the new situation
-    molecule_rename_key = _GenerateRenameEntry("m", template_molecule.key)
-    rename_dict[molecule_rename_key] = linear_molecule_key
-
-    if book_keeping.blend_into:
-        #pop the last residue which is a blend
-        last_key, last_linear_molecule = solute_group.molecules.popitem(pop_last=True) 
-
-        #skip set of atoms
-        trailing_count = last_linear_molecule.trailing_count
-        it_start = trailing_count
-
-        # perform a range check!
-        if trailing_count >= template_molecule.atom_count:
-            raise LieTopologyException("MakeTopology", "While blending into a chain start, the number of trailing atoms exceeds or equals the blendin residue count")
-
-        # generate rename
-        # we want to keep the blend atom names, so perform a rename
-        for i in range(0, trailing_count):
-            old_atom_key = template_molecule.atoms.keyAt(i)
-            new_atom_key = last_linear_molecule.atoms.keyAt(-trailing_count + i)
-
-            if old_atom_key != new_atom_key:
-                atom_rename_key = _GenerateRenameEntry("a", old_atom_key)
-                rename_dict[atom_rename_key] = new_atom_key
-
-        # we want to keep the NEW molecule name, so perform a backwards rename
-        molecule_rename_key = _GenerateRenameEntry("m", last_key)
-        rename_dict[molecule_rename_key] = linear_molecule_key
-
-        # copy stored information into the new molecule with rename
-        last_linear_atom_count = last_linear_molecule.atom_count
-        _CopyAtoms( last_linear_molecule, linear_molecule, book_keeping.atom_index, 0, last_linear_atom_count )
-        _CopyBonds( last_linear_molecule, linear_molecule, rename_dict )
-        _CopyAngles( last_linear_molecule, linear_molecule, rename_dict )
-        _CopyDihedrals( last_linear_molecule, linear_molecule, rename_dict )
-        
-        #advance atom counter
-        book_keeping.atom_index+=last_linear_atom_count
-    
-    _CopyAtoms( template_molecule, linear_molecule, book_keeping.atom_index, it_start, it_end )
-    _CopyBonds( template_molecule, linear_molecule, rename_dict )
-    _CopyAngles( template_molecule, linear_molecule, rename_dict )
-    _CopyDihedrals( template_molecule, linear_molecule, rename_dict )
-
-    solute_group.AddMolecule( molecule=linear_molecule )
-
-    book_keeping.atom_index+=(it_end - it_start)
-    book_keeping.chain_length+=1
-    book_keeping.residue_index+=1
-
-    # reset flags
-    book_keeping.blend_into = False
-
-def _GenerateSequence( forcefield, blueprint, sequence, topology ):
-    
-    book_keeping = Bookkeeping()
-    solute_group = topology.GroupByKey("solute")
-    residue_index = 0
-
+    seq_index=0
     for seq_item in sequence:
 
         molecule_template=blueprint.FindMolecule(seq_item)
         blend_template=blueprint.FindBlend(seq_item)
 
         if molecule_template != None:
-            _AddSolute( solute_group, molecule_template, book_keeping )
-            book_keeping.blend_into = False
+            sequence_item = _GenerateSequenceItem( molecule_template, seq_index )
             
         elif blend_template != None:
 
             if blend_template.preceding_count > 0 and\
                blend_template.trailing_count > 0:
                raise LieTopologyException("MakeTopology", "Sequence item %s cannot be both chain start and cap" % (seq_item))
+            
+            sequence_item = _GenerateSequenceItem( blend_template, seq_index )
 
-            _AddBlend( solute_group, blend_template, book_keeping )
+            if blend_template.trailing_count > 0:
+
+                chain_cap_map[sequence_item.key] = BlendPosition.chain_start
+            else:
+
+                chain_cap_map[sequence_item.key] = BlendPosition.chain_end
 
         else:
-             raise LieTopologyException("MakeTopology", "Sequence item %s not present in the blueprint" % (seq_item))
+             raise LieTopologyException("MakeTopology", "Sequence item %s not present in the blueprint" % (seq_item)) 
 
+        # add to solutes
+        solute_group.AddMolecule( molecule=sequence_item )
+
+        # increment our sequence index
+        seq_index+=1
+
+def _RemoveOutOfBoundsBonded( bonded_src, is_start = False, is_end = False ):
+
+    to_remove=[]
+    for i in range(0, len(bonded_src) ):
+        bonded = bonded_src[i]
+
+        schedule_removal=False
+        for atom_ref in bonded.atom_references:
+            naked_reference = atom_ref.ToReference()
+
+            if naked_reference.IsIndexedReference():
+                if is_start and naked_reference.external_index <= 0 or\
+                   is_end   and naked_reference.external_index > 0:
+                   schedule_removal = True
+                   break # hard override on remove
+
+        if schedule_removal:
+            to_remove.append(i)
+    
+    for i in sorted(to_remove, reverse=True):
+        del bonded_src[i]
+
+def _FixIndexReference( molecule, atom_reference, bond_graph ):
+
+    external_index = atom_reference.external_index
+
+    group = molecule.group
+    if group is None:
+        raise LieTopologyException("Molecule::_FixIndexReferences", "Cannot resolve indexed references when group link is undefined" )
+
+    #find the relative index of this
+    this_index = group.molecules.indexOf(molecule.key)
+
+    # if a forward reference
+    if external_index > 0:
+        atom_index = external_index - molecule.atom_count 
+        molecule_index = this_index + 1
+
+        next_molecule = group.molecules.at( molecule_index )
         
+        # if that was resolved 
+        if next_molecule:
+            if atom_index < next_molecule.atom_count:
+                response = next_molecule.atoms.at(atom_index).ToReference()
+
+                atom_reference.external_index = None
+                atom_reference.group_key = response.group_key
+                atom_reference.atom_key = response.atom_key
+                atom_reference.molecule_key = response.molecule_key
+    
+    elif external_index < 0:
+        atom_index = external_index - molecule.atom_count 
+        molecule_index = this_index - 1
+    
+        prev_molecule = group.molecules.at( molecule_index )
+    else:
+        raise LieTopologyException("Molecule::_FixIndexReferences", "Reference indices cannot have value 0" )
+
+def _AssertBonded( molecule, bonded_list ):
+
+    for bonded in bonded_list:
+        if not bonded.IsReferenceResolved():
+            for reference in bonded.atom_references:
+                if reference.IsIndexedReference():
+
+                    group = molecule.group
+                    if group is None:
+                        raise LieTopologyException("Molecule::_AssertBonded", "Cannot resolve indexed references when group link is undefined" )
+                    
+                    response = None
+                    this_index = group.molecules.indexOf(molecule.key)
+
+                    if reference.external_index > 0:
+
+                        #find the relative index of this
+                        atom_index = reference.external_index - molecule.atom_count 
+                        molecule_index = this_index + 1
+                        next_molecule = group.molecules.at( molecule_index )
+                        
+                        if next_molecule:
+                            if atom_index < next_molecule.atom_count:
+                                response = next_molecule.atoms.at(atom_index).ToReference()
+                    
+                    else:
+
+                        print( this_index, this_index - 1 )
+                        molecule_index = this_index - 1
+                        prev_molecule = group.molecules.at( molecule_index )
+
+                        if prev_molecule:
+                            if abs(reference.external_index) < prev_molecule.atom_count:
+                                atom_index = prev_molecule.atom_count + reference.external_index
+                                print( molecule.key, atom_index, prev_molecule.atom_count, reference.external_index )
+                                response = prev_molecule.atoms.at(atom_index).ToReference()
+
+
+                    if response:
+                        reference.external_index = None
+                        reference.group_key = response.group_key
+                        reference.atom_key = response.atom_key
+                        reference.molecule_key = response.molecule_key
+
+def _AssertBondedInMerge(topology, solute_group, chain_cap_map):
+
+    bond_graph = Graph()
+
+    for i in range(0, solute_group.molecules.size()):
+        molecule = solute_group.molecules.at(i) 
+
+        # test if this sequence item is a start merge operation
+        if molecule.key in chain_cap_map:
+            chain_cap_map_entry = chain_cap_map[molecule.key]
+            chain_molecule = None
+            is_start = False
+            is_end = False
+
+            # if this is a chain start
+            if chain_cap_map_entry == BlendPosition.chain_start:
+               chain_molecule = solute_group.molecules.at(i+1)
+               is_start = True
+            
+            # this is a chain end
+            elif chain_cap_map_entry == BlendPosition.chain_end:
+                chain_molecule = solute_group.molecules.at(i-1)
+                is_end = True
+            
+            if chain_molecule:
+                _RemoveOutOfBoundsBonded( chain_molecule.bonds, is_start=is_start, is_end=is_end )
+                _RemoveOutOfBoundsBonded( chain_molecule.angles, is_start=is_start, is_end=is_end )
+                _RemoveOutOfBoundsBonded( chain_molecule.dihedrals, is_start=is_start, is_end=is_end )
+                _RemoveOutOfBoundsBonded( chain_molecule.impropers, is_start=is_start, is_end=is_end )
+        
+        # Fix bonded
+        _AssertBonded( molecule, molecule.bonds )
+        _AssertBonded( molecule, molecule.angles )
+        _AssertBonded( molecule, molecule.dihedrals )
+        _AssertBonded( molecule, molecule.impropers )
+
+        # Generate bond graph
+        molecule.ResolveReferences(topology)
+
+def _PrepareStartMerge( i, chain_size, solute_group, molecule, chain_cap_map ):
+
+    # check error states
+    if chain_size != 0:
+        raise LieTopologyException("MakeTopology", "Can only use a blend start at chain length == 0")
+    
+    if (i+1) >= solute_group.molecules.size():
+        raise LieTopologyException("MakeTopology", "Chain start cannot be at the end of a sqeuence")
+    
+    # find the next molecule in the chain
+    next_molecule = solute_group.molecules.at(i+1)
+    
+    if next_molecule.key in chain_cap_map:
+        raise LieTopologyException("MakeTopology", "Chain start cannot be followed by another blend molecule")
+    
+    trailing_count = molecule.trailing_count
+
+    # first step is to rename all atoms in the target to the new
+    # atom naming scheme. While these atoms will be deleted anyway
+    # this is still required to correct all references to the bondeds
+    for j in range(0, trailing_count):
+
+        # as we directly delete the atoms, the index of 0
+        # is always the start
+        old_atom_key = next_molecule.atoms.keyAt(0)
+        new_atom_key = molecule.atoms.keyAt(-trailing_count + j)
+
+        # delete the atom
+        next_molecule.atoms.remove(old_atom_key)
+
+def _PrepareEndMerge( i, chain_size, solute_group, molecule, chain_cap_map ):
+
+    if chain_size == 0:
+        raise LieTopologyException("MakeTopology", "Cannot cap an empty chain")
+
+    if (i-1) < 0:
+        raise LieTopologyException("MakeTopology", "Capping group cannot be the first in sequence")
+
+    prev_molecule = solute_group.molecules.at(i-1)    
+
+    #truncate the preceding atoms
+    preceding_count = molecule.preceding_count
+    previous_atom_count = prev_molecule.atom_count
+    if preceding_count >= previous_atom_count:
+        raise LieTopologyException("MakeTopology", "Preceding count of capping group is >= number of atoms previous molecule")
+
+    for i in range(0, preceding_count):
+        # does not increment as we directly delete the atoms
+        fetch_index = previous_atom_count-preceding_count
+        old_atom_key = prev_molecule.atoms.keyAt(fetch_index)
+        new_atom_key = molecule.atoms.keyAt(i)
+
+        prev_molecule.atoms.remove(old_atom_key)
+
+        #_AssertBondedInMerge( prev_molecule, old_atom_key, new_atom_key )
+    
+    # remove all preceding atoms
+    remove_list=[]
+    for atom_key, atom in molecule.atoms.items():
+        if atom.preceding:
+            remove_list.append(atom_key)
+    
+    #perform the actual removing
+    for remove_key in remove_list:
+        molecule.atoms.remove(remove_key)
+
+    #remove out of bounds bonded
+    _RemoveOutOfBoundsBonded( prev_molecule.bonds, is_end=True )
+    _RemoveOutOfBoundsBonded( prev_molecule.angles, is_end=True )
+    _RemoveOutOfBoundsBonded( prev_molecule.dihedrals, is_end=True )
+    _RemoveOutOfBoundsBonded( prev_molecule.impropers, is_end=True )
+
+def _PrepareMoleculeMerge(solute_group, chain_cap_map):
+    
+    """ Prepares molecules for merging
+
+    Blend groups are not residues by themselfs and therefore have to be merged into
+    others. Before we can do this we need to make sure that we remove the blended atoms
+    from the target and filter the bonded interactions to reflect this.
+    """
+    chain_size=0
+    for i in range(0, solute_group.molecules.size()):
+        molecule = solute_group.molecules.at(i)
+
+        # test if this sequence item is a start merge operation
+        if molecule.key in chain_cap_map:
+            chain_cap_map_entry = chain_cap_map[molecule.key]
+
+            # if this is a chain start
+            if chain_cap_map_entry == BlendPosition.chain_start:
+
+                _PrepareStartMerge( i, chain_size, solute_group, molecule, chain_cap_map )
+            
+            # this is a chain end
+            elif chain_cap_map_entry == BlendPosition.chain_end:
+
+                _PrepareEndMerge( i, chain_size, solute_group, molecule, chain_cap_map )
+
+        # Otherwise start a capping operation       
+        else: 
+            chain_size+=1
 
 ##  
 ## Based on gromos++ make_top
 ##
 def MakeSequence( forcefield, blueprint, sequence, solvent_name, disulfides ):
+
+    """ Generate a sequence from small blueprint molecules
+
+    This function is used to turn a series of small molecules into a topology.
+    The sequence may included a chain topology with starting and capping blend groups
+    """
 
     ## Analyze input types and check them
     if not isinstance(forcefield, ForceField):
@@ -360,11 +381,20 @@ def MakeSequence( forcefield, blueprint, sequence, solvent_name, disulfides ):
            not isinstance(dis_instance[1], Molecule):
             raise LieTopologyException("MakeTopology", "disulfides inputs should be of type Molecule")
 
+    # the notion of a chain disappears, we just have solute and solvent groups now
+    # all functions working with a linked topology expect just these 2 groups
     topology = Topology()
     topology.AddGroup( key="solute" )
     topology.AddGroup( key="solvent" )
 
-    _GenerateSequence( forcefield, blueprint, sequence, topology )
+    chain_cap_map = dict()
+    solute_group = topology.GroupByKey("solute")
+
+    _GeneratePlainSequence( blueprint, sequence, solute_group, chain_cap_map )
+    _PrepareMoleculeMerge( solute_group, chain_cap_map )
+    _AssertBondedInMerge( topology, solute_group, chain_cap_map )
+    
+    
 
     return topology
     
