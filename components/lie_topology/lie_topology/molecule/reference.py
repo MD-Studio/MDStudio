@@ -30,6 +30,8 @@ from lie_topology.common.serializable import Serializable
 from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 
+import hashlib
+
 class AtomReference( Serializable ):
     
     def __init__( self, group_key=None, molecule_key=None, atom_key=None, external_index=None ):
@@ -54,6 +56,24 @@ class AtomReference( Serializable ):
                self._external_index == other.external_index
 
     @property
+    def hash(self):
+        input=""
+        
+        if self._group_key is not None:
+            input+="g:%s->" % ( self._group_key )
+        
+        if self._molecule_key is not None:
+            input+="m:%s->" % ( self._molecule_key )
+
+        if self._atom_key is not None:
+            input+="a:%s->" % ( self._atom_key )
+        
+        if self._external_index is not None:
+            input+="a:%s->" % ( self._external_index )
+        
+        return hashlib.sha1(input).hexdigest()
+
+    @property   
     def group_key(self):
         return self._group_key
 
@@ -134,7 +154,7 @@ class AtomReference( Serializable ):
            self._atom_key in target_molecule.atoms:
 
            response = target_molecule.atoms[self._atom_key]
-           
+
         return response 
     
     def Debug(self):

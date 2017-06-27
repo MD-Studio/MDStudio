@@ -110,7 +110,7 @@ def _ParseSoluteBonds( block, solute, it ):
         atom_j_ref = _GenerateBondedReference( solute, index_j )
         
         bond = Bond( atom_references=[atom_i_ref,atom_j_ref],\
-                     bond_type=bond_type  ) 
+                     forcefield_type=bond_type  ) 
 
         solute.AddBond( bond )
         
@@ -136,7 +136,7 @@ def _ParseSoluteAngles( block, solute, it ):
         atom_k_ref = _GenerateBondedReference( solute, index_k )
 
         angle = Angle( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref],\
-                       angle_type=angle_type  ) 
+                       forcefield_type=angle_type  ) 
 
         solute.AddAngle( angle )
         
@@ -164,7 +164,7 @@ def _ParseSoluteDihedrals( block, solute, it ):
         atom_l_name = _GenerateBondedReference( solute, index_l )
 
         dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
-                             dihedral_type=dihedral_type  ) 
+                             forcefield_type=dihedral_type  ) 
 
         solute.AddDihedral( dihedral )
         
@@ -192,7 +192,7 @@ def _ParseSoluteImpropers( block, solute, it ):
         atom_l_name = _GenerateBondedReference( solute, index_k )
 
         dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
-                             dihedral_type=dihedral_type  ) 
+                             forcefield_type=dihedral_type  ) 
 
         solute.AddImproper( dihedral )
         
@@ -325,7 +325,7 @@ def _ParseSolventConstraints(block, solvent, it):
         
         bond_type = BondType( bond0 = bond_length )
         bond = Bond( atom_references=[atom_i_ref,atom_j_ref],\
-                     bond_type=bond_type  ) 
+                     forcefield_type=bond_type  ) 
 
         solvent.bonds.append( bond )
         

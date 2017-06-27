@@ -63,6 +63,19 @@ class Topology( Serializable ):
 
         return None
     
+    def AtomIndexStartOfGroup(self, group_key):
+
+        index_start=0
+        
+        for group in self._groups.values():
+
+            if group.key == group_key:
+                break
+            
+            index_start+=group.atom_count
+
+        return index_start
+
     @property
     def atom_count(self):
 
@@ -133,6 +146,21 @@ class Topology( Serializable ):
                                                "Coul_type %s not found in forcefield"\
                                                 % ( coulombic_type.key ) ) 
                 atom.coulombic_type = forcefield.coultypes.find(coulombic_type.key)
+    
+    def _ResolveBondedForceFieldReference( self, bonded_list, bonded_types ):
+
+        for bonded in bonded_list:
+
+            forcefield_type = bonded.forcefield_type
+
+            # all of the force field types could be references
+            if forcefield_type is not None and isinstance( forcefield_type, ForceFieldReference):
+                if not forcefield_type.key in bonded_types:
+                    raise LieTopologyException("Topology::_ResolveBondedForceFieldReference",\
+                                               "forcefield_type %s not found in forcefield"\
+                                                % ( forcefield_type.key ) ) 
+                bonded.forcefield_type = bonded_types.find(forcefield_type.key)
+
 
     def ResolveForceFieldReferences( self, forcefield ):
 
@@ -147,7 +175,11 @@ class Topology( Serializable ):
             for molecule_key, molecule in group.molecules.items():
 
                  self._ResolveAtomForceFieldReference(molecule, forcefield)
-                 
+                 self._ResolveBondedForceFieldReference( molecule.bonds, forcefield.bondtypes )
+                 self._ResolveBondedForceFieldReference( molecule.angles, forcefield.angletypes )
+                 self._ResolveBondedForceFieldReference( molecule.dihedrals, forcefield.dihedraltypes )
+                 self._ResolveBondedForceFieldReference( molecule.impropers, forcefield.impropertypes )
+
     def OnSerialize( self, logger = None ):   
 
         result = {}

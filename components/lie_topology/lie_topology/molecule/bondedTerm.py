@@ -31,7 +31,7 @@ from lie_topology.molecule.atom import Atom
 
 class BondedTerm( Serializable ):
     
-    def __init__( self, imodule, iclass, references_size, atom_references ):
+    def __init__( self, imodule, iclass, references_size, atom_references, forcefield_type ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, imodule, iclass )
@@ -41,6 +41,14 @@ class BondedTerm( Serializable ):
         # Indices of the atoms involved in the bond, length should be 2
         self._atom_references = atom_references
     
+        # Bond type in the force field
+        self._forcefield_type = forcefield_type
+
+    @property
+    def forcefield_type(self):
+
+        return self._forcefield_type
+
     @property
     def atom_references(self):
 
@@ -54,6 +62,11 @@ class BondedTerm( Serializable ):
                                         % ( len(value), self._references_size ) )
 
         self._atom_references = value
+
+    @forcefield_type.setter
+    def forcefield_type(self, value):
+
+        self._forcefield_type = value
 
     def IsReferenceResolved(self):
 
@@ -97,3 +110,15 @@ class BondedTerm( Serializable ):
             new_references.append( new_reference )
         
         return new_references
+    
+    def _DebugRef(self, atom_ref):
+
+        response = "?"
+
+        if isinstance(atom_ref, Atom):
+            response = atom_ref.ToReference().Debug()
+        else:
+            # mark as not yet resolved
+            response = "%s*" % (  atom_ref. Debug() )
+        
+        return response

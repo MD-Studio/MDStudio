@@ -82,6 +82,20 @@ class Group( Serializable ):
 
         self._parent = value
 
+    def AtomIndexStartOfMolecule(self, molecule_key):
+
+        index_start=0    
+        for molecule in self._molecules.values():
+            if molecule.key == molecule_key:
+                break
+            
+            index_start+=molecule.atom_count
+
+        if self._parent:
+            index_start+=self._parent.AtomIndexStartOfGroup(self.key)
+
+        return index_start
+            
 
     def AddMolecule( self, **kwargs ):
   

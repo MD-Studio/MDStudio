@@ -39,24 +39,16 @@ from lie_topology.forcefield.reference import ForceFieldReference
 
 class Angle( BondedTerm ):
     
-    def __init__( self, atom_references = None, angle_type = None, united = None ):
+    def __init__( self, atom_references = None, forcefield_type = None, united = None ):
         
         # Call the base class constructor with the parameters it needs
-        BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 3, atom_references )
-
-        # Angle type in the force field
-        self._angle_type = angle_type
-    
-    @property
-    def angle_type(self):
-
-        return self._angle_type
+        BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 3, atom_references, forcefield_type )
 
     def SafeCopy(self, molecule_key=None):
 
-        angle_type = deepcopy( self._angle_type )
+        forcefield_type = deepcopy( self._forcefield_type )
 
-        return Angle( atom_references=self._SafeCopyReferences(molecule_key), angle_type=angle_type )
+        return Angle( atom_references=self._SafeCopyReferences(molecule_key), forcefield_type=forcefield_type )
 
     def OnSerialize( self, logger = None ):   
 
@@ -74,20 +66,20 @@ class Angle( BondedTerm ):
 
             result["atom_references"] = ser_values
         
-        if self._angle_type:
+        if self._forcefield_type:
 
             type_str = None
-            if isinstance(self._angle_type, ForceFieldReference):
-                type_str = self._angle_type.key
+            if isinstance(self._forcefield_type, ForceFieldReference):
+                type_str = self._forcefield_type.key
 
-            elif isinstance(self._angle_type, AngleType):
-                type_str = self._angle_type.OnSerialize(logger)
+            elif isinstance(self._forcefield_type, AngleType):
+                type_str = self._forcefield_type.OnSerialize(logger)
                 
             else:
-                print(self._angle_type)
+                print(self._forcefield_type)
                 raise LieTopologyException("Angle::OnSerialize","Unknown angle type") 
         
-            result["angle_type"] = type_str    
+            result["forcefield_type"] = type_str    
 
         return result
     
@@ -106,48 +98,37 @@ class Angle( BondedTerm ):
                 
                 self._atom_references.append(ref_obj)
                 
-        if "angle_type" in data:
-            localData = data["angle_type"]
+        if "forcefield_type" in data:
+            localData = data["forcefield_type"]
 
             if isinstance(localData, str):
-                self._angle_type = ForceFieldReference( key=localData )
+                self._forcefield_type = ForceFieldReference( key=localData )
 
             elif isinstance(localData, dict):
-                self._angle_type = AngleType()
-                self._angle_type.OnDeserialize(localData, logger)
+                self._forcefield_type = AngleType()
+                self._forcefield_type.OnDeserialize(localData, logger)
                 
             else:
                  raise LieTopologyException("Angle::OnSerialize","Unknown angle type") 
     
-    def _DebugRef(self, atom_ref):
-
-        response = "?"
-
-        if isinstance(atom_ref, Atom):
-            response = atom_ref.ToReference().Debug()
-        else:
-            # mark as not yet resolved
-            response = "%s*" % (  atom_ref. Debug() )
-        
-        return response
-
+    
     def Debug(self):
 
         safe_ref_1 = "?"
         safe_ref_2 = "?"
         safe_ref_3 = "?"
-        safe_angle_type = "?"
+        safe_forcefield_type = "?"
 
         if self._atom_references and len(self._atom_references) == 3:
             safe_ref_1 = self._DebugRef( self._atom_references[0] )
             safe_ref_2 = self._DebugRef( self._atom_references[1] )
             safe_ref_3 = self._DebugRef( self._atom_references[2] )
 
-        if self._angle_type:
-            if isinstance(self._angle_type, AngleType):
-                safe_angle_type = "%s" % (self._angle_type.key)
+        if self._forcefield_type:
+            if isinstance(self._forcefield_type, AngleType):
+                safe_forcefield_type = "%s" % (self._forcefield_type.key)
             else:
-                safe_angle_type = "%s*" % (self._angle_type.key)
+                safe_forcefield_type = "%s*" % (self._forcefield_type.key)
 
         # Indicates the bond order of this bond
-        return "angle %-25s %-25s %-25s %7s\n" % (safe_ref_1, safe_ref_2, safe_ref_3, safe_angle_type)
+        return "angle %-25s %-25s %-25s %7s\n" % (safe_ref_1, safe_ref_2, safe_ref_3, safe_forcefield_type)

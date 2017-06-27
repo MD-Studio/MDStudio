@@ -70,36 +70,116 @@ class Molecule( Serializable ):
         # Impropers of this solute
         self._impropers = impropers if impropers is not None else []
 
-    def AddAtom(self, **kwargs ):
+    def AddAtom(self, prepend=False, **kwargs  ):
         
+        key = None
+        atom = None
+
         if "atom" in kwargs:
             atom = kwargs["atom"]
             atom.molecule = self
-            self.atoms.insert(atom.key, atom )
+            key = atom.key
 
         else:  
             if not "key" in kwargs:
                 raise LieTopologyException("Molecule::AddAtom", "Key is a required argument" )
 
             kwargs["parent"] = self
-            self.atoms.insert(kwargs["key"], Atom(**kwargs) )
+            key  = kwargs["key"]
+            atom = Atom(**kwargs)
+
+        index = 0 if prepend is True else self.atoms.size()   
+        self.atoms.insert(key, atom, index=index )
+
+    def _IndexOfBonded( self, test_list, bonded):
+
+        reponse=-1
+
+        # atom references could be both Atoms and AtomReferences
+        # thats why we make an additional list
+        bonded_ref = []
+        
+        for atom_ref in bonded.atom_references:
+            bonded_ref.append(atom_ref.ToReference().hash)
+        
+        index=0
+        for test_item in test_list:
+            test_ref = []
+
+            for atom_ref in test_item.atom_references:
+                test_ref.append(atom_ref.ToReference().hash)
+        
+            # found a collition
+            if len( set(bonded_ref) & set(test_ref) ) == len( test_item.atom_references ):
+                reponse=index
+                break
+            
+            index+=1
+
+        return reponse
+
+    def IndexOfBond(self, bond ):
+
+        return self._IndexOfBonded( self.bonds, bond )
     
+    def IndexOfAngle(self, angle ):
+
+        return self._IndexOfBonded( self.angles, angle )
+
+    def IndexOfDihedral(self, dihedral ):
+
+        return self._IndexOfBonded( self.dihedrals, dihedral )
+
+    def IndexOfImproper(self, improper ):
+
+        return self._IndexOfBonded( self.impropers, improper )
+
     def AddBond( self, bond ):
 
-        self._bonds.append( bond )
+        #perform a sanity check if this bond is not already processed
+        if len(bond.atom_references) != 2:
+            raise LieTopologyException("Molecule::AddBond", "Can only add bonds that have 2 atom references" )
+        
+        # if not present yet
+        if self.IndexOfBond(bond) < 0:
+            self._bonds.append( bond )
 
     def AddAngle( self, angle ):
+
+        #perform a sanity check if this bond is not already processed
+        if len(angle.atom_references) != 3:
+            raise LieTopologyException("Molecule::AddAngle", "Can only add angles that have 3 atom references" )
 
         self._angles.append( angle )
 
     def AddImproper( self, improper ):
 
+        #perform a sanity check if this bond is not already processed
+        if len(improper.atom_references) != 4:
+            raise LieTopologyException("Molecule::AddImproper", "Can only add impropers that have 4 atom references" )
+
         self._impropers.append( improper )
     
     def AddDihedral( self, dihedral ):
 
+        #perform a sanity check if this bond is not already processed
+        if len(dihedral.atom_references) != 4:
+            raise LieTopologyException("Molecule::AddDihedral", "Can only add dihedrals that have 4 atom references" )
+
         self._dihedrals.append( dihedral )
 
+    def IndexOfAtom( self, atom_key ):
+
+        if not atom_key in self._atoms:
+            raise LieTopologyException("Molecule::AddAtom", "A linked molecule does not contain the parent atom" )
+
+        index = self._atoms.indexOf(atom_key)
+
+        if self._group and index >= 0:
+            index += self._group.AtomIndexStartOfMolecule(self._key)
+
+        return index
+    
     @property
     def atom_count(self):
         return self._atoms.size()
@@ -211,8 +291,9 @@ class Molecule( Serializable ):
                         if isinstance(reference, AtomReference):   
                             new_reference = reference.TryLink(root_obj, self)
                             new_references.append( new_reference )
+
                         else:
-                            new_references.append( reference )
+                            new_references.append( reference, new_reference.Debug() )
                     
                     item.atom_references = new_references
 
@@ -297,6 +378,16 @@ class Molecule( Serializable ):
         index=1
         for angle in self._angles:
             aggregate+="\t%7i %s" % ( index, angle.Debug() )
+            index+=1
+
+        index=1
+        for improper in self._impropers:
+            aggregate+="\t%7i %s" % ( index, improper.Debug() )
+            index+=1
+        
+        index=1
+        for dihedral in self._dihedrals:
+            aggregate+="\t%7i %s" % ( index, dihedral.Debug() )
             index+=1
 
         return aggregate

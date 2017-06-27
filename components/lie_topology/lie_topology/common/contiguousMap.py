@@ -145,16 +145,29 @@ class ContiguousMap( Serializable ):
 
         return self.find( key ) != None
 
-    def insert( self, key, element ):
+    def insert( self, key, element, index = -1 ):
         
         if key in self._indices:
             
             raise LieTopologyException( "ContiguousMap::insert", "Key %s already in use" % ( key ) )
-            
-        newIndex = len( self._items )
         
-        self._items.append( ( key, element ) )
-        self._indices[ key ] = newIndex
+        num_items = len( self._items )
+        insert_index = num_items
+
+        if index >= 0:
+            if index > num_items:
+                raise LieTopologyException( "ContiguousMap::insert", "Index %i out of range" % ( index ) )
+
+            insert_index = index
+
+            # first increment the old indices
+            for i in range(index,num_items):
+                local_key = self.keyAt(i)
+
+                self._indices[ local_key ] += 1
+            
+        self._items.insert( insert_index, ( key, element ) )
+        self._indices[ key ] = insert_index
     
     def swap( self, old_key, new_key, new_element ):
 

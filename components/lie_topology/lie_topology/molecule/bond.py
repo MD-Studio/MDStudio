@@ -83,21 +83,13 @@ class SybelBond(Enum):
 
 class Bond( BondedTerm ):
     
-    def __init__( self, atom_references=None, bond_type=None, aromatic=None, sybyl=None ):
+    def __init__( self, atom_references=None, forcefield_type=None, aromatic=None, sybyl=None ):
         
         # Call the base class constructor with the parameters it needs
-        BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 2,  atom_references )
+        BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 2,  atom_references, forcefield_type )
 
-        # Bond type in the force field
-        self._bond_type = bond_type
-        
         # Indicates the bond order of this bond
         self._sybyl = sybyl
-
-    @property
-    def bond_type(self):
-
-        return self._bond_type
 
     @property
     def aromatic(self):
@@ -108,11 +100,6 @@ class Bond( BondedTerm ):
     def sybyl(self):
 
         return self._sybyl
-
-    @bond_type.setter
-    def bond_type(self, value):
-
-        self._bond_type = value
 
     @aromatic.setter
     def aromatic(self, value):
@@ -126,10 +113,10 @@ class Bond( BondedTerm ):
 
     def SafeCopy(self, molecule_key=None):
 
-        bond_type = deepcopy( self._bond_type )
+        forcefield_type = deepcopy( self._forcefield_type )
 
         return Bond( atom_references=self._SafeCopyReferences(molecule_key), 
-                     bond_type=bond_type, sybyl=self._sybyl )
+                     forcefield_type=forcefield_type, sybyl=self._sybyl )
 
     def OnSerialize( self, logger = None ):   
 
@@ -147,20 +134,20 @@ class Bond( BondedTerm ):
 
             result["atom_references"] = ser_values
         
-        if self._bond_type:
+        if self._forcefield_type:
 
             type_str = None
-            if isinstance(self._bond_type, ForceFieldReference):
-                type_str = self._bond_type.key
+            if isinstance(self._forcefield_type, ForceFieldReference):
+                type_str = self._forcefield_type.key
 
-            elif isinstance(self._bond_type, BondType):
-                type_str = self._bond_type.OnSerialize(logger)
+            elif isinstance(self._forcefield_type, BondType):
+                type_str = self._forcefield_type.OnSerialize(logger)
                 
             else:
-                print(self._bond_type)
+                print(self._forcefield_type)
                 raise LieTopologyException("Bond::OnSerialize","Unknown bond type") 
         
-            result["bond_type"] = type_str    
+            result["forcefield_type"] = type_str    
 
         
         SerializeFlatTypes( ["aromatic", "sybyl"], self.__dict__, result, '_' )
@@ -182,15 +169,15 @@ class Bond( BondedTerm ):
                 
                 self._atom_references.append(ref_obj)
 
-        if "bond_type" in data:
-            localData = data["bond_type"]
+        if "forcefield_type" in data:
+            localData = data["forcefield_type"]
 
             if isinstance(localData, str):
-                self._bond_type = ForceFieldReference( key=localData )
+                self._forcefield_type = ForceFieldReference( key=localData )
 
             elif isinstance(localData, dict):
-                self._bond_type = BondType()
-                self._bond_type.OnDeserialize(localData, logger)
+                self._forcefield_type = BondType()
+                self._forcefield_type.OnDeserialize(localData, logger)
                 
             else:
                  raise LieTopologyException("Bond::OnSerialize","Unknown bond type") 
@@ -198,36 +185,23 @@ class Bond( BondedTerm ):
 
         DeserializeFlatTypes( ["aromatic", "sybyl"], data, self.__dict__, '_' )
     
-    
-    def _DebugRef(self, atom_ref):
-
-        response = "?"
-
-        if isinstance(atom_ref, Atom):
-            response = atom_ref.ToReference().Debug()
-        else:
-            # mark as not yet resolved
-            response = "%s*" % (  atom_ref. Debug() )
-        
-        return response
-
     def Debug(self):
 
         safe_ref_1 = "?"
         safe_ref_2 = "?"
-        safe_bond_type = "?"
+        safe_forcefield_type = "?"
         safe_sybyl = self._sybyl if self._sybyl is not None else "?"
 
         if self._atom_references and len(self._atom_references) == 2:
             safe_ref_1 = self._DebugRef( self._atom_references[0] )
             safe_ref_2 = self._DebugRef( self._atom_references[1] )
 
-        if self._bond_type:
-            if isinstance(self._bond_type, BondType):
-                safe_bond_type = "%s" % (self._bond_type.key)
+        if self._forcefield_type:
+            if isinstance(self._forcefield_type, BondType):
+                safe_forcefield_type = "%s" % (self._forcefield_type.key)
             else:
-                safe_bond_type = "%s*" % (self._bond_type.key)
+                safe_forcefield_type = "%s*" % (self._forcefield_type.key)
 
         # Indicates the bond order of this bond
-        return "bond %-25s %-25s %7s %7s\n" % (safe_ref_1, safe_ref_2, safe_bond_type, safe_sybyl)
+        return "bond %-25s %-25s %7s %7s\n" % (safe_ref_1, safe_ref_2, safe_forcefield_type, safe_sybyl)
         

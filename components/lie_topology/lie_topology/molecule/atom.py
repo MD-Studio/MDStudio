@@ -48,7 +48,7 @@ class Atom( Serializable ):
         self.molecule = parent
 
         # key of the atom
-        self.key = key
+        self._key = key
         
         # actual name of the atom type
         self.type_name = type_name
@@ -89,6 +89,24 @@ class Atom( Serializable ):
 
         # Trailing in the building block (for chain topology)
         self.trailing = trailing
+    
+    @property
+    def key(self):
+
+        return self._key
+
+
+    @property
+    def internal_index(self):
+
+        index=0
+        if self.molecule:
+
+            # fetch the local index (within molecule)
+            index=self.molecule.IndexOfAtom(self.key)
+
+            # then offset by atomstart of this molecule
+        return index
 
     def SafeCopy(self, key=None):
 
