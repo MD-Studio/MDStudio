@@ -33,7 +33,7 @@ from sendmail import Email
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
 host = os.getenv('MONGO_HOST', 'localhost')
-db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
+db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1, connect=False)['liestudio']
 
 
 logging = Logger()
@@ -418,10 +418,12 @@ class UserManager(object):
 
         return False
 
-    def create_user(self, userdata, required=['username', 'email']):
+    def create_user(self, userdata, required=None):
         """
         Create new user and add to database
         """
+        if required is None:
+            required = ['username', 'email']
 
         user_template = copy.copy(USER_TEMPLATE)
         users = db['users']
@@ -463,7 +465,6 @@ class UserManager(object):
         else:
             logging.error('Unable to add new user to database')
             return
-
         return user_template
 
     def remove_user(self, userdata):

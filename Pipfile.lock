@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ca19a0e36fdae285edb8555c26064c3bb7126536a42e1c7751cb14c9d0af3a31"
+            "sha256": "3dbb9a8f6427751f16db1b4619b736da09a9e169b4586b4c20190a955f942993"
         },
         "requires": {},
         "sources": [
@@ -28,7 +28,7 @@
             "version": "==17.2.0"
         },
         "autobahn": {
-            "version": "==17.6.1"
+            "version": "==17.6.2"
         },
         "automat": {
             "version": "==0.6.0"
@@ -69,6 +69,9 @@
         "colorama": {
             "version": "==0.3.9"
         },
+        "coloredlogs": {
+            "version": "==7.0"
+        },
         "configparser": {
             "version": "==3.5.0"
         },
@@ -79,7 +82,7 @@
             "version": "==4.4.1"
         },
         "crossbar": {
-            "version": "==17.5.1"
+            "version": "==17.6.1.post3"
         },
         "cryptography": {
             "version": "==1.9"
@@ -89,6 +92,12 @@
         },
         "enum34": {
             "version": "==1.1.6"
+        },
+        "executor": {
+            "version": "==18.0"
+        },
+        "fasteners": {
+            "version": "==0.14.1"
         },
         "flake8": {
             "version": "==3.3.0"
@@ -113,7 +122,7 @@
             "version": "==2.1.5"
         },
         "green": {
-            "version": "==2.8.2"
+            "version": "==2.9.0"
         },
         "h2": {
             "version": "==2.6.2"
@@ -121,11 +130,14 @@
         "hpack": {
             "version": "==3.0.0"
         },
+        "humanfriendly": {
+            "version": "==3.6.1"
+        },
         "hyperframe": {
             "version": "==5.1.0"
         },
         "hyperlink": {
-            "version": "==17.1.1"
+            "version": "==17.2.1"
         },
         "idna": {
             "version": "==2.5"
@@ -166,6 +178,9 @@
         "mock": {
             "version": "==2.0.0"
         },
+        "monotonic": {
+            "version": "==1.3"
+        },
         "netaddr": {
             "version": "==0.7.19"
         },
@@ -176,7 +191,7 @@
             "version": "==0.1.2"
         },
         "pbr": {
-            "version": "==3.0.1"
+            "version": "==3.1.1"
         },
         "pepper8": {
             "version": "==1.1.1"
@@ -186,6 +201,9 @@
         },
         "priority": {
             "version": "==1.3.0"
+        },
+        "property-manager": {
+            "version": "==2.1"
         },
         "psutil": {
             "version": "==5.2.2"
@@ -239,7 +257,7 @@
             "version": "==3.12"
         },
         "requests": {
-            "version": "==2.17.3"
+            "version": "==2.18.1"
         },
         "sdnotify": {
             "version": "==0.3.1"
@@ -316,6 +334,9 @@
         "urllib3": {
             "version": "==1.21.1"
         },
+        "verboselogs": {
+            "version": "==1.6"
+        },
         "watchdog": {
             "version": "==0.8.3"
         },
@@ -323,7 +344,7 @@
             "version": "==0.12.2"
         },
         "zope.interface": {
-            "version": "==4.4.1"
+            "version": "==4.4.2"
         }
     },
     "develop": {}

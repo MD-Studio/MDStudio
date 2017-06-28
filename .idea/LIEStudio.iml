@@ -14,7 +14,7 @@
       <sourceFolder url="file://$MODULE_DIR$/components/lie_system/lie_system" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/components/lie_user/lie_user" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 2.7.12 (ssh://root@127.0.0.1:65432/app/.venv/bin/python)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.5.2 (ssh://root@127.0.0.1:65432/app/.venv/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

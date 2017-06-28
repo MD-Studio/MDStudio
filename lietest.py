@@ -24,7 +24,8 @@ def load_studio_tests(suite, loader, cdir, ctype):
         start_dir = os.path.realpath(os.path.join(cdir, ctype))
         top_level_dir = os.path.realpath(os.path.join(cdir, '../'))
         tests = loader.discover(start_dir, "*_test.py", top_level_dir)
-        suite.addTests(tests)
+        if tests:
+            suite.addTests(tests)
 
 
 # noinspection PyUnusedLocal
