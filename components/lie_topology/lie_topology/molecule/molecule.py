@@ -201,6 +201,11 @@ class Molecule( Serializable ):
         return num
 
     @property
+    def molecule_index(self):
+
+        return self.group.molecules.indexOf(self.key)
+
+    @property
     def group(self):
 
         return self._group
@@ -304,21 +309,21 @@ class Molecule( Serializable ):
 
             dest_molecule.AddAtom( atom=atom.SafeCopy() )
                                    
-    def _SafeCopyBonded(self, dest_molecule, molecule_key):
+    def _SafeCopyBonded(self, dest_molecule, molecule_key, group_key):
 
         for bond in self._bonds:
-            dest_molecule.AddBond( bond.SafeCopy(molecule_key) )
+            dest_molecule.AddBond( bond.SafeCopy(molecule_key, group_key) )
         
         for angle in self._angles:
-            dest_molecule.AddAngle( angle.SafeCopy(molecule_key) )
+            dest_molecule.AddAngle( angle.SafeCopy(molecule_key, group_key) )
         
         for dihedral in self._dihedrals:
-            dest_molecule.AddDihedral( dihedral.SafeCopy(molecule_key) )
+            dest_molecule.AddDihedral( dihedral.SafeCopy(molecule_key, group_key) )
         
         for improper in self._impropers:
-            dest_molecule.AddImproper( improper.SafeCopy(molecule_key) )
+            dest_molecule.AddImproper( improper.SafeCopy(molecule_key, group_key) )
 
-    def SafeCopy(self, molecule_key=None):
+    def SafeCopy(self, molecule_key=None, group_key=None):
 
         if molecule_key is None:
             molecule_key = self._key
@@ -328,7 +333,7 @@ class Molecule( Serializable ):
 
         # next replace all direct obj references with indirect ones
         self._SafeCopyAtoms(molecule_cpy)
-        self._SafeCopyBonded(molecule_cpy, molecule_key)
+        self._SafeCopyBonded(molecule_cpy, molecule_key, group_key)
 
         return molecule_cpy
 

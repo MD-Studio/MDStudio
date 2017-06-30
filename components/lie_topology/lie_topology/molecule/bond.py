@@ -111,11 +111,11 @@ class Bond( BondedTerm ):
 
         self._sybyl = value
 
-    def SafeCopy(self, molecule_key=None):
+    def SafeCopy(self, molecule_key=None, group_key=None):
 
         forcefield_type = deepcopy( self._forcefield_type )
 
-        return Bond( atom_references=self._SafeCopyReferences(molecule_key), 
+        return Bond( atom_references=self._SafeCopyReferences(molecule_key,group_key), 
                      forcefield_type=forcefield_type, sybyl=self._sybyl )
 
     def OnSerialize( self, logger = None ):   

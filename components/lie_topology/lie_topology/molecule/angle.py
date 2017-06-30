@@ -44,11 +44,11 @@ class Angle( BondedTerm ):
         # Call the base class constructor with the parameters it needs
         BondedTerm.__init__(self, self.__module__, self.__class__.__name__, 3, atom_references, forcefield_type )
 
-    def SafeCopy(self, molecule_key=None):
+    def SafeCopy(self, molecule_key=None,group_key=None):
 
         forcefield_type = deepcopy( self._forcefield_type )
 
-        return Angle( atom_references=self._SafeCopyReferences(molecule_key), forcefield_type=forcefield_type )
+        return Angle( atom_references=self._SafeCopyReferences(molecule_key, group_key), forcefield_type=forcefield_type )
 
     def OnSerialize( self, logger = None ):   
 

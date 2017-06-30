@@ -98,7 +98,7 @@ class BondedTerm( Serializable ):
                 if reference.group_key == old_group_key:
                     reference.group_key = new_group_key
 
-    def _SafeCopyReferences(self, molecule_key = None):
+    def _SafeCopyReferences(self, molecule_key = None, group_key = None):
 
         new_references=[]
         for atom_link in self._atom_references:
@@ -106,6 +106,9 @@ class BondedTerm( Serializable ):
 
             if molecule_key is not None:
                 new_reference.molecule_key = molecule_key
+            
+            if group_key is not None:
+                new_reference.group_key = group_key
 
             new_references.append( new_reference )
         
