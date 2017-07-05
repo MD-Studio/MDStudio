@@ -182,7 +182,7 @@ def hash_password(password):
     hash_method = 'sha512'
     # salt length should be approx 512/8 bytes
     salt_length = 64
-    hash_iterations = 50000
+    hash_iterations = 656000
     if hash_method not in hashlib.algorithms_available:
         logging.debug('Hash method {0} not available. Default to sha512')
         hash_method = 'sha512'
