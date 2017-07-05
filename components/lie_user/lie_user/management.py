@@ -154,7 +154,7 @@ def generate_password(password_length=10, min_length=8):
     return password
 
 
-def hash_password(password, key_derivation='pbkdf2', hash_method='sha256', salt_length=10, hash_iterations=1000):
+def hash_password(password):
     """
     Hash a password using Werkzeug generate_password_hash method
 
@@ -171,21 +171,20 @@ def hash_password(password, key_derivation='pbkdf2', hash_method='sha256', salt_
 
     :param password:        password to hash
     :type password:         string
-    :param key_derivation:  key derivation function to use. Defaults to pbkdf2,
-                            PBKDF2 (Password-Based Key Derivation Function 2).
-    :type key_derivation:   string
-    :param hash_method:     secure hash method to use as implemented in
-                            Pythons hashlib
-    :type hash_method:      string
-    :param salt_length:     length of random salt to add to the password hash
-    :type salt_length:      int
-    :param hash_iterations: number of hash iterations to use
-    :type hash_iterations:  int
     """
 
+    # these are not parameters on purpose.
+    # we should be sure the defaults are chosen securely
+    # with these configuration set we take at least 10ms
+    # to derive a hash, which should give us some protection
+    # when our database leaks.
+    key_derivation = 'pbkdf2'
+    hash_method = 'sha512'
+    salt_length = 20
+    hash_iterations = 64000
     if hash_method not in hashlib.algorithms_available:
-        logging.debug('Hash method {0} not available. Default to sha256')
-        hash_method = 'sha256'
+        logging.debug('Hash method {0} not available. Default to sha512')
+        hash_method = 'sha512'
 
     hash_method = '{0}:{1}:{2}'.format(key_derivation,
                                        hash_method,

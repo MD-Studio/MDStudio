@@ -10,6 +10,8 @@ TODO: Add wamp_services unittests
 
 import os
 import sys
+
+import random
 import unittest2
 import hashlib
 import string
@@ -184,10 +186,10 @@ class UserTests(unittest2.TestCase):
         Test random password generation with a length of `password_length` characters
         """
 
-        for pw_length in (8, 10, 15, 20):
+        for pw_length in [8+int(100*random.random()) for i in range(100)]:
+            print(pw_length)
             password = generate_password(pw_length)
             self.assertTrue(len(password), pw_length)
-            print('test random password of length: {0} - {1}'.format(pw_length, password))
 
     def test_password_generation_randomcharselection(self):
         """
@@ -206,7 +208,5 @@ class UserTests(unittest2.TestCase):
         """
 
         pw = 'Te#%ghTdkk'
-        for method in hashlib.algorithms_guaranteed:
-            hashed = hash_password(pw, hash_method=method)
-            self.assertTrue(check_password(hashed, pw))
-            print('test hashing method: {0}'.format(method))
+        hashed = hash_password(pw)
+        self.assertTrue(check_password(hashed, pw))
