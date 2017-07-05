@@ -194,10 +194,14 @@ class UserTests(unittest2.TestCase):
             password = generate_password(pw_length)
             self.assertTrue(len(password), pw_length)
 
+    def test_password_hash_algorithm(self):
+        hash = hash_password("test_password")
+        # we currently only allow pkdf2:sha512 hashing
+        self.assertTrue("pbkdf2:sha512" in hash)
 
     def test_password_hash_time(self):
         htime = timeit.timeit(lambda: hash_password("test_password"), number=10) / 10
-        self.assertGreater(htime, 0.1)
+        self.assertGreater(htime, 0.05)
 
     def test_password_generation_randomcharselection(self):
         """

@@ -175,14 +175,14 @@ def hash_password(password):
 
     # these are not parameters on purpose.
     # we should be sure the defaults are chosen securely
-    # with these configuration set we take at least 0.1s
+    # with these configuration set we take at least 0.05s
     # to derive a hash, which should give us some protection
     # when our database leaks.
     key_derivation = 'pbkdf2'
     hash_method = 'sha512'
     # salt length should be approx 512/8 bytes
     salt_length = 64
-    hash_iterations = 64000
+    hash_iterations = 50000
     if hash_method not in hashlib.algorithms_available:
         logging.debug('Hash method {0} not available. Default to sha512')
         hash_method = 'sha512'
