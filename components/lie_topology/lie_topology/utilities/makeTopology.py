@@ -118,7 +118,7 @@ def _BondedToTarget( molecule, atom_keys, target_molecule_key ):
         ref_1 = atom_references[0].ToReference()
         ref_2 = atom_references[1].ToReference()
 
-        print ("Testing: ", atom_keys, target_molecule_key, target_group_key, " || ", ref_1.Debug(), ref_2.Debug() )
+        #print ("Testing: ", atom_keys, target_molecule_key, target_group_key, " || ", ref_1.Debug(), ref_2.Debug() )
 
         # make sure that if both are pointing to same molecule
         # that we do not find known bonds
