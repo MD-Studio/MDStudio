@@ -114,7 +114,7 @@ def exit_user(settings):
     return True
 
 
-def generate_password(password_length=10, min_length=8):
+def generate_password(password_length=12):
     """
     Create random password of length `password_length`
 
@@ -123,10 +123,10 @@ def generate_password(password_length=10, min_length=8):
 
     :param password_length: length of random password
     :type password_length:  int
-    :param min_length:      not generate passwords with less characters
-    :type min_length:       int
     """
 
+    # this should not be configurable
+    min_length = 10
     # Should not generate passwords smaller then min_length characters
     if password_length < min_length:
         logging.warn('Unable to generate password with less then {0} characters ({1})'.format(
@@ -175,12 +175,13 @@ def hash_password(password):
 
     # these are not parameters on purpose.
     # we should be sure the defaults are chosen securely
-    # with these configuration set we take at least 10ms
+    # with these configuration set we take at least 0.1s
     # to derive a hash, which should give us some protection
     # when our database leaks.
     key_derivation = 'pbkdf2'
     hash_method = 'sha512'
-    salt_length = 20
+    # salt length should be approx 512/8 bytes
+    salt_length = 64
     hash_iterations = 64000
     if hash_method not in hashlib.algorithms_available:
         logging.debug('Hash method {0} not available. Default to sha512')

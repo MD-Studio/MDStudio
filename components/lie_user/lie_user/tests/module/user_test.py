@@ -7,6 +7,7 @@ Unit tests for the user component
 
 TODO: Add wamp_services unittests
 """
+import timeit
 
 import os
 import sys
@@ -114,6 +115,8 @@ class UserDatabaseTests(unittest2.TestCase):
         self.assertEqual(newuser['username'], userdata['username'])
         self.assertEqual(newuser['email'], userdata['email'])
 
+        self.assertTrue(user.remove_user({'username': 'test5', 'email': 'test5@email.com'}))
+
     def test_create_user_uniqueuser(self):
         """
         Test addition of unique user with respect to username
@@ -186,14 +189,19 @@ class UserTests(unittest2.TestCase):
         Test random password generation with a length of `password_length` characters
         """
 
-        for pw_length in [8+int(100*random.random()) for i in range(100)]:
-            print(pw_length)
+        # +10 for the minimum password length
+        for pw_length in [10+int(100*random.random()) for i in range(100)]:
             password = generate_password(pw_length)
             self.assertTrue(len(password), pw_length)
 
+
+    def test_password_hash_time(self):
+        htime = timeit.timeit(lambda: hash_password("test_password"), number=10) / 10
+        self.assertGreater(htime, 0.1)
+
     def test_password_generation_randomcharselection(self):
         """
-        Random password should be strong, contain letters, gigits and punctuations
+        Random password should be strong, contain letters, digits and punctuations
         """
 
         randpw = generate_password(10)
