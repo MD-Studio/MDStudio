@@ -7,7 +7,7 @@ import logging
 import jsonschema
 
 from   lie_graph      import GraphAxis
-from   lie_system     import WAMPTaskMetaData
+from   lie_componentbase     import WAMPTaskMetaData
 
 from   .task_specs    import WORKFLOW_ORM
 from   .task_metadata import task_schema

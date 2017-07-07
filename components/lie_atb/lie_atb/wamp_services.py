@@ -20,12 +20,12 @@ else:
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks
 
-from lie_system import LieApplicationSession
+from lie_componentbase import BaseApplicationSession
 from lie_atb import ATBServerApi, ATB_Mol
 from lie_atb.settings import *
 
 
-class ATBWampApi(LieApplicationSession):
+class ATBWampApi(BaseApplicationSession):
     """
     Automated Topology Builder API WAMP methods.
     """
@@ -358,7 +358,7 @@ def make(config):
     The function will get called either during development using an
     ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
     a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
+    The BaseApplicationSession class is initiated with an instance of the
     ComponentConfig class by default but any class specific keyword arguments
     can be consument as well to populate the class session_config and
     package_config dictionaries.

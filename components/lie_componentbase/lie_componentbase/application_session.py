@@ -39,7 +39,7 @@ def wamp_schema_handler(session):
             
             if 'lie_{}'.format(schema_path_match.group(1)) == module_name:
                 res = yield session.get_schema(schema_path)
-            elif 'lie_{}'.format(schema_path_match.group(1)) == 'lie_system':
+            elif 'lie_{}'.format(schema_path_match.group(1)) == 'lie_componentbase':
                 res = yield session.get_schema(schema_path, os.path.dirname(inspect.getfile(CoreApplicationSession)))
             else:
                 res = yield session.call(u'liestudio.{}.schemas', schema_path)
@@ -90,9 +90,9 @@ def wamp_register(uri, input_schema, output_schema, options=None):
     
     return wrap_f
 
-class LieApplicationSession(ApplicationSession):
+class BaseApplicationSession(ApplicationSession):
     """
-    LieApplicationSession class
+    BaseApplicationSession class
 
     Inherits from the Autobahn Twisted based `ApplicationSession <http://autobahn.ws/python/reference/autobahn.twisted.html#autobahn.twisted.wamp.ApplicationSession>`_
     and extends it with methods to ease the process of automatic authentication,
@@ -111,7 +111,7 @@ class LieApplicationSession(ApplicationSession):
     * **onDisconnect**: cleanup methods when disconnecting from the WAMP router
 
     To enable custom events during the application life cycle, the
-    LieApplicationSession defines it's own placeholder methods. Do not override
+    BaseApplicationSession defines it's own placeholder methods. Do not override
     the five methods mentioned above but use these instead:
 
     * **onInit**: called at the end of the class constructor.
@@ -140,7 +140,7 @@ class LieApplicationSession(ApplicationSession):
 
         The variables that populate these two objects may be defined in
         three different ways depending on the context in which the
-        LieApplicationSession is being used:
+        BaseApplicationSession is being used:
 
         * Application session configuration using the config object. This is
           the default way of configuration used when starting a session
@@ -213,7 +213,7 @@ class LieApplicationSession(ApplicationSession):
                 self.session_info.set(key,value)
 
         # Init toplevel ApplicationSession
-        super(LieApplicationSession, self).__init__(config)
+        super(BaseApplicationSession, self).__init__(config)
 
         # Load client private key (raw format) if any
         self._key = None

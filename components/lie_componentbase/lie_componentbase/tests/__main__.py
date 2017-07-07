@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Python runner for lie_system module unit tests, run as:
+Python runner for lie_componentbase module unit tests, run as:
 ::
     python tests
 
@@ -27,7 +27,7 @@ import lietest.wamp_api_test
 
 def module_test_suite(args):
     """
-    Run lie_system module and WAMP API unit tests
+    Run lie_componentbase module and WAMP API unit tests
 
     :param args: command line arguments
     :type args:  argparse parser object
@@ -35,13 +35,13 @@ def module_test_suite(args):
     loader = unittest.TestLoader()
 
     if not args.no_module:
-        print('Running lie_system unittests')
+        print('Running lie_componentbase unittests')
         suite = loader.loadTestsFromModule(lietest.module_test)
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
 
     if not args.no_wamp:
-        print('Running lie_system WAMP API test')
+        print('Running lie_componentbase WAMP API test')
         suite = loader.loadTestsFromModule(lietest.wamp_api_test)
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)

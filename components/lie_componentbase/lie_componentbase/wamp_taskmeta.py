@@ -13,9 +13,9 @@ import jsonschema
 
 from getpass import getuser
 
-from lie_system.wamp_schema import liestudio_task_schema
+from lie_componentbase.wamp_schema import liestudio_task_schema
 
-# LieApplicationSession variables names defined in os.environ
+# BaseApplicationSession variables names defined in os.environ
 ENVIRON = {'_LIE_WAMP_REALM': 'realm',
            '_LIE_AUTH_METHOD': 'authmethod',
            '_LIE_AUTH_USERNAME': 'username',
