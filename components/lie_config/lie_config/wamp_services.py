@@ -14,7 +14,7 @@ from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks
 
 from lie_system import LieApplicationSession
-from lie_config.config_io import config_to_json
+from lie_system.config import config_to_json
 
 
 class ConfigWampApi(LieApplicationSession):

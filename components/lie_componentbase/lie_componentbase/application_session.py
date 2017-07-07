@@ -1,56 +1,29 @@
 # -*- coding: utf-8 -*-
 
+import jsonschema
+import inspect
 import json
-import os
 import time
+import sys
+import os
+import re
 
 from autobahn.wamp import auth, cryptosign
 from autobahn.twisted.wamp import ApplicationSession
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet import reactor
-from pymongo import MongoClient
+from autobahn import wamp
+from twisted.python.failure import Failure
+from pprint import pprint
 
-from lie_config import ConfigHandler
-from lie_db import mongodb_connect
-from lie_system.wamp_taskmeta import WAMPTaskMetaData
+from .wamp_taskmeta import WAMPMessageEnvelope
+from .wamp_logging import WampLogging
+from .util import PY2, PY3, resolve_config, validate_json_schema
 
-from wamp_logging import WampLogging
+from .config.config_handler import ConfigHandler
 
-
-def _resolve_package_config(package_config):
-    """
-    Resolve the package_config as dictionary
-
-    Check if input type is a dictionary, return.
-    Check if the input type is a valid file path to a JSON configuration file,
-    load as dictionary.
-
-    This function always returns a dictionary, empty or not.
-
-    :param package_config: package configuration to resolve
-    :type package_config:  mixed
-    :return:               package_configuration
-    :rtype:                dict
-    """
-
-    settings = {}
-    if package_config:
-
-        if type(package_config) in (dict, ConfigHandler):
-            return package_config
-
-        if type(package_config) in (str, unicode):
-            package_config = os.path.abspath(package_config)
-            if os.path.isfile(package_config):
-
-                with open(package_config) as cf:
-                    try:
-                        settings = json.load(cf)
-                    except BaseException:
-                        pass
-
-    return settings
-
+if PY3:
+    from .util import unicode      
 
 class LieApplicationSession(ApplicationSession):
     """
@@ -157,21 +130,22 @@ class LieApplicationSession(ApplicationSession):
             package_config = {}
 
         # Init session_config with default values
-        self.session_config = WAMPMessageEnvelope(realm=config.realm,
-                                                  package_name=self.__module__.split('.')[0],
-                                                  class_name=type(self).__name__,
-                                                  **kwargs
-                                                  )
+        self.session_info = WAMPMessageEnvelope(realm=config.realm,
+                                                package_name=self.__module__.split('.')[0],
+                                                class_name=type(self).__name__
+        )
 
         # Update session_config with key/value pairs in config.extra except
         # for package config
         extra = config.extra if isinstance(config.extra, dict) else {}
-        for key, value in extra.items():
-            if key != 'package_config':
-                self.session_config.set(key, value)
 
-        # Configure config object
-        config.realm = self.session_config.get('realm', config.realm)
+        self.session_config = ConfigHandler()
+        self.session_config.update(resolve_config(extra.get('sesion_config')))
+        self.session_config.update(kwargs)
+
+        for key, value in extra.items():
+            if not key.endswith('_config'):
+                self.session_info.set(key,value)
 
         # Init toplevel ApplicationSession
         super(LieApplicationSession, self).__init__(config)
@@ -184,12 +158,68 @@ class LieApplicationSession(ApplicationSession):
         # Set package_config: first global package config, the package_config
         # argument and finaly config.extra
         self.package_config = ConfigHandler()
-        self.package_config.update(_resolve_package_config(package_config))
-        self.package_config.update(_resolve_package_config(extra.get('package_config')))
+        self.package_config.update(resolve_config(package_config))
+        self.package_config.update(resolve_config(extra.get('package_config')))
 
-        # Init database connection
-        self._db = None
-        self._establish_database_connection()
+
+        if '_LIE_CONFIG_DIR' in os.environ:
+            config_dir = os.environ['_LIE_CONFIG_DIR']
+        elif 'config_dir' in extra.keys():
+            config_dir = extra['config_dir']
+        else:
+            # Assume config is stored relative to the working directory when the application is started
+            config_dir = './data'
+
+        package_config_dir = os.path.join(config_dir, self.session_info['package_name'])
+        if not os.path.isdir(package_config_dir):
+            os.makedirs(package_config_dir)
+
+        package_config_file = os.path.join(package_config_dir, 'settings.json')
+        # Set default template
+        package_config_template = 'wamp://liestudio.componentbase.schemas/settings/v1'
+        # Override with custom template given in the constructor
+        if hasattr(self, 'package_config_template'):
+            package_config_template = self.package_config_template
+        # Override with custom template given in the extra variable
+        package_config_template = extra.get('package_config_template', package_config_template)
+
+        if not os.path.isfile(package_config_file):
+            package_conf = {}
+            if validate_json_schema(self, package_config_template, package_conf):
+                with open(package_config_file, 'w') as f:
+                    json.dump(package_conf, f, indent=4, sort_keys=True)
+        else:
+            package_conf = resolve_config(package_config_file)
+
+        if validate_json_schema(self, extra.get('package_config_template', package_config_template), package_conf):
+            self.package_config.update(package_conf)
+
+        session_config_file = os.path.join(package_config_dir, 'session_config.json')
+        # Set default template
+        session_config_template = 'wamp://liestudio.componentbase.schemas/session_config/v1'
+        # Override with custom template given in the constructor
+        if hasattr(self, 'session_config_template'):
+            session_config_template = self.session_config_template
+        # Override with custom template given in the extra variable
+        session_config_template = extra.get('session_config_template', self.package_config.get('session_config_template', session_config_template))
+
+        if not os.path.isfile(session_config_file):
+            session_conf = {}
+            if validate_json_schema(self, session_config_template, session_conf):
+                with open(session_config_file, 'w') as f:
+                    json.dump(session_conf, f, indent=4, sort_keys=True)
+        else:
+            session_conf = resolve_config(session_config_file)
+
+        if validate_json_schema(self, session_config_template, session_conf):
+            self.session_config.update(session_conf)        
+
+
+        # Configure config object
+        config.realm = self.session_config.get('realm', config.realm)
+
+        if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config['authmethod'], list):
+            self.session_config['authmethod'] = [self.session_config['authmethod']]
 
         # Call onInit hook
         self.onInit(**kwargs)
@@ -210,25 +240,6 @@ class LieApplicationSession(ApplicationSession):
             self.leave()
         else:
             self.log.debug("client public key loaded: {}".format(self._key.public_key()))
-
-    def _establish_database_connection(self, config=None):
-        """
-        Establish MongoDB database connection.
-
-        This is the only action required for normal database operations.
-        Creation of new MongoDB collections is performed implicitly when the
-        collection is first referenced in a command and database permission
-        settings allow it.
-
-        :param config: configuration retrieved by calling liestudio.config.get
-        :type config:  dict
-        """
-
-        if not self._db and 'lie_db' in self.package_config:
-            mongo_config = self.package_config.lie_db
-            client = mongodb_connect(host=os.getenv('MONGO_HOST', mongo_config.get('host', 'localhost')),
-                                     port=mongo_config.get('port', 27017))
-            self._db = client[mongo_config.get('dbname', 'liestudio')]
 
     @inlineCallbacks
     def onConnect(self):
@@ -356,24 +367,36 @@ class LieApplicationSession(ApplicationSession):
 
         # Register methods
         res = yield self.register(self)
-        self.log.info("{class_name}: {procedures} procedures registered", procedures=len(res), class_name=self.session_config.class_name)
+        schemas = yield self.register(self.get_schema, u'liestudio.{}.schemas'.format(re.match('lie_([a-z]+)', self.session_info['package_name']).group(1)))
+        res.append(schemas)
 
-        # Update session_config, they may have been changed by the application
+        failures = 0
+        for r in res:
+            if isinstance(r, Failure):
+                self.log.info("ERROR: {class_name}: {message}".format(class_name=self.session_info.class_name, message=r.value.message))
+                failures = failures + 1
+
+        if failures > 0:
+            self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures, class_name=self.session_info.class_name)
+
+        self.log.info("{class_name}: {procedures} procedures successfully registered", procedures=len(res)-failures, class_name=self.session_info.class_name)
+
+        # Update session_info, they may have been changed by the application
         # authentication method
         for session_param in ('authid', 'session', 'authrole', 'authmethod'):
-            self.session_config[session_param] = getattr(details, session_param)
+            self.session_info[session_param] = getattr(details,session_param)
 
         # Retrieve package configuration based on package_name and update package_config
         # Try to establish a MongoDB database connection if lie_db configuration available
         def handle_retrieve_config_error(failure):
-            self.log.warn('Unable to retrieve configuration for {0}'.format(self.session_config.get('package_name')))
+            self.log.warn('Unable to retrieve configuration for {0}'.format(self.session_info.get('package_name')))
 
-        self.require_config.append(self.session_config.get('package_name'))
-        self.require_config.append('lie_logger.global_log_level')
-        server_config = self.call(u'liestudio.config.get', self.require_config)
-        server_config.addCallback(self.package_config.update)
-        server_config.addCallback(self._establish_database_connection)
-        server_config.addErrback(handle_retrieve_config_error)
+        # self.require_config.append(self.session_config.get('package_name'))
+        # self.require_config.append('lie_logger.global_log_level')
+        # server_config = self.call(u'liestudio.config.get', self.require_config)
+        # server_config.addCallback(self.package_config.update)
+        # # server_config.addCallback(self._establish_database_connection)
+        # server_config.addErrback(handle_retrieve_config_error)
 
         # Init WAMP logging
         self.logger = WampLogging(wamp=self, log_level=self.package_config.get('global_log_level', 'info'))
@@ -398,7 +421,7 @@ class LieApplicationSession(ApplicationSession):
         :type details:  Autobahn SessionDetails object
         """
 
-        self.log.debug('{class_name} of {package_name} is leaving realm {realm}', **self.session_config.dict())
+        self.log.info('{class_name} of {package_name} is leaving realm {realm}', **self.session_info.dict())
 
         # Call onExit hook
         self.onExit(details)
@@ -457,3 +480,19 @@ class LieApplicationSession(ApplicationSession):
         """
 
         return
+
+    def get_schema(self, schema_path, module_path = None):
+        if module_path is None:
+            module_path = os.path.dirname(inspect.getfile(self.__class__))
+
+        if not schema_path.endswith('.json'):
+            schema_path = '{}.json'.format(schema_path)
+        else:
+            self.log.debug('WARNING: json schema {} does not have to end with .json'.format(schema_path))
+
+        schema_abs_path = os.path.join(module_path, 'schema', schema_path)
+
+        if os.path.isfile(schema_abs_path): 
+            return json.load(open(schema_abs_path))
+
+        return None

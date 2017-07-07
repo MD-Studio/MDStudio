@@ -55,7 +55,7 @@ class ConfigHandler(object):
 
     logging = Logger()
 
-    def __init__(self, config={}, keys=None, freeze=False, level=0, sep='.', parent='',
+    def __init__(self, config=None, keys=None, freeze=False, level=0, sep='.', parent='',
                  format_value=ConfigFormatter, orm=ConfigOrmHandler):
         """
         Implement class __init__ method
@@ -89,6 +89,9 @@ class ConfigHandler(object):
             self._parent = [parent]
 
         self.level = level
+
+        if config is None:
+            config = {}
 
         self._weakref_config(config)
         self.load(config, clear=False)
