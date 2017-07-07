@@ -67,26 +67,7 @@ from   dummy_task_runners          import TaskRunner
 #         self.assertTrue(self.wf.is_completed)
 #         self.assertListEqual(self.wf.output().keys(), ['task5','task7'])
 #
-#     def test_single_branched_failed(self):
-#         """
-#         Test single branched workflow failed at task 6
-#         """
-#
-#         # Instruct the runner to fail at node 3
-#         self.wf.workflow.nodes[6]['configuration']['fail'] = True
-#
-#         # Define some input
-#         self.wf.input(dummy='data_placeholder')
-#
-#         # Run the workflow
-#         self.wf.run(threaded=True)
-#
-#         while self.wf.is_running:
-#             time.sleep(1)
-#
-#         self.assertFalse(self.wf.is_running)
-#         self.assertFalse(self.wf.is_completed)
-#         self.assertListEqual(self.wf.output().keys(), ['task7'])
+
 
 class TestMapReduceWorkflow(unittest2.TestCase):
     """
@@ -126,7 +107,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         self.wf.input(dummy='data_placeholder')
 
         # Run the workflow
-        self.wf.run(threaded=True)
+        self.wf.run()
         
         while self.wf.is_running:
             time.sleep(1)
@@ -134,4 +115,23 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
 
-        print(write_json(self.wf.workflow))
+    def test_single_branched_failed(self):
+        """
+        Test single branched workflow failed at task 6
+        """
+
+        # Instruct the runner to fail at node 3
+        self.wf.workflow.nodes[6]['configuration']['fail'] = True
+
+        # Define some input
+        self.wf.input(dummy='data_placeholder')
+
+        # Run the workflow
+        self.wf.run()
+
+        while self.wf.is_running:
+            time.sleep(1)
+
+        self.assertFalse(self.wf.is_running)
+        self.assertFalse(self.wf.is_completed)
+        self.assertListEqual(self.wf.output().keys(), ['task7'])

@@ -151,7 +151,10 @@ class Collect(_TaskBase):
             callback(self.nodes[self.nid])
             
         else:
+            # Output collection not complete. Reset task status to ready and evaluate again at next pass
             logging.info('{0}: Not all output available yet'.format(self.task_name))
+            self.active = False
+            self.status = 'ready'
 
 
 WORKFLOW_ORM = GraphORM(inherit=False)
