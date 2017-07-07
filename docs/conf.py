@@ -352,9 +352,9 @@ Components
 
 """)
 
-    for i in glob.glob('../components/lie_atb/lie_*/'):
+    for i in glob.glob('../components/lie_*/'):
         if not 'egg-info' in i:
-            names = re.match(r'../components/lie_.*/(lie_(.*))/', i)
+            names = re.match(r'../components/(lie_(.*))/', i)
             module_name = names.group(1)
             name = names.group(2)
             file = "components/{}.rst".format(module_name)
