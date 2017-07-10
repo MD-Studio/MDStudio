@@ -1,0 +1,11 @@
+{
+    "title": "User",
+    "type": "object",
+    "properties": {
+        "username": { "type": "string", "pattern": "^[a-zA-Z0-9_]+$" },
+        "email": { "type": "string", "format": "email" },
+        "password": { "type": "string" },
+        "role": { "type": "string", "default": "user" },
+        "uid": { "type": "number" }
+    }
+}

@@ -1,17 +1,17 @@
 from autobahn import wamp
 
-from lie_componentbase import CoreApplicationSession, wamp_register
+from lie_componentbase import BaseApplicationSession, wamp_register
 
 from .settings import SETTINGS
 from .db_methods import init_mongodb
 
-class DBWampApi(CoreApplicationSession):
+class DBWampApi(BaseApplicationSession):
     """
     Database management WAMP methods.
     """
     
     def __init__(self, config, **kwargs):
-        CoreApplicationSession.__init__(self, config, **kwargs)
+        BaseApplicationSession.__init__(self, config, **kwargs)
         self._databases = {}
 
     @wamp_register(u'liestudio.db.find', 'wamp://liestudio.db.schemas/find/request/v1', {}, options=wamp.RegisterOptions(details_arg='details'))

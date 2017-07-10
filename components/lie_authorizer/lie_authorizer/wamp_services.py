@@ -111,7 +111,7 @@ class AuthorizerWampApi(BaseApplicationSession):
     def __init__(self, config, **kwargs):
         BaseApplicationSession.__init__(self, config, **kwargs)
 
-    @wamp.register('liestudio.authorizer.authorize')
+    @wamp.register(u'liestudio.authorizer.authorize')
     @inlineCallbacks
     def authorize(self, session, uri, action, options, details=None):
         role = session.get('authrole')

@@ -8,10 +8,14 @@ WAMP service methods the module exposes.
 
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
+from twisted.logger import Logger
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from lie_componentbase import BaseApplicationSession
-from management import UserManager, resolve_domain, ip_domain_based_access
-from settings import SETTINGS
+from .settings import SETTINGS, USER_TEMPLATE
+from .util import check_password, hash_password, ip_domain_based_access, generate_password
+
+logger = Logger()
 
 
 class UserWampApi(BaseApplicationSession):
@@ -19,11 +23,71 @@ class UserWampApi(BaseApplicationSession):
     User management WAMP methods.
     """
 
-    def __init__(self, config, **kwargs):
-        BaseApplicationSession.__init__(self, config, **kwargs)
-        self.usermanager = UserManager()
+    def __init__(self, *args, **kwargs):
+        self.session_config_template = 'wamp://liestudio.user.schemas/session_config/v1'
+        self.package_config_template = 'wamp://liestudio.user.schemas/settings/v1'
+        super(UserWampApi, self).__init__(*args, **kwargs)
+
+    @inlineCallbacks
+    def onRun(self, details=None):
+        admin = yield self._get_user({'uid': 0})
+        if not admin:
+            logger.info('Empty user table. Create default admin account')
+
+            userdata = {'username': self.session_config.get('admin_username', 'admin'),
+                        'email': self.session_config.get('admin_email', None),
+                        'password': hash_password(self.session_config.get('admin_password', None)),
+                        'role': 'admin',
+                        'uid': 0}
+
+            admin = yield self.call(u'liestudio.db.insert', {'collection': 'users', 'query': {'document': userdata}})
+            namespaces = yield self.call(u'liestudio.db.insertmany', {
+                'collection': 'namespaces',
+                'query': {
+                    'documents': [
+                        {'uid': 0, 'namespace': 'md'},
+                        {'uid': 0, 'namespace': 'atb'},
+                        {'uid': 0, 'namespace': 'docking'},
+                        {'uid': 0, 'namespace': 'structures'},
+                        {'uid': 0, 'namespace': 'logger'},
+                        {'uid': 0, 'namespace': 'config'}
+                    ]
+                }
+            })
+            if not admin:
+                logger.error('Unable to create default admin account')
+                self.leave('Unable to create default admin account, could not properly start.')
+
+        # Cleanup after improper shutdown
+        status = yield self.onExit()
+
+    @inlineCallbacks
+    def onExit(self, details=None):
+        """
+        User component exit routines
+
+        Terminate all active sessions on component shutdown
+
+        :param settings: global and module specific settings
+        :type settings:  :py:class:`dict` or :py:class:`dict` like object
+        :return:         successful exit sequence
+        :rtype:          bool
+        """
+
+        # Count number of active user sessions
+        active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'query': {}}) #users.find({'session_id': {'$ne': None}}).count()
+        logger.info('{0} active user sessions'.format(active_session_count))
+
+        # Terminate active sessions
+        if active_session_count:
+            deleted = yield self.call(u'liestudio.db.deletemany', {'collection': 'sessions', 'query': {'filter': {}}})
+            # users.update_many({'session_id': {'$ne': None}}, {'$set': {'session_id': None}})
+            logger.info('Terminate {0} active user sessions'.format(deleted["deleted_count"]))
+
+        returnValue(True)
 
     @wamp.register(u'liestudio.user.sso')
+    @inlineCallbacks
     def user_sso(self, auth_token):
         """
         Handles Single Sign On by:
@@ -40,14 +104,16 @@ class UserWampApi(BaseApplicationSession):
 
         # TODO: We are prefilling the username here, need to write SSO auth
         # validation routine
-        if self.usermanager.validate_user_login('lieadmin', 'liepw@#'):
-            user_settings = self.usermanager.get_safe_user({'username': 'lieadmin'})
+        user = yield self._get_user('lieadmin')
+        if self._validate_user_login(user, 'lieadmin', 'liepw@#'):
+            user_settings = self._strip_unsafe_properties(user)
             user_settings['password'] = 'liepw@#'
-            return user_settings
+            returnValue(user_settings)
         else:
-            return False
+            returnValue(False)
 
     @wamp.register(u'liestudio.user.login')
+    @inlineCallbacks
     def user_login(self, realm, authid, details):
         """
         Handles application authentication and authorization on the Crossbar
@@ -81,7 +147,7 @@ class UserWampApi(BaseApplicationSession):
             domain = details[u'http_headers_received'].get(u'host', None)
             details[u'domain'] = domain
 
-        self.log.debug('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
+        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
                        realm=realm, authid=authid, authmethod=authmethod, domain=domain)
 
         # Check for essentials (authid)
@@ -96,35 +162,47 @@ class UserWampApi(BaseApplicationSession):
         if not ip_domain_based_access(domain, blacklist=self.package_config.get('domain-blacklist', [])):
             raise ApplicationError('Access from domain {0} not allowed'.format(domain))
 
+        username = authid.strip()
+        user = yield self._get_user(username)
+
         # WAMP-ticket authetication
         if authmethod == u'ticket':
-            if self.usermanager.validate_user_login(authid, details['ticket']):
-                self.usermanager.set_session_id(details.get(u'session', 0))
-                user_settings = self.usermanager.get_safe_user({'username': authid})
-                auth_ticket = {u'realm': realm, u'role': user_settings['role'], u'extra': user_settings}
+            is_valid = self._validate_user_login(user, username, details['ticket'])
+            if is_valid:
+
+                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user)}
             else:
                 raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
 
         # WAMP-CRA authentication
         elif authmethod == u'wampcra':
-            self.usermanager.set_session_id(details.get(u'session', 0))
-            user_settings = self.usermanager.get_user({'username': authid})
-            if user_settings:
-                auth_ticket = {u'realm': realm, u'role': user_settings['role'], u'extra': user_settings,
-                               u'secret': user_settings['password']}
+            if user:
+                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user), 
+                               u'secret': user['password']}
             else:
                 raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
 
         else:
             raise ApplicationError("No such authentication method known: {0}".format(authmethod))
 
+        self._start_session(user['uid'], details.get(u'session', 0))
+        
         # Log authorization
         self.log.info('Access granted. user: {user}', user=authid, **details)
 
-        return auth_ticket
+        returnValue(auth_ticket)
+    
+    @wamp.register(u'liestudio.user.namespaces')
+    @inlineCallbacks
+    def get_namespaces(self, request):
+        user = yield self._get_user(request['username'].strip())
+        namespaces = yield self.call(u'liestudio.db.findmany', {'collection': 'namespaces', 'query': {'filter': {'uid': user['uid']}}})
 
-    @wamp.register(u'liestudio.user.logout')
-    def user_logout(self, session_id):
+        returnValue([n['namespace'] for n in namespaces])
+            
+    @wamp.register(u'liestudio.user.logout', options=wamp.RegisterOptions(details_arg='details'))
+    @inlineCallbacks
+    def user_logout(self, details):
         """
         Handles the user logout process by:
         - Retrieve user based on session_id
@@ -133,12 +211,15 @@ class UserWampApi(BaseApplicationSession):
         :type session_id:  int
         """
 
-        user = self.usermanager.get_user({'session_id': str(session_id)})
-        if self.usermanager.user:
-            if self.usermanager.user_logout():
-                return '{0} you are now logged out'.format(user['username'])
+        user = yield self._get_user(details.get('authid'))
+        if user:
+            logger.info('Logout user: {0}, uid: {1}'.format(self.user['username'], self.user['uid']))
 
-        return 'Unknown user, unable to logout'
+            ended = yield self._end_session(user['uid'], details.get('session'))
+            if ended:
+                returnValue('{0} you are now logged out'.format(user['username']))
+    
+        returnValue('Unknown user, unable to logout')
 
     @wamp.register(u'liestudio.user.retrieve')
     def retrieve_password(self, email):
@@ -152,6 +233,170 @@ class UserWampApi(BaseApplicationSession):
 
         return self.usermanager.retrieve_password(email)
 
+    # TODO: improve and register this method, with json schemas
+    @inlineCallbacks
+    def create_user(self, userdata, required=['username', 'email']):
+        """
+        Create new user and add to database
+        """
+
+
+        # TODO: handle the following section with json schema
+        # ----------------------------------------------------------------------------
+        user_template = copy.copy(USER_TEMPLATE)
+
+        # Require at least a valid username and email
+        for param in required:
+            if not userdata.get(param, None):
+                logger.error('Unable to create new user. Missing "{0}"'.format(param))
+                returnValue({})
+
+        # If no password, create random one
+        if not userdata.get('password', None):
+            random_pw = generate_password()
+            user_template['password'] = hash_password(random_pw)
+
+        user_template.update(userdata)
+        # ----------------------------------------------------------------------------
+
+        # Username and email should not be in use
+        user = yield self._get_user(userdata['username'])
+        if user:
+            logger.error('Username {0} already in use'.format(userdata['username']))
+            returnValue({})
+        
+        user = yield self._get_user({'email': userdata['email']})
+        if user:
+            logger.error('Email {0} already in use'.format(userdata['email']))
+            returnValue({})
+
+        # Make new uid, increment max uid by 0
+        uid = yield self.call(u'liestudio.db.find', {'collection': 'users', 'query': {'sort': [['uid', -1]]}})
+        if not uid:
+            uid = 0
+        else:
+            uid = uid['uid']
+            uid += 1
+        user_template['uid'] = uid
+
+        # Add the new user to the database
+        did = yield self.call(u'liestudio.db.insert', {'collection': 'users', 'query': {'document': user_template}})
+        if did:
+            logger.debug('Added new user to database. user: {username}, uid: {uid}'.format(**user_template))
+        else:
+            logger.error('Unable to add new user to database')
+            returnValue({})
+
+        returnValue(user_template)
+
+    # TODO: expose and secure this
+    def remove_user(self, userdata):
+        """
+        Remove a user from the database
+
+        :param userdata: PyMongo style database query
+        :type userdata:  :py:class:`dict`
+        """
+
+        user = self.get_user(userdata)
+        if not user:
+            logging.error('No such user to remove: {0}'.format(
+                ' '.join(['{0},{1}'.format(*item) for item in userdata.items()])))
+            return False
+        else:
+            logging.info('Removing user "{username}", with uid {uid} from database'.format(**user))
+            db['users'].delete_one(user)
+
+        return True
+
+    def _validate_user_login(self, user, username, password):
+        """
+        Validate login attempt for user with password
+
+        :param username: username to check
+        :type username:  string
+        :param password: password to check
+        :type password:  string
+        :rtype:          bool
+        """
+
+        password = password.strip()
+
+        check = False
+        if user:
+            check = check_password(user['password'], password)
+        else:
+            logger.debug('No such user')
+
+        logger.info('{status} login attempt for user: {user}',
+            status='Correct' if check else 'Incorrect', user=username)
+
+        return check
+
+    @inlineCallbacks
+    def _get_user(self, filter):
+        if type(filter) is not dict:
+            filter = {'username': filter}
+
+        res = yield self.call(u'liestudio.db.find', {'collection': 'users', 'query': {'filter': filter}})
+
+        returnValue(res)
+
+    def _start_session(self, uid, session_id):
+        logger.debug('Open session: {0} for user {1}'.format(session_id, uid))
+        self.call(u'liestudio.db.insert', {'collection': 'sessions', 'query': {'document': {'uid': uid, 'session_id': session_id}}})
+
+    @inlineCallbacks
+    def _end_session(self, uid, session_id):
+        res = yield self.call(u'liestudio.db.delete', {'collection': 'sessions', 'query': {'filter': {'uid': uid, 'session_id': session_id}}})
+        returnValue(res['deleted_count'] > 0)
+
+    def _strip_unsafe_properties(self, _user):
+        user = _user.copy()
+
+        for entry in self.package_config['unsafe_properties']:
+            if entry in user:
+                del user[entry]
+        
+        returnValue(user)
+
+    @inlineCallbacks
+    def _retrieve_password(self, email):
+        """
+        Retrieve password by email
+        
+        The email message template for user account password retrieval
+        is stored in the PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE variable.
+        
+        * Locates the user in the database by email which should be a 
+          unique and persistent identifier.
+        * Generate a new random password
+        * Send the new password to the users email once. If the email
+          could not be send, abort the procedure
+        * Save the new password in the database.
+        
+        :param email: email address to search user for
+        :type email:  string
+        """
+
+        user = yield self._get_user({'email': email})
+        if not user:
+          logger.info('No user with email {0}'.format(email))
+          return
+
+        new_password = generate_password()
+        user['password'] = hash_password(new_password)
+        logger.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
+
+        with Email() as email:
+          email.send(
+            email,
+            PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE.format(password=new_password, user=user['username']),
+            'Password retrieval request for LIEStudio'
+          )
+          res = yield self.call(u'liestudio.db.update', {'collection': 'users', 'query': {'filter': {'_id': user['_id']}, 'update': {'password': new_password}}})
+
+        returnValue(user)
 
 def make(config):
     """

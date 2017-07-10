@@ -38,8 +38,27 @@
                                         "publisher": false
                                     },
                                     "cache": true
+                                },
+                                {
+                                    "uri": "liestudio.user.namespaces",
+                                    "match": "exact",
+                                    "allow":{
+                                        "call": true,
+                                        "register": false,
+                                        "publish": false,
+                                        "subscribe": false
+                                    },
+                                    "disclose":{
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
                                 }
                             ]
+                        },
+                        {
+                            "name": "db",
+                            "authorizer": "liestudio.authorizer.authorize"
                         },
                         {
                             "name": "admin",
@@ -127,6 +146,12 @@
                 },
                 {
                     "type": "class",
+                    "classname": "lie_db.wamp_services.DBWampApi",
+                    "realm": "liestudio",
+                    "role": "db"
+                },
+                {
+                    "type": "class",
                     "classname": "lie_user.wamp_services.UserWampApi",
                     "realm": "liestudio",
                     "role": "authenticator"
@@ -166,32 +191,6 @@
                      }
                   },
                   "url": "wss://localhost:8080/ws"
-                }
-              },
-              {
-                "type": "wamplet",
-                "package": "lie_user",
-                "realm": "liestudio",
-                "entrypoint": "wamp_services",
-                "transport": {
-                  "type": "websocket",
-                  "endpoint": {
-                     "type": "tcp",
-                     "host":"localhost",
-                     "port": 8080,
-                     "tls": {
-                         "hostname": "localhost",
-                         "ca_certificates": [
-                             "server_cert.pem"
-                         ]
-                     }
-                  },
-                  "url": "wss://localhost:8080/ws"
-                },
-                "extra": {
-                  "authid": "lieadmin",
-                  "password": "liepw@#",
-                  "authmethod": "ticket"  
                 }
               },
               {
