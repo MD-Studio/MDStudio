@@ -15,30 +15,18 @@
                     "roles": [
                         {
                             "name": "public",
-                            "permissions": [
-                                {
-                                    "uri": "",
-                                    "match": "prefix",
-                                    "allow": {
-                                        "call": true,
-                                        "register": false,
-                                        "publish": false,
-                                        "subscribe": true
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
-                                }
-                            ]
+                            "authorizer": "liestudio.authorizer.authorize"
                         },
                         {
                             "name": "authenticator",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "authorizer",
                             "permissions": [
                                 {
-                                    "uri": "liestudio.user.login",
-                                    "match": "exact",
+                                    "uri": "liestudio.authorizer",
+                                    "match": "prefix",
                                     "allow": {
                                         "call": false,
                                         "register": true,
@@ -55,23 +43,7 @@
                         },
                         {
                             "name": "admin",
-                            "permissions": [
-                                {
-                                    "uri": "",
-                                    "match": "prefix",
-                                    "allow": {
-                                        "call": true,
-                                        "register": true,
-                                        "publish": true,
-                                        "subscribe": true
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
-                                }
-                            ]
+                            "authorizer": "liestudio.authorizer.authorize"
                         }
                     ]
                 }
@@ -147,6 +119,12 @@
                 }
             ],
             "components": [
+                {
+                    "type": "class",
+                    "classname": "lie_authorizer.wamp_services.AuthorizerWampApi",
+                    "realm": "liestudio",
+                    "role": "authorizer"
+                },
                 {
                     "type": "class",
                     "classname": "lie_user.wamp_services.UserWampApi",
