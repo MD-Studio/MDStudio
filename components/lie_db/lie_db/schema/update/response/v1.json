@@ -1,0 +1,11 @@
+{
+    "title": "UpdateResponse",
+    "type": "object",
+    "properties": {
+        "matched_count": {"type": "integer"},
+        "modified_count": {"type": "integer"},
+        "upserted_id": {"type": "string"}
+    },
+    "required": ["matched_count", "modified_count"],
+    "additionalProperties": false
+}

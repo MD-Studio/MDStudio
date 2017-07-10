@@ -1,0 +1,17 @@
+{
+    "title": "DeleteRequest",
+    "type": "object",
+    "properties": {
+        "collection": {"$ref": "wamp://liestudio.db.schemas/collection/v1.json"},
+        "query": {
+            "type":"object",
+            "properties": {
+                "filter": {"type": "object"}
+            },
+            "required": ["filter"],
+            "additionalProperties": false
+        }
+    },
+    "required": ["collection", "query"],
+    "additionalProperties": false
+}

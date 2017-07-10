@@ -1,0 +1,29 @@
+{
+    "title": "FindRequest",
+    "type": "object",
+    "properties": {
+        "collection": {"$ref": "wamp://liestudio.db.schemas/collection/v1.json"},
+        "query": {
+            "type": "object",
+            "properties": {
+                "filter": {"type": "object"},
+                "projection": {"type": ["object", "array"]},
+                "skip": {"type": "integer"},
+                "limit": {"type": "integer"},
+                "sort": {
+                    "type": "array",
+                    "items": {
+                        "type":"array",
+                        "items": [
+                            {"type": "string"},
+                            {"enum": [-1, 1]}
+                        ]
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": ["collection", "query"],
+    "additionalProperties": false
+}

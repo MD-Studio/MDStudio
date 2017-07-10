@@ -243,7 +243,10 @@ class BootstrapMongoDB(object):
         appdata = copy.copy(self._app_collection_template)
         appdata['application'] = self._dbname
         appdata['init_timestamp'] = datetime.datetime.utcnow()
-        appdata['user'] = getpass.getuser()
+        try:
+            appdata['user'] = getpass.getuser()
+        except Exception as e:
+            appdata['user'] = 'docker'
         liedb_data.insert_one(appdata)
 
     def connect(self):

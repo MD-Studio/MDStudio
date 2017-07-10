@@ -1,0 +1,9 @@
+{
+    "title": "DeleteResponse",
+    "type": "object",
+    "properties": {
+        "deleted_count": {"type": "integer"}
+    },
+    "required": ["deleted_count"],
+    "additionalProperties": false
+}

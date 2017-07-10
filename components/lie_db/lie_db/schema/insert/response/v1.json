@@ -1,0 +1,12 @@
+{
+    "title": "InsertResponse",
+    "type": "object",
+    "properties": {
+        "inserted_ids": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required": ["inserted_ids"],
+    "additionalProperties": false
+}

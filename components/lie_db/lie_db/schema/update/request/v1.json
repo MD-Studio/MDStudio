@@ -1,0 +1,19 @@
+{
+    "title": "UpdateRequest",
+    "type": "object",
+    "properties": {
+        "collection": {"$ref": "wamp://liestudio.db.schemas/collection/v1.json"},
+        "query": {
+            "type":"object",
+            "properties": {
+                "filter": {"type": "object"},
+                "update": {"type": "object"},
+                "upsert": {"type": "boolean", "default": false}
+            },
+            "required": ["filter", "update"],
+            "additionalProperties": false
+        }
+    },
+    "required": ["collection", "query"],
+    "additionalProperties": false
+}

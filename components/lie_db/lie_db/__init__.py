@@ -21,10 +21,8 @@ __rootpath__ = os.path.dirname(__file__)
 
 # Import settings
 from .settings import SETTINGS
-from .db_methods import init_mongodb, exit_mongodb, BootstrapMongoDB, mongodb_connect
+from .wamp_services import DBWampApi
 
 # Define component public API
 settings = SETTINGS
-wampapi = None
-oninit = init_mongodb
-onexit = exit_mongodb
+wampapi  = DBWampApi
