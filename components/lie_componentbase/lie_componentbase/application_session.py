@@ -16,7 +16,7 @@ from autobahn import wamp
 from twisted.python.failure import Failure
 from pprint import pprint
 
-from .wamp_taskmeta import WAMPMessageEnvelope
+from .wamp_taskmeta import WAMPTaskMetaData
 from .wamp_logging import WampLogging
 from .util import PY2, PY3, resolve_config, DefaultValidatingDraft4Validator, block_on
 
@@ -40,7 +40,7 @@ def wamp_schema_handler(session):
             if 'lie_{}'.format(schema_path_match.group(1)) == module_name:
                 res = yield session.get_schema(schema_path)
             elif 'lie_{}'.format(schema_path_match.group(1)) == 'lie_componentbase':
-                res = yield session.get_schema(schema_path, os.path.dirname(inspect.getfile(CoreApplicationSession)))
+                res = yield session.get_schema(schema_path, os.path.dirname(inspect.getfile(BaseApplicationSession)))
             else:
                 res = yield session.call(u'liestudio.{}.schemas', schema_path)
 
@@ -195,7 +195,7 @@ class BaseApplicationSession(ApplicationSession):
             package_config = {}
 
         # Init session_config with default values
-        self.session_info = WAMPMessageEnvelope(realm=config.realm,
+        self.session_info = WAMPTaskMetaData(realm=config.realm,
                                                 package_name=self.__module__.split('.')[0],
                                                 class_name=type(self).__name__
         )
@@ -432,8 +432,8 @@ class BaseApplicationSession(ApplicationSession):
 
         # Register methods
         res = yield self.register(self)
-        schemas = yield self.register(self.get_schema, u'liestudio.{}.schemas'.format(re.match('lie_([a-z]+)', self.session_info['package_name']).group(1)))
-        res.append(schemas)
+        # schemas = yield self.register(self.get_schema, u'liestudio.{}.schemas'.format(re.match('lie_([a-z]+)', self.session_info['package_name']).group(1)))
+        # res.append(schemas)
 
         failures = 0
         for r in res:

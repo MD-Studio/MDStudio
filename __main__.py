@@ -47,8 +47,8 @@ if not venv_active:
 
 
 # Import required system packages
-from lie_system import ComponentManager
-from lie_config import get_config, config_to_json
+from lie_componentbase import ComponentManager
+from lie_componentbase.config import get_config, config_to_json
 from twisted.logger import Logger
 
 logging = Logger()

@@ -11,10 +11,10 @@ from   twisted.internet._sslverify import OpenSSLCertificateAuthorities
 from   twisted.internet.ssl        import CertificateOptions
 
 from   lie_graph.io.io_json_format import read_json, write_json
-from   lie_system                  import LieApplicationSession, WAMPTaskMetaData
+from   lie_componentbase                  import BaseAppliationSession, WAMPTaskMetaData
 from   lie_workflow                import WorkflowSpec
 
-class LIEWorkflow(LieApplicationSession):
+class LIEWorkflow(BaseAppliationSession):
     
     """
     This script will perform a binding affinity calculation using the 

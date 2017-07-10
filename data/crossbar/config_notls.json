@@ -37,8 +37,8 @@
                             "name": "authenticator",
                             "permissions": [
                                 {
-                                    "uri": "liestudio.user.login",
-                                    "match": "exact",
+                                    "uri": "liestudio.user",
+                                    "match": "prefix",
                                     "allow": {
                                         "call": false,
                                         "register": true,
