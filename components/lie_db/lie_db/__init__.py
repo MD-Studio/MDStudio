@@ -20,9 +20,7 @@ __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 
 # Import settings
-from .settings import SETTINGS
 from .wamp_services import DBWampApi
 
 # Define component public API
-settings = SETTINGS
 wampapi  = DBWampApi

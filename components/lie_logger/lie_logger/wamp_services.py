@@ -29,7 +29,7 @@ class LoggerWampApi(BaseApplicationSession):
         super(LoggerWampApi, self).__init__(config, package_config, **kwargs)
 
         if self.db is None:
-            host = os.getenv('MONGO_HOST', 'localhost')
+            host = os.getenv('_LIE_MONGO_HOST', 'localhost')
             self.db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
 
         self.log_collection = self.db['log']

@@ -18,9 +18,8 @@ from pprint import pprint
 
 from .wamp_taskmeta import WAMPTaskMetaData
 from .wamp_logging import WampLogging
-from .util import PY2, PY3, resolve_config, DefaultValidatingDraft4Validator, block_on
-
-from .config.config_handler import ConfigHandler
+from .util import resolve_config, DefaultValidatingDraft4Validator, block_on
+from .config import PY3, config_from_dotenv, ConfigHandler
 
 if PY3:
     from .util import unicode      
@@ -127,11 +126,12 @@ class BaseApplicationSession(ApplicationSession):
 
         # initialize defaults
         self.session_config_environment_variables = {
-            'username': '_LIE_AUTH_USERNAME',
-            'password': '_LIE_AUTH_PASSWORD',
-            'realm':    '_LIE_AUTH_REALM',
-            'authmethod': '_LIE_AUTH_METHOD'
+            'authid':     '_LIE_AUTH_USERNAME',
+            'password':     '_LIE_AUTH_PASSWORD',
+            'realm':        '_LIE_AUTH_REALM',
+            'authmethod':   '_LIE_AUTH_METHOD'
         }
+
         self.package_config_template = WampSchema('componentbase', 'settings', 1)
         self.session_config_template = WampSchema('componentbase', 'session_config', 1)
 
@@ -140,43 +140,43 @@ class BaseApplicationSession(ApplicationSession):
         # call pre init to override above values
         self.preInit(**kwargs)
 
+        self.wamp_schema_handler = WampSchemaHandler(self)
+
         # we cannot use default argument {} since it stores references internally,
         # making subsequent constructions unpredictable
         if package_config is None:
             package_config = {}
 
-        # Init session_config with default values
+        # Init session_info with default values
         self.session_info = WAMPTaskMetaData(realm=config.realm, package_name=self.__module__.split('.')[0],
                                              class_name=type(self).__name__
         )
 
-        # Update session_config with key/value pairs in config.extra except
+        # Update session_info with key/value pairs in config.extra except
         # for package config
         extra = config.extra if isinstance(config.extra, dict) else {}
 
-        self.session_config = ConfigHandler()
-        self.session_config.update(resolve_config(extra.get('sesion_config')))
-        self.session_config.update(kwargs)
-
         for key, value in extra.items():
-            if not key.endswith('_config'):
+            if key not in ('session_config', 'package_config'):
                 self.session_info.set(key,value)
 
         # Init toplevel ApplicationSession
         super(BaseApplicationSession, self).__init__(config)
 
-        # Load client private key (raw format) if any
-        self._key = None
-        if u'key' in self.session_config:
-            self._load_public_key(self.session_config[u'key'])
-
         # Set package_config: first global package config, the package_config
         # argument and finaly config.extra
         self.package_config = ConfigHandler()
-        self.package_config.update(resolve_config(package_config))
         self.package_config.update(resolve_config(extra.get('package_config')))
 
+        self.session_config = ConfigHandler()
+        self.session_config.update(resolve_config(extra.get('sesion_config')))
 
+        # Load client private key (raw format) if any
+        self._key = None
+        if u'key' in self.session_config:
+            self._load_public_key(self.session_config.get(u'key'))
+
+        # Determine config directory
         if '_LIE_CONFIG_DIR' in os.environ:
             config_dir = os.environ['_LIE_CONFIG_DIR']
         elif 'config_dir' in extra.keys():
@@ -190,51 +190,39 @@ class BaseApplicationSession(ApplicationSession):
             os.makedirs(package_config_dir)
 
         package_config_file = os.path.join(package_config_dir, 'settings.json')
-        # Set default template
-        package_config_template = 'wamp://liestudio.schema.get/componentbase/settings/v1'
-        # Override with custom template given in the constructor
-        if hasattr(self, 'package_config_template'):
-            package_config_template = self.package_config_template
-        # Override with custom template given in the extra variable
-        package_config_template = extra.get('package_config_template', package_config_template)
+        package_conf = resolve_config(package_config_file)
 
-        if not os.path.isfile(package_config_file):
-            package_conf = {}
-            if validate_json_schema(self, package_config_template, package_conf):
-                with open(package_config_file, 'w') as f:
-                    json.dump(package_conf, f, indent=4, sort_keys=True)
-        else:
-            package_conf = resolve_config(package_config_file)
-
-        if validate_json_schema(self, extra.get('package_config_template', package_config_template), package_conf):
+        if validate_json_schema(self, self.package_config_template, package_conf):
             self.package_config.update(package_conf)
 
+            if not os.path.isfile(package_config_file):
+                with open(package_config_file, 'w') as f:
+                    json.dump(package_conf, f, indent=4, sort_keys=True)
+
         session_config_file = os.path.join(package_config_dir, 'session_config.json')
-        # Set default template
-        session_config_template = 'wamp://liestudio.schema.get/componentbase/session_config/v1'
-        # Override with custom template given in the constructor
-        if hasattr(self, 'session_config_template'):
-            session_config_template = self.session_config_template
-        # Override with custom template given in the extra variable
-        session_config_template = extra.get('session_config_template', self.package_config.get('session_config_template', session_config_template))
+        session_conf = resolve_config(session_config_file)
 
-        if not os.path.isfile(session_config_file):
-            session_conf = {}
-            if validate_json_schema(self, session_config_template, session_conf):
-                with open(session_config_file, 'w') as f:
-                    json.dump(session_conf, f, indent=4, sort_keys=True)
+        dotenvfile = os.getenv('_LIE_DOTENV', os.path.join(package_config_dir, '.env'))
+        
+        if os.path.isfile(dotenvfile):
+            env = config_from_dotenv(dotenvfile)
         else:
-            session_conf = resolve_config(session_config_file)
+            env = {}
 
-        if validate_json_schema(self, session_config_template, session_conf):
-            self.session_config.update(session_conf)        
+        for key, value in self.session_config_environment_variables.items():
+            if value in env:
+                session_conf[key] = env[value]
+            elif value in os.environ:
+                session_conf[key] = os.environ[value]
 
+        if validate_json_schema(self, self.session_config_template, session_conf):
+            self.session_config.update(session_conf)
 
         # Configure config object
         config.realm = self.session_config.get('realm', config.realm)
 
-        if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config['authmethod'], list):
-            self.session_config['authmethod'] = [self.session_config['authmethod']]
+        if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config.get('authmethod'), list):
+            self.session_config.set('authmethod', [self.session_config.get('authmethod')])
 
         # Call onInit hook
         self.onInit(**kwargs)
@@ -437,9 +425,15 @@ class BaseApplicationSession(ApplicationSession):
                     if 'lie_{}'.format(schema.namespace) == module_name:
                         schema_def = self.get_schema(schema_path)
                         if schema_def:
-                            schema_res = yield self.call(u'liestudio.schema.register', {'path': schema_path, 'schema': schema_def})
+                            schema_res = yield self.call(u'liestudio.schema.register', {
+                                'path': schema_path, 
+                                'schema': schema_def
+                            })
+                            if not schema_res:
+                                self.log.error('ERROR: failed to register json schema {path} for {namespace}, schema component returned False',
+                                                path=schema_path, namespace=schema.namespace)
                         else:
-                            self.log.error('ERROR: could not register json schema from {namespace} with path {path}, because the file does not exist',
+                            self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
                                            namespace=schema.namespace, path=schema_path)
 
         # Call onRun hook.
@@ -487,7 +481,7 @@ class BaseApplicationSession(ApplicationSession):
     def preInit(self, **kwargs):
         """
         Implement custom code to be called before the application class is
-        initiated.
+        initiated. Override config templates here.
         """
 
         return
@@ -544,34 +538,44 @@ class BaseApplicationSession(ApplicationSession):
 
         return None
 
-def wamp_schema_handler(session):
-    def handler(uri):
-        @inlineCallbacks
-        def resolve(uri):
-            module_name = session.__module__.split('.')[0]
-            schema_path_match = re.match('wamp://liestudio\.schema\.get/([a-z_]+)/(.+)', uri)
-            if not schema_path_match:
-                session.log.error("Not a proper wamp uri")
-                
-            schema_namespace = schema_path_match.group(1)
-            schema_path = schema_path_match.group(2)
+class WampSchemaHandler:
+    def __init__(self, session):
+        self.componentbase_dir = os.path.dirname(inspect.getfile(BaseApplicationSession))
+        self.module_name = session.__module__.split('.')[0]
+        self.session = session
+        self.cache = {}
+    
+    def handler(self, uri):
+        if uri not in self.cache.keys():
+            res = block_on(self.resolve(uri))
+            self.cache[uri]=res
+        else:
+            res = self.cache[uri]
+
+        return res
+
+    
+    @inlineCallbacks
+    def resolve(self, uri):
+        schema_path_match = re.match('wamp://liestudio\.schema\.get/([a-z_]+)/(.+)', uri)
+        if not schema_path_match:
+            self.session.log.error("Not a proper wamp uri")
             
-            if 'lie_{}'.format(schema_namespace) == module_name:
-                res = yield session.get_schema(schema_path)
-            elif 'lie_{}'.format(schema_namespace) == 'lie_componentbase':
-                res = yield session.get_schema(schema_path, os.path.dirname(inspect.getfile(BaseApplicationSession)))
-            else:
-                res = yield session.call(u'liestudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
+        schema_namespace = schema_path_match.group(1)
+        schema_path = schema_path_match.group(2)
+        
+        if 'lie_{}'.format(schema_namespace) == self.module_name:
+            res = self.session.get_schema(schema_path)
+        elif 'lie_{}'.format(schema_namespace) == 'lie_componentbase':
+            res = self.session.get_schema(schema_path, self.componentbase_dir)
+        else:
+            res = yield self.session.call(u'liestudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
 
-            if res is None:
-                self.log.warn('WARNING: could not retrieve a valid schema')
-                res = {}
-            
-            returnValue(res)
-
-        return block_on(resolve(uri))
-
-    return handler
+        if res is None:
+            self.log.warn('WARNING: could not retrieve a valid schema')
+            res = {}
+        
+        returnValue(res)
 
 def validate_json_schema(session, schema_def, request):
     if not isinstance(schema_def, (Schema, WampSchema, InlineSchema)):
@@ -580,7 +584,7 @@ def validate_json_schema(session, schema_def, request):
     valid = False
     
     for schema in schema_def.schemas():
-        resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': wamp_schema_handler(session)})
+        resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': session.wamp_schema_handler.handler})
         validator=DefaultValidatingDraft4Validator(schema, resolver=resolver)
         
         try:

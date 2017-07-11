@@ -2,7 +2,6 @@ from autobahn import wamp
 
 from lie_componentbase import BaseApplicationSession, register, WampSchema
 
-from .settings import SETTINGS
 from .db_methods import init_mongodb
 
 class DBWampApi(BaseApplicationSession):
@@ -10,9 +9,10 @@ class DBWampApi(BaseApplicationSession):
     Database management WAMP methods.
     """
     
-    def __init__(self, config, **kwargs):
-        BaseApplicationSession.__init__(self, config, **kwargs)
+    def preInit(self, **kwargs):
         self._databases = {}
+        self.session_config_template = {}
+        self.package_config_template = WampSchema('db', 'settings', 1)
 
     @register(u'liestudio.db.find', WampSchema('db', 'find/request', 1), {}, True)
     def db_find(self, request, details=None):
@@ -96,7 +96,7 @@ class DBWampApi(BaseApplicationSession):
 
     def _get_db(self, dbname):
         if dbname not in self._databases.keys():
-            settings = SETTINGS.copy()
+            settings = dict([(k, self.package_config.get(k)) for k in ('dbhost', 'dbport', 'dbpath', 'dblog')])
             settings['dbname'] = dbname
             self._databases[dbname] = init_mongodb(settings)
             

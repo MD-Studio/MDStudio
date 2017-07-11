@@ -11,7 +11,7 @@ alias liecheck="(cd /app; mkdir -p build/ build/flake8; flake8 components; peppe
 alias liepep8="(cd /app; autopep8 --in-place --aggressive --aggressive --recursive --ignore E501,E24 --exclude="*.md" *.py)"
 
 source /app/.venv/bin/activate
-export MONGO_HOST=mongo
+export _LIE_MONGO_HOST=mongo
 export IS_DOCKER=1
 cd /app
 [[ "$HELPSHOWN" != "1" ]] && helpme

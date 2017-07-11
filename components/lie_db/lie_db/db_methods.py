@@ -25,7 +25,7 @@ def get_host(settings):
     :param settings: the Settings object
     :return: The correct host
     """
-    return os.getenv('MONGO_HOST', settings.get('host'))
+    return os.getenv('_LIE_MONGO_HOST', settings.get('dbhost'))
 
 
 def init_mongodb(settings):
@@ -38,7 +38,7 @@ def init_mongodb(settings):
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
                           host=get_host(settings),
-                          port=settings.get('port'))
+                          port=settings.get('dbport'))
     assert db.start()
 
     db = db.connect()
@@ -57,11 +57,11 @@ def exit_mongodb(settings):
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
                           host=get_host(settings),
-                          port=settings.get('port'))
+                          port=settings.get('dbport'))
     db.stop(terminate_mongod_on_exit=settings.get('terminate_mongod_on_exit', False))
 
 
-def mongodb_connect(host=os.getenv('MONGO_HOST', 'localhost'), port=27017, **kwargs):
+def mongodb_connect(host=os.getenv('_LIE_MONGO_HOST', 'localhost'), port=27017, **kwargs):
     """
     Connect to a running MongoDB database
 
@@ -90,8 +90,8 @@ class BootstrapMongoDB(object):
     TODO: Add database authentication
     """
 
-    def __init__(self, dbpath, dbname='liedb', mongod_path=None, host=os.getenv('MONGO_HOST', 'localhost'),
-                 port=27017, dblog=None, app_collection_template=APP_COLLECTION):
+    def __init__(self, dbpath, dbname='liedb', mongod_path=None, host=None, port=27017, dblog=None, 
+                 app_collection_template=APP_COLLECTION):
 
         if dbpath:
             self._dbpath = os.path.abspath(dbpath)

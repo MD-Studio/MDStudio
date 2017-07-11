@@ -35,6 +35,8 @@ services:
             - "3001:3001"
             # sphinx autobuild
             - "8000:8000"
+        environment:
+            - _LIE_MONGO_HOST=mongo
         tty: true
 
     mongo:

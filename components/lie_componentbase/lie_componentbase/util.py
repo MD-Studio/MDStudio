@@ -10,11 +10,7 @@ from autobahn               import wamp
 import jsonschema
 
 from .config.config_handler import ConfigHandler
-
-# Retrieve python version
-PYVERSION = sys.version_info
-PY2 = PYVERSION < (3, 0)
-PY3 = PYVERSION >= (3, 0)
+from .config import PY3
 
 if PY3:
     from queue import Queue, Empty

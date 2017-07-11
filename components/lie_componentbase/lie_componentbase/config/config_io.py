@@ -2,19 +2,30 @@
 
 from __future__ import unicode_literals
 
+import codecs
 import sys
 import os
 import collections
 import json
-import StringIO
+
+from twisted.logger import Logger
 
 PY3 = sys.version_info.major == 3
 if PY3:
     import configparser
+    from io import StringIO
 else:
     import ConfigParser as configparser
+    import StringIO
 
-from twisted.logger import Logger
+# add unicode placeholder for PY3
+try:
+    unicode('')
+except NameError as e:
+    class unicode(str):
+        def __init__(self, object='', *args, **kwargs):
+            super(unicode, self).__init__(u'{}'.format(object), *args, **kwargs)
+
 
 logging = Logger()
 
@@ -93,7 +104,7 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
         if not isinstance(key, (str, unicode)):
             key = str(key)
 
-        new_key = str(parent_key + sep + key if parent_key else key).encode('utf-8')
+        new_key = str(parent_key + sep + key if parent_key else key)#.encode('utf-8')
         if isinstance(value, collections.MutableMapping):
             items.extend(_flatten_nested_dict(value, new_key, sep=sep).items())
         else:
@@ -291,3 +302,26 @@ def config_to_yaml(config, tofile=None, **kwargs):
             cf.write(yamlconfig)
     else:
         return yamlconfig
+
+def config_from_dotenv(dotenvfile):
+    config = {}
+
+    with open(dotenvfile) as f:
+        for line in f.readlines():
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+
+            key = key.strip()
+            value = value.strip()
+
+            if len(value) > 0:
+                escaped = value[0] == value[-1] and value[0] in ('"', "'")
+
+                if escaped:
+                    value = codecs.unicode_escape_decode(value[1:-1])
+
+            config[key] = value
+
+    return config

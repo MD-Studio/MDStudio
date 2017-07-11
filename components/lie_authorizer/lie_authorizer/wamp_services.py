@@ -125,8 +125,8 @@ class AuthorizerWampApi(BaseApplicationSession):
     User management WAMP methods.
     """
     
-    def __init__(self, config, **kwargs):
-        BaseApplicationSession.__init__(self, config, **kwargs)
+    def preInit(self, **kwargs):
+        self.session_config_template = {}
 
     @wamp.register(u'liestudio.authorizer.authorize')
     @inlineCallbacks

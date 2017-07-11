@@ -26,6 +26,12 @@ class UserWampApi(BaseApplicationSession):
     def preInit(self, **kwargs):
         self.session_config_template = WampSchema('user', 'session_config', 1)
         self.package_config_template = WampSchema('user', 'settings', 1)
+        
+        self.session_config_environment_variables = {
+            'admin_username': '_LIE_AUTH_USERNAME',
+            'admin_email': '_LIE_USER_ADMIN_EMAIL',
+            'admin_password': '_LIE_AUTH_PASSWORD'
+        }
 
     @inlineCallbacks
     def onRun(self, details=None):
@@ -74,13 +80,12 @@ class UserWampApi(BaseApplicationSession):
         """
 
         # Count number of active user sessions
-        active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'query': {}}) #users.find({'session_id': {'$ne': None}}).count()
+        active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'query': {}}) 
         logger.info('{0} active user sessions'.format(active_session_count))
 
         # Terminate active sessions
         if active_session_count:
             deleted = yield self.call(u'liestudio.db.deletemany', {'collection': 'sessions', 'query': {'filter': {}}})
-            # users.update_many({'session_id': {'$ne': None}}, {'$set': {'session_id': None}})
             logger.info('Terminate {0} active user sessions'.format(deleted["deleted_count"]))
 
         returnValue(True)
@@ -353,7 +358,7 @@ class UserWampApi(BaseApplicationSession):
     def _strip_unsafe_properties(self, _user):
         user = _user.copy()
 
-        for entry in self.package_config['unsafe_properties']:
+        for entry in self.package_config.get('unsafe_properties'):
             if entry in user:
                 del user[entry]
         
