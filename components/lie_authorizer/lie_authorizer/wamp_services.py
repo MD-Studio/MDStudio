@@ -65,6 +65,23 @@ PERMISSIONS = {
             "cache": True
         }
     ],
+    "schema": [
+        {
+            "uri": u"liestudio.schema",
+            "match": "prefix",
+            "allow": {
+                "call": True,
+                "register": True,
+                "publish": False,
+                "subscribe": False
+            },
+            "disclose": {
+                "caller": True,
+                "publisher": True
+            },
+            "cache": True
+        }
+    ],
     "admin": [
         {
             "uri": u"",
@@ -130,7 +147,7 @@ class AuthorizerWampApi(BaseApplicationSession):
                     self.log.debug( 'DEBUG: found matching rule {}, permission is: {}'.format(rule, permission))
                     returnValue(permission)
                     
-        if session.get('authprovider') is None and role in ('authorizer', 'authenticator', 'db'):
+        if session.get('authprovider') is None and role in ('authorizer', 'authenticator', 'schema', 'db'):
             authid = role
         else:
             authid = session.get('authid')
@@ -141,11 +158,11 @@ class AuthorizerWampApi(BaseApplicationSession):
                 returnValue({'allow': True})
 
         self.log.debug( 'DEBUG: authid resoved to {}'.format(authid))
-        if authid and action == 'call' and uri.startswith('liestudio.db.'):
+        if authid and action == 'call' and (uri.startswith('liestudio.db.') or uri == 'liestudio.schema.register'):
             self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
             returnValue({ 'allow': True, 'disclose': True })
 
-        if action == 'call' and re.match('liestudio.[a-z]+.schemas', uri):
+        if action == 'call' and re.match('liestudio.schema.get', uri):
             self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
             returnValue({'allow': True})
 

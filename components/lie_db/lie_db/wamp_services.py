@@ -1,6 +1,6 @@
 from autobahn import wamp
 
-from lie_componentbase import BaseApplicationSession, wamp_register
+from lie_componentbase import BaseApplicationSession, register, WampSchema
 
 from .settings import SETTINGS
 from .db_methods import init_mongodb
@@ -14,37 +14,37 @@ class DBWampApi(BaseApplicationSession):
         BaseApplicationSession.__init__(self, config, **kwargs)
         self._databases = {}
 
-    @wamp_register(u'liestudio.db.find', 'wamp://liestudio.db.schemas/find/request/v1', {}, options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.find', WampSchema('db', 'find/request', 1), {}, True)
     def db_find(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
 
         return collection.find_one(**request['query'])
         
-    @wamp_register(u'liestudio.db.findmany', 'wamp://liestudio.db.schemas/find/request/v1', {}, options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.findmany', WampSchema('db', 'find/request', 1), {}, True)
     def db_findmany(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
 
         return [r for r in collection.find(**request['query'])]
 
-    @wamp_register(u'liestudio.db.count', 'wamp://liestudio.db.schemas/find/request/v1', {'type': 'integer'}, options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.count', WampSchema('db', 'find/request', 1), {'type': 'integer'}, True)
     def db_count(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
 
         return collection.count(**request['query'])
 
-    @wamp_register(u'liestudio.db.insert', 'wamp://liestudio.db.schemas/insert/one/v1', 'wamp://liestudio.db.schemas/insert/response/v1', options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.insert', WampSchema('db', 'insert/one', 1), WampSchema('db', 'insert/response', 1), True)
     def db_insert(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
 
         return {'inserted_ids': [str(collection.insert_one(**request['query']).inserted_id)]}
 
-    @wamp_register(u'liestudio.db.insertmany', 'wamp://liestudio.db.schemas/insert/many/v1', 'wamp://liestudio.db.schemas/insert/response/v1', options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.insertmany', WampSchema('db', 'insert/many', 1), WampSchema('db', 'insert/response', 1), True)
     def db_insertmany(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
 
         return {'inserted_ids': [str(oid) for oid in collection.insert_many(**request['query']).inserted_ids]}
 
-    @wamp_register(u'liestudio.db.update', 'wamp://liestudio.db.schemas/update/request/v1', 'wamp://liestudio.db.schemas/update/response/v1', options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.update', WampSchema('db', 'update/request', 1), WampSchema('db', 'update/response', 1), True)
     def db_update(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
         query = request['query']
@@ -61,7 +61,7 @@ class DBWampApi(BaseApplicationSession):
 
         return response
 
-    @wamp_register(u'liestudio.db.updatemany', 'wamp://liestudio.db.schemas/update/request/v1', 'wamp://liestudio.db.schemas/update/response/v1', options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.updatemany', WampSchema('db', 'update/request', 1), WampSchema('db', 'update/response', 1), True)
     def db_updatemany(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
         query = request['query']
@@ -78,7 +78,7 @@ class DBWampApi(BaseApplicationSession):
 
         return response
 
-    @wamp_register(u'liestudio.db.delete', 'wamp://liestudio.db.schemas/delete/request/v1', 'wamp://liestudio.db.schemas/delete/response/v1', options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.delete', WampSchema('db', 'delete/request', 1), WampSchema('db', 'delete/response', 1), True)
     def db_delete(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
 
@@ -86,7 +86,7 @@ class DBWampApi(BaseApplicationSession):
 
         return {'deleted_count': deleteresult.deleted_count}
 
-    @wamp_register(u'liestudio.db.deletemany', 'wamp://liestudio.db.schemas/delete/request/v1', 'wamp://liestudio.db.schemas/delete/response/v1', options=wamp.RegisterOptions(details_arg='details'))
+    @register(u'liestudio.db.deletemany', WampSchema('db', 'delete/request', 1), WampSchema('db', 'delete/response', 1), True)
     def db_deletemany(self, request, details=None):
         collection = self._get_collection(request['collection'], details)
 

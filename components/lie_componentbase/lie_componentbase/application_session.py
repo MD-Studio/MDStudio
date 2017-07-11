@@ -29,7 +29,8 @@ class BaseApplicationSession(ApplicationSession):
     """
     BaseApplicationSession class
 
-    Inherits from the Autobahn Twisted based `ApplicationSession <http://autobahn.ws/python/reference/autobahn.twisted.html#autobahn.twisted.wamp.ApplicationSession>`_
+    Inherits from the Autobahn Twisted based `ApplicationSession 
+    <http://autobahn.ws/python/reference/autobahn.twisted.html#autobahn.twisted.wamp.ApplicationSession>`_
     and extends it with methods to ease the process of automatic authentication,
     authorization and WAMP API configuration.
 
@@ -124,15 +125,29 @@ class BaseApplicationSession(ApplicationSession):
         :type password:        str
         """
 
+        # initialize defaults
+        self.session_config_environment_variables = {
+            'username': '_LIE_AUTH_USERNAME',
+            'password': '_LIE_AUTH_PASSWORD',
+            'realm':    '_LIE_AUTH_REALM',
+            'authmethod': '_LIE_AUTH_METHOD'
+        }
+        self.package_config_template = WampSchema('componentbase', 'settings', 1)
+        self.session_config_template = WampSchema('componentbase', 'session_config', 1)
+
+        self.json_schemas = []
+
+        # call pre init to override above values
+        self.preInit(**kwargs)
+
         # we cannot use default argument {} since it stores references internally,
         # making subsequent constructions unpredictable
         if package_config is None:
             package_config = {}
 
         # Init session_config with default values
-        self.session_info = WAMPTaskMetaData(realm=config.realm,
-                                                package_name=self.__module__.split('.')[0],
-                                                class_name=type(self).__name__
+        self.session_info = WAMPTaskMetaData(realm=config.realm, package_name=self.__module__.split('.')[0],
+                                             class_name=type(self).__name__
         )
 
         # Update session_config with key/value pairs in config.extra except
@@ -176,7 +191,7 @@ class BaseApplicationSession(ApplicationSession):
 
         package_config_file = os.path.join(package_config_dir, 'settings.json')
         # Set default template
-        package_config_template = 'wamp://liestudio.componentbase.schemas/settings/v1'
+        package_config_template = 'wamp://liestudio.schema.get/componentbase/settings/v1'
         # Override with custom template given in the constructor
         if hasattr(self, 'package_config_template'):
             package_config_template = self.package_config_template
@@ -196,7 +211,7 @@ class BaseApplicationSession(ApplicationSession):
 
         session_config_file = os.path.join(package_config_dir, 'session_config.json')
         # Set default template
-        session_config_template = 'wamp://liestudio.componentbase.schemas/session_config/v1'
+        session_config_template = 'wamp://liestudio.schema.get/componentbase/session_config/v1'
         # Override with custom template given in the constructor
         if hasattr(self, 'session_config_template'):
             session_config_template = self.session_config_template
@@ -367,19 +382,28 @@ class BaseApplicationSession(ApplicationSession):
 
         # Register methods
         res = yield self.register(self)
-        # schemas = yield self.register(self.get_schema, u'liestudio.{}.schemas'.format(re.match('lie_([a-z]+)', self.session_info['package_name']).group(1)))
-        # res.append(schemas)
+
+        # scan for input/output schemas on registrations
+        for key, f in self.__class__.__dict__.items():
+            try:
+                self.json_schemas.append(f._lie_input_schema)
+                self.json_schemas.append(f._lie_output_schema)
+            except AttributeError:
+                pass
 
         failures = 0
         for r in res:
             if isinstance(r, Failure):
-                self.log.info("ERROR: {class_name}: {message}".format(class_name=self.session_info.class_name, message=r.value.message))
+                self.log.info("ERROR: {class_name}: {message}", class_name=self.session_info.class_name, 
+                              message=r.value.message)
                 failures = failures + 1
 
         if failures > 0:
-            self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures, class_name=self.session_info.class_name)
+            self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures, 
+                          class_name=self.session_info.class_name)
 
-        self.log.info("{class_name}: {procedures} procedures successfully registered", procedures=len(res)-failures, class_name=self.session_info.class_name)
+        self.log.info("{class_name}: {procedures} procedures successfully registered", procedures=len(res)-failures, 
+                      class_name=self.session_info.class_name)
 
         # Update session_info, they may have been changed by the application
         # authentication method
@@ -403,7 +427,20 @@ class BaseApplicationSession(ApplicationSession):
 
         # Add self.disconnect to Event trigger in order to get propper shutdown
         # and exit of reactor event loop on Ctrl-C e.d.
-        reactor.addSystemEventTrigger('before', 'shutdown', self.disconnect)
+        # reactor.addSystemEventTrigger('before', 'shutdown', self.leave)
+
+        module_name = self.__module__.split('.')[0]
+
+        for schema in self.json_schemas:
+            if isinstance(schema, WampSchema):
+                for schema_path in schema.paths():
+                    if 'lie_{}'.format(schema.namespace) == module_name:
+                        schema_def = self.get_schema(schema_path)
+                        if schema_def:
+                            schema_res = yield self.call(u'liestudio.schema.register', {'path': schema_path, 'schema': schema_def})
+                        else:
+                            self.log.error('ERROR: could not register json schema from {namespace} with path {path}, because the file does not exist',
+                                           namespace=schema.namespace, path=schema_path)
 
         # Call onRun hook.
         self.onRun(details)
@@ -447,6 +484,14 @@ class BaseApplicationSession(ApplicationSession):
     
     # Class placeholder methods. Override these for custom events during 
     # application life cycle
+    def preInit(self, **kwargs):
+        """
+        Implement custom code to be called before the application class is
+        initiated.
+        """
+
+        return
+
     def onInit(self, **kwargs):
         """
         Implement custom code to be called when the application class is
@@ -495,6 +540,8 @@ class BaseApplicationSession(ApplicationSession):
         if os.path.isfile(schema_abs_path): 
             return json.load(open(schema_abs_path))
 
+        self.log.error('ERROR: Schema not found in {}'.format(schema_abs_path))
+
         return None
 
 def wamp_schema_handler(session):
@@ -502,19 +549,19 @@ def wamp_schema_handler(session):
         @inlineCallbacks
         def resolve(uri):
             module_name = session.__module__.split('.')[0]
-            schema_path_match = re.match('wamp://liestudio\.([a-z]+)\.schemas/(.+)', uri)
+            schema_path_match = re.match('wamp://liestudio\.schema\.get/([a-z_]+)/(.+)', uri)
             if not schema_path_match:
                 session.log.error("Not a proper wamp uri")
                 
-            # schema_path_groups = schema_path_groups.groups()
+            schema_namespace = schema_path_match.group(1)
             schema_path = schema_path_match.group(2)
             
-            if 'lie_{}'.format(schema_path_match.group(1)) == module_name:
+            if 'lie_{}'.format(schema_namespace) == module_name:
                 res = yield session.get_schema(schema_path)
-            elif 'lie_{}'.format(schema_path_match.group(1)) == 'lie_componentbase':
+            elif 'lie_{}'.format(schema_namespace) == 'lie_componentbase':
                 res = yield session.get_schema(schema_path, os.path.dirname(inspect.getfile(BaseApplicationSession)))
             else:
-                res = yield session.call(u'liestudio.{}.schemas', schema_path)
+                res = yield session.call(u'liestudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
 
             if res is None:
                 self.log.warn('WARNING: could not retrieve a valid schema')
@@ -527,36 +574,102 @@ def wamp_schema_handler(session):
     return handler
 
 def validate_json_schema(session, schema_def, request):
-    schema = {'$ref': schema_def} if type(schema_def) in (str, unicode) else schema_def
+    if not isinstance(schema_def, (Schema, WampSchema, InlineSchema)):
+        schema_def = InlineSchema(schema_def)
+
+    valid = False
     
-    resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': wamp_schema_handler(session)})
-    validator=DefaultValidatingDraft4Validator(schema, resolver=resolver)
-    
-    valid = True
-    try:
-        validator.validate(request)
-    except jsonschema.ValidationError as e:
-        session.log.error(e.message)
-        valid = False
+    for schema in schema_def.schemas():
+        resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': wamp_schema_handler(session)})
+        validator=DefaultValidatingDraft4Validator(schema, resolver=resolver)
+        
+        try:
+            validator.validate(request)
+            valid = True
+        except jsonschema.ValidationError as e:
+            session.log.error(e.message)
+
+        if valid:
+            break
 
     return valid
+
+class Schema:
+    def __init__(self, url, transport='http'):
+        self.schema_uri = '{}://{}'.format(transport, url)
+
+    def __str__(self):
+        return self.schema_uri
+
+    def schemas(self):
+        yield {'$ref': self.schema_uri}
+
+class WampSchema:
+    def __init__(self, namespace, path, versions):
+        if not isinstance(versions, list):
+            versions = [versions]
+
+        self.namespace = namespace
+        self.path = path
+        self.versions = [int(v) for v in versions]
+
+        self.url_format = 'wamp://liestudio.schema.get/{}/{}'
+
+    def __str__(self):
+        return self.url_format.format('{}', '{}/{}') \
+                              .format(self.namespace, self.path, ['v{}'.format(v) for v in self.versions])
+
+    def paths(self):
+        for version in self.versions:
+            yield '{}/v{}'.format(self.path, int(version))
+
+    def uris(self):
+        for path in self.paths():
+            yield self.url_format.format(self.namespace, path)
+
+    def schemas(self):
+        for uri in self.uris():
+            yield {'$ref': uri}
+
+class InlineSchema:
+    def __init__(self, schema):
+        self.schema = schema
+
+    def __str__(self):
+        return str(self.schema.items() if isinstance(self.schema, dict) else self.schema)
+
+    def schemas(self):
+        yield self.schema if isinstance(self.schema, dict) else {'$ref': self.schema}
     
-def wamp_register(uri, input_schema, output_schema, options=None):
+def register(uri, input_schema, output_schema, details_arg=False, options=None):
+    if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
+        input_schema = InlineSchema(input_schema)
+
+    if not isinstance(output_schema, (Schema, WampSchema, InlineSchema)):
+        output_schema = InlineSchema(output_schema)
+
+    if details_arg:
+        if options is None:
+            options = wamp.RegisterOptions(details_arg='details')
+        else:
+            options.details_arg = 'details'
+
     def wrap_f(f):
         @wamp.register(uri, options)
         @inlineCallbacks
         def wrapped_f(self, request, **kwargs):
             self.log.info('DEBUG: validating input with schema {}'.format(input_schema))
             if not validate_json_schema(self, input_schema, request):
-                res = yield {}
+                returnValue({})
+            else:
+                res = yield f(self, request, **kwargs)
+        
+                valid = validate_json_schema(self, output_schema, res)
+                
                 returnValue(res)
 
-            res = yield f(self, request, **kwargs)
-        
-            self.log.debug('DEBUG: validating output with schema {}'.format(output_schema))
-            validate_json_schema(self, output_schema, res)
-            
-            returnValue(res)
+        wrapped_f._lie_input_schema = input_schema
+        wrapped_f._lie_output_schema = output_schema
 
         return wrapped_f
     

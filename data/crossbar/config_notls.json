@@ -61,6 +61,10 @@
                             "authorizer": "liestudio.authorizer.authorize"
                         },
                         {
+                            "name": "schema",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
                             "name": "admin",
                             "authorizer": "liestudio.authorizer.authorize"
                         }
@@ -140,6 +144,12 @@
                 },
                 {
                     "type": "class",
+                    "classname": "lie_schema.wamp_services.SchemaWampApi",
+                    "realm": "liestudio",
+                    "role": "schema"
+                },
+                {
+                    "type": "class",
                     "classname": "lie_db.wamp_services.DBWampApi",
                     "realm": "liestudio",
                     "role": "db"
@@ -175,7 +185,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -190,7 +200,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -210,7 +220,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -230,7 +240,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -260,7 +270,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -280,7 +290,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"

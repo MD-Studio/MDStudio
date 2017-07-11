@@ -11,7 +11,7 @@ from autobahn.wamp.exception import ApplicationError
 from twisted.logger import Logger
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from lie_componentbase import BaseApplicationSession
+from lie_componentbase import BaseApplicationSession, WampSchema
 from .settings import SETTINGS, USER_TEMPLATE
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 
@@ -23,10 +23,9 @@ class UserWampApi(BaseApplicationSession):
     User management WAMP methods.
     """
 
-    def __init__(self, *args, **kwargs):
-        self.session_config_template = 'wamp://liestudio.user.schemas/session_config/v1'
-        self.package_config_template = 'wamp://liestudio.user.schemas/settings/v1'
-        super(UserWampApi, self).__init__(*args, **kwargs)
+    def preInit(self, **kwargs):
+        self.session_config_template = WampSchema('user', 'session_config', 1)
+        self.package_config_template = WampSchema('user', 'settings', 1)
 
     @inlineCallbacks
     def onRun(self, details=None):

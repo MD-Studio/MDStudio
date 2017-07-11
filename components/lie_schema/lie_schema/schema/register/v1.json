@@ -1,10 +1,10 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "DeleteResponse",
+    "title": "RegisterSchema",
     "type": "object",
     "properties": {
-        "deleted_count": {"type": "integer"}
+        "path": {"type": "string", "pattern": "^[a-zA-Z0-9_\\-/]+$" },
+        "schema": {"type":"object"}
     },
-    "required": ["deleted_count"],
     "additionalProperties": false
 }
