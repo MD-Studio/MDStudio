@@ -17,6 +17,9 @@
             "default": false
         }
     },
-    "required": ["collection", "update"],
+    "required": [
+        "collection",
+        "update"
+    ],
     "additionalProperties": false
 }

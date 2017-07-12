@@ -7,6 +7,8 @@
             "type": "integer"
         }
     },
-    "required": ["count"],
+    "required": [
+        "count"
+    ],
     "additionalProperties": false
 }

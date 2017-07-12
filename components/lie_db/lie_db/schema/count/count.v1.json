@@ -18,6 +18,9 @@
             "minimum": 0
         }
     },
-    "required": ["collection", "filter"],
+    "required": [
+        "collection",
+        "filter"
+    ],
     "additionalProperties": false
 }

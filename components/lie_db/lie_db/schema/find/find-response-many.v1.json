@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema",
     "title": "FindManyResponse",
     "type": "object",
-    "properties": { 
+    "properties": {
         "result": {
             "type": "array",
             "items": {
@@ -19,6 +19,10 @@
             "minimum": 0
         }
     },
-    "required": ["result", "total", "size"],
+    "required": [
+        "result",
+        "total",
+        "size"
+    ],
     "additionalProperties": false
 }

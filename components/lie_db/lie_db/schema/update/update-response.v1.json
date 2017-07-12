@@ -15,6 +15,9 @@
             "type": "string"
         }
     },
-    "required": ["matchedCount", "modifiedCount"],
+    "required": [
+        "matchedCount",
+        "modifiedCount"
+    ],
     "additionalProperties": false
 }

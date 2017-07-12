@@ -10,6 +10,9 @@
             "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
         }
     },
-    "required": ["collection", "insert"],
+    "required": [
+        "collection",
+        "insert"
+    ],
     "additionalProperties": false
 }

@@ -7,9 +7,12 @@
             "type": "array",
             "items": {
                 "type": "string"
-            }
+            },
+            "additionalItems": false
         }
     },
-    "required": ["ids"],
+    "required": [
+        "ids"
+    ],
     "additionalProperties": false
 }

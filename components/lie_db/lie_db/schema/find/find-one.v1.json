@@ -20,6 +20,9 @@
             "$ref": "wamp://liestudio.schema.get/db/sort/v1.json"
         }
     },
-    "required": ["collection", "filter"],
+    "required": [
+        "collection",
+        "filter"
+    ],
     "additionalProperties": false
 }

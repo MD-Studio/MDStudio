@@ -5,8 +5,10 @@
     "properties": {
         "result": {
             "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
-        } 
+        }
     },
-    "required": ["result"],
+    "required": [
+        "result"
+    ],
     "additionalProperties": false
 }

@@ -3,7 +3,7 @@
     "title": "DatabaseCollection",
     "description": "A collection from a certain namespace",
     "oneOf": [
-        {    
+        {
             "type": "object",
             "description": "A collection from the given namespace",
             "properties": {
@@ -17,7 +17,10 @@
                     "pattern": "^[a-zA-Z0-9_\\.]+$"
                 }
             },
-            "required": ["name", "namespace"],
+            "required": [
+                "name",
+                "namespace"
+            ],
             "additionalProperties": false
         },
         {
