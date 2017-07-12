@@ -1,0 +1,169 @@
+{
+    "version": 2,
+    "controller": {
+      "id": "lienode01",
+      "options": {
+         "title": "liestudio-controller"
+      }
+    },
+    "workers": [
+        {
+            "type": "router",
+            "realms": [
+                {
+                    "name": "liestudio",
+                    "roles": [
+                        {
+                            "name": "public",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "authenticator",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "authorizer",
+                            "permissions": [
+                                {
+                                    "uri": "liestudio.authorizer",
+                                    "match": "prefix",
+                                    "allow": {
+                                        "call": false,
+                                        "register": true,
+                                        "publish": false,
+                                        "subscribe": false
+                                    },
+                                    "disclose": {
+                                        "caller": true,
+                                        "publisher": true
+                                    },
+                                    "cache": false
+                                },
+                                {
+                                    "uri": "liestudio.user.namespaces",
+                                    "match": "exact",
+                                    "allow": {
+                                        "call": true
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": false
+                                }
+                            ]
+                        },
+                        {
+                            "name": "db",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "schema",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "admin",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        }
+                    ]
+                }
+            ],
+            "transports": [
+                {
+                    "type": "web",
+                    "endpoint": {
+                        "type": "tcp",
+                        "port": 8080,
+                        "tls": {
+                            "key": "data/crossbar/server_key.pem",
+                            "certificate": "data/crossbar/server_cert.pem",
+                            "dhparam": "data/crossbar/dhparam.pem",
+                            "ciphers": "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS"
+                        }
+                    },
+                    "paths": {
+                        "/": {
+                            "type": "static",
+                            "directory": "../../app/dist"
+                        },
+                        "dashboard": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "docking": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "log": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "login": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "md": {
+                            "type": "static",
+                            "directory": "../../app/dist/index.html"
+                        },
+                        "node_modules": {
+                            "type": "static",
+                            "directory": "../../app/node_modules"
+                        },
+                        "bower_components": {
+                            "type": "static",
+                            "directory": "../../app/bower_components"
+                        },
+                        "help": {
+                            "type": "static",
+                            "directory": "../../docs/html"
+                        },
+                        "ws": {
+                            "type": "websocket",
+                            "auth": {
+                                "anonymous": {
+                                    "type": "static",
+                                    "role": "public"
+                                },
+                                "ticket": {
+                                    "type": "dynamic",
+                                    "authenticator": "liestudio.user.login"
+                                },
+                                "wampcra": {
+                                    "type": "dynamic",
+                                    "authenticator": "liestudio.user.login"
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "components": [
+                {
+                    "type": "class",
+                    "classname": "lie_authorizer.wamp_services.AuthorizerWampApi",
+                    "realm": "liestudio",
+                    "role": "authorizer"
+                },
+                {
+                    "type": "class",
+                    "classname": "lie_schema.wamp_services.SchemaWampApi",
+                    "realm": "liestudio",
+                    "role": "schema"
+                },
+                {
+                    "type": "class",
+                    "classname": "lie_db.wamp_services.DBWampApi",
+                    "realm": "liestudio",
+                    "role": "db"
+                },
+                {
+                    "type": "class",
+                    "classname": "lie_user.wamp_services.UserWampApi",
+                    "realm": "liestudio",
+                    "role": "authenticator"
+                }
+            ]   
+        }
+    ]
+}

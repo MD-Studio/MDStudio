@@ -1,0 +1,64 @@
+version: '2'
+services:
+
+    crossbar:
+        # image: crossbario/crossbar
+        build:
+            context: ./docker/crossbar
+        links:
+            - mongo
+        ports:
+            - 8080:8080
+        volumes:
+            - .:/app
+            - /app/.venv
+            - crossbar_pipcache:/root/.cache
+            - crossbar_pip:/usr/local/lib/python3.5/site-packages
+        environment:
+            - _LIE_MONGO_HOST=mongo
+        env_file: .env
+
+    md:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py2
+        volumes:
+            # mount component
+            - ./components/lie_md:/app/components/lie_md
+            # mount config directory
+            - ./data/lie_md:/app/data/lie_md
+        environment:
+            - COMPONENT=lie_md
+        links:
+            - crossbar
+    
+    atb:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py3
+        volumes:
+            # mount component
+            - ./components/lie_atb:/app/components/lie_atb
+            # mount config directory
+            - ./data/lie_atb:/app/data/lie_atb
+        environment:
+            - COMPONENT=lie_atb
+        links:
+            - crossbar
+
+    mongo:
+        image: mongo:latest
+        command: mongod  --noauth
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongo:/data/db
+
+
+volumes:
+    mongo:
+        driver: "local"
+    crossbar_pipcache:
+        driver: "local"
+    crossbar_pip:
+        driver: "local"
