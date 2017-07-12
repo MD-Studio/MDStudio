@@ -367,7 +367,7 @@ class Graph(object):
                                an edge tuple/list ignoring nd2
         :type nd1 nd2:         int or tuple/list for nd1
         :param attr:           edge metadata to add
-        :type attr:            dict
+        :type attr:            :py:dict
         :param directed:       override the graph definition for is_directed
                                for the added edge.
         :type directed:        bool, None by default
@@ -453,15 +453,15 @@ class Graph(object):
         Add a node to the graph
 
         A node can be any hashable object that is internally represented by
-        an automatically assigned node ID that should not be changed (_id).
+        an automatically assigned node ID that should not be changed (`_id`).
         The node object is always part of a dictionary in the internal
-        database represetation allowing it to be queried by the various
+        database representation allowing it to be queried by the various
         graph query functions. This allows for the use of custom node
         identifiers.
 
         Additional node metadata can be added add node creation by defining
         them as keyword arguments to the method. If the attributes to add are
-        available as dictionary, use Pythons dictionary unpacking (**dict)
+        available as dictionary, use Pythons dictionary unpacking (`**dict`)
 
         :param node:     object representing the node
         :type node:      any hashable object
@@ -860,9 +860,9 @@ class Graph(object):
         Select nodes and edges based on edge data query
 
         :param query:   dictionary of edge data key/value pairs to query on
-        :type query:    dict
+        :type query:    :py:dict
         :param orm_cls: custom classes to construct new Graph class from.
-        :type orm_cls:  list
+        :type orm_cls:  :py:list
         """
 
         query = set(query.items())
@@ -880,9 +880,9 @@ class Graph(object):
         The `getnodes` method is called for the nodes matching the query
 
         :param query:   dictionary of node data key/value pairs to query
-        :type query:    dict
+        :type query:    :py:dict
         :param orm_cls: custom classes to construct new Graph class from.
-        :type orm_cls:  list
+        :type orm_cls:  :py:list
         """
 
         query = set(query.items())

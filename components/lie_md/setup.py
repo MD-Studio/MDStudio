@@ -25,32 +25,33 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_md'
 
-setup(
-    name=distribution_name,
-    version=0.1,
-    description='LIEStudio molecular simulation module',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
-    license='Apache Software License 2.0',
-    keywords='LIEStudio molecular simulationg',
-    platforms=['Any'],
-    packages=find_packages(),
-    py_modules=[distribution_name],
-    install_requires=['twisted', 'autobahn'],
-    include_package_data=True,
-    zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_md.wamp_services:make'
+if 'main' == __name__:
+    setup(
+        name=distribution_name,
+        version=0.1,
+        description='LIEStudio molecular simulation module',
+        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+        author_email='m4.van.dijk@vu.nl',
+        url='https://github.com/NLeSC/LIEStudio',
+        license='Apache Software License 2.0',
+        keywords='LIEStudio molecular simulationg',
+        platforms=['Any'],
+        packages=find_packages(),
+        py_modules=[distribution_name],
+        install_requires=['twisted', 'autobahn'],
+        include_package_data=True,
+        zip_safe=True,
+        entry_points={
+            'autobahn.twisted.wamplet': [
+                'wamp_services = lie_md.wamp_services:make'
+            ],
+        },
+        classifiers=[
+            'Development Status :: 3 - Alpha',
+            'License :: OSI Approved :: Apache Software License',
+            'Programming Language :: Python',
+            'Topic :: Scientific/Engineering :: Chemistry',
+            'Operating System :: OS Independent',
+            'Intended Audience :: Science/Research',
         ],
-    },
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Topic :: Scientific/Engineering :: Chemistry',
-        'Operating System :: OS Independent',
-        'Intended Audience :: Science/Research',
-    ],
-)
+    )

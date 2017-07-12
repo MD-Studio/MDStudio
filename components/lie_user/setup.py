@@ -25,33 +25,34 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_user'
 
-setup(
-    name=distribution_name,
-    version=0.1,
-    description='User management for the LIEStudio application',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
-    license='Apache Software License 2.0',
-    keywords='LIEStudio user',
-    platforms=['Any'],
-    packages=find_packages(),
-    py_modules=[distribution_name],
-    install_requires=['twisted', 'autobahn', 'werkzeug'],
-    test_suite="tests.module_test_suite",
-    include_package_data=True,
-    zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_user.wamp_services:make'
+if 'main' == __name__:
+    setup(
+        name=distribution_name,
+        version=0.1,
+        description='User management for the LIEStudio application',
+        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+        author_email='m4.van.dijk@vu.nl',
+        url='https://github.com/NLeSC/LIEStudio',
+        license='Apache Software License 2.0',
+        keywords='LIEStudio user',
+        platforms=['Any'],
+        packages=find_packages(),
+        py_modules=[distribution_name],
+        install_requires=['twisted', 'autobahn', 'werkzeug'],
+        test_suite="tests.module_test_suite",
+        include_package_data=True,
+        zip_safe=True,
+        entry_points={
+            'autobahn.twisted.wamplet': [
+                'wamp_services = lie_user.wamp_services:make'
+            ],
+        },
+        classifiers=[
+            'Development Status :: 3 - Alpha',
+            'License :: OSI Approved :: Apache Software License',
+            'Programming Language :: Python',
+            'Topic :: System :: Systems Administration :: Authentication/Directory',
+            'Operating System :: OS Independent',
+            'Intended Audience :: Science/Research',
         ],
-    },
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Topic :: System :: Systems Administration :: Authentication/Directory',
-        'Operating System :: OS Independent',
-        'Intended Audience :: Science/Research',
-    ],
-)
+    )

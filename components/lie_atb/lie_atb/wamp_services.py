@@ -93,7 +93,7 @@ class ATBWampApi(LieApplicationSession):
         :param netcharge: charge of the molecule
         :type netcharge:  :py:int
         :param moltype:   the type of molecule. Any in heteromolecule, amino acid, nucleic acid, sugar, lipid, solvent.
-        :type moltyple    :py:str
+        :type moltyple:   :py:str
         :param public:    either true or false, depending on whether of not you want the submitted molecule to be made public.
         :type public:     bool
         """

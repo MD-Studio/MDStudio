@@ -72,7 +72,7 @@ class ConfigDecoratorTests(unittest2.TestCase):
     def test_single_function_decorator_with_kwargs(self):
         """
         Test the decorator on a single function that also accepts
-        additonal kyword arguments via **kwargs.
+        additonal kyword arguments via `**kwargs`.
         This should result in the decorator passing all keyword
         arguments available for the function.
         """

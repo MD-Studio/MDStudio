@@ -10,8 +10,8 @@ from twisted.internet.defer import inlineCallbacks
 from twisted.internet import reactor
 from pymongo import MongoClient
 
-from lie_config import ConfigHandler
 from lie_db import mongodb_connect
+from lie_config import ConfigHandler
 from lie_system.wamp_taskmeta import WAMPTaskMetaData
 
 from wamp_logging import WampLogging

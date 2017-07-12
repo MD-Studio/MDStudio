@@ -13,5 +13,6 @@ alias liepep8="(cd /app; autopep8 --in-place --aggressive --aggressive --recursi
 source /app/.venv/bin/activate
 export MONGO_HOST=mongo
 export IS_DOCKER=1
+export PIPENV_VENV_IN_PROJECT=1
 cd /app
 [[ "$HELPSHOWN" != "1" ]] && helpme

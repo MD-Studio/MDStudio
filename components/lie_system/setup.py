@@ -25,28 +25,29 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_system'
 
-setup(
-    name=distribution_name,
-    version=0.1,
-    description='System component for the LIEStudio application',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
-    license='Apache Software License 2.0',
-    keywords='LIEStudio system',
-    platforms=['Any'],
-    packages=find_packages(),
-    py_modules=[distribution_name],
-    install_requires=['jsonpickle','jsonschema'],
-    test_suite="tests.module_test_suite",
-    include_package_data=True,
-    zip_safe=True,
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Topic :: System',
-        'Operating System :: OS Independent',
-        'Intended Audience :: Science/Research',
-    ],
-)
+if 'main' == __name__:
+    setup(
+        name=distribution_name,
+        version=0.1,
+        description='System component for the LIEStudio application',
+        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+        author_email='m4.van.dijk@vu.nl',
+        url='https://github.com/NLeSC/LIEStudio',
+        license='Apache Software License 2.0',
+        keywords='LIEStudio system',
+        platforms=['Any'],
+        packages=find_packages(),
+        py_modules=[distribution_name],
+        install_requires=['jsonpickle','jsonschema'],
+        test_suite="tests.module_test_suite",
+        include_package_data=True,
+        zip_safe=True,
+        classifiers=[
+            'Development Status :: 3 - Alpha',
+            'License :: OSI Approved :: Apache Software License',
+            'Programming Language :: Python',
+            'Topic :: System',
+            'Operating System :: OS Independent',
+            'Intended Audience :: Science/Research',
+        ],
+    )
