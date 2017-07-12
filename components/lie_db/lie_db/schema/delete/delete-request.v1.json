@@ -1,17 +1,19 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "UpdateRequest",
+    "title": "DeleteRequest",
     "type": "object",
     "properties": {
-        "collection": {"$ref": "wamp://liestudio.schema.get/db/collection/v1.json"},
+        "collection": {
+            "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
+        },
         "query": {
             "type":"object",
             "properties": {
-                "filter": {"type": "object"},
-                "update": {"type": "object"},
-                "upsert": {"type": "boolean", "default": false}
+                "filter": {
+                    "type": "object"
+                }
             },
-            "required": ["filter", "update"],
+            "required": ["filter"],
             "additionalProperties": false
         }
     },

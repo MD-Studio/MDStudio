@@ -3,13 +3,20 @@
     "title": "InsertRequest",
     "type": "object",
     "properties": {
-        "collection": {"$ref": "wamp://liestudio.schema.get/db/collection/v1.json"},
+        "collection": {
+            "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
+        },
         "query": {
             "type":"object",
             "properties": {
-                "document": {"type": "object"}
+                "documents": {
+                    "type":"array",
+                    "items": {
+                        "type":"object"
+                    }
+                }
             },
-            "required": ["document"],
+            "required": ["documents"],
             "additionalProperties": false
         }
     },
