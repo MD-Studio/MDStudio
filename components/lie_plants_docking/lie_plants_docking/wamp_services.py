@@ -31,16 +31,6 @@ class DockingWampApi(BaseApplicationSession):
 
     require_config = ['system', 'lie_db']
 
-    @inlineCallbacks
-    def onRun(self, details):
-        """
-        Register WAMP docking methods with support for `roundrobin` load
-        balancing.
-        """
-
-        # Register WAMP methods
-        yield self.register(self.run_docking, u'liestudio.plants_docking.run_docking', options=RegisterOptions(invoke=u'roundrobin'))
-
     @wamp.register(u'liestudio.plants_docking.get')
     def retrieve_structures(self, structure_path, session=None):
         """
@@ -66,6 +56,7 @@ class DockingWampApi(BaseApplicationSession):
 
         return session
 
+    @wamp.register(u'liestudio.plants_docking.run_docking', options=RegisterOptions(invoke=u'roundrobin'))
     def run_docking(self, protein, ligand, session=None, **kwargs):
         """
         Perform a PLANTS (Protein-Ligand ANT System) molecular docking.

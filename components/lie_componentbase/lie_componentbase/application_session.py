@@ -18,7 +18,7 @@ from pprint import pprint
 from lie_config import ConfigHandler
 
 from .wamp_taskmeta import WAMPTaskMetaData
-from .wamp_logging import WampLogging
+from .logger import WampLogger
 from .util import resolve_config, DefaultValidatingDraft4Validator, block_on, WampSchema, WampSchemaHandler, validate_json_schema
 from .config import PY3, config_from_dotenv, ConfigHandler
 
@@ -138,6 +138,10 @@ class BaseApplicationSession(ApplicationSession):
 
         self.json_schemas = []
 
+        # determine namespace
+        namespace = re.match('lie_(.+)', self.__module__.split('.')[0])
+        self.component_info = {'namespace': namespace.group(1) if namespace else 'unknown'}
+
         # call pre init to override above values
         self.preInit(**kwargs)
 
@@ -146,13 +150,14 @@ class BaseApplicationSession(ApplicationSession):
         if package_config is None:
             package_config = {}
 
+
         # Init component_info with default values
-        self.component_info = {
+        self.component_info.update({
             'package_name': self.__module__.split('.')[0],
             'class_name': type(self).__name__,
             'module_path': os.path.dirname(inspect.getfile(self.__class__)),
-            'componentbase_path': os.path.dirname(inspect.getfile(BaseApplicationSession))
-        }
+            'componentbase_path': os.path.dirname(os.path.dirname(__file__))
+        })
 
         self.wamp_schema_handler = WampSchemaHandler(self)
 
@@ -179,22 +184,13 @@ class BaseApplicationSession(ApplicationSession):
         if u'key' in self.session_config:
             self._load_public_key(self.session_config.get(u'key'))
 
-        # Determine config directory
-        if '_LIE_CONFIG_DIR' in os.environ:
-            config_dir = os.environ['_LIE_CONFIG_DIR']
-        elif 'config_dir' in extra.keys():
-            config_dir = extra['config_dir']
-        else:
-            # Assume config is stored relative to the working directory when the application is started
-            config_dir = './data'
 
-
-        package_config_dir = os.path.join(config_dir, self.component_info['package_name'])
+        package_config_dir = os.path.join(os.path.dirname(self.component_info.get('module_path')), 'data')
         if not os.path.isdir(package_config_dir):
             os.makedirs(package_config_dir)
+        self._config_dir = package_config_dir
 
         package_config_file = os.path.join(package_config_dir, 'settings.json')
-        self._config_dir = package_config_dir
 
         package_conf = resolve_config(package_config_file)
 
@@ -418,18 +414,16 @@ class BaseApplicationSession(ApplicationSession):
         # server_config.addErrback(handle_retrieve_config_error)
 
         # Init WAMP logging
-        self.logger = WampLogging(wamp=self, log_level=self.package_config.get('global_log_level', 'info'))
+        self.logger = WampLogger(wamp=self, log_level=self.package_config.get('global_log_level', 'info'))
 
         # Add self.disconnect to Event trigger in order to get propper shutdown
         # and exit of reactor event loop on Ctrl-C e.d.
         # reactor.addSystemEventTrigger('before', 'shutdown', self.leave)
 
-        module_name = self.__module__.split('.')[0]
-
         for schema in self.json_schemas:
             if isinstance(schema, WampSchema):
                 for schema_path in schema.paths():
-                    if 'lie_{}'.format(schema.namespace) == module_name:
+                    if schema.namespace == self.component_info.get('namespace'):
                         schema_def = self.get_schema(schema_path)
                         if schema_def:
                             schema_res = yield self.call(u'liestudio.schema.register', {
