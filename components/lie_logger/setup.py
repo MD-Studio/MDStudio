@@ -25,34 +25,33 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_logger'
 
-if 'main' == __name__:
-    setup(
-        name=distribution_name,
-        version=0.1,
-        description='Twisted logging based logger functions for the LIEStudio application',
-        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-        author_email='m4.van.dijk@vu.nl',
-        url='https://github.com/NLeSC/LIEStudio',
-        license='Apache Software License 2.0',
-        keywords='LIEStudio logging',
-        platforms=['Any'],
-        packages=find_packages(),
-        py_modules=[distribution_name],
-        install_requires=['twisted', 'autobahn'],
-        test_suite="tests",
-        include_package_data=True,
-        zip_safe=True,
-        entry_points={
-            'autobahn.twisted.wamplet': [
-                'wamp_services = lie_logger.wamp_services:make'
-            ],
-        },
-        classifiers=[
-            'Development Status :: 3 - Alpha',
-            'License :: OSI Approved :: Apache Software License',
-            'Programming Language :: Python',
-            'Topic :: System :: Logging',
-            'Operating System :: OS Independent',
-            'Intended Audience :: Science/Research',
+setup(
+    name=distribution_name,
+    version=0.1,
+    description='Twisted logging based logger functions for the LIEStudio application',
+    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+    author_email='m4.van.dijk@vu.nl',
+    url='https://github.com/NLeSC/LIEStudio',
+    license='Apache Software License 2.0',
+    keywords='LIEStudio logging',
+    platforms=['Any'],
+    packages=find_packages(),
+    py_modules=[distribution_name],
+    install_requires=['twisted', 'autobahn'],
+    test_suite="tests",
+    include_package_data=True,
+    zip_safe=True,
+    entry_points={
+        'autobahn.twisted.wamplet': [
+            'wamp_services = lie_logger.wamp_services:make'
         ],
-    )
+    },
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python',
+        'Topic :: System :: Logging',
+        'Operating System :: OS Independent',
+        'Intended Audience :: Science/Research',
+    ],
+)

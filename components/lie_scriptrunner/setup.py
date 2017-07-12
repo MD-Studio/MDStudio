@@ -24,32 +24,31 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_scriptrunner'
 
-if 'main' == __name__:
-    setup(
-        name=distribution_name,
-        version=0.1,
-        description='LIEStudio component able to run various scripts',
-        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-        author_email='m4.van.dijk@vu.nl',
-        url='https://github.com/NLeSC/LIEStudio',
-        license='Apache Software License 2.0',
-        keywords='LIEStudio scripts execution',
-        platforms=['Any'],
-        packages=find_packages(),
-        py_modules=[distribution_name],
-        include_package_data=True,
-        zip_safe=True,
-        entry_points={
-            'autobahn.twisted.wamplet': [
-                'wamp_services = lie_scriptrunner.wamp_services:make'
-            ],
-        },
-        classifiers=[
-            'Development Status :: 3 - Alpha',
-            'License :: OSI Approved :: Apache Software License',
-            'Programming Language :: Python',
-            'Topic :: Utilities',
-            'Operating System :: OS Independent',
-            'Intended Audience :: Science/Research',
-            ],
-    )
+setup(
+    name=distribution_name,
+    version=0.1,
+    description='LIEStudio component able to run various scripts',
+    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+    author_email='m4.van.dijk@vu.nl',
+    url='https://github.com/NLeSC/LIEStudio',
+    license='Apache Software License 2.0',
+    keywords='LIEStudio scripts execution',
+    platforms=['Any'],
+    packages=find_packages(),
+    py_modules=[distribution_name],
+    include_package_data=True,
+    zip_safe=True,
+    entry_points={
+        'autobahn.twisted.wamplet': [
+            'wamp_services = lie_scriptrunner.wamp_services:make'
+        ],
+    },
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python',
+        'Topic :: Utilities',
+        'Operating System :: OS Independent',
+        'Intended Audience :: Science/Research',
+        ],
+)

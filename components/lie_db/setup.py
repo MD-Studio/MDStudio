@@ -25,34 +25,33 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_db'
 
-if 'main' == __name__:
-    setup(
-        name=distribution_name,
-        version=0.1,
-        description='PyMongo database drivers for the LIEStudio application',
-        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-        author_email='m4.van.dijk@vu.nl',
-        url='https://github.com/NLeSC/LIEStudio',
-        license='Apache Software License 2.0',
-        keywords='MongoDB PyMongo LIEStudio database',
-        platforms=['Any'],
-        packages=find_packages(),
-        py_modules=[distribution_name],
-        install_requires=['pymongo'],
-        test_suite="tests",
-        include_package_data=True,
-        zip_safe=True,
-        entry_points={
-            'autobahn.twisted.wamplet': [
-                'wamp_services = lie_db.wamp_services:make'
-            ],
-        },
-        classifiers=[
-            'Development Status :: 3 - Alpha',
-            'License :: OSI Approved :: Apache Software License',
-            'Programming Language :: Python',
-            'Topic :: Database',
-            'Operating System :: OS Independent',
-            'Intended Audience :: Science/Research',
+setup(
+    name=distribution_name,
+    version=0.1,
+    description='PyMongo database drivers for the LIEStudio application',
+    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+    author_email='m4.van.dijk@vu.nl',
+    url='https://github.com/NLeSC/LIEStudio',
+    license='Apache Software License 2.0',
+    keywords='MongoDB PyMongo LIEStudio database',
+    platforms=['Any'],
+    packages=find_packages(),
+    py_modules=[distribution_name],
+    install_requires=['pymongo'],
+    test_suite="tests",
+    include_package_data=True,
+    zip_safe=True,
+    entry_points={
+        'autobahn.twisted.wamplet': [
+            'wamp_services = lie_db.wamp_services:make'
         ],
-    )
+    },
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python',
+        'Topic :: Database',
+        'Operating System :: OS Independent',
+        'Intended Audience :: Science/Research',
+    ],
+)
