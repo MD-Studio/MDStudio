@@ -5,6 +5,7 @@ Import/Export files in propitiatory graph format (pgf)
 
 Graph nodes, edges and adjacency are stored as plain python dictionaries
 """
+import os
 
 
 def write_graph(graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle=False):

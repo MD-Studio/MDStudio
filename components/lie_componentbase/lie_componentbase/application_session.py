@@ -15,6 +15,7 @@ from twisted.internet import reactor
 from autobahn import wamp
 from twisted.python.failure import Failure
 from pprint import pprint
+from lie_config import ConfigHandler
 
 from .wamp_taskmeta import WAMPTaskMetaData
 from .logger import WampLogger

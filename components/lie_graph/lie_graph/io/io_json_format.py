@@ -76,11 +76,11 @@ def write_json(graph, indent=2, encoding="utf-8", **kwargs):
     Write JSON graph format
     
     Format description. Primary key/value pairs:
-    * graph: Graph class meta-data. Serializes all class attributes of type
+     * graph: Graph class meta-data. Serializes all class attributes of type
              int, float, bool, long, str or unicode.
-    * nodes: Graph node identifiers (keys) and attributes (values)
-    * edges: Graph enumerated edge identifiers
-    * edge_attr: Graph edge attributes
+     * nodes: Graph node identifiers (keys) and attributes (values)
+     * edges: Graph enumerated edge identifiers
+     * edge_attr: Graph edge attributes
     
     :param graph:  graph object to serialize
     :type graph:   Graph or GraphAxis object

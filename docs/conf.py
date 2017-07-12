@@ -352,7 +352,7 @@ Components
 
 """)
 
-    for i in glob.glob('../components/lie_*/'):
+    for i in glob.glob('../components/lie_*/lie_*/'):
         if not 'egg-info' in i:
             names = re.match(r'../components/(lie_(.*))/', i)
             module_name = names.group(1)
@@ -360,6 +360,8 @@ Components
             file = "components/{}.rst".format(module_name)
             if os.path.isfile(file):
                 os.remove(file)
+
+            sys.path.append("../components/{}".format(module_name))
 
             os.system("sphinx-apidoc --module-first --private --force -o components/{} {}/ {}/*_py3.py".format(name, i, i))
 

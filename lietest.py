@@ -7,8 +7,6 @@ import os
 import re
 import unittest2
 
-__root_path__ = os.path.dirname(os.path.abspath(__file__))
-
 
 def list_components_tests(search_path):
     found = {}
@@ -30,10 +28,11 @@ def load_studio_tests(suite, loader, cdir, ctype):
 
 # noinspection PyUnusedLocal
 def load_tests(loader, tests, pattern):
-    search_path = os.path.join(__root_path__, 'components/')
+    root_path = os.path.dirname(os.path.abspath(__file__))
+    search_path = os.path.join(root_path, 'components/')
 
     for g in glob(os.path.join(search_path, '*/')):
-        sys.path.append(os.path.realpath(os.path.join(g, '../')))
+        sys.path.append(os.path.realpath(g))
 
     # Add all tests.
     all_tests = unittest2.TestSuite()

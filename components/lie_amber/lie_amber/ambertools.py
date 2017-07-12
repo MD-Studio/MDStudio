@@ -12,9 +12,9 @@ def amber_acpype(mol, **kwargs):
     Run the ACPYPE program (AnteChamber PYthon Parser interfacE)
     
     acpype reference:
-    - Sousa da Silva AW, Vranken WF. ACPYPE - AnteChamber PYthon 
-      Parser interfacE. (2012), BMC Res Notes. 2012 Jul 23;5:367.
-      doi: 10.1186/1756-0500-5-367.
+     - Sousa da Silva AW, Vranken WF. ACPYPE - AnteChamber PYthon
+       Parser interfacE. (2012), BMC Res Notes. 2012 Jul 23;5:367.
+       doi: 10.1186/1756-0500-5-367.
     """
     
     # ACPYPE executable is part of the package
@@ -69,12 +69,12 @@ def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwa
     availabe by adding them to the module wide settings.
     
     Please consult the reduce documentation in the pdf manual:
-    - http://ambermd.org/doc12/Amber16.pdf
+     - http://ambermd.org/doc12/Amber16.pdf
     
     reduce reference:
-    - Word, et. al. (1999) Asparagine and Glutamine: Using Hydrogen Atom
-      Contacts in the Choice of Side-chain Amide Orientation,
-      J. Mol. Biol. 285, 1733-1747.
+     - Word, et. al. (1999) Asparagine and Glutamine: Using Hydrogen Atom
+       Contacts in the Choice of Side-chain Amide Orientation,
+       J. Mol. Biol. 285, 1733-1747.
     
     :param mol:     file path to input structure in PDB file format
     :type mol:      :py:str

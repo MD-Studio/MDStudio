@@ -26,29 +26,30 @@ from setuptools import setup, find_packages
 distribution_name = 'lie_haddock'
 test_requirements = ['unittest2']
 
-setup(
-    name=distribution_name,
-    version=0.1,
-    description='Access to the HADDOCK webserver for biomolecular docking',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
-    license='Apache Software License 2.0',
-    keywords='LIEStudio HADDOCK docking web server',
-    platforms=['Any'],
-    packages=find_packages(),
-    py_modules=[distribution_name],
-    test_suite="tests",
-    test_requirements=test_requirements,
-    install_requires=['cmd2'] + test_requirements,
-    include_package_data=True,
-    zip_safe=True,
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries',
-        'Operating System :: OS Independent',
-        'Intended Audience :: Science/Research',
-        ],
-)
+if 'main' == __name__:
+    setup(
+        name=distribution_name,
+        version=0.1,
+        description='Access to the HADDOCK webserver for biomolecular docking',
+        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+        author_email='m4.van.dijk@vu.nl',
+        url='https://github.com/NLeSC/LIEStudio',
+        license='Apache Software License 2.0',
+        keywords='LIEStudio HADDOCK docking web server',
+        platforms=['Any'],
+        packages=find_packages(),
+        py_modules=[distribution_name],
+        test_suite="tests",
+        test_requirements=test_requirements,
+        install_requires=['cmd2'] + test_requirements,
+        include_package_data=True,
+        zip_safe=True,
+        classifiers=[
+            'Development Status :: 3 - Alpha',
+            'License :: OSI Approved :: Apache Software License',
+            'Programming Language :: Python',
+            'Topic :: Software Development :: Libraries',
+            'Operating System :: OS Independent',
+            'Intended Audience :: Science/Research',
+            ],
+    )

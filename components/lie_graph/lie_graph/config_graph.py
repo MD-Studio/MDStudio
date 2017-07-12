@@ -7,7 +7,6 @@ import collections
 
 from .graph import Graph
 from .graph_algorithms import dijkstra_shortest_path
-from .graph_axis_class import GraphAxisMethods
 from .graph_query import GraphQuery
 
 
@@ -75,7 +74,7 @@ def _nest_flattened_dict(graph_dict, sep='.'):
     return nested_dict
 
 
-class ConfigHandler(Graph, GraphAxisMethods):
+class ConfigHandler(Graph):
     """
     ConfigHandler class
 

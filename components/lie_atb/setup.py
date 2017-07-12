@@ -25,32 +25,33 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_atb'
 
-setup(
-    name=distribution_name,
-    version=0.1,
-    description='LIEStudio component wrapping API access to the Automatic Topology Builder server',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
-    license='Apache Software License 2.0',
-    keywords='LIEStudio ATB topology molecular force fields',
-    platforms=['Any'],
-    packages=find_packages(),
-    py_modules=[distribution_name],
+if 'main' == __name__:
+    setup(
+        name=distribution_name,
+        version=0.1,
+        description='LIEStudio component wrapping API access to the Automatic Topology Builder server',
+        author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+        author_email='m4.van.dijk@vu.nl',
+        url='https://github.com/NLeSC/LIEStudio',
+        license='Apache Software License 2.0',
+        keywords='LIEStudio ATB topology molecular force fields',
+        platforms=['Any'],
+        packages=find_packages(),
+        py_modules=[distribution_name],
     install_requires=['twisted', 'autobahn', 'requests'],
-    include_package_data=True,
-    zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_atb.wamp_services:make'
+        include_package_data=True,
+        zip_safe=True,
+        entry_points={
+            'autobahn.twisted.wamplet': [
+                'wamp_services = lie_atb.wamp_services:make'
+            ],
+        },
+        classifiers=[
+            'Development Status :: 3 - Alpha',
+            'License :: OSI Approved :: Apache Software License',
+            'Programming Language :: Python',
+            'Topic :: Utilities',
+            'Operating System :: OS Independent',
+            'Intended Audience :: Science/Research',
         ],
-    },
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Topic :: Utilities',
-        'Operating System :: OS Independent',
-        'Intended Audience :: Science/Research',
-    ],
-)
+    )
