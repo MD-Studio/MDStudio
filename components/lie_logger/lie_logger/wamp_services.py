@@ -13,11 +13,11 @@ from pymongo import MongoClient
 from twisted.logger import LogLevel
 from twisted.internet.defer import inlineCallbacks
 
-from lie_system import LieApplicationSession
+from lie_componentbase import BaseApplicationSession
 from settings import settings
 
 
-class LoggerWampApi(LieApplicationSession):
+class LoggerWampApi(BaseApplicationSession):
     """
     Logger management WAMP methods.
     """
@@ -29,7 +29,7 @@ class LoggerWampApi(LieApplicationSession):
         super(LoggerWampApi, self).__init__(config, package_config, **kwargs)
 
         if self.db is None:
-            host = os.getenv('MONGO_HOST', 'localhost')
+            host = os.getenv('_LIE_MONGO_HOST', 'localhost')
             self.db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
 
         self.log_collection = self.db['log']
@@ -73,7 +73,7 @@ def make(config):
     The function will get called either during development using an
     ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
     a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
+    The BaseApplicationSession class is initiated with an instance of the
     ComponentConfig class by default but any class specific keyword arguments
     can be consument as well to populate the class session_config and
     package_config dictionaries.

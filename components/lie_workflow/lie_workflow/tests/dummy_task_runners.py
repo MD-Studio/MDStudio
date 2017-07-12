@@ -12,7 +12,7 @@ import time
 import copy
 import jsonschema
 
-from   lie_system                 import WAMPTaskMetaData
+from   lie_componentbase                 import WAMPTaskMetaData
 from   lie_workflow.task_metadata import task_schema
 
 class TaskRunner(object):

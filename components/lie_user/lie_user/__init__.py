@@ -19,12 +19,7 @@ __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 
-from .settings import SETTINGS
 from .wamp_services import UserWampApi
-from .management import init_user, exit_user
 
 # Define module public API
-settings = SETTINGS
 wampapi = UserWampApi
-oninit = init_user
-onexit = exit_user

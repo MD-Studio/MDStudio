@@ -15,27 +15,22 @@ from autobahn.wamp.types import RegisterOptions
 from autobahn.twisted.util import sleep
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from lie_system import LieApplicationSession
+from lie_componentbase import BaseApplicationSession
 
 
-class MDWampApi(LieApplicationSession):
+class MDWampApi(BaseApplicationSession):
 
     """
     MD WAMP methods.
     """
     jobid = 0
 
-    @inlineCallbacks
-    def onRun(self, details):
-
-        yield self.register(self.md_run, u'liestudio.md.run', options=RegisterOptions(invoke=u'roundrobin'))
-        yield self.register(self.md_status, u'liestudio.md.status', options=RegisterOptions(invoke=u'roundrobin'))
-        self.log.info("MDWampApi: md_run() registered!")
-
+    @wamp.register(u'liestudio.md.status', options=RegisterOptions(invoke=u'roundrobin'))
     def md_status(self):
 
         return 'running job: {0}'.format(self.jobid)
 
+    @wamp.register(u'liestudio.md.run', options=RegisterOptions(invoke=u'roundrobin'))
     @inlineCallbacks
     def md_run(self, structure):
 
@@ -59,7 +54,7 @@ def make(config):
     The function will get called either during development using an
     ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
     a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
+    The BaseApplicationSession class is initiated with an instance of the
     ComponentConfig class by default but any class specific keyword arguments
     can be consument as well to populate the class session_config and
     package_config dictionaries.

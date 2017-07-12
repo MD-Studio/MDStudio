@@ -38,7 +38,7 @@ if 'main' == __name__:
         platforms=['Any'],
         packages=find_packages(),
         py_modules=[distribution_name],
-        install_requires=['twisted', 'autobahn', 'werkzeug'],
+        install_requires=['twisted','autobahn','werkzeug', 'jsonschema'],
         test_suite="tests.module_test_suite",
         include_package_data=True,
         zip_safe=True,

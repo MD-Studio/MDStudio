@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "UserSettings",
+    "type": "object",
+    "properties": {
+        "unsafe_properties": {
+            "type": "array",
+            "items": {"type": "string"},
+            "default": ["_id", "password"]
+        },
+        "only_localhost_access": {"type": "boolean", "default": false},
+        "domain-blacklist": {"type": "array", "items": {"type": "string" }, "default": []}
+    },
+    "additionalProperties": false
+}

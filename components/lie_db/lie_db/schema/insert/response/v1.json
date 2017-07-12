@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "InsertResponse",
+    "type": "object",
+    "properties": {
+        "inserted_ids": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required": ["inserted_ids"],
+    "additionalProperties": false
+}

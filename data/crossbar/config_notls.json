@@ -15,30 +15,18 @@
                     "roles": [
                         {
                             "name": "public",
-                            "permissions": [
-                                {
-                                    "uri": "",
-                                    "match": "prefix",
-                                    "allow": {
-                                        "call": true,
-                                        "register": false,
-                                        "publish": false,
-                                        "subscribe": true
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
-                                }
-                            ]
+                            "authorizer": "liestudio.authorizer.authorize"
                         },
                         {
                             "name": "authenticator",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "authorizer",
                             "permissions": [
                                 {
-                                    "uri": "liestudio.user.login",
-                                    "match": "exact",
+                                    "uri": "liestudio.authorizer",
+                                    "match": "prefix",
                                     "allow": {
                                         "call": false,
                                         "register": true,
@@ -50,28 +38,35 @@
                                         "publisher": false
                                     },
                                     "cache": true
-                                }
-                            ]
-                        },
-                        {
-                            "name": "admin",
-                            "permissions": [
+                                },
                                 {
-                                    "uri": "",
-                                    "match": "prefix",
-                                    "allow": {
+                                    "uri": "liestudio.user.namespaces",
+                                    "match": "exact",
+                                    "allow":{
                                         "call": true,
-                                        "register": true,
-                                        "publish": true,
-                                        "subscribe": true
+                                        "register": false,
+                                        "publish": false,
+                                        "subscribe": false
                                     },
-                                    "disclose": {
+                                    "disclose":{
                                         "caller": false,
                                         "publisher": false
                                     },
                                     "cache": true
                                 }
                             ]
+                        },
+                        {
+                            "name": "db",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "schema",
+                            "authorizer": "liestudio.authorizer.authorize"
+                        },
+                        {
+                            "name": "admin",
+                            "authorizer": "liestudio.authorizer.authorize"
                         }
                     ]
                 }
@@ -143,6 +138,24 @@
             "components": [
                 {
                     "type": "class",
+                    "classname": "lie_authorizer.wamp_services.AuthorizerWampApi",
+                    "realm": "liestudio",
+                    "role": "authorizer"
+                },
+                {
+                    "type": "class",
+                    "classname": "lie_schema.wamp_services.SchemaWampApi",
+                    "realm": "liestudio",
+                    "role": "schema"
+                },
+                {
+                    "type": "class",
+                    "classname": "lie_db.wamp_services.DBWampApi",
+                    "realm": "liestudio",
+                    "role": "db"
+                },
+                {
+                    "type": "class",
                     "classname": "lie_user.wamp_services.UserWampApi",
                     "realm": "liestudio",
                     "role": "authenticator"
@@ -172,30 +185,10 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
-                }
-              },
-              {
-                "type": "wamplet",
-                "package": "lie_user",
-                "realm": "liestudio",
-                "entrypoint": "wamp_services",
-                "transport": {
-                  "type": "websocket",
-                  "endpoint": {
-                     "type": "tcp",
-                     "host":"localhost",
-                     "port": 8080
-                  },
-                  "url": "ws://localhost:8080/ws"
-                },
-                "extra": {
-                  "authid": "lieadmin",
-                  "password": "liepw@#",
-                  "authmethod": "ticket"  
                 }
               },
               {
@@ -207,7 +200,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -227,7 +220,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -247,7 +240,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -277,7 +270,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"
@@ -297,107 +290,7 @@
                   "type": "websocket",
                   "endpoint": {
                      "type": "tcp",
-                     "host":"localhost",
-                     "port": 8080
-                  },
-                  "url": "ws://localhost:8080/ws"
-                },
-                "extra": {
-                  "authid": "lieadmin",
-                  "password": "liepw@#",
-                  "authmethod": "ticket"  
-                }
-              }
-            ]
-        },
-        {
-            "type": "container",
-            "options": {
-                "pythonpath": [
-                    ".."
-                ]
-            },
-            "components": [
-              {
-                "type": "wamplet",
-                "package": "lie_plants_docking",
-                "realm": "liestudio",
-                "entrypoint": "wamp_services",
-                "transport": {
-                  "type": "websocket",
-                  "endpoint": {
-                     "type": "tcp",
-                     "host":"localhost",
-                     "port": 8080
-                  },
-                  "url": "ws://localhost:8080/ws"
-                },
-                "extra": {
-                  "authid": "lieadmin",
-                  "password": "liepw@#",
-                  "authmethod": "ticket"  
-                }
-              },
-              {
-                "type": "wamplet",
-                "package": "lie_md",
-                "realm": "liestudio",
-                "entrypoint": "wamp_services",
-                "transport": {
-                  "type": "websocket",
-                  "endpoint": {
-                     "type": "tcp",
-                     "host":"localhost",
-                     "port": 8080
-                  },
-                  "url": "ws://localhost:8080/ws"
-                },
-                "extra": {
-                  "authid": "lieadmin",
-                  "password": "liepw@#",
-                  "authmethod": "ticket"  
-                }
-              }
-            ]
-        },
-        {
-            "type": "container",
-            "options": {
-                "pythonpath": [
-                    ".."
-                ]
-            },
-            "components": [
-              {
-                "type": "wamplet",
-                "package": "lie_plants_docking",
-                "realm": "liestudio",
-                "entrypoint": "wamp_services",
-                "transport": {
-                  "type": "websocket",
-                  "endpoint": {
-                     "type": "tcp",
-                     "host":"localhost",
-                     "port": 8080
-                  },
-                  "url": "ws://localhost:8080/ws"
-                },
-                "extra": {
-                  "authid": "lieadmin",
-                  "password": "liepw@#",
-                  "authmethod": "ticket"  
-                }
-              },
-              {
-                "type": "wamplet",
-                "package": "lie_md",
-                "realm": "liestudio",
-                "entrypoint": "wamp_services",
-                "transport": {
-                  "type": "websocket",
-                  "endpoint": {
-                     "type": "tcp",
-                     "host":"localhost",
+                     "host": "localhost",
                      "port": 8080
                   },
                   "url": "ws://localhost:8080/ws"

@@ -12,20 +12,21 @@ import time
 import json
 import re
 
-if sys.version_info.major == 3:
-    from urllib.error import HTTPError, URLError
-else:
-    from urllib2 import HTTPError, URLError
-
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks
 
-from lie_system import LieApplicationSession
-from lie_atb import ATBServerApi, ATB_Mol
-from lie_atb.settings import *
+from lie_componentbase import BaseApplicationSession, PY3
+from .settings import *
+
+if PY3:
+    from urllib.error import HTTPError, URLError
+    from .atb_api_py3 import API as ATBServerApi, ATB_Mol
+else:
+    from urllib2 import HTTPError, URLError
+    from .atb_api_py2 import API as ATBServerApi, ATB_Mol
 
 
-class ATBWampApi(LieApplicationSession):
+class ATBWampApi(BaseApplicationSession):
     """
     Automated Topology Builder API WAMP methods.
     """
@@ -52,10 +53,10 @@ class ATBWampApi(LieApplicationSession):
 
         try:
             return call(**kwargs)
-        except URLError, error:
+        except URLError as error:
             self.logger.error('ATB server URL {0} not known/reachable'.format(self.package_config.atb_url))
             return self._parse_server_error(error)
-        except HTTPError, error:
+        except HTTPError as error:
             return self._parse_server_error(error)
 
         return None
@@ -358,7 +359,7 @@ def make(config):
     The function will get called either during development using an
     ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
     a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
+    The BaseApplicationSession class is initiated with an instance of the
     ComponentConfig class by default but any class specific keyword arguments
     can be consument as well to populate the class session_config and
     package_config dictionaries.

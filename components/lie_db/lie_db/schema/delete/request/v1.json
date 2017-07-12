@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "DeleteRequest",
+    "type": "object",
+    "properties": {
+        "collection": {"$ref": "wamp://liestudio.schema.get/db/collection/v1.json"},
+        "query": {
+            "type":"object",
+            "properties": {
+                "filter": {"type": "object"}
+            },
+            "required": ["filter"],
+            "additionalProperties": false
+        }
+    },
+    "required": ["collection", "query"],
+    "additionalProperties": false
+}

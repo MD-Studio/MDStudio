@@ -1,0 +1,10 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "DeleteResponse",
+    "type": "object",
+    "properties": {
+        "deleted_count": {"type": "integer"}
+    },
+    "required": ["deleted_count"],
+    "additionalProperties": false
+}

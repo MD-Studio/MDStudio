@@ -66,7 +66,7 @@ def init_application_logging(settings, config):
     # @todo: again this should be fixed in a nicer way
     global db
     if db is None:
-        db = MongoClient(host=os.getenv('MONGO_HOST', config.get('lie_db.host')), port=config.get('lie_db.port'))['liestudio']
+        db = MongoClient(host=os.getenv('_LIE_MONGO_HOST', config.get('lie_db.host')), port=config.get('lie_db.port'))['liestudio']
 
     current_module = sys.modules[__name__]
     observers = settings['observers']
