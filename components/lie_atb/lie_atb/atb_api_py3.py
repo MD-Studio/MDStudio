@@ -129,7 +129,7 @@ class API(object):
                 else:
                     response_content = response.read().decode()
         except Exception as e:
-            self.debug:
+            if self.debug:
                 stderr_write("Failed opening url: {0}{1}{2}".format(
                     url,
                     '?' if data else '',

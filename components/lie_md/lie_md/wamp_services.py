@@ -25,17 +25,12 @@ class MDWampApi(BaseApplicationSession):
     """
     jobid = 0
 
-    @inlineCallbacks
-    def onRun(self, details):
-
-        yield self.register(self.md_run, u'liestudio.md.run', options=RegisterOptions(invoke=u'roundrobin'))
-        yield self.register(self.md_status, u'liestudio.md.status', options=RegisterOptions(invoke=u'roundrobin'))
-        self.log.info("MDWampApi: md_run() registered!")
-
+    @wamp.register(u'liestudio.md.status', options=RegisterOptions(invoke=u'roundrobin'))
     def md_status(self):
 
         return 'running job: {0}'.format(self.jobid)
 
+    @wamp.register(u'liestudio.md.run', options=RegisterOptions(invoke=u'roundrobin'))
     @inlineCallbacks
     def md_run(self, structure):
 

@@ -15,29 +15,6 @@ from getpass import getuser
 
 from lie_componentbase.wamp_schema import liestudio_task_schema
 
-# BaseApplicationSession variables names defined in os.environ
-ENVIRON = {'_LIE_WAMP_REALM': 'realm',
-           '_LIE_AUTH_METHOD': 'authmethod',
-           '_LIE_AUTH_USERNAME': 'username',
-           '_LIE_AUTH_PASSWORD': 'password'}
-
-def _schema_to_data(schema, data=None):
-
-    default_data = {}
-
-    required = schema.get('required', [])
-    properties = schema.get('properties',{})
-
-    for key,value in properties.items():
-        if key in required:
-            default_data[key] = value.get('default')
-
-    # Update with existing data
-    if data:
-        default_data.update(data)
-
-    return default_data
-
 class WAMPTaskMetaData(object):
     """
     Class that handles initiation and updating of LIEStudio task metadata.
@@ -46,17 +23,13 @@ class WAMPTaskMetaData(object):
     JSON schema.
     """
 
-    def __init__(self, metadata=None, **kwargs):
+    def __init__(self, metadata=None):
 
         # Init default task metadata
-        self._metadata = _schema_to_data(liestudio_task_schema, data=metadata)
+        self._metadata = {}
         self.task_id()
         if not metadata:
             self._update_time(time_stamp='itime')
-
-        # Update metadata with kwargs and environmental variables
-        self.update(kwargs)
-        self.update(dict([(ENVIRON[k],os.environ[k]) for k in ENVIRON if k in os.environ]))
 
         # Update defaults
         self._metadata['system_user'] = getuser()

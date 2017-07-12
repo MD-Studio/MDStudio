@@ -25,7 +25,6 @@ except ImportError:
 from werkzeug.security import generate_password_hash, check_password_hash
 from twisted.logger import Logger
 
-from .settings import USER_TEMPLATE, PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE, SETTINGS
 from .sendmail import Email
 
 logging = Logger()

@@ -14,9 +14,9 @@ import getpass
 from distutils import spawn
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from autobahn import wamp
 
-from .settings import APP_COLLECTION
-
+from lie_componentbase import WampSchema, validate_json_schema
 
 def get_host(settings):
     """
@@ -25,16 +25,17 @@ def get_host(settings):
     :param settings: the Settings object
     :return: The correct host
     """
-    return os.getenv('_LIE_MONGO_HOST', settings.get('dbhost'))
+    return os.getenv('_LIE_MONGO_HOST', settings.get('dbhost', 'localhost'))
 
 
-def init_mongodb(settings):
+def init_mongodb(session, settings):
     """
     Initiate the application MongoDB database
     """
 
     # Start the database
-    db = BootstrapMongoDB(dbpath=settings.get('dbpath'),
+    db = BootstrapMongoDB(session=session,
+                          dbpath=settings.get('dbpath'),
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
                           host=get_host(settings),
@@ -48,12 +49,13 @@ def init_mongodb(settings):
     return db
 
 
-def exit_mongodb(settings):
+def exit_mongodb(session, settings):
     """
     Clean termination of MongoDB
     """
 
-    db = BootstrapMongoDB(dbpath=settings.get('dbpath'),
+    db = BootstrapMongoDB(session=session,
+                          dbpath=settings.get('dbpath'),
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
                           host=get_host(settings),
@@ -61,7 +63,7 @@ def exit_mongodb(settings):
     db.stop(terminate_mongod_on_exit=settings.get('terminate_mongod_on_exit', False))
 
 
-def mongodb_connect(host=os.getenv('_LIE_MONGO_HOST', 'localhost'), port=27017, **kwargs):
+def mongodb_connect(host=get_host({}), port=27017, **kwargs):
     """
     Connect to a running MongoDB database
 
@@ -90,19 +92,19 @@ class BootstrapMongoDB(object):
     TODO: Add database authentication
     """
 
-    def __init__(self, dbpath, dbname='liedb', mongod_path=None, host=None, port=27017, dblog=None, 
-                 app_collection_template=APP_COLLECTION):
+    def __init__(self, session, dbpath, dbname='liedb', mongod_path=None, host=None, port=27017, dblog=None):
 
         if dbpath:
             self._dbpath = os.path.abspath(dbpath)
 
+        self._session = session
         self._dbname = dbname
         self._mongod_path = mongod_path
         self._host = host
         self._port = port
         self._dblog = dblog
         self._create_db = True
-        self._app_collection_template = app_collection_template
+        self._app_collection_template = WampSchema('db', 'app_collection', 1)
 
         self.did_create_local_db = False
         self.db = None
@@ -240,13 +242,17 @@ class BootstrapMongoDB(object):
         liedb_data = liedb['{0}_data'.format(self._dbname)]
 
         # Add primary app data from template
-        appdata = copy.copy(self._app_collection_template)
-        appdata['application'] = self._dbname
-        appdata['init_timestamp'] = datetime.datetime.utcnow()
+        appdata = {
+            'application': self._dbname,
+            'init_timestamp': datetime.datetime.utcnow()
+        }
+
         try:
             appdata['user'] = getpass.getuser()
         except Exception as e:
             appdata['user'] = 'docker'
+
+        validate_json_schema(self._session, self._app_collection_template, appdata)
         liedb_data.insert_one(appdata)
 
     def connect(self):

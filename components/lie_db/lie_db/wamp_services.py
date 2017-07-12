@@ -98,7 +98,7 @@ class DBWampApi(BaseApplicationSession):
         if dbname not in self._databases.keys():
             settings = dict([(k, self.package_config.get(k)) for k in ('dbhost', 'dbport', 'dbpath', 'dblog')])
             settings['dbname'] = dbname
-            self._databases[dbname] = init_mongodb(settings)
+            self._databases[dbname] = init_mongodb(self, settings)
             
         return self._databases[dbname]
 

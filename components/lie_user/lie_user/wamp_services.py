@@ -6,14 +6,16 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import os
+
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from twisted.logger import Logger
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from lie_componentbase import BaseApplicationSession, WampSchema
-from .settings import SETTINGS, USER_TEMPLATE
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
+from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 
 logger = Logger()
 
@@ -27,11 +29,19 @@ class UserWampApi(BaseApplicationSession):
         self.session_config_template = WampSchema('user', 'session_config', 1)
         self.package_config_template = WampSchema('user', 'settings', 1)
         
-        self.session_config_environment_variables = {
+        self.session_config_environment_variables.update({
             'admin_username': '_LIE_AUTH_USERNAME',
             'admin_email': '_LIE_USER_ADMIN_EMAIL',
             'admin_password': '_LIE_AUTH_PASSWORD'
-        }
+        })
+
+    def onInit(self, **kwargs):
+        password_retrieval_message_file = os.path.join(self._config_dir, 'password_retrieval.txt')
+        if os.path.isfile(password_retrieval_message_file):
+            self._password_retrieval_message_template = open(password_retrieval_message_file).read()
+        else:
+            self._password_retrieval_message_template = PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
+            open(password_retrieval_message_file, 'w').write(self._password_retrieval_message_template)
 
     @inlineCallbacks
     def onRun(self, details=None):
@@ -370,7 +380,7 @@ class UserWampApi(BaseApplicationSession):
         Retrieve password by email
         
         The email message template for user account password retrieval
-        is stored in the PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE variable.
+        is stored in the self._password_retrieval_message_template variable.
         
         * Locates the user in the database by email which should be a 
           unique and persistent identifier.
@@ -395,7 +405,7 @@ class UserWampApi(BaseApplicationSession):
         with Email() as email:
           email.send(
             email,
-            PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE.format(password=new_password, user=user['username']),
+            self._password_retrieval_message_template.format(password=new_password, user=user['username']),
             'Password retrieval request for LIEStudio'
           )
           res = yield self.call(u'liestudio.db.update', {'collection': 'users', 'query': {'filter': {'_id': user['_id']}, 'update': {'password': new_password}}})

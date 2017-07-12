@@ -11,8 +11,6 @@ import smtplib
 from email.mime.text import MIMEText
 from twisted.logger import Logger
 
-from .settings import SETTINGS
-
 logging = Logger()
 
 

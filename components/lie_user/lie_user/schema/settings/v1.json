@@ -3,16 +3,13 @@
     "title": "UserSettings",
     "type": "object",
     "properties": {
-        "db_collection_name": {"type": "string", "default": "users"}, 
-        "hash_method": {"type": "string", "default": "sha256"}, 
-        "hash_iteration": {"type": "integer", "default": 1000}, 
-        "key_derivation": {"type": "string", "default": "pbkdf2"}, 
-        "random_password_length": {"type": "integer", "default": 10}, 
-        "salt_length": {"type": "integer", "default": 10},
         "unsafe_properties": {
             "type": "array",
             "items": {"type": "string"},
             "default": ["_id", "password"]
-        }
-    }
+        },
+        "only_localhost_access": {"type": "boolean", "default": false},
+        "domain-blacklist": {"type": "array", "items": {"type": "string" }, "default": []}
+    },
+    "additionalProperties": false
 }
