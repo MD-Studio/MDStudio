@@ -4,16 +4,19 @@
     "type": "object",
     "properties": {
         "username": {
-            "type": "string", "pattern": "^[a-zA-Z0-9_]+$"
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_\\.]+$"
         },
         "email": {
-            "type": "string", "format": "email"
+            "type": "string",
+            "format": "email"
         },
         "password": {
             "type": "string"
         },
         "role": {
-            "type": "string", "default": "user"
+            "type": "string",
+            "default": "user"
         },
         "uid": {
             "type": "number"

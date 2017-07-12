@@ -3,16 +3,18 @@
     "title": "UpdateResponse",
     "type": "object",
     "properties": {
-        "matched_count": {
-            "type": "integer"
+        "matchedCount": {
+            "type": "integer",
+            "minimum": 0
         },
-        "modified_count": {
-            "type": "integer"
+        "modifiedCount": {
+            "type": "integer",
+            "minimum": 0
         },
-        "upserted_id": {
+        "upsertedId": {
             "type": "string"
         }
     },
-    "required": ["matched_count", "modified_count"],
+    "required": ["matchedCount", "modifiedCount"],
     "additionalProperties": false
 }

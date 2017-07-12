@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "DatabaseSort",
+    "description": "A valid MongoDB sort: https://docs.mongodb.com/manual/reference/method/cursor.sort/",
+    "type": "object",    
+    "patternProperties": {
+        "^.*$": {
+            "enum": ["asc", "desc"]
+        }
+    },
+    "additionalProperties": false
+}

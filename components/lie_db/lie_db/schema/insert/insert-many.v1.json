@@ -1,25 +1,19 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "InsertRequest",
+    "title": "InsertManyRequest",
     "type": "object",
     "properties": {
         "collection": {
             "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
         },
-        "query": {
-            "type":"object",
-            "properties": {
-                "documents": {
-                    "type":"array",
-                    "items": {
-                        "type":"object"
-                    }
-                }
+        "insert": {
+            "type":"array",
+            "items": {
+                "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
             },
-            "required": ["documents"],
-            "additionalProperties": false
+            "additionalItems": false
         }
     },
-    "required": ["collection", "query"],
+    "required": ["collection", "insert"],
     "additionalProperties": false
 }

@@ -6,17 +6,10 @@
         "collection": {
             "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
         },
-        "query": {
-            "type":"object",
-            "properties": {
-                "filter": {
-                    "type": "object"
-                }
-            },
-            "required": ["filter"],
-            "additionalProperties": false
+        "filter": {
+            "$ref": "wamp://liestudio.schema.get/db/filter/v1.json"
         }
     },
-    "required": ["collection", "query"],
+    "required": ["collection", "filter"],
     "additionalProperties": false
 }

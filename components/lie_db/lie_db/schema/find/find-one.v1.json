@@ -1,22 +1,25 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "UpdateRequest",
+    "title": "FindOneRequest",
     "type": "object",
     "properties": {
         "collection": {
             "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
         },
-        "update": {
-            "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
-        },
         "filter": {
             "$ref": "wamp://liestudio.schema.get/db/filter/v1.json"
         },
-        "upsert": {
-            "type": "boolean",
-            "default": false
+        "projection": {
+            "$ref": "wamp://liestudio.schema.get/db/projection/v1.json"
+        },
+        "skip": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "sort": {
+            "$ref": "wamp://liestudio.schema.get/db/sort/v1.json"
         }
     },
-    "required": ["collection", "update"],
+    "required": ["collection", "filter"],
     "additionalProperties": false
 }
