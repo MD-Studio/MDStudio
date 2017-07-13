@@ -144,7 +144,7 @@ class AuthorizerWampApi(BaseApplicationSession):
                 
                 if rulematch:
                     permission = extract_permission(rule, uri, action)
-                    self.log.debug( 'DEBUG: found matching rule {}, permission is: {}'.format(rule, permission))
+                    self.log.debug( 'DEBUG: found matching rule {rule}, permission is: {permission}', rule=rule, permission=permission)
                     returnValue(permission)
                     
         if session.get('authprovider') is None and role in ('authorizer', 'authenticator', 'schema', 'db'):
@@ -158,7 +158,9 @@ class AuthorizerWampApi(BaseApplicationSession):
                 returnValue({'allow': True})
 
         self.log.debug( 'DEBUG: authid resoved to {}'.format(authid))
-        if authid and action == 'call' and (uri.startswith('liestudio.db.') or uri == 'liestudio.schema.register'):
+        if authid and action == 'call' and (uri.startswith('liestudio.db.') or 
+                                            uri == 'liestudio.schema.register' or
+                                            uri == 'liestudio.logger.log'):
             self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
             returnValue({ 'allow': True, 'disclose': True })
 

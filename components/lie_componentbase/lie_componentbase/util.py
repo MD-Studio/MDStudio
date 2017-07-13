@@ -11,6 +11,7 @@ import jsonschema
 
 from .config.config_handler import ConfigHandler
 from .config import PY3
+from .logging import block_on
 
 if PY3:
     from queue import Queue, Empty
@@ -57,18 +58,6 @@ def resolve_config(config):
                         pass
 
     return settings
-
-def block_on(d, timeout=None):
-    q = Queue()
-    d.addBoth(q.put)
-    try:
-        ret = q.get(timeout is not None, timeout)
-    except Empty:
-        raise TimeoutError
-    if isinstance(ret, Failure):
-        ret.raiseException()
-    else:
-        return ret
 
 def extend_with_default(validator_class):
     validate_properties = validator_class.VALIDATORS["properties"]

@@ -17,13 +17,12 @@ from lie_componentbase import BaseApplicationSession, WampSchema
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 
-logger = Logger()
-
-
 class UserWampApi(BaseApplicationSession):
     """
     User management WAMP methods.
     """
+
+    log = Logger()
 
     def preInit(self, **kwargs):
         self.session_config_template = WampSchema('user', 'session_config', 1)
@@ -47,7 +46,7 @@ class UserWampApi(BaseApplicationSession):
     def onRun(self, details=None):
         admin = yield self._get_user({'uid': 0})
         if not admin:
-            logger.info('Empty user table. Create default admin account')
+            self.log.info('Empty user table. Create default admin account')
 
             userdata = {'username': self.session_config.get('admin_username', 'admin'),
                         'email': self.session_config.get('admin_email', None),
@@ -70,7 +69,7 @@ class UserWampApi(BaseApplicationSession):
                 }
             })
             if not admin:
-                logger.error('Unable to create default admin account')
+                self.log.error('Unable to create default admin account')
                 self.leave('Unable to create default admin account, could not properly start.')
 
         # Cleanup after improper shutdown
@@ -91,12 +90,12 @@ class UserWampApi(BaseApplicationSession):
 
         # Count number of active user sessions
         active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'query': {}}) 
-        logger.info('{0} active user sessions'.format(active_session_count))
+        self.log.info('{0} active user sessions'.format(active_session_count))
 
         # Terminate active sessions
         if active_session_count:
             deleted = yield self.call(u'liestudio.db.deletemany', {'collection': 'sessions', 'query': {'filter': {}}})
-            logger.info('Terminate {0} active user sessions'.format(deleted["deleted_count"]))
+            self.log.info('Terminate {0} active user sessions'.format(deleted["deleted_count"]))
 
         returnValue(True)
 
@@ -227,7 +226,7 @@ class UserWampApi(BaseApplicationSession):
 
         user = yield self._get_user(details.get('authid'))
         if user:
-            logger.info('Logout user: {0}, uid: {1}'.format(self.user['username'], self.user['uid']))
+            self.log.info('Logout user: {0}, uid: {1}'.format(self.user['username'], self.user['uid']))
 
             ended = yield self._end_session(user['uid'], details.get('session'))
             if ended:
@@ -262,7 +261,7 @@ class UserWampApi(BaseApplicationSession):
         # Require at least a valid username and email
         for param in required:
             if not userdata.get(param, None):
-                logger.error('Unable to create new user. Missing "{0}"'.format(param))
+                self.log.error('Unable to create new user. Missing "{0}"'.format(param))
                 returnValue({})
 
         # If no password, create random one
@@ -276,12 +275,12 @@ class UserWampApi(BaseApplicationSession):
         # Username and email should not be in use
         user = yield self._get_user(userdata['username'])
         if user:
-            logger.error('Username {0} already in use'.format(userdata['username']))
+            self.log.error('Username {0} already in use'.format(userdata['username']))
             returnValue({})
         
         user = yield self._get_user({'email': userdata['email']})
         if user:
-            logger.error('Email {0} already in use'.format(userdata['email']))
+            self.log.error('Email {0} already in use'.format(userdata['email']))
             returnValue({})
 
         # Make new uid, increment max uid by 0
@@ -296,9 +295,9 @@ class UserWampApi(BaseApplicationSession):
         # Add the new user to the database
         did = yield self.call(u'liestudio.db.insert', {'collection': 'users', 'query': {'document': user_template}})
         if did:
-            logger.debug('Added new user to database. user: {username}, uid: {uid}'.format(**user_template))
+            self.log.debug('Added new user to database. user: {username}, uid: {uid}'.format(**user_template))
         else:
-            logger.error('Unable to add new user to database')
+            self.log.error('Unable to add new user to database')
             returnValue({})
 
         returnValue(user_template)
@@ -340,9 +339,9 @@ class UserWampApi(BaseApplicationSession):
         if user:
             check = check_password(user['password'], password)
         else:
-            logger.debug('No such user')
+            self.log.debug('No such user')
 
-        logger.info('{status} login attempt for user: {user}',
+        self.log.info('{status} login attempt for user: {user}',
             status='Correct' if check else 'Incorrect', user=username)
 
         return check
@@ -357,7 +356,7 @@ class UserWampApi(BaseApplicationSession):
         returnValue(res)
 
     def _start_session(self, uid, session_id):
-        logger.debug('Open session: {0} for user {1}'.format(session_id, uid))
+        self.log.debug('Open session: {0} for user {1}'.format(session_id, uid))
         self.call(u'liestudio.db.insert', {'collection': 'sessions', 'query': {'document': {'uid': uid, 'session_id': session_id}}})
 
     @inlineCallbacks
@@ -395,12 +394,12 @@ class UserWampApi(BaseApplicationSession):
 
         user = yield self._get_user({'email': email})
         if not user:
-          logger.info('No user with email {0}'.format(email))
+          self.log.info('No user with email {0}'.format(email))
           return
 
         new_password = generate_password()
         user['password'] = hash_password(new_password)
-        logger.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
+        self.log.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
 
         with Email() as email:
           email.send(

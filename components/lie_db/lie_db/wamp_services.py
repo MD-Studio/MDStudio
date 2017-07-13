@@ -18,42 +18,42 @@ class DBWampApi(BaseApplicationSession):
     @register(u'liestudio.db.find', WampSchema('db', 'find/request', 1), {}, True)
     @inlineCallbacks
     def db_find(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
 
         returnValue(collection.find_one(**request['query']))
         
     @register(u'liestudio.db.findmany', WampSchema('db', 'find/request', 1), {}, True)
     @inlineCallbacks
     def db_findmany(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
 
         returnValue([r for r in collection.find(**request['query'])])
 
     @register(u'liestudio.db.count', WampSchema('db', 'find/request', 1), {'type': 'integer'}, True)
     @inlineCallbacks
     def db_count(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
 
         returnValue(collection.count(**request['query']))
 
     @register(u'liestudio.db.insert', WampSchema('db', 'insert/one', 1), WampSchema('db', 'insert/response', 1), True)
     @inlineCallbacks
     def db_insert(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
 
         returnValue({'inserted_ids': [str(collection.insert_one(**request['query']).inserted_id)]})
 
     @register(u'liestudio.db.insertmany', WampSchema('db', 'insert/many', 1), WampSchema('db', 'insert/response', 1), True)
     @inlineCallbacks
     def db_insertmany(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
 
         returnValue({'inserted_ids': [str(oid) for oid in collection.insert_many(**request['query']).inserted_ids]})
 
     @register(u'liestudio.db.update', WampSchema('db', 'update/request', 1), WampSchema('db', 'update/response', 1), True)
     @inlineCallbacks
     def db_update(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
         query = request['query']
 
         updateresult = collection.update_one(**query)
@@ -71,7 +71,7 @@ class DBWampApi(BaseApplicationSession):
     @register(u'liestudio.db.updatemany', WampSchema('db', 'update/request', 1), WampSchema('db', 'update/response', 1), True)
     @inlineCallbacks
     def db_updatemany(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
         query = request['query']
 
         updateresult = collection.update_many(**query)
@@ -89,7 +89,7 @@ class DBWampApi(BaseApplicationSession):
     @register(u'liestudio.db.delete', WampSchema('db', 'delete/request', 1), WampSchema('db', 'delete/response', 1), True)
     @inlineCallbacks
     def db_delete(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
 
         deleteresult = collection.delete_one(**request['query'])
 
@@ -98,7 +98,7 @@ class DBWampApi(BaseApplicationSession):
     @register(u'liestudio.db.deletemany', WampSchema('db', 'delete/request', 1), WampSchema('db', 'delete/response', 1), True)
     @inlineCallbacks
     def db_deletemany(self, request, details=None):
-        collection = self._get_collection(request['collection'], details)
+        collection = yield self._get_collection(request['collection'], details)
 
         deleteresult = collection.delete_many(**request['query'])
 

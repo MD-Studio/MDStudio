@@ -39,7 +39,7 @@ def init_mongodb(session, settings):
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
                           host=get_host(settings),
-                          port=settings.get('dbport'))
+                          port=settings.get('dbport', 27017))
     assert db.start()
 
     db = db.connect()
@@ -59,7 +59,7 @@ def exit_mongodb(session, settings):
                           dbname=settings.get('dbname'),
                           dblog=settings.get('dblog'),
                           host=get_host(settings),
-                          port=settings.get('dbport'))
+                          port=settings.get('dbport', 27017))
     db.stop(terminate_mongod_on_exit=settings.get('terminate_mongod_on_exit', False))
 
 

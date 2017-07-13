@@ -16,6 +16,7 @@ services:
             - crossbar_pip:/usr/local/lib/python3.5/site-packages
         environment:
             - _LIE_MONGO_HOST=mongo
+            - _LIE_GLOBAL_LOG=1
         env_file: .env
 
     md:

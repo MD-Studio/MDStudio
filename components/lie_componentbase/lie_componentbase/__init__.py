@@ -24,7 +24,7 @@ __all__ = ['ComponentManager', 'BaseApplicationSession', 'WAMPTaskMetaData']
 
 # Component imports
 from .component_manager import ComponentManager
-from .application_session import BaseApplicationSession
+from .application_session import BaseApplicationSession, block_on
 from .util import register, WampSchema, Schema, InlineSchema, validate_json_schema
 from .wamp_taskmeta import WAMPTaskMetaData
 from .config import PY3

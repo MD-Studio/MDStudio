@@ -12,13 +12,14 @@ from autobahn.wamp import auth, cryptosign
 from autobahn.twisted.wamp import ApplicationSession
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet import reactor
+from twisted.logger import Logger
+import twisted
 from autobahn import wamp
 from twisted.python.failure import Failure
 from pprint import pprint
-from lie_config import ConfigHandler
 
 from .wamp_taskmeta import WAMPTaskMetaData
-from .logger import WampLogger
+from .logging import WampLogObserver, PrintingObserver
 from .util import resolve_config, DefaultValidatingDraft4Validator, block_on, WampSchema, WampSchemaHandler, validate_json_schema
 from .config import PY3, config_from_dotenv, ConfigHandler
 
@@ -61,7 +62,7 @@ class BaseApplicationSession(ApplicationSession):
 
     require_config = []
 
-    def __init__(self, config, package_config=None, **kwargs):
+    def __init__(self, config, **kwargs):
         """
         Class constructor
 
@@ -140,24 +141,29 @@ class BaseApplicationSession(ApplicationSession):
 
         # determine namespace
         namespace = re.match('lie_(.+)', self.__module__.split('.')[0])
-        self.component_info = {'namespace': namespace.group(1) if namespace else 'unknown'}
+        self.component_info = {
+            'namespace': namespace.group(1) if namespace else 'unknown',
+            'package_name': self.__module__.split('.')[0],
+            'class_name': type(self).__name__,
+            'module_path': os.path.dirname(inspect.getfile(self.__class__)),
+            'componentbase_path': os.path.dirname(__file__)
+        }
+
+        # determine package config directory
+        package_config_dir = os.path.join(os.path.dirname(self.component_info.get('module_path')), 'data')
+        if not os.path.isdir(package_config_dir):
+            os.makedirs(package_config_dir)
+        self._config_dir = package_config_dir
+
+        package_logs_dir = os.path.join(package_config_dir, 'logs')
+        if not os.path.isdir(package_logs_dir):
+            os.makedirs(package_logs_dir)
 
         # call pre init to override above values
         self.preInit(**kwargs)
 
-        # we cannot use default argument {} since it stores references internally,
-        # making subsequent constructions unpredictable
-        if package_config is None:
-            package_config = {}
-
-
-        # Init component_info with default values
-        self.component_info.update({
-            'package_name': self.__module__.split('.')[0],
-            'class_name': type(self).__name__,
-            'module_path': os.path.dirname(inspect.getfile(self.__class__)),
-            'componentbase_path': os.path.dirname(os.path.dirname(__file__))
-        })
+        # replace default logger to support proper namespace
+        self.log = Logger(namespace=self.component_info.get('namespace'))
 
         self.wamp_schema_handler = WampSchemaHandler(self)
 
@@ -184,12 +190,6 @@ class BaseApplicationSession(ApplicationSession):
         if u'key' in self.session_config:
             self._load_public_key(self.session_config.get(u'key'))
 
-
-        package_config_dir = os.path.join(os.path.dirname(self.component_info.get('module_path')), 'data')
-        if not os.path.isdir(package_config_dir):
-            os.makedirs(package_config_dir)
-        self._config_dir = package_config_dir
-
         package_config_file = os.path.join(package_config_dir, 'settings.json')
 
         package_conf = resolve_config(package_config_file)
@@ -213,17 +213,24 @@ class BaseApplicationSession(ApplicationSession):
 
         for key, value in self.session_config_environment_variables.items():
             if value in env:
-                session_conf[key] = env[value]
+                session_conf[key] = u'{}'.format(env[value])
             elif value in os.environ:
-                session_conf[key] = os.environ[value]
-
-        print(session_conf)
+                session_conf[key] = u'{}'.format(os.environ[value])
 
         if validate_json_schema(self, self.session_config_template, session_conf):
             self.session_config.update(session_conf)
+        
+        # start wamp logger for buffering
+        self.wamp_logger = WampLogObserver(self, self.session_config.get('log_level', 'info'))
+        twisted.python.log.addObserver(self.wamp_logger)
+
+        # start file logger
+        log_file = twisted.python.logfile.DailyLogFile('daily.log', package_logs_dir)
+        self.file_logger = PrintingObserver(log_file, self.component_info.get('namespace'))
+        twisted.python.log.addObserver(self.file_logger)
 
         # Configure config object
-        config.realm = self.session_config.get('realm', config.realm)
+        config.realm = u'{}'.format(self.session_config.get('realm', config.realm))
 
         if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config.get('authmethod'), list):
             self.session_config.set('authmethod', [self.session_config.get('authmethod')])
@@ -321,7 +328,7 @@ class BaseApplicationSession(ApplicationSession):
         :type challenge:  obj
         """
 
-        self.log.debug("Recieved WAMP authentication challenge type '{0}'".format(challenge.method))
+        self.log.debug("Recieved WAMP authentication challenge type '{method}'", method=challenge.method)
 
         # WAMP-Ticket based authentication
         if challenge.method == u"ticket":
@@ -414,7 +421,7 @@ class BaseApplicationSession(ApplicationSession):
         # server_config.addErrback(handle_retrieve_config_error)
 
         # Init WAMP logging
-        self.logger = WampLogger(wamp=self, log_level=self.package_config.get('global_log_level', 'info'))
+        self.wamp_logger.start_flushing()
 
         # Add self.disconnect to Event trigger in order to get propper shutdown
         # and exit of reactor event loop on Ctrl-C e.d.
@@ -455,6 +462,8 @@ class BaseApplicationSession(ApplicationSession):
 
         self.log.info('{class_name} of {package_name} is leaving realm {realm}', realm=self.session_config.get('realm'),
                       **self.component_info)
+
+        self.wamp_logger.shutdown = True
 
         # Call onExit hook
         self.onExit(details)
