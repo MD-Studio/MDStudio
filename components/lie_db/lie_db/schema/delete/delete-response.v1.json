@@ -3,8 +3,12 @@
     "title": "DeleteResponse",
     "type": "object",
     "properties": {
-        "deleted_count": {"type": "integer"}
+        "count": {
+            "type": "integer"
+        }
     },
-    "required": ["deleted_count"],
+    "required": [
+        "count"
+    ],
     "additionalProperties": false
 }

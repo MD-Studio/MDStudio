@@ -5,7 +5,7 @@
     "properties": {
         "log_level": {
             "type": "string",
-            "desciption": "Log level for the microservice task",
+            "description": "Log level for the microservice task",
             "default": "info",
             "enum": ["debug","info","warn","error","critical"]
         }

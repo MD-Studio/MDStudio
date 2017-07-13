@@ -3,11 +3,16 @@
     "title": "InsertResponse",
     "type": "object",
     "properties": {
-        "inserted_ids": {
+        "ids": {
             "type": "array",
-            "items": {"type": "string"}
+            "items": {
+                "type": "string"
+            },
+            "additionalItems": false
         }
     },
-    "required": ["inserted_ids"],
+    "required": [
+        "ids"
+    ],
     "additionalProperties": false
 }

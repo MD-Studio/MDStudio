@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "InsertOneRequest",
+    "type": "object",
+    "properties": {
+        "collection": {
+            "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
+        },
+        "insert": {
+            "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
+        }
+    },
+    "required": [
+        "collection",
+        "insert"
+    ],
+    "additionalProperties": false
+}

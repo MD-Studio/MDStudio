@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "InsertManyRequest",
+    "type": "object",
+    "properties": {
+        "collection": {
+            "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
+        },
+        "insert": {
+            "type": "array",
+            "items": {
+                "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
+            },
+            "additionalItems": false
+        }
+    },
+    "required": [
+        "collection",
+        "insert"
+    ],
+    "additionalProperties": false
+}

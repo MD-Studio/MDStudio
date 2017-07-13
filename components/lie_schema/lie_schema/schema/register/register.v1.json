@@ -3,8 +3,13 @@
     "title": "RegisterSchema",
     "type": "object",
     "properties": {
-        "path": {"type": "string", "pattern": "^[a-zA-Z0-9_\\-/]+$" },
-        "schema": {"type":"object"}
+        "path": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_\\-/]+$"
+        },
+        "schema": {
+            "type":"object"
+        }
     },
     "additionalProperties": false
 }

@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "FindResponseOne",
+    "type": "object",
+    "properties": {
+        "result": {
+            "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
+        }
+    },
+    "required": [
+        "result"
+    ],
+    "additionalProperties": false
+}

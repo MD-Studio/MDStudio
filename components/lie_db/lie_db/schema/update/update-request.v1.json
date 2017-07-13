@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "UpdateRequest",
+    "type": "object",
+    "properties": {
+        "collection": {
+            "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
+        },
+        "update": {
+            "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
+        },
+        "filter": {
+            "$ref": "wamp://liestudio.schema.get/db/filter/v1.json"
+        },
+        "upsert": {
+            "type": "boolean",
+            "default": false
+        }
+    },
+    "required": [
+        "collection",
+        "update"
+    ],
+    "additionalProperties": false
+}

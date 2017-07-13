@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "CountRequest",
+    "type": "object",
+    "properties": {
+        "collection": {
+            "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
+        },
+        "filter": {
+            "$ref": "wamp://liestudio.schema.get/db/filter/v1.json"
+        },
+        "skip": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "limit": {
+            "type": "integer",
+            "minimum": 0
+        }
+    },
+    "required": [
+        "collection",
+        "filter"
+    ],
+    "additionalProperties": false
+}
