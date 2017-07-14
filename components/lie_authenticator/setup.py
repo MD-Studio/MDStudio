@@ -23,17 +23,17 @@
 
 from setuptools import setup, find_packages
 
-distribution_name = 'lie_user'
+distribution_name = 'lie_authenticator'
 
 setup(
     name=distribution_name,
     version=0.1,
-    description='User management for the LIEStudio application',
+    description='Authentication management for the LIEStudio application',
     author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
     author_email='m4.van.dijk@vu.nl',
     url='https://github.com/NLeSC/LIEStudio',
     license='Apache Software License 2.0',
-    keywords='LIEStudio user',
+    keywords='LIEStudio authenticator',
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
@@ -43,7 +43,7 @@ setup(
     zip_safe=True,
     entry_points={
         'autobahn.twisted.wamplet': [
-            'wamp_services = lie_user.wamp_services:make'
+            'wamp_services = lie_authenticator:wampapi'
         ],
     },
     classifiers=[

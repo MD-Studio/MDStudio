@@ -40,7 +40,7 @@
                                     "cache": true
                                 },
                                 {
-                                    "uri": "liestudio.user.namespaces",
+                                    "uri": "liestudio.authenticator.namespaces",
                                     "match": "exact",
                                     "allow":{
                                         "call": true,
@@ -124,11 +124,11 @@
                                 },
                                 "ticket": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.user.login"
+                                    "authenticator": "liestudio.authenticator.login"
                                 },
                                 "wampcra": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.user.login"
+                                    "authenticator": "liestudio.authenticator.login"
                                 }
                             }
                         }
@@ -156,7 +156,7 @@
                 },
                 {
                     "type": "class",
-                    "classname": "lie_user.wamp_services.UserWampApi",
+                    "classname": "lie_authenticator.wampapi",
                     "realm": "liestudio",
                     "role": "authenticator"
                 }

@@ -40,7 +40,7 @@
                                     "cache": false
                                 },
                                 {
-                                    "uri": "liestudio.user.namespaces",
+                                    "uri": "liestudio.authenticator.namespaces",
                                     "match": "exact",
                                     "allow": {
                                         "call": true
@@ -127,11 +127,11 @@
                                 },
                                 "ticket": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.user.login"
+                                    "authenticator": "liestudio.authenticator.login"
                                 },
                                 "wampcra": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.user.login"
+                                    "authenticator": "liestudio.authenticator.login"
                                 }
                             }
                         }
@@ -140,26 +140,30 @@
             ],
             "components": [
                 {
-                    "type": "class",
-                    "classname": "lie_authorizer.wamp_services.AuthorizerWampApi",
+                    "type": "wamplet",
+                    "package": "lie_authorizer",
+                    "entrypoint": "wamp_services",
                     "realm": "liestudio",
                     "role": "authorizer"
                 },
                 {
-                    "type": "class",
-                    "classname": "lie_schema.wamp_services.SchemaWampApi",
+                    "type": "wamplet",
+                    "package": "lie_schema",
+                    "entrypoint": "wamp_services",
                     "realm": "liestudio",
                     "role": "schema"
                 },
                 {
-                    "type": "class",
-                    "classname": "lie_db.wamp_services.DBWampApi",
+                    "type": "wamplet",
+                    "package": "lie_db",
+                    "entrypoint": "wamp_services",
                     "realm": "liestudio",
                     "role": "db"
                 },
                 {
-                    "type": "class",
-                    "classname": "lie_user.wamp_services.UserWampApi",
+                    "type": "wamplet",
+                    "package": "lie_authenticator",
+                    "entrypoint": "wamp_services",
                     "realm": "liestudio",
                     "role": "authenticator"
                 }

@@ -43,7 +43,7 @@ setup(
     zip_safe=True,
     entry_points={
         'autobahn.twisted.wamplet': [
-            'wamp_services = lie_authorizer.wamp_services:make'
+            'wamp_services = lie_authorizer:wampapi'
         ],
     },
     classifiers=[

@@ -6,7 +6,7 @@
         "result": {
             "type": "array",
             "items": {
-                "$ref": "wamp://liestudio.schema.get/db/document/v1.json"
+                "$ref": "wamp://liestudio.schema.get/db/document/document.v1.json"
             },
             "additionalItems": false
         },

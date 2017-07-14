@@ -5,6 +5,7 @@ import os
 import re
 
 from twisted.internet.defer import TimeoutError, inlineCallbacks, returnValue
+from twisted.logger import LogLevel
 from twisted.python.failure import Failure
 from autobahn               import wamp
 import jsonschema
@@ -59,13 +60,13 @@ def resolve_config(config):
 
     return settings
 
-def extend_with_default(validator_class):
+def extend_with_default(validator_class, session):
     validate_properties = validator_class.VALIDATORS["properties"]
 
     def set_defaults(validator, properties, instance, schema):
         for property, subschema in properties.items():
             if "default" in subschema and property not in instance.keys():
-                print('WARNING: during json schema validation, {} was not present in the instance, setting to default'.format(property))
+                session.log.warn('WARNING: during json schema validation, {} was not present in the instance, setting to default'.format(property))
                 instance.setdefault(property, subschema["default"])
 
         for error in validate_properties(
@@ -76,9 +77,6 @@ def extend_with_default(validator_class):
     return jsonschema.validators.extend(
         validator_class, {"properties" : set_defaults},
     )
-
-DefaultValidatingDraft4Validator = extend_with_default(jsonschema.Draft4Validator)
-
 
 class WampSchemaHandler:
     def __init__(self, session):
@@ -127,16 +125,18 @@ def validate_json_schema(session, schema_def, request):
     
     for schema in schema_def.schemas():
         resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': session.wamp_schema_handler.handler})
+        
+        DefaultValidatingDraft4Validator = extend_with_default(jsonschema.Draft4Validator, session)
         validator=DefaultValidatingDraft4Validator(schema, resolver=resolver)
         
-        try:
-            validator.validate(request)
-            valid = True
-        except jsonschema.ValidationError as e:
-            session.log.error(e.message)
+        errors = sorted(validator.iter_errors(request), key=lambda e: e.path)
 
-        if valid:
+        if len(errors) == 0:
+            valid = True
             break
+        else:
+            for error in errors:
+                session.log.error('Error validating json schema: {error}', error=error)
 
     return valid
 
@@ -162,12 +162,12 @@ class WampSchema:
         self.url_format = 'wamp://liestudio.schema.get/{}/{}'
 
     def __str__(self):
-        return self.url_format.format('{}', '{}/{}') \
+        return self.url_format.format('{}', '{}.{}') \
                               .format(self.namespace, self.path, ['v{}'.format(v) for v in self.versions])
 
     def paths(self):
         for version in self.versions:
-            yield '{}/v{}'.format(self.path, int(version))
+            yield '{}.v{}'.format(self.path, int(version))
 
     def uris(self):
         for path in self.paths():
@@ -204,7 +204,7 @@ def register(uri, input_schema, output_schema, details_arg=False, options=None):
         @wamp.register(uri, options)
         @inlineCallbacks
         def wrapped_f(self, request, **kwargs):
-            self.log.info('DEBUG: validating input with schema {}'.format(input_schema))
+            self.log.debug('DEBUG: validating input with schema {}'.format(input_schema))
             if not validate_json_schema(self, input_schema, request):
                 returnValue({})
             else:

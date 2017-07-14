@@ -33,7 +33,7 @@ PERMISSIONS = {
     ],
     "authenticator": [
         {
-            "uri": u"liestudio.user",
+            "uri": u"liestudio.authenticator",
             "match": "prefix",
             "allow": {
                 "call": False,
@@ -63,6 +63,21 @@ PERMISSIONS = {
                 "publisher": False
             },
             "cache": True
+        },
+        {
+            "uri": u"liestudio.authenticator.namespaces",
+            "match": "exact",
+            "allow": {
+                "call": True,
+                "register": False,
+                "publish": False,
+                "subscribe": False
+            },
+            "disclose": {
+                "caller": False,
+                "publisher": False
+            },
+            "cache": True
         }
     ],
     "schema": [
@@ -78,23 +93,6 @@ PERMISSIONS = {
             "disclose": {
                 "caller": True,
                 "publisher": True
-            },
-            "cache": True
-        }
-    ],
-    "admin": [
-        {
-            "uri": u"",
-            "match": "prefix",
-            "allow": {
-                "call": True,
-                "register": True,
-                "publish": True,
-                "subscribe": True
-            },
-            "disclose": {
-                "caller": False,
-                "publisher": False
             },
             "cache": True
         }
@@ -122,7 +120,7 @@ def extract_permission(rule, uri, action):
 
 class AuthorizerWampApi(BaseApplicationSession):
     """
-    User management WAMP methods.
+    Authorization management WAMP methods.
     """
     
     def preInit(self, **kwargs):
@@ -151,11 +149,11 @@ class AuthorizerWampApi(BaseApplicationSession):
             authid = role
         else:
             authid = session.get('authid')
-            namespaces = yield self.call(u'liestudio.user.namespaces', {'username': authid})
+            namespaces = yield self.call(u'liestudio.authenticator.namespaces', {'username': authid})
 
             if namespaces and any([uri.startswith('liestudio.{}.'.format(namespace)) for namespace in namespaces]):
                 self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
-                returnValue({'allow': True})
+                returnValue({'allow': True, 'disclose': True})
 
         self.log.debug( 'DEBUG: authid resoved to {}'.format(authid))
         if authid and action == 'call' and (uri.startswith('liestudio.db.') or 
@@ -166,37 +164,12 @@ class AuthorizerWampApi(BaseApplicationSession):
 
         if action == 'call' and re.match('liestudio.schema.get', uri):
             self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
-            returnValue({'allow': True})
+            returnValue({'allow': True, 'disclose': False})
 
-        if action == 'call' and uri == u'liestudio.user.logout':
+        if action == 'call' and uri == u'liestudio.authenticator.logout':
             returnValue({'allow': True, 'disclose': True})
 
         self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
 
         returnValue(False)
         
-
-def make(config):
-    """
-    Component factory
-  
-    This component factory creates instances of the application component
-    to run.
-    
-    The function will get called either during development using an 
-    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
-    a Crossbar.io worker.
-    The BaseApplicationSession class is initiated with an instance of the
-    ComponentConfig class by default but any class specific keyword arguments
-    can be consument as well to populate the class session_config and
-    package_config dictionaries.
-    
-    :param config: Autobahn ComponentConfig object
-    """
-    
-    if config:
-        return AuthorizerWampApi(config, package_config=SETTINGS)
-    else:
-        # if no config given, return a description of this WAMPlet ..
-        return {'label': 'LIEStudio user management WAMPlet',
-                'description': 'WAMPlet proving LIEStudio user management endpoints'}

@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "UserSessionConfig",
+    "title": "AuthenticatorSessionConfig",
     "type": "object",
     "properties": {
         "admin_email": {

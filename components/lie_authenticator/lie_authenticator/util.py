@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-file: management.py
+file: util.py
 
-Main user management class
+Utility functions for authentication
 """
 
 import os

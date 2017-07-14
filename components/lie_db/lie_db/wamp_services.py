@@ -1,9 +1,10 @@
+import os
 from autobahn import wamp
 
 from lie_componentbase import BaseApplicationSession, register, WampSchema
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from .db_methods import init_mongodb
+from .db_methods import MongoClientWrapper, MongoDatabaseWrapper
 
 class DBWampApi(BaseApplicationSession):
     """
@@ -11,126 +12,140 @@ class DBWampApi(BaseApplicationSession):
     """
     
     def preInit(self, **kwargs):
-        self._databases = {}
         self.session_config_template = {}
-        self.package_config_template = WampSchema('db', 'settings', 1)
+        self.package_config_template = WampSchema('db', 'settings/settings', 1)
 
-    @register(u'liestudio.db.find', WampSchema('db', 'find/request', 1), {}, True)
+    def onInit(self, **kwargs):
+        dbhost = os.getenv('_LIE_MONGO_HOST', self.package_config.get('dbhost', 'localhost'))
+        dbport = self.package_config.get('dbport', 27017)
+        self._client = MongoClientWrapper(dbhost, dbport)
+
+    @register(u'liestudio.db.findone', WampSchema('db', 'find/find-one', 1), WampSchema('db', 'find/find-response-one', 1), True)
     @inlineCallbacks
     def db_find(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        returnValue(collection.find_one(**request['query']))
+        if namespace:
+            returnValue({'result': self._client.get_namespace(namespace).find_one(**request)})
+        else:
+            returnValue({'result': None})
         
-    @register(u'liestudio.db.findmany', WampSchema('db', 'find/request', 1), {}, True)
+    @register(u'liestudio.db.findmany', WampSchema('db', 'find/find-many', 1), WampSchema('db', 'find/find-response-many', 1), True)
     @inlineCallbacks
     def db_findmany(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        returnValue([r for r in collection.find(**request['query'])])
+        if namespace:
+            database = self._client.get_namespace(namespace)
+            results = [r for r in database.find_many(**request)]
+            returnValue({
+                'result': results,
+                'total': database.count(**request),
+                'size': len(results)
+            })
+        else:
+            returnValue({
+                'result': [],
+                'total': 0,
+                'size': 0
+            })
 
-    @register(u'liestudio.db.count', WampSchema('db', 'find/request', 1), {'type': 'integer'}, True)
+    @register(u'liestudio.db.count', WampSchema('db', 'count/count', 1), WampSchema('db', 'count/count-response', 1), True)
     @inlineCallbacks
     def db_count(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        returnValue(collection.count(**request['query']))
+        if namespace:
+            returnValue({'total': self._client.get_namespace(namespace).count(**request)})
+        else:
+            returnValue({'total': 0})
 
-    @register(u'liestudio.db.insert', WampSchema('db', 'insert/one', 1), WampSchema('db', 'insert/response', 1), True)
+    @register(u'liestudio.db.insertone', WampSchema('db', 'insert/insert-one', 1), WampSchema('db', 'insert/insert-response', 1), True)
     @inlineCallbacks
     def db_insert(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        returnValue({'inserted_ids': [str(collection.insert_one(**request['query']).inserted_id)]})
+        if namespace:
+            returnValue({'ids': [self._client.get_namespace(namespace).insert_one(**request)]})
+        else:
+            returnValue({'ids': []})
 
-    @register(u'liestudio.db.insertmany', WampSchema('db', 'insert/many', 1), WampSchema('db', 'insert/response', 1), True)
+    @register(u'liestudio.db.insertmany', WampSchema('db', 'insert/insert-many', 1), WampSchema('db', 'insert/insert-response', 1), True)
     @inlineCallbacks
     def db_insertmany(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        returnValue({'inserted_ids': [str(oid) for oid in collection.insert_many(**request['query']).inserted_ids]})
+        if namespace:
+            returnValue({'ids': [id for id in self._client.get_namespace(namespace).insert_many(**request)]})
+        else:
+            returnValue({'ids': []})
 
-    @register(u'liestudio.db.update', WampSchema('db', 'update/request', 1), WampSchema('db', 'update/response', 1), True)
+    @register(u'liestudio.db.updateone', WampSchema('db', 'update/update-request', 1), WampSchema('db', 'update/update-response', 1), True)
     @inlineCallbacks
     def db_update(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
-        query = request['query']
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        updateresult = collection.update_one(**query)
+        if namespace:
+            returnValue(self._client.get_namespace(namespace).update_one(**request))
+        else:
+            returnValue({
+                'matchedCount': 0,
+                'modifiedCount': 0
+            })
 
-        response = {
-            'matched_count': updateresult.matched_count,
-            'modified_count': updateresult.modified_count
-        }
-
-        if query['upsert'] and updateresult.upserted_id:
-            response['upserted_id'] = updateresult.upserted_id
-
-        returnValue(response)
-
-    @register(u'liestudio.db.updatemany', WampSchema('db', 'update/request', 1), WampSchema('db', 'update/response', 1), True)
+    @register(u'liestudio.db.updatemany', WampSchema('db', 'update/update-request', 1), WampSchema('db', 'update/update-response', 1), True)
     @inlineCallbacks
     def db_updatemany(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
-        query = request['query']
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        updateresult = collection.update_many(**query)
+        if namespace:
+            returnValue(self._client.get_namespace(namespace).update_many(**request))
+        else:
+            returnValue({
+                'matchedCount': 0,
+                'modifiedCount': 0
+            })
 
-        response = {
-            'matched_count': updateresult.matched_count,
-            'modified_count': updateresult.modified_count
-        }
-
-        if query['upsert'] and updateresult.upserted_id:
-            response['upserted_id'] = updateresult.upserted_id
-
-        returnValue(response)
-
-    @register(u'liestudio.db.delete', WampSchema('db', 'delete/request', 1), WampSchema('db', 'delete/response', 1), True)
+    @register(u'liestudio.db.deleteone', WampSchema('db', 'delete/delete-request', 1), WampSchema('db', 'delete/delete-response', 1), True)
     @inlineCallbacks
     def db_delete(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        deleteresult = collection.delete_one(**request['query'])
+        if namespace:
+            returnValue({'count': self._client.get_namespace(namespace).delete_one(**request)})
+        else:
+            returnValue({'count': 0})
 
-        returnValue({'deleted_count': deleteresult.deleted_count})
-
-    @register(u'liestudio.db.deletemany', WampSchema('db', 'delete/request', 1), WampSchema('db', 'delete/response', 1), True)
+    @register(u'liestudio.db.deletemany', WampSchema('db', 'delete/delete-request', 1), WampSchema('db', 'delete/delete-response', 1), True)
     @inlineCallbacks
     def db_deletemany(self, request, details=None):
-        collection = yield self._get_collection(request['collection'], details)
+        namespace = yield self._get_namespace(request['collection'], details)
 
-        deleteresult = collection.delete_many(**request['query'])
+        if namespace:
+            returnValue({'count': self._client.get_namespace(namespace).delete_many(**request)})
+        else:
+            returnValue({'count': 0})
 
-        returnValue({'deleted_count': deleteresult.deleted_count})
-
-    def _get_db(self, dbname):
-        if dbname not in self._databases.keys():
-            settings = dict([(k, self.package_config.get(k)) for k in ('dbhost', 'dbport', 'dbpath', 'dblog')])
-            settings['dbname'] = dbname
-            self._databases[dbname] = init_mongodb(self, settings)
-            
-        return self._databases[dbname]
+    def _get_authid(self, details):
+        return details.caller_authrole if details.caller_authid is None else details.caller_authid
 
     @inlineCallbacks
-    def _get_collection(self, collection, details):
-        # Determine collection name from session details
-        authid = details.caller_authrole if details.caller_authid is None else details.caller_authid
-        
-        db = None
+    def _get_namespace(self, collection, details):
+        authid = self._get_authid(details)
+
         if isinstance(collection, dict):
+            # Validate permissions on namespace
             namespace = collection['namespace']
-            collection_name = collection['name']
-            user_namespaces = yield self.call(u'liestudio.user.namespaces', {'username': 'authid'})
-            if namespace in user_namespaces:
-                db = self._get_db(namespace)
+        
+            # TODO: cache namespaces
+            user_namespaces = yield self.call(u'liestudio.authenticator.namespaces', {'username': authid})
+        
+            if namespace not in user_namespaces:
+                self.log.warning('WARNING: User {user} tried to access the {namespace} database',  user=authid, 
+                                  namespace=request['collection']['namespace'])
+                returnValue(None)
         else:
-            collection_name = collection
-                
-        if db is None:
-            db = self._get_db(authid)
-
-        if not collection_name in db.collection_names():            
-            self.log.info('Creating database "{0}" collection'.format(collection_name))
-
-        returnValue(db[collection_name])
+            # A user is always allowed to operate on his own authid as namespace
+            namespace = authid
+            
+        returnValue(namespace)

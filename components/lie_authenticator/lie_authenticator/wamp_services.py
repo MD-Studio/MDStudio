@@ -17,7 +17,7 @@ from lie_componentbase import BaseApplicationSession, WampSchema
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 
-class UserWampApi(BaseApplicationSession):
+class AuthenticatorWampApi(BaseApplicationSession):
     """
     User management WAMP methods.
     """
@@ -25,8 +25,8 @@ class UserWampApi(BaseApplicationSession):
     log = Logger()
 
     def preInit(self, **kwargs):
-        self.session_config_template = WampSchema('user', 'session_config', 1)
-        self.package_config_template = WampSchema('user', 'settings', 1)
+        self.session_config_template = WampSchema('authenticator', 'session_config/session_config', 1)
+        self.package_config_template = WampSchema('authenticator', 'settings/settings', 1)
         
         self.session_config_environment_variables.update({
             'admin_username': '_LIE_AUTH_USERNAME',
@@ -54,19 +54,17 @@ class UserWampApi(BaseApplicationSession):
                         'role': 'admin',
                         'uid': 0}
 
-            admin = yield self.call(u'liestudio.db.insert', {'collection': 'users', 'query': {'document': userdata}})
+            admin = yield self.call(u'liestudio.db.insertone', {'collection': 'users', 'insert': userdata})
             namespaces = yield self.call(u'liestudio.db.insertmany', {
                 'collection': 'namespaces',
-                'query': {
-                    'documents': [
-                        {'uid': 0, 'namespace': 'md'},
-                        {'uid': 0, 'namespace': 'atb'},
-                        {'uid': 0, 'namespace': 'docking'},
-                        {'uid': 0, 'namespace': 'structures'},
-                        {'uid': 0, 'namespace': 'logger'},
-                        {'uid': 0, 'namespace': 'config'}
-                    ]
-                }
+                'insert': [
+                    {'uid': 0, 'namespace': 'md'},
+                    {'uid': 0, 'namespace': 'atb'},
+                    {'uid': 0, 'namespace': 'docking'},
+                    {'uid': 0, 'namespace': 'structures'},
+                    {'uid': 0, 'namespace': 'logger'},
+                    {'uid': 0, 'namespace': 'config'}
+                ]
             })
             if not admin:
                 self.log.error('Unable to create default admin account')
@@ -89,17 +87,17 @@ class UserWampApi(BaseApplicationSession):
         """
 
         # Count number of active user sessions
-        active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'query': {}}) 
-        self.log.info('{0} active user sessions'.format(active_session_count))
+        active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'filter': {}}) 
+        self.log.info('{0} active user sessions'.format(active_session_count['total']))
 
         # Terminate active sessions
         if active_session_count:
-            deleted = yield self.call(u'liestudio.db.deletemany', {'collection': 'sessions', 'query': {'filter': {}}})
-            self.log.info('Terminate {0} active user sessions'.format(deleted["deleted_count"]))
+            deleted = yield self.call(u'liestudio.db.deletemany', {'collection': 'sessions', 'filter': {}})
+            self.log.info('Terminate {0} active user sessions'.format(deleted["count"]))
 
         returnValue(True)
 
-    @wamp.register(u'liestudio.user.sso')
+    @wamp.register(u'liestudio.authenticator.sso')
     @inlineCallbacks
     def user_sso(self, auth_token):
         """
@@ -125,7 +123,7 @@ class UserWampApi(BaseApplicationSession):
         else:
             returnValue(False)
 
-    @wamp.register(u'liestudio.user.login')
+    @wamp.register(u'liestudio.authenticator.login')
     @inlineCallbacks
     def user_login(self, realm, authid, details):
         """
@@ -205,15 +203,15 @@ class UserWampApi(BaseApplicationSession):
 
         returnValue(auth_ticket)
     
-    @wamp.register(u'liestudio.user.namespaces')
+    @wamp.register(u'liestudio.authenticator.namespaces')
     @inlineCallbacks
     def get_namespaces(self, request):
         user = yield self._get_user(request['username'].strip())
-        namespaces = yield self.call(u'liestudio.db.findmany', {'collection': 'namespaces', 'query': {'filter': {'uid': user['uid']}}})
+        namespaces = yield self.call(u'liestudio.db.findmany', {'collection': 'namespaces', 'filter': {'uid': user['uid']}})
 
-        returnValue([n['namespace'] for n in namespaces])
+        returnValue([n['namespace'] for n in namespaces['result']])
             
-    @wamp.register(u'liestudio.user.logout', options=wamp.RegisterOptions(details_arg='details'))
+    @wamp.register(u'liestudio.authenticator.logout', options=wamp.RegisterOptions(details_arg='details'))
     @inlineCallbacks
     def user_logout(self, details):
         """
@@ -226,7 +224,7 @@ class UserWampApi(BaseApplicationSession):
 
         user = yield self._get_user(details.get('authid'))
         if user:
-            self.log.info('Logout user: {0}, uid: {1}'.format(self.user['username'], self.user['uid']))
+            self.log.info('Logout user: {0}, uid: {1}'.format(self.authenticator['username'], self.authenticator['uid']))
 
             ended = yield self._end_session(user['uid'], details.get('session'))
             if ended:
@@ -234,7 +232,7 @@ class UserWampApi(BaseApplicationSession):
     
         returnValue('Unknown user, unable to logout')
 
-    @wamp.register(u'liestudio.user.retrieve')
+    @wamp.register(u'liestudio.authenticator.retrieve')
     def retrieve_password(self, email):
         """
         Retrieve a forgotten password by email
@@ -244,7 +242,7 @@ class UserWampApi(BaseApplicationSession):
         :param email: user account email
         """
 
-        return self.usermanager.retrieve_password(email)
+        return self.authenticatormanager.retrieve_password(email)
 
     # TODO: improve and register this method, with json schemas
     @inlineCallbacks
@@ -284,7 +282,8 @@ class UserWampApi(BaseApplicationSession):
             returnValue({})
 
         # Make new uid, increment max uid by 0
-        uid = yield self.call(u'liestudio.db.find', {'collection': 'users', 'query': {'sort': [['uid', -1]]}})
+        uid = yield self.call(u'liestudio.db.findone', {'collection': 'users', 'sort': [['uid', 'desc']]})
+        uid = uid['result']
         if not uid:
             uid = 0
         else:
@@ -293,7 +292,7 @@ class UserWampApi(BaseApplicationSession):
         user_template['uid'] = uid
 
         # Add the new user to the database
-        did = yield self.call(u'liestudio.db.insert', {'collection': 'users', 'query': {'document': user_template}})
+        did = yield self.call(u'liestudio.db.insertone', {'collection': 'users', 'insert': user_template})
         if did:
             self.log.debug('Added new user to database. user: {username}, uid: {uid}'.format(**user_template))
         else:
@@ -351,18 +350,18 @@ class UserWampApi(BaseApplicationSession):
         if type(filter) is not dict:
             filter = {'username': filter}
 
-        res = yield self.call(u'liestudio.db.find', {'collection': 'users', 'query': {'filter': filter}})
+        res = yield self.call(u'liestudio.db.findone', {'collection': 'users', 'filter': filter})
 
-        returnValue(res)
+        returnValue(res['result'])
 
     def _start_session(self, uid, session_id):
         self.log.debug('Open session: {0} for user {1}'.format(session_id, uid))
-        self.call(u'liestudio.db.insert', {'collection': 'sessions', 'query': {'document': {'uid': uid, 'session_id': session_id}}})
+        self.call(u'liestudio.db.insertone', {'collection': 'sessions', 'insert': {'uid': uid, 'session_id': session_id}})
 
     @inlineCallbacks
     def _end_session(self, uid, session_id):
-        res = yield self.call(u'liestudio.db.delete', {'collection': 'sessions', 'query': {'filter': {'uid': uid, 'session_id': session_id}}})
-        returnValue(res['deleted_count'] > 0)
+        res = yield self.call(u'liestudio.db.deleteone', {'collection': 'sessions', 'filter': {'uid': uid, 'session_id': session_id}})
+        returnValue(res['count'] > 0)
 
     def _strip_unsafe_properties(self, _user):
         user = _user.copy()
@@ -407,31 +406,6 @@ class UserWampApi(BaseApplicationSession):
             self._password_retrieval_message_template.format(password=new_password, user=user['username']),
             'Password retrieval request for LIEStudio'
           )
-          res = yield self.call(u'liestudio.db.update', {'collection': 'users', 'query': {'filter': {'_id': user['_id']}, 'update': {'password': new_password}}})
+          res = yield self.call(u'liestudio.db.updateone', {'collection': 'users', 'filter': {'_id': user['_id']}, 'update': {'password': new_password}})
 
         returnValue(user)
-
-def make(config):
-    """
-    Component factory
-
-    This component factory creates instances of the application component
-    to run.
-
-    The function will get called either during development using an
-    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
-    a Crossbar.io worker.
-    The BaseApplicationSession class is initiated with an instance of the
-    ComponentConfig class by default but any class specific keyword arguments
-    can be consument as well to populate the class session_config and
-    package_config dictionaries.
-
-    :param config: Autobahn ComponentConfig object
-    """
-
-    if config:
-        return UserWampApi(config, package_config=SETTINGS)
-    else:
-        # if no config given, return a description of this WAMPlet ..
-        return {'label': 'LIEStudio user management WAMPlet',
-                'description': 'WAMPlet proving LIEStudio user management endpoints'}

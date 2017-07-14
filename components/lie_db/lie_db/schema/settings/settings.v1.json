@@ -3,12 +3,8 @@
     "title": "DBSettings",
     "type": "object",
     "properties": {
-        "dbpath": {"type": "string", "default": "./data/lie_db/.database"},
-        "dblog": {"type": "string", "default": "./data/logs/mongodb.log"},
         "dbport": {"type":"integer", "default": 27017},
         "dbhost": {"type": "string", "default": "localhost"},
-        "create_db": {"type": "boolean", "default": true},
-        "terminate_mongod_on_exit": {"type": "boolean", "default": false},
         "log_level": {
             "type": "string",
             "desciption": "Log level for the microservice task",

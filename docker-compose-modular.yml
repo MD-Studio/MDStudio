@@ -19,6 +19,20 @@ services:
             - _LIE_GLOBAL_LOG=1
         env_file: .env
 
+    logger:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py3
+        volumes:
+            # mount component
+            - ./components/lie_logger:/app/components/lie_logger
+            # mount config directory
+            - ./data/lie_logger:/app/data/lie_logger
+        environment:
+            - COMPONENT=lie_logger
+        links:
+            - crossbar
+
     md:
         extends:
             file: docker-compose-common.yml

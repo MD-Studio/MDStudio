@@ -20,7 +20,7 @@ from pprint import pprint
 
 from .wamp_taskmeta import WAMPTaskMetaData
 from .logging import WampLogObserver, PrintingObserver
-from .util import resolve_config, DefaultValidatingDraft4Validator, block_on, WampSchema, WampSchemaHandler, validate_json_schema
+from .util import resolve_config, block_on, WampSchema, WampSchemaHandler, validate_json_schema
 from .config import PY3, config_from_dotenv, ConfigHandler
 
 if PY3:
@@ -134,8 +134,8 @@ class BaseApplicationSession(ApplicationSession):
             'authmethod':   '_LIE_AUTH_METHOD'
         }
 
-        self.package_config_template = WampSchema('componentbase', 'settings', 1)
-        self.session_config_template = WampSchema('componentbase', 'session_config', 1)
+        self.package_config_template = WampSchema('componentbase', 'settings/settings', 1)
+        self.session_config_template = WampSchema('componentbase', 'session_config/session_config', 1)
 
         self.json_schemas = []
 
@@ -221,12 +221,20 @@ class BaseApplicationSession(ApplicationSession):
             self.session_config.update(session_conf)
         
         # start wamp logger for buffering
-        self.wamp_logger = WampLogObserver(self, self.session_config.get('log_level', 'info'))
+        f = None
+        templogs = os.path.join(self._config_dir, 'wamplogs.temp')
+        if os.path.isfile(templogs):
+            f = open(templogs)
+        self.wamp_logger = WampLogObserver(self, f, self.session_config.get('log_level', 'info'))
+        if f:
+            f.close()
+            os.remove(templogs)
         twisted.python.log.addObserver(self.wamp_logger)
 
         # start file logger
         log_file = twisted.python.logfile.DailyLogFile('daily.log', package_logs_dir)
-        self.file_logger = PrintingObserver(log_file, self.component_info.get('namespace'))
+        self.file_logger = PrintingObserver(log_file, self.component_info.get('namespace'), 
+                                            self.session_config.get('log_level', 'info'))
         twisted.python.log.addObserver(self.file_logger)
 
         # Configure config object
@@ -420,9 +428,6 @@ class BaseApplicationSession(ApplicationSession):
         # # server_config.addCallback(self._establish_database_connection)
         # server_config.addErrback(handle_retrieve_config_error)
 
-        # Init WAMP logging
-        self.wamp_logger.start_flushing()
-
         # Add self.disconnect to Event trigger in order to get propper shutdown
         # and exit of reactor event loop on Ctrl-C e.d.
         # reactor.addSystemEventTrigger('before', 'shutdown', self.leave)
@@ -444,8 +449,23 @@ class BaseApplicationSession(ApplicationSession):
                             self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
                                            namespace=schema.namespace, path=schema_path)
 
+
+        # Init WAMP logging
+        self.wamp_logger.start_flushing()
+        
+        reactor.addSystemEventTrigger('before', 'shutdown', self.onCleanup)
+
         # Call onRun hook.
         self.onRun(details)
+
+    def onCleanup(self, *args, **kwargs):
+        self.log.info('{class_name} of {package_name} disconnected from realm {realm}', realm=self.session_config.get('realm'),
+                      **self.component_info)
+
+        self.wamp_logger.shutdown = True
+        f = open(os.path.join(self._config_dir, 'wamplogs.temp'), 'w')
+        self.wamp_logger.flush_remaining(f)
+        f.close()
 
     def onLeave(self, details):
         """
@@ -463,29 +483,8 @@ class BaseApplicationSession(ApplicationSession):
         self.log.info('{class_name} of {package_name} is leaving realm {realm}', realm=self.session_config.get('realm'),
                       **self.component_info)
 
-        self.wamp_logger.shutdown = True
-
         # Call onExit hook
-        self.onExit(details)
-
-    def task(self, method, *args, **kwargs):
-        """
-        Wrapper around ApplicationSession `call` method.
-
-        Ensure that the right method is being called, method arguments
-        and keyword argumnents are being provided and the current session
-        data is passed along.
-        """
-
-        self.logger.debug('Call method {0}'.format(method))
-        
-        if 'session' in kwargs:
-            session_config = WAMPTaskMetaData(metadata=kwargs.get('session'))
-            del kwargs['session']
-        else:    
-            session_config = self.session_config
-        
-        return self.call(method, session=session_config(), *args, **kwargs)
+        yield self.onExit(details)
     
     # Class placeholder methods. Override these for custom events during 
     # application life cycle

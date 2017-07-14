@@ -1,4 +1,5 @@
 import threading
+import json
 import copy
 import sys
 import os
@@ -9,7 +10,7 @@ from zope.interface import provider, implementer
 from twisted.python import logfile
 from twisted.internet import reactor
 from autobahn.wamp.exception import ApplicationError
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn.twisted.util import sleep
 from twisted.python.failure import Failure
 from twisted.logger import (ILogObserver, ILogFilterPredicate, PredicateResult, LogLevel,
@@ -52,12 +53,13 @@ class PrintingObserver:
     :type datefmt:       string
     """
 
-    def __init__(self, out, namespace = None, **kwargs):
+    def __init__(self, out, namespace = None, min_level='info', **kwargs):
         self._out = open(out, 'w') if out == os.devnull else out
 
         self.format_event = '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n'
         self.datefmt = '%Y-%m-%d %H:%M:%S'
         self.namespace = namespace
+        self.min_level_index = LOGLEVELS.index(min_level)
 
     def __call__(self, event):
         """
@@ -70,46 +72,59 @@ class PrintingObserver:
         if self.namespace and not event['log_namespace'] == self.namespace:
             return
 
-        if event.get('log_format', None):
-            message = event['log_format'].format(**event)
-        else:
-            message = event.get('message', '')
-
-        oldMsg = event.pop('message')
-
-        self._out.write(self.format_event.format(asctime=datetime.fromtimestamp(event['log_time']).strftime(self.datefmt), 
-                                                  message=message, 
-                                                  **event))
-
-        if oldMsg:
-            event['message'] = oldMsg
-
-class WampLogObserver(object):
-
-    def __init__(self, session, min_level='info'):
-        self.format_event = '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n'
-
-        self.session = session
-        self.namespace = self.session.component_info.get('namespace')
-        self.min_level_index = LOGLEVELS.index(min_level)
-        self.log_queue = Queue()
-        self.shutdown = False
-
-    def __call__(self, event):
         level = event.get("log_level", None)
         if level is None:
             levelName = u"-"
         else:
             levelName = level.name
 
-        if event.get('log_format', None):
-            message = event['log_format'].format(**event)
-        else:
-            message = event.get('message', '')
+        if LOGLEVELS.index(levelName) >= self.min_level_index:
+            if event.get('log_format', None):
+                message = event['log_format'].format(**event)
+            else:
+                message = event.get('message', '')
 
-        if LOGLEVELS.index(levelName) >= self.min_level_index and event['log_namespace'] == self.namespace:
+            oldMsg = event.pop('message')
+
+            asctime = datetime.fromtimestamp(event['log_time']).strftime(self.datefmt)
+            self._out.write(self.format_event.format(asctime=asctime, message=message, **event))
+
+            if oldMsg:
+                event['message'] = oldMsg
+
+class WampLogObserver(object):
+
+    def __init__(self, session, file, min_level='info'):
+        self.format_event = '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n'
+
+        self.session = session
+        self.namespace = self.session.component_info.get('namespace')
+        self.min_level_index = LOGLEVELS.index(min_level)
+        self.log_list = []
+        self.log_queue = Queue()
+        self.shutdown = False
+
+        if file:
+            self.log_list = json.load(file)
+
+    def __call__(self, event):
+        if self.namespace and not event['log_namespace'] == self.namespace:
+            return
+
+        level = event.get("log_level", None)
+        if level is None:
+            levelName = u"-"
+        else:
+            levelName = level.name
+
+        if LOGLEVELS.index(levelName) >= self.min_level_index:
+            if event.get('log_format', None):
+                message = event['log_format'].format(**event)
+            else:
+                message = event.get('message', '')
+
             logstruct = {
-                'level': level,
+                'level': levelName,
                 'namespace': self.session.component_info['namespace'],
                 'user': self.session.session_config.get('authid', self.session.session_config.get('role', 'anonymous')),
                 'time': event['log_time'],
@@ -120,30 +135,36 @@ class WampLogObserver(object):
 
     def start_flushing(self):
         self.session.log.info('Start wamp logging')
-        self.log_list = []
         reactor.callLater(0.1, self._flush)
     
     @inlineCallbacks
     def _flush(self):        
-        while not self.log_queue.empty() and len(self.log_list) < 50:
-            self.log_list.append(self.log_queue.get(timeout=0.1))
+        while not self.log_queue.empty() and not self.shutdown:
+            try:
+                log = self.log_queue.get(timeout=0.1)
+            except TimeoutError as e:
+                pass
+            else:
+                self.log_list.append(log)
 
-        if len(self.log_list) >= 50 or (len(self.log_list) > 0 and self.shutdown):
-            self.session.log.info('Log list full, flushing')
+        if len(self.log_list) > 0 and not self.shutdown:
             try:
                 res = yield self.session.call(u'liestudio.logger.log', {'namespace': self.namespace, 'logs': self.log_list})
-            except ApplicationError:
+            except ApplicationError as e:
                 yield sleep(1)
             else:
-                self.log_list = []                
+                if not res['count'] == len(self.log_list):
+                    self.session.log.error('ERROR: logs were not completely inserted, some may have got lost')
+
+                self.log_list = []
+                yield sleep(4)
 
         if not self.shutdown:
             # enqueue again
-            reactor.callLater(2, self._flush)
-        elif not self.log_queue.empty() or not len(self.log_list) == 0:
-            while not self.log_queue.empty():
-                self.log_list.append(self.log_queue.get())
+            reactor.callLater(1, self._flush)
 
-            yield self.session.call(u'liestudio.logger.log', {'namespace': self.namespace, 'logs': self.log_list})
-            self.log_list = []
-            
+    def flush_remaining(self, file):
+        while not self.log_queue.empty():
+            self.log_list.append(self.log_queue.get())
+
+        json.dump(self.log_list, file)

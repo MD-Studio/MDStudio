@@ -26,7 +26,7 @@ elementIn () {
   return 0
 }
 
-ring0=(lie_componentbase lie_db lie_schema lie_user lie_authorizer)
+ring0=(lie_componentbase lie_db lie_schema lie_authenticator lie_authorizer)
 # Install LIEStudio components using pip
 for package in $( ls -d ${ROOTDIR}/components/*/ ); do
     if [[ -e ${package}/setup.py ]]; then

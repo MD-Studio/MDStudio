@@ -4,10 +4,10 @@
     "type": "object",
     "properties": {
         "collection": {
-            "$ref": "wamp://liestudio.schema.get/db/collection/v1.json"
+            "$ref": "wamp://liestudio.schema.get/db/collection/collection.v1.json"
         },
         "filter": {
-            "$ref": "wamp://liestudio.schema.get/db/filter/v1.json"
+            "$ref": "wamp://liestudio.schema.get/db/filter/filter.v1.json"
         }
     },
     "required": [

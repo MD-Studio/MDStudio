@@ -66,12 +66,12 @@ class UserAuthentication(CaseComponent):
     def onJoin(self, details):
 
         # Test correct test user login
-        res = yield self.call(u'liestudio.user.login', 'test1', 'test1')
+        res = yield self.call(u'liestudio.authenticator.login', 'test1', 'test1')
         testpass = isinstance(res, dict)
         self.log("correct login: {0}".format(res), testpass=testpass)
 
         # Test incorrect user logn
-        res = yield self.call(u'liestudio.user.login', 'dummy', 'user')
+        res = yield self.call(u'liestudio.authenticator.login', 'dummy', 'user')
         testpass = res == False
         self.log("incorrect login: {0}".format(res), testpass=testpass)
 
