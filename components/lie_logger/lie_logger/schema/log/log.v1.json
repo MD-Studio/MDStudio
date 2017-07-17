@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "LogRequest",
+    "type": "object",
+    "propterties": {
+        "namespace": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_\\.]+$"            
+        },
+        "logs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "level": {
+                        "type": "string",
+                        "enum": [
+                            "debug",
+                            "info",
+                            "warn",
+                            "error",
+                            "critical"
+                        ]
+                    },
+                    "namespace": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9_\\.]+$"
+                    },
+                    "user": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9_\\.]+$"
+                    },
+                    "time": {
+                        "type": "number"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    }
+}
