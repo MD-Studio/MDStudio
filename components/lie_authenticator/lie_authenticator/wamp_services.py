@@ -12,6 +12,7 @@ from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from twisted.logger import Logger
 from twisted.internet.defer import inlineCallbacks, returnValue
+from oauthlib import oauth2
 
 from lie_componentbase import BaseApplicationSession, WampSchema
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
@@ -44,26 +45,28 @@ class AuthenticatorWampApi(BaseApplicationSession):
 
     @inlineCallbacks
     def onRun(self, details=None):
-        admin = yield self._get_user({'uid': 0})
+        admin = yield self._get_user({'username': 'lieadmin'})
         if not admin:
             self.log.info('Empty user table. Create default admin account')
 
             userdata = {'username': self.session_config.get('admin_username', 'admin'),
                         'email': self.session_config.get('admin_email', None),
                         'password': hash_password(self.session_config.get('admin_password', None)),
-                        'role': 'admin',
-                        'uid': 0}
+                        'role': 'admin'}
 
             admin = yield self.call(u'liestudio.db.insertone', {'collection': 'users', 'insert': userdata})
+
+            adminId = admin['ids'][0]
+
             namespaces = yield self.call(u'liestudio.db.insertmany', {
                 'collection': 'namespaces',
                 'insert': [
-                    {'uid': 0, 'namespace': 'md'},
-                    {'uid': 0, 'namespace': 'atb'},
-                    {'uid': 0, 'namespace': 'docking'},
-                    {'uid': 0, 'namespace': 'structures'},
-                    {'uid': 0, 'namespace': 'logger'},
-                    {'uid': 0, 'namespace': 'config'}
+                    {'userId': adminId, 'namespace': 'md'},
+                    {'userId': adminId, 'namespace': 'atb'},
+                    {'userId': adminId, 'namespace': 'docking'},
+                    {'userId': adminId, 'namespace': 'structures'},
+                    {'userId': adminId, 'namespace': 'logger'},
+                    {'userId': adminId, 'namespace': 'config'}
                 ]
             })
             if not admin:
@@ -207,7 +210,7 @@ class AuthenticatorWampApi(BaseApplicationSession):
     @inlineCallbacks
     def get_namespaces(self, request):
         user = yield self._get_user(request['username'].strip())
-        namespaces = yield self.call(u'liestudio.db.findmany', {'collection': 'namespaces', 'filter': {'uid': user['uid']}})
+        namespaces = yield self.call(u'liestudio.db.findmany', {'collection': 'namespaces', 'filter': {'userId': user['id']}})
 
         returnValue([n['namespace'] for n in namespaces['result']])
             
@@ -224,7 +227,7 @@ class AuthenticatorWampApi(BaseApplicationSession):
 
         user = yield self._get_user(details.get('authid'))
         if user:
-            self.log.info('Logout user: {0}, uid: {1}'.format(self.authenticator['username'], self.authenticator['uid']))
+            self.log.info('Logout user: {0}, id: {1}'.format(user['username'], user['id']))
 
             ended = yield self._end_session(user['uid'], details.get('session'))
             if ended:
@@ -242,7 +245,7 @@ class AuthenticatorWampApi(BaseApplicationSession):
         :param email: user account email
         """
 
-        return self.authenticatormanager.retrieve_password(email)
+        raise Exception
 
     # TODO: improve and register this method, with json schemas
     @inlineCallbacks
@@ -281,20 +284,10 @@ class AuthenticatorWampApi(BaseApplicationSession):
             self.log.error('Email {0} already in use'.format(userdata['email']))
             returnValue({})
 
-        # Make new uid, increment max uid by 0
-        uid = yield self.call(u'liestudio.db.findone', {'collection': 'users', 'sort': [['uid', 'desc']]})
-        uid = uid['result']
-        if not uid:
-            uid = 0
-        else:
-            uid = uid['uid']
-            uid += 1
-        user_template['uid'] = uid
-
         # Add the new user to the database
-        did = yield self.call(u'liestudio.db.insertone', {'collection': 'users', 'insert': user_template})
-        if did:
-            self.log.debug('Added new user to database. user: {username}, uid: {uid}'.format(**user_template))
+        result = yield self.call(u'liestudio.db.insertone', {'collection': 'users', 'insert': user_template})
+        if result:
+            self.log.debug('Added new user. user: {username}, id: {id}', id=result['ids'][0], **user_template)
         else:
             self.log.error('Unable to add new user to database')
             returnValue({})

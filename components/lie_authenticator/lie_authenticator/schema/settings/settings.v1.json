@@ -8,7 +8,7 @@
             "items": {
                 "type": "string"
             },
-            "default": ["_id", "password"]
+            "default": ["id", "password"]
         },
         "only_localhost_access": {
             "type": "boolean",

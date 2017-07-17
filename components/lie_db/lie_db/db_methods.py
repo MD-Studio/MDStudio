@@ -44,7 +44,14 @@ class MongoDatabaseWrapper:
     def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None):
         coll = self._get_collection(collection)
 
-        return {} if coll is None else coll.find_one(filter, projection, skip, sort=sort)
+        if coll is None:
+            return {}
+        else:
+            result = coll.find_one(filter, projection, skip, sort=sort)
+            if result:
+                result['id'] = str(result.pop('_id'))
+
+            return result
 
     def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None):
         coll = self._get_collection(collection)
@@ -53,6 +60,7 @@ class MongoDatabaseWrapper:
             return []
 
         for doc in coll.find(filter, projection, skip, sort=sort):
+            doc['id'] = str(doc.pop('_id'))
             yield doc
 
     def insert_one(self, collection=None, insert=None):

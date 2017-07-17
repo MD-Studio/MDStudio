@@ -150,7 +150,7 @@ class WampLogObserver(object):
         if len(self.log_list) > 0 and not self.shutdown:
             try:
                 res = yield self.session.call(u'liestudio.logger.log', {'namespace': self.namespace, 'logs': self.log_list})
-            except ApplicationError as e:
+            except Exception as e:
                 yield sleep(1)
             else:
                 if not res['count'] == len(self.log_list):
