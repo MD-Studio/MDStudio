@@ -212,3 +212,5 @@ app/src/**/*.js
 app/gulpfile.js
 app/gulpfile.js.map
 app/bower_components/*
+components/*/data
+docker/.USERDONE
