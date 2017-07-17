@@ -1,0 +1,73 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "OAuthClient",
+    "type": "object",
+    "properties": {
+        "userId": {
+            "type": "string",
+            "pattern": "[0-9a-fA-F]+",
+            "description": "MongoDB object ID for the user",
+            "minLength": 12,
+            "maxLength": 12
+        },
+        "grantType": {
+            "type": "string",
+            "enum": [
+                "authorizationCode",
+                "clientCredentials"
+            ]
+        },
+        "responseType": {
+            "type": "string",
+            "enum": [
+                "code"
+            ]
+        },
+        "scopes": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "redirectUris": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "id": {
+            "type": "string",
+            "pattern": "[0-9a-fA-F]+",
+            "description": "MongoDB object ID for the client",
+            "minLength": 12,
+            "maxLength": 12
+        }
+    },
+    "oneOf": [
+        {
+            "properties": {
+                "grantType": {
+                    "enum": [
+                        "authorizationCode"
+                    ]
+                }
+            },
+            "required": ["grantType", "responseType"]
+        },
+        {
+            "properties": {
+                "grantType": {
+                    "enum": [
+                        "clientCredentials"
+                    ]
+                },
+                "responseType": {
+                    "not": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    ],
+    "additionalProperties": false
+}

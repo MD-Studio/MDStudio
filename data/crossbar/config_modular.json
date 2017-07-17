@@ -15,17 +15,17 @@
                     "roles": [
                         {
                             "name": "public",
-                            "authorizer": "liestudio.authorizer.authorize"
+                            "authorizer": "liestudio.auth.authorize"
                         },
                         {
-                            "name": "authenticator",
-                            "authorizer": "liestudio.authorizer.authorize"
+                            "name": "auth",
+                            "authorizer": "liestudio.auth.authorize"
                         },
                         {
                             "name": "authorizer",
                             "permissions": [
                                 {
-                                    "uri": "liestudio.authorizer",
+                                    "uri": "liestudio.auth",
                                     "match": "prefix",
                                     "allow": {
                                         "call": false,
@@ -40,7 +40,7 @@
                                     "cache": false
                                 },
                                 {
-                                    "uri": "liestudio.authenticator.namespaces",
+                                    "uri": "liestudio.auth.namespaces",
                                     "match": "exact",
                                     "allow": {
                                         "call": true
@@ -55,15 +55,15 @@
                         },
                         {
                             "name": "db",
-                            "authorizer": "liestudio.authorizer.authorize"
+                            "authorizer": "liestudio.auth.authorize"
                         },
                         {
                             "name": "schema",
-                            "authorizer": "liestudio.authorizer.authorize"
+                            "authorizer": "liestudio.auth.authorize"
                         },
                         {
                             "name": "admin",
-                            "authorizer": "liestudio.authorizer.authorize"
+                            "authorizer": "liestudio.auth.authorize"
                         }
                     ]
                 }
@@ -127,11 +127,11 @@
                                 },
                                 "ticket": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.authenticator.login"
+                                    "authenticator": "liestudio.auth.login"
                                 },
                                 "wampcra": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.authenticator.login"
+                                    "authenticator": "liestudio.auth.login"
                                 }
                             }
                         }
@@ -141,10 +141,10 @@
             "components": [
                 {
                     "type": "wamplet",
-                    "package": "lie_authorizer",
+                    "package": "lie_auth",
                     "entrypoint": "wamp_services",
                     "realm": "liestudio",
-                    "role": "authorizer"
+                    "role": "auth"
                 },
                 {
                     "type": "wamplet",
@@ -159,13 +159,6 @@
                     "entrypoint": "wamp_services",
                     "realm": "liestudio",
                     "role": "db"
-                },
-                {
-                    "type": "wamplet",
-                    "package": "lie_authenticator",
-                    "entrypoint": "wamp_services",
-                    "realm": "liestudio",
-                    "role": "authenticator"
                 }
             ]   
         }

@@ -3,7 +3,7 @@
 """
 file: util.py
 
-Utility functions for authentication
+Utility functions for authentication and authorization
 """
 
 import os

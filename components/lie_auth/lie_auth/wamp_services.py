@@ -17,8 +17,9 @@ from oauthlib import oauth2
 from lie_componentbase import BaseApplicationSession, WampSchema
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
+from .oauth.request_validator import OAuthRequestValidator
 
-class AuthenticatorWampApi(BaseApplicationSession):
+class AuthWampApi(BaseApplicationSession):
     """
     User management WAMP methods.
     """
@@ -26,14 +27,16 @@ class AuthenticatorWampApi(BaseApplicationSession):
     log = Logger()
 
     def preInit(self, **kwargs):
-        self.session_config_template = WampSchema('authenticator', 'session_config/session_config', 1)
-        self.package_config_template = WampSchema('authenticator', 'settings/settings', 1)
+        self.session_config_template = WampSchema('auth', 'session_config/session_config', 1)
+        self.package_config_template = WampSchema('auth', 'settings/settings', 1)
         
         self.session_config_environment_variables.update({
             'admin_username': '_LIE_AUTH_USERNAME',
             'admin_email': '_LIE_USER_ADMIN_EMAIL',
             'admin_password': '_LIE_AUTH_PASSWORD'
         })
+
+        self.oauth_client = oauth2.BackendApplicationClient('auth')
 
     def onInit(self, **kwargs):
         password_retrieval_message_file = os.path.join(self._config_dir, 'password_retrieval.txt')
@@ -42,6 +45,9 @@ class AuthenticatorWampApi(BaseApplicationSession):
         else:
             self._password_retrieval_message_template = PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
             open(password_retrieval_message_file, 'w').write(self._password_retrieval_message_template)
+
+        self.oauth_backend_server = oauth2.BackendApplicationServer(OAuthRequestValidator(self))
+
 
     @inlineCallbacks
     def onRun(self, details=None):
@@ -100,7 +106,7 @@ class AuthenticatorWampApi(BaseApplicationSession):
 
         returnValue(True)
 
-    @wamp.register(u'liestudio.authenticator.sso')
+    @wamp.register(u'liestudio.auth.sso')
     @inlineCallbacks
     def user_sso(self, auth_token):
         """
@@ -126,7 +132,7 @@ class AuthenticatorWampApi(BaseApplicationSession):
         else:
             returnValue(False)
 
-    @wamp.register(u'liestudio.authenticator.login')
+    @wamp.register(u'liestudio.auth.login')
     @inlineCallbacks
     def user_login(self, realm, authid, details):
         """
@@ -205,8 +211,55 @@ class AuthenticatorWampApi(BaseApplicationSession):
         self.log.info('Access granted. user: {user}', user=authid, **details)
 
         returnValue(auth_ticket)
+
+    @wamp.register(u'liestudio.auth.authorize')
+    @inlineCallbacks
+    def authorize(self, session, uri, action, options, details=None):
+        role = session.get('authrole')
+
+        if role in PERMISSIONS.keys():
+            for rule in PERMISSIONS[role]:
+                rulematch = False
+                if 'match' in rule.keys():
+                    if rule['match'] == 'prefix' and uri.startswith('{}.'.format(rule['uri'])):
+                        rulematch = True
+                    elif rule['match'] == 'exact' and uri == rule['uri']:
+                        rulematch = True
+                
+                if rulematch:
+                    permission = extract_permission(rule, uri, action)
+                    self.log.debug( 'DEBUG: found matching rule {rule}, permission is: {permission}', rule=rule, permission=permission)
+                    returnValue(permission)
+                    
+        if session.get('authprovider') is None and role in ('auth', 'schema', 'db'):
+            authid = role
+        else:
+            authid = session.get('authid')
+            namespaces = yield self.call(u'liestudio.auth.namespaces', {'username': authid})
+
+            if namespaces and any([uri.startswith('liestudio.{}.'.format(namespace)) for namespace in namespaces]):
+                self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
+                returnValue({'allow': True, 'disclose': True})
+
+        self.log.debug( 'DEBUG: authid resoved to {}'.format(authid))
+        if authid and action == 'call' and (uri.startswith('liestudio.db.') or 
+                                            uri == 'liestudio.schema.register' or
+                                            uri == 'liestudio.logger.log'):
+            self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
+            returnValue({ 'allow': True, 'disclose': True })
+
+        if action == 'call' and re.match('liestudio.schema.get', uri):
+            self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
+            returnValue({'allow': True, 'disclose': False})
+
+        if action == 'call' and uri == u'liestudio.auth.logout':
+            returnValue({'allow': True, 'disclose': True})
+
+        self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
+
+        returnValue(False)
     
-    @wamp.register(u'liestudio.authenticator.namespaces')
+    @wamp.register(u'liestudio.auth.namespaces')
     @inlineCallbacks
     def get_namespaces(self, request):
         user = yield self._get_user(request['username'].strip())
@@ -214,7 +267,7 @@ class AuthenticatorWampApi(BaseApplicationSession):
 
         returnValue([n['namespace'] for n in namespaces['result']])
             
-    @wamp.register(u'liestudio.authenticator.logout', options=wamp.RegisterOptions(details_arg='details'))
+    @wamp.register(u'liestudio.auth.logout', options=wamp.RegisterOptions(details_arg='details'))
     @inlineCallbacks
     def user_logout(self, details):
         """
@@ -235,7 +288,7 @@ class AuthenticatorWampApi(BaseApplicationSession):
     
         returnValue('Unknown user, unable to logout')
 
-    @wamp.register(u'liestudio.authenticator.retrieve')
+    @wamp.register(u'liestudio.auth.retrieve')
     def retrieve_password(self, email):
         """
         Retrieve a forgotten password by email
@@ -402,3 +455,108 @@ class AuthenticatorWampApi(BaseApplicationSession):
           res = yield self.call(u'liestudio.db.updateone', {'collection': 'users', 'filter': {'_id': user['_id']}, 'update': {'password': new_password}})
 
         returnValue(user)
+
+# TODO: convert to fully dynamic permissions
+PERMISSIONS = {
+    "public": [
+        {
+            "uri": u"liestudio.public",
+            "match": "prefix",
+            "allow": {
+                "call": True,
+                "register": False,
+                "publish": False,
+                "subscribe": True
+            },
+            "disclose": {
+                "caller": False,
+                "publisher": False
+            },
+            "cache": True
+        }
+    ],
+    "auth": [
+        {
+            "uri": u"liestudio.auth",
+            "match": "prefix",
+            "allow": {
+                "call": False,
+                "register": True,
+                "publish": False,
+                "subscribe": False
+            },
+            "disclose": {
+                "caller": False,
+                "publisher": False
+            },
+            "cache": False
+        }
+    ],
+    "db": [
+        {
+            "uri": u"liestudio.db",
+            "match": "prefix",
+            "allow": {
+                "call": False,
+                "register": True,
+                "publish": False,
+                "subscribe": False
+            },
+            "disclose": {
+                "caller": False,
+                "publisher": False
+            },
+            "cache": True
+        },
+        {
+            "uri": u"liestudio.auth.namespaces",
+            "match": "exact",
+            "allow": {
+                "call": True,
+                "register": False,
+                "publish": False,
+                "subscribe": False
+            },
+            "disclose": {
+                "caller": False,
+                "publisher": False
+            },
+            "cache": True
+        }
+    ],
+    "schema": [
+        {
+            "uri": u"liestudio.schema",
+            "match": "prefix",
+            "allow": {
+                "call": True,
+                "register": True,
+                "publish": False,
+                "subscribe": False
+            },
+            "disclose": {
+                "caller": True,
+                "publisher": True
+            },
+            "cache": True
+        }
+    ]
+}
+
+def extract_permission(rule, uri, action):
+    if type(rule['allow']) is dict:
+        permission = {}
+        if rule['allow'].get(action):
+            permission['allow'] = True
+            permission['cache'] = rule.get('cache')
+
+            if type(rule['disclose']) is dict and rule['disclose'].get('{}er'.format(action)):
+                permission['disclose'] = True
+            else:
+                permission['disclose'] = False
+        
+            return permission
+    else:
+        return rule['allow']
+
+    return False

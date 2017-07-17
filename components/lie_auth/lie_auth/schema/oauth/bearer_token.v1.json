@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "OAuthBearerToken",
+    "type": "object",
+    "properties": {
+        "clientId": {
+            "type": "string",
+            "pattern": "[0-9a-fA-F]+",
+            "description": "MongoDB object ID for the user",
+            "minLength": 12,
+            "maxLength": 12
+        },
+        "scopes": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "accessToken": {
+            "type": "string",
+            "maxLength": 100
+        },
+        "refreshToken": {
+            "type": "string",
+            "maxLength": 100
+        },
+        "expirationTime": {
+            "type": "number"
+        }
+    },
+    "additionalProperties": false
+}

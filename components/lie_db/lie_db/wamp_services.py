@@ -138,7 +138,7 @@ class DBWampApi(BaseApplicationSession):
             namespace = collection['namespace']
         
             # TODO: cache namespaces
-            user_namespaces = yield self.call(u'liestudio.authenticator.namespaces', {'username': authid})
+            user_namespaces = yield self.call(u'liestudio.auth.namespaces', {'username': authid})
         
             if namespace not in user_namespaces:
                 self.log.warning('WARNING: User {user} tried to access the {namespace} database',  user=authid, 

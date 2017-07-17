@@ -62,7 +62,7 @@
                 {
                    "type": "class",
                    "realm": "wamp_test",
-                   "classname": "lie_authenticator.wamp_services.AuthenticatorWampApi"
+                   "classname": "lie_auth.wamp_services.AuthWampApi"
                 }
              ]
         }

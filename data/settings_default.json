@@ -100,7 +100,7 @@
             }
         }
     }, 
-    "lie_authenticator": {
+    "lie_auth": {
         "admin_email": "m4.van.dijk@vu.nl", 
         "admin_password": "liepw@#", 
         "admin_username": "lieadmin", 
@@ -122,11 +122,11 @@
         "bootstrap_order": [
             "lie_db", 
             "lie_logger", 
-            "lie_authenticator"
+            "lie_auth"
         ], 
         "platform": "darwin", 
         "shutdown_order": [
-            "lie_authenticator", 
+            "lie_auth", 
             "lie_config", 
             "lie_logger", 
             "lie_db"

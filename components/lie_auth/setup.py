@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# package: lie_db
+# package: lie_auth
 # file: setup.py
 #
-# Part of ‘lie_db’, a package providing MongoDB access for the LIEStudio
+# Part of ‘lie_auth’, a package providing authentication and authorization for the LIEStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -23,17 +23,17 @@
 
 from setuptools import setup, find_packages
 
-distribution_name = 'lie_authorizer'
+distribution_name = 'lie_auth'
 
 setup(
     name=distribution_name,
     version=0.1,
-    description='Authorization management for the LIEStudio application',
+    description='Authentication and authorization management for the LIEStudio application',
     author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
     author_email='m4.van.dijk@vu.nl',
     url='https://github.com/NLeSC/LIEStudio',
     license='Apache Software License 2.0',
-    keywords='LIEStudio authorization',
+    keywords='LIEStudio authenticator authorizer',
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
@@ -43,7 +43,7 @@ setup(
     zip_safe=True,
     entry_points={
         'autobahn.twisted.wamplet': [
-            'wamp_services = lie_authorizer:wampapi'
+            'wamp_services = lie_auth:wampapi'
         ],
     },
     classifiers=[
@@ -53,5 +53,5 @@ setup(
         'Topic :: System :: Systems Administration :: Authentication/Directory',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

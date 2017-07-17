@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 """
-package: lie_authenticator
+package: lie_auth
 
-LIEStudio authentication management component
+LIEStudio authentication and authorization management component
 """
 
 import os
 
-__module__ = 'lie_authenticator'
+__module__ = 'lie_auth'
 __docformat__ = 'restructuredtext'
 __version__ = '{major:d}.{minor:d}'.format(major=0, minor=1)
 __author__ = 'Marc van Dijk'
@@ -19,7 +19,7 @@ __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 
-from .wamp_services import AuthenticatorWampApi
+from .wamp_services import AuthWampApi
 
 # Define module public API
-wampapi = AuthenticatorWampApi
+wampapi = AuthWampApi
