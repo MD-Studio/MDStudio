@@ -19,10 +19,6 @@
                         },
                         {
                             "name": "auth",
-                            "authorizer": "liestudio.auth.authorize"
-                        },
-                        {
-                            "name": "authorizer",
                             "permissions": [
                                 {
                                     "uri": "liestudio.auth",
@@ -37,19 +33,22 @@
                                         "caller": true,
                                         "publisher": true
                                     },
-                                    "cache": false
+                                    "cache": true
                                 },
                                 {
-                                    "uri": "liestudio.auth.namespaces",
-                                    "match": "exact",
+                                    "uri": "liestudio",
+                                    "match": "prefix",
                                     "allow": {
-                                        "call": true
+                                        "call": true,
+                                        "register": false,
+                                        "publish": true,
+                                        "subscribe": true
                                     },
                                     "disclose": {
-                                        "caller": false,
-                                        "publisher": false
+                                        "caller": true,
+                                        "publisher": true
                                     },
-                                    "cache": false
+                                    "cache": true
                                 }
                             ]
                         },
@@ -64,8 +63,22 @@
                         {
                             "name": "admin",
                             "authorizer": "liestudio.auth.authorize"
+                        },
+                        {
+                            "name": "user",
+                            "authorizer": "liestudio.auth.authorize"
                         }
-                    ]
+                    ],
+                    "store": {
+                        "type": "memory",
+                        "event-history": [
+                            {
+                                "uri": "liestudio.logger.log",
+                                "match": "exact",
+                                "limit": 10000
+                            }
+                        ]
+                    }
                 }
             ],
             "transports": [

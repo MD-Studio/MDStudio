@@ -27,8 +27,16 @@
                         "pattern": "^[a-zA-Z0-9_\\.]+$"
                     },
                     "user": {
-                        "type": "string",
-                        "pattern": "^[a-zA-Z0-9_\\.]+$"
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_\\.]+$"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null
                     },
                     "time": {
                         "type": "number"

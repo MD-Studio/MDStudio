@@ -126,7 +126,7 @@ class WampLogObserver(object):
             logstruct = {
                 'level': levelName,
                 'namespace': self.session.component_info['namespace'],
-                'user': self.session.session_config.get('authid', self.session.session_config.get('role', 'anonymous')),
+                'user': self.session.session_config.get('authid', self.session.session_config.get('role')),
                 'time': event['log_time'],
                 'message': message
             }
@@ -134,8 +134,10 @@ class WampLogObserver(object):
             self.log_queue.put(logstruct)
 
     def start_flushing(self):
-        self.session.log.info('Start wamp logging')
         reactor.callLater(0.1, self._flush)
+
+    def stop_flushing(self):
+        self.shutdown = True
     
     @inlineCallbacks
     def _flush(self):        
@@ -149,19 +151,16 @@ class WampLogObserver(object):
 
         if len(self.log_list) > 0 and not self.shutdown:
             try:
-                res = yield self.session.call(u'liestudio.logger.log', {'namespace': self.namespace, 'logs': self.log_list})
-            except Exception as e:
-                yield sleep(1)
+                yield self.session.flush_logs(self.namespace, self.log_list)
+            except ApplicationError as e:
+                print(e)
+                yield sleep(5)
             else:
-                if not res['count'] == len(self.log_list):
-                    self.session.log.error('ERROR: logs were not completely inserted, some may have got lost')
-
                 self.log_list = []
-                yield sleep(4)
 
         if not self.shutdown:
             # enqueue again
-            reactor.callLater(1, self._flush)
+            reactor.callLater(5, self._flush)
 
     def flush_remaining(self, file):
         while not self.log_queue.empty():

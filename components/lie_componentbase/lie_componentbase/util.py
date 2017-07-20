@@ -186,7 +186,44 @@ class InlineSchema:
 
     def schemas(self):
         yield self.schema if isinstance(self.schema, dict) else {'$ref': self.schema}
-    
+
+def validate_output(output_schema):
+    if not isinstance(output_schema, (Schema, WampSchema, InlineSchema)):
+        output_schema = InlineSchema(output_schema)
+
+    def wrap_f(f):
+        @inlineCallbacks
+        def wrapped_f(self, *args, **kwargs):
+            res = yield f(self, *args, **kwargs)
+
+            validate_json_schema(self, output_schema, res)
+
+            returnValue(res)
+        
+        return wrapped_f
+
+    return wrap_f
+
+def validate_input(input_schema, strict=True):
+    if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
+        input_schema = InlineSchema(input_schema)
+
+    def wrap_f(f):
+        @inlineCallbacks
+        def wrapped_f(self, request, *args, **kwargs):
+            valid = validate_json_schema(self, input_schema, request)
+
+            if strict and not valid:
+                returnValue({})
+            else:
+                res = yield f(self, request, *args, **kwargs)
+
+                returnValue(res)
+
+        return wrapped_f
+
+    return wrap_f
+
 def register(uri, input_schema, output_schema, details_arg=False, options=None):
     if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
         input_schema = InlineSchema(input_schema)
@@ -202,17 +239,18 @@ def register(uri, input_schema, output_schema, details_arg=False, options=None):
 
     def wrap_f(f):
         @wamp.register(uri, options)
+        @validate_input(input_schema)
+        @validate_output(output_schema)
         @inlineCallbacks
-        def wrapped_f(self, request, **kwargs):
-            self.log.debug('DEBUG: validating input with schema {}'.format(input_schema))
-            if not validate_json_schema(self, input_schema, request):
-                returnValue({})
-            else:
-                res = yield f(self, request, **kwargs)
+        def wrapped_f(self, request, *args, **kwargs):
+            # if not validate_json_schema(self, input_schema, request):
+            #     returnValue({})
+            # else:
+            res = yield f(self, request, *args, **kwargs)
         
-                valid = validate_json_schema(self, output_schema, res)
+                # valid = validate_json_schema(self, output_schema, res)
                 
-                returnValue(res)
+            returnValue(res)
 
         wrapped_f._lie_input_schema = input_schema
         wrapped_f._lie_output_schema = output_schema

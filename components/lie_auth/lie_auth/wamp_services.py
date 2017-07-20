@@ -7,14 +7,16 @@ WAMP service methods the module exposes.
 """
 
 import os
+import re
 
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from twisted.logger import Logger
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock
 from oauthlib import oauth2
+from oauthlib.common import Request as OAuthRequest
 
-from lie_componentbase import BaseApplicationSession, WampSchema
+from lie_componentbase import BaseApplicationSession, WampSchema, register
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 from .oauth.request_validator import OAuthRequestValidator
@@ -47,40 +49,78 @@ class AuthWampApi(BaseApplicationSession):
             open(password_retrieval_message_file, 'w').write(self._password_retrieval_message_template)
 
         self.oauth_backend_server = oauth2.BackendApplicationServer(OAuthRequestValidator(self))
+        self.db_lock = DeferredLock()
 
+        # TODO: check this before accessing the DB
+        self.db_initialized = False
 
     @inlineCallbacks
     def onRun(self, details=None):
-        admin = yield self._get_user({'username': 'lieadmin'})
-        if not admin:
-            self.log.info('Empty user table. Create default admin account')
+        # Subscribe DB initialization to the DB online event
+        self.db_subscription = yield self.subscribe(self.init_admin_user, u'liestudio.db.events.online', options=wamp.SubscribeOptions(match="exact"))
 
-            userdata = {'username': self.session_config.get('admin_username', 'admin'),
-                        'email': self.session_config.get('admin_email', None),
-                        'password': hash_password(self.session_config.get('admin_password', None)),
-                        'role': 'admin'}
+        try:
+            status = yield self.call(u'liestudio.db.status')
+        except Exception:
+            status = False
 
-            admin = yield self.call(u'liestudio.db.insertone', {'collection': 'users', 'insert': userdata})
+        # If the DB is already online, initialize it now and unsubscribe
+        if status:
+            self.init_admin_user()
 
-            adminId = admin['ids'][0]
+        
+    @inlineCallbacks        
+    def init_admin_user(self, event=None):
+        # Acquire lock before initializing the database
+        yield self.db_lock.acquire()
 
-            namespaces = yield self.call(u'liestudio.db.insertmany', {
-                'collection': 'namespaces',
-                'insert': [
-                    {'userId': adminId, 'namespace': 'md'},
-                    {'userId': adminId, 'namespace': 'atb'},
-                    {'userId': adminId, 'namespace': 'docking'},
-                    {'userId': adminId, 'namespace': 'structures'},
-                    {'userId': adminId, 'namespace': 'logger'},
-                    {'userId': adminId, 'namespace': 'config'}
-                ]
-            })
-            if not admin:
-                self.log.error('Unable to create default admin account')
-                self.leave('Unable to create default admin account, could not properly start.')
+        try:
+            if not self.db_initialized:
+                admin = yield self._get_user({'username': 'lieadmin'})
+                if not admin:
+                    self.log.info('Empty user table. Create default admin account')
 
-        # Cleanup after improper shutdown
-        status = yield self.onExit()
+                    userdata = {'username': self.session_config.get('admin_username', 'admin'),
+                                'email': self.session_config.get('admin_email', None),
+                                'password': hash_password(self.session_config.get('admin_password', None)),
+                                'role': 'admin'}
+
+                    admin = yield self.call(u'liestudio.db.insertone', {'collection': 'users', 'insert': userdata})
+
+                    adminId = admin['ids'][0]
+
+                    namespaces = yield self.call(u'liestudio.db.insertmany', {
+                        'collection': 'namespaces',
+                        'insert': [
+                            {'userId': adminId, 'namespace': 'md'},
+                            {'userId': adminId, 'namespace': 'atb'},
+                            {'userId': adminId, 'namespace': 'docking'},
+                            {'userId': adminId, 'namespace': 'structures'},
+                            {'userId': adminId, 'namespace': 'logger'},
+                            {'userId': adminId, 'namespace': 'config'}
+                        ]
+                    })
+                    if not admin:
+                        self.log.error('Unable to create default admin account')
+                        self.leave('Unable to create default admin account, could not properly start.')
+
+                # Cleanup previous run
+                # Count number of active user sessions
+                active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'filter': {}}) 
+                self.log.info('{0} active user sessions'.format(active_session_count['total']))
+
+                # Terminate active sessions
+                if active_session_count:
+                    deleted = yield self.call(u'liestudio.db.deletemany', {'collection': 'sessions', 'filter': {}})
+                    self.log.info('Terminate {0} active user sessions'.format(deleted["count"]))
+
+                # Mark the database as initialized and unsubscribe
+                self.db_initialized = True
+                yield self.db_subscription.unsubscribe()
+        except Exception:
+            pass
+
+        self.db_lock.release()
 
     @inlineCallbacks
     def onExit(self, details=None):
@@ -94,17 +134,6 @@ class AuthWampApi(BaseApplicationSession):
         :return:         successful exit sequence
         :rtype:          bool
         """
-
-        # Count number of active user sessions
-        active_session_count = yield self.call(u'liestudio.db.count', {'collection': 'sessions', 'filter': {}}) 
-        self.log.info('{0} active user sessions'.format(active_session_count['total']))
-
-        # Terminate active sessions
-        if active_session_count:
-            deleted = yield self.call(u'liestudio.db.deletemany', {'collection': 'sessions', 'filter': {}})
-            self.log.info('Terminate {0} active user sessions'.format(deleted["count"]))
-
-        returnValue(True)
 
     @wamp.register(u'liestudio.auth.sso')
     @inlineCallbacks
@@ -189,7 +218,6 @@ class AuthWampApi(BaseApplicationSession):
         if authmethod == u'ticket':
             is_valid = self._validate_user_login(user, username, details['ticket'])
             if is_valid:
-
                 auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user)}
             else:
                 raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
@@ -205,19 +233,24 @@ class AuthWampApi(BaseApplicationSession):
         else:
             raise ApplicationError("No such authentication method known: {0}".format(authmethod))
 
-        self._start_session(user['uid'], details.get(u'session', 0))
+        self._start_session(user['id'], details.get(u'session', 0))
         
         # Log authorization
-        self.log.info('Access granted. user: {user}', user=authid, **details)
+        self.log.info('Access granted. user: {user}', user=authid)
 
         returnValue(auth_ticket)
 
+    @register(u'liestudio.auth.registerscopes', {}, {}, details_arg=True)
+    def register_scopes(self, request, details):
+        print(request, details)
+        pass
+
     @wamp.register(u'liestudio.auth.authorize')
     @inlineCallbacks
-    def authorize(self, session, uri, action, options, details=None):
+    def authorize(self, session, uri, action, options):        
         role = session.get('authrole')
 
-        if role in PERMISSIONS.keys():
+        if role and role in PERMISSIONS.keys():
             for rule in PERMISSIONS[role]:
                 rulematch = False
                 if 'match' in rule.keys():
@@ -233,27 +266,39 @@ class AuthWampApi(BaseApplicationSession):
                     
         if session.get('authprovider') is None and role in ('auth', 'schema', 'db'):
             authid = role
+
+            if uri.startswith('liestudio.{}.'.format(authid)):
+                returnValue({'allow': True, 'disclose': False, 'cache': True})
+
+            if uri == u'wamp.subscription.get_events':
+                returnValue({'allow': True, 'disclose': False, 'cache': True})
         else:
             authid = session.get('authid')
-            namespaces = yield self.call(u'liestudio.auth.namespaces', {'username': authid})
+            namespaces = yield self.get_namespaces({'username': authid})
 
             if namespaces and any([uri.startswith('liestudio.{}.'.format(namespace)) for namespace in namespaces]):
                 self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
                 returnValue({'allow': True, 'disclose': True})
 
         self.log.debug( 'DEBUG: authid resoved to {}'.format(authid))
-        if authid and action == 'call' and (uri.startswith('liestudio.db.') or 
-                                            uri == 'liestudio.schema.register' or
-                                            uri == 'liestudio.logger.log'):
+        if authid and action == 'call' and (uri.startswith('liestudio.db.') or uri == u'liestudio.schema.register'):
             self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
-            returnValue({ 'allow': True, 'disclose': True })
+            returnValue({'allow': True, 'disclose': True})
 
         if action == 'call' and re.match('liestudio.schema.get', uri):
             self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))
             returnValue({'allow': True, 'disclose': False})
 
         if action == 'call' and uri == u'liestudio.auth.logout':
+            self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))            
             returnValue({'allow': True, 'disclose': True})
+
+        if authid and action == 'publish' and uri == u'liestudio.logger.log':
+            self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(authid, action, uri))            
+            returnValue({'allow': True, 'disclose': True})
+
+        if authid == u'lieadmin' and action == 'call' and uri == u'wamp.subscription.get_events':
+            returnValue({'allow': True, 'disclose': False})
 
         self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
 
@@ -400,13 +445,13 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(res['result'])
 
-    def _start_session(self, uid, session_id):
-        self.log.debug('Open session: {0} for user {1}'.format(session_id, uid))
-        self.call(u'liestudio.db.insertone', {'collection': 'sessions', 'insert': {'uid': uid, 'session_id': session_id}})
+    def _start_session(self, user_id, session_id):
+        self.log.debug('Open session: {0} for user {1}'.format(session_id, user_id))
+        yield self.call(u'liestudio.db.insertone', {'collection': 'sessions', 'insert': {'userId': user_id, 'session_id': session_id}})
 
     @inlineCallbacks
-    def _end_session(self, uid, session_id):
-        res = yield self.call(u'liestudio.db.deleteone', {'collection': 'sessions', 'filter': {'uid': uid, 'session_id': session_id}})
+    def _end_session(self, user_id, session_id):
+        res = yield self.call(u'liestudio.db.deleteone', {'collection': 'sessions', 'filter': {'userId': user_id, 'session_id': session_id}})
         returnValue(res['count'] > 0)
 
     def _strip_unsafe_properties(self, _user):
@@ -416,7 +461,7 @@ class AuthWampApi(BaseApplicationSession):
             if entry in user:
                 del user[entry]
         
-        returnValue(user)
+        return user
 
     @inlineCallbacks
     def _retrieve_password(self, email):
@@ -493,21 +538,6 @@ PERMISSIONS = {
         }
     ],
     "db": [
-        {
-            "uri": u"liestudio.db",
-            "match": "prefix",
-            "allow": {
-                "call": False,
-                "register": True,
-                "publish": False,
-                "subscribe": False
-            },
-            "disclose": {
-                "caller": False,
-                "publisher": False
-            },
-            "cache": True
-        },
         {
             "uri": u"liestudio.auth.namespaces",
             "match": "exact",

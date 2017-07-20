@@ -3,6 +3,7 @@ from autobahn import wamp
 
 from lie_componentbase import BaseApplicationSession, register, WampSchema
 from twisted.internet.defer import inlineCallbacks, returnValue
+from autobahn.wamp import SubscribeOptions, PublishOptions
 
 from .db_methods import MongoClientWrapper, MongoDatabaseWrapper
 
@@ -20,7 +21,15 @@ class DBWampApi(BaseApplicationSession):
         dbport = self.package_config.get('dbport', 27017)
         self._client = MongoClientWrapper(dbhost, dbport)
 
-    @register(u'liestudio.db.findone', WampSchema('db', 'find/find-one', 1), WampSchema('db', 'find/find-response-one', 1), True)
+    @inlineCallbacks
+    def onRun(self, details):
+        yield self.publish(u'liestudio.db.events.online', True, options=PublishOptions(acknowledge=True))
+
+    @wamp.register(u'liestudio.db.status')
+    def db_status(self):
+        return True
+
+    @register(u'liestudio.db.findone', WampSchema('db', 'find/find-one', 1), WampSchema('db', 'find/find-response-one', 1), details_arg=True)
     @inlineCallbacks
     def db_find(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -30,7 +39,7 @@ class DBWampApi(BaseApplicationSession):
         else:
             returnValue({'result': None})
         
-    @register(u'liestudio.db.findmany', WampSchema('db', 'find/find-many', 1), WampSchema('db', 'find/find-response-many', 1), True)
+    @register(u'liestudio.db.findmany', WampSchema('db', 'find/find-many', 1), WampSchema('db', 'find/find-response-many', 1), details_arg=True)
     @inlineCallbacks
     def db_findmany(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -50,7 +59,7 @@ class DBWampApi(BaseApplicationSession):
                 'size': 0
             })
 
-    @register(u'liestudio.db.count', WampSchema('db', 'count/count', 1), WampSchema('db', 'count/count-response', 1), True)
+    @register(u'liestudio.db.count', WampSchema('db', 'count/count', 1), WampSchema('db', 'count/count-response', 1), details_arg=True)
     @inlineCallbacks
     def db_count(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -60,7 +69,7 @@ class DBWampApi(BaseApplicationSession):
         else:
             returnValue({'total': 0})
 
-    @register(u'liestudio.db.insertone', WampSchema('db', 'insert/insert-one', 1), WampSchema('db', 'insert/insert-response', 1), True)
+    @register(u'liestudio.db.insertone', WampSchema('db', 'insert/insert-one', 1), WampSchema('db', 'insert/insert-response', 1), details_arg=True)
     @inlineCallbacks
     def db_insert(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -70,7 +79,7 @@ class DBWampApi(BaseApplicationSession):
         else:
             returnValue({'ids': []})
 
-    @register(u'liestudio.db.insertmany', WampSchema('db', 'insert/insert-many', 1), WampSchema('db', 'insert/insert-response', 1), True)
+    @register(u'liestudio.db.insertmany', WampSchema('db', 'insert/insert-many', 1), WampSchema('db', 'insert/insert-response', 1), details_arg=True)
     @inlineCallbacks
     def db_insertmany(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -80,7 +89,7 @@ class DBWampApi(BaseApplicationSession):
         else:
             returnValue({'ids': []})
 
-    @register(u'liestudio.db.updateone', WampSchema('db', 'update/update-request', 1), WampSchema('db', 'update/update-response', 1), True)
+    @register(u'liestudio.db.updateone', WampSchema('db', 'update/update-request', 1), WampSchema('db', 'update/update-response', 1), details_arg=True)
     @inlineCallbacks
     def db_update(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -93,7 +102,7 @@ class DBWampApi(BaseApplicationSession):
                 'modifiedCount': 0
             })
 
-    @register(u'liestudio.db.updatemany', WampSchema('db', 'update/update-request', 1), WampSchema('db', 'update/update-response', 1), True)
+    @register(u'liestudio.db.updatemany', WampSchema('db', 'update/update-request', 1), WampSchema('db', 'update/update-response', 1), details_arg=True)
     @inlineCallbacks
     def db_updatemany(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -106,7 +115,7 @@ class DBWampApi(BaseApplicationSession):
                 'modifiedCount': 0
             })
 
-    @register(u'liestudio.db.deleteone', WampSchema('db', 'delete/delete-request', 1), WampSchema('db', 'delete/delete-response', 1), True)
+    @register(u'liestudio.db.deleteone', WampSchema('db', 'delete/delete-request', 1), WampSchema('db', 'delete/delete-response', 1), details_arg=True)
     @inlineCallbacks
     def db_delete(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -116,7 +125,7 @@ class DBWampApi(BaseApplicationSession):
         else:
             returnValue({'count': 0})
 
-    @register(u'liestudio.db.deletemany', WampSchema('db', 'delete/delete-request', 1), WampSchema('db', 'delete/delete-response', 1), True)
+    @register(u'liestudio.db.deletemany', WampSchema('db', 'delete/delete-request', 1), WampSchema('db', 'delete/delete-response', 1), details_arg=True)
     @inlineCallbacks
     def db_deletemany(self, request, details=None):
         namespace = yield self._get_namespace(request['collection'], details)
@@ -144,8 +153,8 @@ class DBWampApi(BaseApplicationSession):
                 self.log.warning('WARNING: User {user} tried to access the {namespace} database',  user=authid, 
                                   namespace=request['collection']['namespace'])
                 returnValue(None)
+            else:
+                returnValue('namespace-{}'.format(namespace))
         else:
             # A user is always allowed to operate on his own authid as namespace
-            namespace = authid
-            
-        returnValue(namespace)
+            returnValue(authid)

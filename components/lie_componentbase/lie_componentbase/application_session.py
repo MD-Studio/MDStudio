@@ -10,7 +10,7 @@ import re
 
 from autobahn.wamp import auth, cryptosign
 from autobahn.twisted.wamp import ApplicationSession
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock
 from twisted.internet import reactor
 from twisted.logger import Logger
 import twisted
@@ -139,6 +139,14 @@ class BaseApplicationSession(ApplicationSession):
 
         self.json_schemas = []
 
+        # Scan for input/output schemas on registrations
+        for key, f in self.__class__.__dict__.items():
+            try:
+                self.json_schemas.append(f._lie_input_schema)
+                self.json_schemas.append(f._lie_output_schema)
+            except AttributeError:
+                pass
+
         # determine namespace
         namespace = re.match('lie_(.+)', self.__module__.split('.')[0])
         self.component_info = {
@@ -167,16 +175,11 @@ class BaseApplicationSession(ApplicationSession):
 
         self.wamp_schema_handler = WampSchemaHandler(self)
 
-        # Update session_info with key/value pairs in config.extra except
-        # for package config
-        extra = config.extra if isinstance(config.extra, dict) else {}
-        for key, value in extra.items():
-            if key not in ('session_config', 'package_config'):
-                self.session_config.set(key,value)
-
         # Init toplevel ApplicationSession
         super(BaseApplicationSession, self).__init__(config)
 
+        extra = config.extra if isinstance(config.extra, dict) else {}
+        
         # Set package_config: first global package config, the package_config
         # argument and finaly config.extra
         self.package_config = ConfigHandler()
@@ -184,6 +187,12 @@ class BaseApplicationSession(ApplicationSession):
 
         self.session_config = ConfigHandler()
         self.session_config.update(resolve_config(extra.get('sesion_config')))
+
+        # Update session_info with key/value pairs in config.extra except
+        # for package config
+        for key, value in extra.items():
+            if key not in ('session_config', 'package_config'):
+                self.session_config.set(key,value)
 
         # Load client private key (raw format) if any
         self._key = None
@@ -242,6 +251,9 @@ class BaseApplicationSession(ApplicationSession):
 
         if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config.get('authmethod'), list):
             self.session_config.set('authmethod', [self.session_config.get('authmethod')])
+
+        self.logger_lock = DeferredLock()
+        self.is_logging = False
 
         # Call onInit hook
         self.onInit(**kwargs)
@@ -390,19 +402,11 @@ class BaseApplicationSession(ApplicationSession):
         # Register methods
         res = yield self.register(self)
 
-        # Scan for input/output schemas on registrations
-        for key, f in self.__class__.__dict__.items():
-            try:
-                self.json_schemas.append(f._lie_input_schema)
-                self.json_schemas.append(f._lie_output_schema)
-            except AttributeError:
-                pass
-
         failures = 0
         for r in res:
             if isinstance(r, Failure):
                 self.log.info("ERROR: {class_name}: {message}", class_name=self.component_info.get('class_name'), 
-                              message=r.value.message)
+                              message=r.value)
                 failures = failures + 1
 
         if failures > 0:
@@ -448,15 +452,13 @@ class BaseApplicationSession(ApplicationSession):
                         else:
                             self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
                                            namespace=schema.namespace, path=schema_path)
-
-
-        # Init WAMP logging
+            
         self.wamp_logger.start_flushing()
         
         reactor.addSystemEventTrigger('before', 'shutdown', self.onCleanup)
 
         # Call onRun hook.
-        self.onRun(details)
+        yield self.onRun(details)        
 
     def onCleanup(self, *args, **kwargs):
         self.log.info('{class_name} of {package_name} disconnected from realm {realm}', realm=self.session_config.get('realm'),
@@ -483,8 +485,15 @@ class BaseApplicationSession(ApplicationSession):
         self.log.info('{class_name} of {package_name} is leaving realm {realm}', realm=self.session_config.get('realm'),
                       **self.component_info)
 
+        self.wamp_logger.stop_flushing()
+
         # Call onExit hook
         yield self.onExit(details)
+
+        super(BaseApplicationSession, self).onLeave(details)
+
+    def onDisconnect(self):
+        self.wamp_logger.stop_flushing()
     
     # Class placeholder methods. Override these for custom events during 
     # application life cycle
@@ -547,3 +556,8 @@ class BaseApplicationSession(ApplicationSession):
         self.log.error('ERROR: Schema not found in {}'.format(schema_abs_path))
 
         return None
+
+    @inlineCallbacks
+    def flush_logs(self, namespace, log_list):
+        res = yield self.publish(u'liestudio.logger.log', {'namespace': namespace, 'logs': log_list}, options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
+        returnValue(res)

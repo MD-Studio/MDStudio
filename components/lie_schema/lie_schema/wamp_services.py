@@ -13,7 +13,7 @@ class SchemaWampApi(BaseApplicationSession):
         self.lock = DeferredLock()
         self.session_config_template = {}
 
-    @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, True)
+    @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, details_arg=True)
     def schema_register(self, request, details=None):
         namespace = self._get_namespace(details)
 

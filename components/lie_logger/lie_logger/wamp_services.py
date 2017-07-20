@@ -10,8 +10,9 @@ import os
 
 from twisted.logger import LogLevel
 from twisted.internet.defer import inlineCallbacks, returnValue
+from autobahn import wamp
 
-from lie_componentbase import BaseApplicationSession, register, WampSchema
+from lie_componentbase import BaseApplicationSession, register, WampSchema, validate_input
 
 
 class LoggerWampApi(BaseApplicationSession):
@@ -19,7 +20,14 @@ class LoggerWampApi(BaseApplicationSession):
     Logger management WAMP methods.
     """
 
-    @register(u'liestudio.logger.log', WampSchema('logger', 'log/log', 1), WampSchema('logger', 'log/log-response', 1), True)
+    @inlineCallbacks
+    def onRun(self, details):
+        self.log_event_subscription = yield self.subscribe(self.log_event, u'liestudio.logger.log', wamp.SubscribeOptions(match='exact', details_arg='details'))
+        # TODO: retrieve events that we have missed during bootup
+        # res = yield self.call(u'wamp.subscription.get_events', self.log_event_subscription.id, limit=10)
+        returnValue({})
+
+    @validate_input(WampSchema('logger', 'log/log', 1))
     @inlineCallbacks
     def log_event(self, request, details=None):
         """
@@ -31,7 +39,6 @@ class LoggerWampApi(BaseApplicationSession):
         :return:      standard return
         :rtype:       :py:class:`dict` to JSON
         """
-
         authid = self._get_authid(details)
 
         try:
@@ -43,13 +50,7 @@ class LoggerWampApi(BaseApplicationSession):
                 'insert': request['logs']
             })
         except Exception as e:
-            print(res)
             raise e
-
-        if res:
-            returnValue({'count': len(res['ids'])})
-        else:
-            returnValue({'count': 0})
 
     @register(u'liestudio.logger.get', {}, {})
     def get_log_events(self, user):
@@ -64,4 +65,7 @@ class LoggerWampApi(BaseApplicationSession):
         return posts
 
     def _get_authid(self, details):
-        return details.caller_authrole if details.caller_authid is None else details.caller_authid
+        try:
+            return details.publisher_authrole if details.publisher_authid is None else details.publisher_authid
+        except Exception:
+            return 'anonymous'
