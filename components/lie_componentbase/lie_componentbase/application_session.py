@@ -446,7 +446,7 @@ class BaseApplicationSession(ApplicationSession):
                 self.logger_subscription.unsubscribe()
                 self.logger_subscription = None
             
-            self.logger_subscription = yield self.subscribe(logger_event, u'liestudio.events.logger.online')
+            self.logger_subscription = yield self.subscribe(logger_event, u'liestudio.logger.events.online')
 
         if self.autoschema:
             self.register_schemas()
@@ -456,7 +456,7 @@ class BaseApplicationSession(ApplicationSession):
                 self.schema_subscription.unsubscribe()
                 self.schema_subscription = None
 
-            self.schema_subscription = yield self.subscribe(schema_event, u'liestudio.events.schema.online')
+            self.schema_subscription = yield self.subscribe(schema_event, u'liestudio.schema.events.online')
         
         reactor.addSystemEventTrigger('before', 'shutdown', self.onCleanup)
 
@@ -566,7 +566,7 @@ class BaseApplicationSession(ApplicationSession):
 
     @inlineCallbacks
     def flush_logs(self, namespace, log_list):
-        res = yield self.publish(u'liestudio.logger.log', {'namespace': namespace, 'logs': log_list}, options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
+        res = yield self.publish(u'liestudio.logger.log.{}'.format(namespace), {'logs': log_list}, options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
 
         returnValue({})
 
@@ -578,7 +578,7 @@ class BaseApplicationSession(ApplicationSession):
                     if schema.namespace == self.component_info.get('namespace'):
                         schema_def = self.get_schema(schema_path)
                         if schema_def:
-                            schema_res = yield self.call(u'liestudio.schema.register', {
+                            schema_res = yield self.call(u'liestudio.schema.register.{}'.format(self.component_info.get('namespace')), {
                                 'path': schema_path, 
                                 'schema': schema_def
                             })

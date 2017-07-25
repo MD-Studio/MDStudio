@@ -13,9 +13,12 @@ import random
 from autobahn import wamp
 from autobahn.wamp.types import RegisterOptions
 from autobahn.twisted.util import sleep
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
+from autobahn.twisted.util import sleep
 
 from lie_componentbase import BaseApplicationSession
+from lie_componentbase.runner import main
+from lie_componentbase.token_application_session import TokenApplicationSession
 
 
 class MDWampApi(BaseApplicationSession):
@@ -27,7 +30,7 @@ class MDWampApi(BaseApplicationSession):
 
     @wamp.register(u'liestudio.md.status', options=RegisterOptions(invoke=u'roundrobin'))
     def md_status(self):
-
+        
         return 'running job: {0}'.format(self.jobid)
 
     @wamp.register(u'liestudio.md.run', options=RegisterOptions(invoke=u'roundrobin'))

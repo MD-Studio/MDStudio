@@ -10,11 +10,8 @@
             "minLength": 12,
             "maxLength": 12
         },
-        "scopes": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
+        "scope": {
+            "type": "string"
         },
         "accessToken": {
             "type": "string",

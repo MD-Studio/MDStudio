@@ -1,3 +1,5 @@
+import re
+
 from twisted.internet.defer import DeferredLock
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks, returnValue
@@ -21,9 +23,9 @@ class SchemaWampApi(BaseApplicationSession):
     def onRun(self, details):
         yield self.publish(u'liestudio.schema.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
-    @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, details_arg=True)
+    @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, options=wamp.RegisterOptions(match='prefix'), details_arg=True)
     def schema_register(self, request, details=None):
-        namespace = self._get_namespace(details)
+        namespace = self._extract_namespace(details.procedure)
 
         # Lock schema's resource
         self.lock.acquire()
@@ -74,8 +76,5 @@ class SchemaWampApi(BaseApplicationSession):
 
         return res
 
-    def _get_namespace(self, details):
-            # Determine collection name from session details
-        authid = details.caller_authrole if details.caller_authid is None else details.caller_authid
-        
-        return authid
+    def _extract_namespace(self, uri):
+        return re.match('liestudio.schema.\\w+\\.(.*)', uri).group(1)

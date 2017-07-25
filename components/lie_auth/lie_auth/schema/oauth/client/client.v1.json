@@ -11,17 +11,10 @@
             "maxLength": 12
         },
         "grantType": {
-            "type": "string",
-            "enum": [
-                "authorizationCode",
-                "clientCredentials"
-            ]
+            "type": "string"
         },
         "responseType": {
-            "type": "string",
-            "enum": [
-                "code"
-            ]
+            "type": "string"
         },
         "scopes": {
             "type": "array",
@@ -35,12 +28,13 @@
                 "type": "string"
             }
         },
-        "id": {
+        "clientId": {
             "type": "string",
-            "pattern": "[0-9a-fA-F]+",
-            "description": "MongoDB object ID for the client",
-            "minLength": 12,
-            "maxLength": 12
+            "minLength": 30
+        },
+        "secret": {
+            "type": "string",
+            "minLength": 30
         }
     },
     "oneOf": [
@@ -48,7 +42,12 @@
             "properties": {
                 "grantType": {
                     "enum": [
-                        "authorizationCode"
+                        "authorization_code"
+                    ]
+                },
+                "responseType": {
+                    "enum": [
+                        "code"
                     ]
                 }
             },
@@ -58,15 +57,16 @@
             "properties": {
                 "grantType": {
                     "enum": [
-                        "clientCredentials"
+                        "client_credentials"
                     ]
                 },
                 "responseType": {
-                    "not": {
-                        "type": "string"
-                    }
+                    "enum": [
+                        "token"
+                    ]
                 }
-            }
+            },
+            "required": ["grantType", "responseType"]
         }
     ],
     "additionalProperties": false

@@ -193,8 +193,8 @@ def validate_output(output_schema):
 
     def wrap_f(f):
         @inlineCallbacks
-        def wrapped_f(self, *args, **kwargs):
-            res = yield f(self, *args, **kwargs)
+        def wrapped_f(self, request, **kwargs):
+            res = yield f(self, request, **kwargs)
 
             validate_json_schema(self, output_schema, res)
 
@@ -210,13 +210,13 @@ def validate_input(input_schema, strict=True):
 
     def wrap_f(f):
         @inlineCallbacks
-        def wrapped_f(self, request, *args, **kwargs):
+        def wrapped_f(self, request, **kwargs):
             valid = validate_json_schema(self, input_schema, request)
 
             if strict and not valid:
                 returnValue({})
             else:
-                res = yield f(self, request, *args, **kwargs)
+                res = yield f(self, request, **kwargs)
 
                 returnValue(res)
 
@@ -243,12 +243,7 @@ def register(uri, input_schema, output_schema, details_arg=False, options=None):
         @validate_output(output_schema)
         @inlineCallbacks
         def wrapped_f(self, request, *args, **kwargs):
-            # if not validate_json_schema(self, input_schema, request):
-            #     returnValue({})
-            # else:
             res = yield f(self, request, *args, **kwargs)
-        
-                # valid = validate_json_schema(self, output_schema, res)
                 
             returnValue(res)
 

@@ -13,7 +13,7 @@ from twisted.logger import LogLevel
 from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn import wamp
 
-from lie_componentbase import BaseApplicationSession, register, WampSchema, validate_input
+from lie_componentbase import BaseApplicationSession, register, WampSchema, validate_input, db
 
 
 class LoggerWampApi(BaseApplicationSession):
@@ -57,10 +57,7 @@ class LoggerWampApi(BaseApplicationSession):
                 namespace = 'namespace-{}'.format(namespace)
 
             try:
-                res = yield self.call(u'liestudio.db.insertmany', {
-                    'collection': namespace,
-                    'insert': request['logs']
-                })
+                res = yield db.Model(self, namespace).insert_many(request['logs'])
             except Exception as e:
                 raise e
 
