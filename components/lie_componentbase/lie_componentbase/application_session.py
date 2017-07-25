@@ -128,7 +128,7 @@ class BaseApplicationSession(ApplicationSession):
 
         # initialize defaults
         self.session_config_environment_variables = {
-            'authid':     '_LIE_AUTH_USERNAME',
+            'authid':       '_LIE_AUTH_USERNAME',
             'password':     '_LIE_AUTH_PASSWORD',
             'realm':        '_LIE_AUTH_REALM',
             'authmethod':   '_LIE_AUTH_METHOD'
@@ -223,6 +223,8 @@ class BaseApplicationSession(ApplicationSession):
         for key, value in self.session_config_environment_variables.items():
             if value in env:
                 session_conf[key] = u'{}'.format(env[value])
+            elif key in env:
+                session_conf[key] = u'{}'.format(env[key])
             elif value in os.environ:
                 session_conf[key] = u'{}'.format(os.environ[value])
 
@@ -252,8 +254,8 @@ class BaseApplicationSession(ApplicationSession):
         if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config.get('authmethod'), list):
             self.session_config.set('authmethod', [self.session_config.get('authmethod')])
 
-        self.logger_lock = DeferredLock()
-        self.is_logging = False
+        self.autolog = True
+        self.autoschema = True
 
         # Call onInit hook
         self.onInit(**kwargs)
@@ -435,25 +437,26 @@ class BaseApplicationSession(ApplicationSession):
         # Add self.disconnect to Event trigger in order to get propper shutdown
         # and exit of reactor event loop on Ctrl-C e.d.
         # reactor.addSystemEventTrigger('before', 'shutdown', self.leave)
-
-        for schema in self.json_schemas:
-            if isinstance(schema, WampSchema):
-                for schema_path in schema.paths():
-                    if schema.namespace == self.component_info.get('namespace'):
-                        schema_def = self.get_schema(schema_path)
-                        if schema_def:
-                            schema_res = yield self.call(u'liestudio.schema.register', {
-                                'path': schema_path, 
-                                'schema': schema_def
-                            })
-                            if not schema_res:
-                                self.log.error('ERROR: failed to register json schema {path} for {namespace}, schema component returned False',
-                                                path=schema_path, namespace=schema.namespace)
-                        else:
-                            self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
-                                           namespace=schema.namespace, path=schema_path)
             
-        self.wamp_logger.start_flushing()
+        if self.autolog:
+            self.wamp_logger.start_flushing()
+        else:
+            def logger_event(event):
+                self.wamp_logger.start_flushing()
+                self.logger_subscription.unsubscribe()
+                self.logger_subscription = None
+            
+            self.logger_subscription = yield self.subscribe(logger_event, u'liestudio.events.logger.online')
+
+        if self.autoschema:
+            self.register_schemas()
+        else:
+            def schema_event(event):
+                self.register_schemas()
+                self.schema_subscription.unsubscribe()
+                self.schema_subscription = None
+
+            self.schema_subscription = yield self.subscribe(schema_event, u'liestudio.events.schema.online')
         
         reactor.addSystemEventTrigger('before', 'shutdown', self.onCleanup)
 
@@ -461,14 +464,12 @@ class BaseApplicationSession(ApplicationSession):
         yield self.onRun(details)        
 
     def onCleanup(self, *args, **kwargs):
-        self.log.info('{class_name} of {package_name} disconnected from realm {realm}', realm=self.session_config.get('realm'),
-                      **self.component_info)
-
-        self.wamp_logger.shutdown = True
+        self.wamp_logger.stop_flushing()
         f = open(os.path.join(self._config_dir, 'wamplogs.temp'), 'w')
         self.wamp_logger.flush_remaining(f)
         f.close()
 
+    @inlineCallbacks
     def onLeave(self, details):
         """
         Autobahn onLeave handler
@@ -485,15 +486,21 @@ class BaseApplicationSession(ApplicationSession):
         self.log.info('{class_name} of {package_name} is leaving realm {realm}', realm=self.session_config.get('realm'),
                       **self.component_info)
 
-        self.wamp_logger.stop_flushing()
-
         # Call onExit hook
         yield self.onExit(details)
 
         super(BaseApplicationSession, self).onLeave(details)
 
+    @inlineCallbacks
     def onDisconnect(self):
+        self.log.info('{class_name} of {package_name} disconnected from realm {realm}', realm=self.session_config.get('realm'),
+                      **self.component_info)
+        
         self.wamp_logger.stop_flushing()
+
+        res = yield super(BaseApplicationSession, self).onDisconnect()
+
+        returnValue(res)
     
     # Class placeholder methods. Override these for custom events during 
     # application life cycle
@@ -560,4 +567,24 @@ class BaseApplicationSession(ApplicationSession):
     @inlineCallbacks
     def flush_logs(self, namespace, log_list):
         res = yield self.publish(u'liestudio.logger.log', {'namespace': namespace, 'logs': log_list}, options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
-        returnValue(res)
+
+        returnValue({})
+
+    @inlineCallbacks
+    def register_schemas(self):
+        for schema in self.json_schemas:
+            if isinstance(schema, WampSchema):
+                for schema_path in schema.paths():
+                    if schema.namespace == self.component_info.get('namespace'):
+                        schema_def = self.get_schema(schema_path)
+                        if schema_def:
+                            schema_res = yield self.call(u'liestudio.schema.register', {
+                                'path': schema_path, 
+                                'schema': schema_def
+                            })
+                            if not schema_res:
+                                self.log.error('ERROR: failed to register json schema {path} for {namespace}, schema component returned False',
+                                                path=schema_path, namespace=schema.namespace)
+                        else:
+                            self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
+                                           namespace=schema.namespace, path=schema_path)

@@ -20,6 +20,8 @@ class DBWampApi(BaseApplicationSession):
         dbhost = os.getenv('_LIE_MONGO_HOST', self.package_config.get('dbhost', 'localhost'))
         dbport = self.package_config.get('dbport', 27017)
         self._client = MongoClientWrapper(dbhost, dbport)
+        self.autolog = False
+        self.autoschema = False
 
     @inlineCallbacks
     def onRun(self, details):
@@ -85,9 +87,14 @@ class DBWampApi(BaseApplicationSession):
         namespace = yield self._get_namespace(request['collection'], details)
 
         if namespace:
-            returnValue({'ids': [id for id in self._client.get_namespace(namespace).insert_many(**request)]})
-        else:
-            returnValue({'ids': []})
+            try:
+                ids = [id for id in self._client.get_namespace(namespace).insert_many(**request)]
+            except Exception as e:
+                print(e)
+            else:
+                returnValue({'ids': ids})
+
+        returnValue({'ids': []})
 
     @register(u'liestudio.db.updateone', WampSchema('db', 'update/update-request', 1), WampSchema('db', 'update/update-response', 1), details_arg=True)
     @inlineCallbacks
@@ -135,9 +142,6 @@ class DBWampApi(BaseApplicationSession):
         else:
             returnValue({'count': 0})
 
-    def _get_authid(self, details):
-        return details.caller_authrole if details.caller_authid is None else details.caller_authid
-
     @inlineCallbacks
     def _get_namespace(self, collection, details):
         authid = self._get_authid(details)
@@ -150,11 +154,13 @@ class DBWampApi(BaseApplicationSession):
             user_namespaces = yield self.call(u'liestudio.auth.namespaces', {'username': authid})
         
             if namespace not in user_namespaces:
-                self.log.warning('WARNING: User {user} tried to access the {namespace} database',  user=authid, 
-                                  namespace=request['collection']['namespace'])
+                self.log.warn('WARNING: User {user} tried to access the {namespace} database',  user=authid, namespace=collection['namespace'])
                 returnValue(None)
             else:
                 returnValue('namespace-{}'.format(namespace))
         else:
             # A user is always allowed to operate on his own authid as namespace
             returnValue(authid)
+
+    def _get_authid(self, details):
+        return details.caller_authrole if details.caller_authid is None else details.caller_authid

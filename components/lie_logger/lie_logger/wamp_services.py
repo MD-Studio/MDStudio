@@ -7,6 +7,7 @@ WAMP service methods the module exposes.
 """
 
 import os
+import re
 
 from twisted.logger import LogLevel
 from twisted.internet.defer import inlineCallbacks, returnValue
@@ -22,9 +23,8 @@ class LoggerWampApi(BaseApplicationSession):
 
     @inlineCallbacks
     def onRun(self, details):
-        self.log_event_subscription = yield self.subscribe(self.log_event, u'liestudio.logger.log', wamp.SubscribeOptions(match='exact', details_arg='details'))
-        # TODO: retrieve events that we have missed during bootup
-        # res = yield self.call(u'wamp.subscription.get_events', self.log_event_subscription.id, limit=10)
+        self.log_event_subscription = yield self.subscribe(self.log_event, u'liestudio.logger.log', wamp.SubscribeOptions(match='prefix', details_arg='details'))
+        yield self.publish(u'liestudio.logger.events.online', True, options=wamp.PublishOptions(acknowledge=True))
         returnValue({})
 
     @validate_input(WampSchema('logger', 'log/log', 1))
@@ -40,17 +40,31 @@ class LoggerWampApi(BaseApplicationSession):
         :rtype:       :py:class:`dict` to JSON
         """
         authid = self._get_authid(details)
+        namespace = re.match('^liestudio\\.logger\\.log\\.(\\w+)$', details.topic).group(1)
 
-        try:
-            res = yield self.call(u'liestudio.db.insertmany', {
-                'collection': {
-                    'namespace': 'logger', 
-                    'name': authid
-                },
-                'insert': request['logs']
-            })
-        except Exception as e:
-            raise e
+        do_log = False
+
+        if details.publisher_authrole == 'oauthclient':
+            res = yield self.call(u'liestudio.auth.oauth.client.getusername', {'clientId': authid})
+            if res:
+                authid = res['username']
+                do_log = True
+        else:
+            do_log = True
+
+        if do_log:
+            if namespace != authid:
+                namespace = 'namespace-{}'.format(namespace)
+
+            try:
+                res = yield self.call(u'liestudio.db.insertmany', {
+                    'collection': namespace,
+                    'insert': request['logs']
+                })
+            except Exception as e:
+                raise e
+
+        returnValue({})
 
     @register(u'liestudio.logger.get', {}, {})
     def get_log_events(self, user):

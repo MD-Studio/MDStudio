@@ -13,6 +13,7 @@ import getpass
 
 from distutils import spawn
 from pymongo import MongoClient
+from bson import ObjectId
 from pymongo.errors import ConnectionFailure
 from autobahn import wamp
 from twisted.logger import Logger
@@ -47,6 +48,8 @@ class MongoDatabaseWrapper:
         if coll is None:
             return {}
         else:
+            if filter and 'id' in filter:
+                filter['_id'] = ObjectId(filter.pop('id'))
             result = coll.find_one(filter, projection, skip, sort=sort)
             if result:
                 result['id'] = str(result.pop('_id'))
@@ -58,6 +61,9 @@ class MongoDatabaseWrapper:
 
         if not coll:
             return []
+        
+        if filter and 'id' in filter:
+            filter['_id'] = ObjectId(filter.pop('id'))
 
         for doc in coll.find(filter, projection, skip, sort=sort):
             doc['id'] = str(doc.pop('_id'))
@@ -65,10 +71,15 @@ class MongoDatabaseWrapper:
 
     def insert_one(self, collection=None, insert=None):
         coll = self._get_collection(collection, True)
+        if isinstance(insert, dict) and 'id' in insert.keys():
+            insert['_id'] = ObjectId(insert.pop('id'))
         return str(coll.insert_one(insert).inserted_id)
 
     def insert_many(self, collection=None, insert=None):
         coll = self._get_collection(collection, True)
+        for doc in insert:
+            if isinstance(doc, dict) and 'id' in doc.keys():
+                doc['_id'] = ObjectId(doc.pop('id'))
         for id in coll.insert_many(insert).inserted_ids:
             yield str(id)
 

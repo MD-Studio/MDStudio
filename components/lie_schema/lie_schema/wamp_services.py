@@ -1,5 +1,6 @@
 from twisted.internet.defer import DeferredLock
 from autobahn import wamp
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from lie_componentbase import BaseApplicationSession, register, WampSchema
 
@@ -12,6 +13,13 @@ class SchemaWampApi(BaseApplicationSession):
         self._schemas = {}
         self.lock = DeferredLock()
         self.session_config_template = {}
+
+    def onInit(self, **kwargs):
+        self.autolog = False
+
+    @inlineCallbacks
+    def onRun(self, details):
+        yield self.publish(u'liestudio.schema.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
     @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, details_arg=True)
     def schema_register(self, request, details=None):

@@ -37,13 +37,13 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['twisted', 'autobahn'],
+    install_requires=['lie_componentbase'],
     test_suite="tests",
     include_package_data=True,
     zip_safe=True,
     entry_points={
         'autobahn.twisted.wamplet': [
-            'wamp_services = lie_logger.wamp_services:make'
+            'wamp_services = lie_logger:wampapi'
         ],
     },
     classifiers=[

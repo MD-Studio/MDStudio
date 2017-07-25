@@ -65,20 +65,18 @@
                             "authorizer": "liestudio.auth.authorize"
                         },
                         {
+                            "name": "logger",
+                            "authorizer": "liestudio.auth.authorize"
+                        },
+                        {
                             "name": "user",
                             "authorizer": "liestudio.auth.authorize"
+                        },
+                        {
+                            "name": "oauthclient",
+                            "authorizer": "liestudio.auth.authorize"
                         }
-                    ],
-                    "store": {
-                        "type": "memory",
-                        "event-history": [
-                            {
-                                "uri": "liestudio.logger.log",
-                                "match": "exact",
-                                "limit": 10000
-                            }
-                        ]
-                    }
+                    ]
                 }
             ],
             "transports": [
@@ -161,6 +159,13 @@
                 },
                 {
                     "type": "wamplet",
+                    "package": "lie_db",
+                    "entrypoint": "wamp_services",
+                    "realm": "liestudio",
+                    "role": "db"
+                },
+                {
+                    "type": "wamplet",
                     "package": "lie_schema",
                     "entrypoint": "wamp_services",
                     "realm": "liestudio",
@@ -168,10 +173,10 @@
                 },
                 {
                     "type": "wamplet",
-                    "package": "lie_db",
+                    "package": "lie_logger",
                     "entrypoint": "wamp_services",
                     "realm": "liestudio",
-                    "role": "db"
+                    "role": "logger"
                 }
             ]   
         }

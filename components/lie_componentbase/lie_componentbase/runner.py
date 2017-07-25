@@ -19,12 +19,15 @@ runner = ApplicationRunner(
     ssl=options
 )
 
-def main(component, extra=None, oninit=None, onexit=None, auto_reconnect=True):
+def main(component, extra=None, oninit=None, onexit=None, auto_reconnect=True, start_reactor=True):
     def make(cfg):
         if extra:
             cfg.extra.update(extra)
 
-        return component(cfg)
+        if callable(component):
+            return component(cfg)
+        else:
+            return component
     
 
-    runner.run(make, auto_reconnect=auto_reconnect, start_reactor=(not reactor.running))
+    return runner.run(make, auto_reconnect=auto_reconnect, start_reactor=(not reactor.running and start_reactor))

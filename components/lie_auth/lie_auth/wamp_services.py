@@ -51,29 +51,21 @@ class AuthWampApi(BaseApplicationSession):
         self.oauth_backend_server = oauth2.BackendApplicationServer(OAuthRequestValidator(self))
         self.db_lock = DeferredLock()
 
+        self.autolog = False
+        self.autoschema = False
+
         # TODO: check this before accessing the DB
         self.db_initialized = False
 
     @inlineCallbacks
     def onRun(self, details=None):
         # Subscribe DB initialization to the DB online event
-        self.db_subscription = yield self.subscribe(self.init_admin_user, u'liestudio.db.events.online', options=wamp.SubscribeOptions(match="exact"))
-
-        try:
-            status = yield self.call(u'liestudio.db.status')
-        except Exception:
-            status = False
-
-        # If the DB is already online, initialize it now and unsubscribe
-        if status:
-            self.init_admin_user()
+        self.db_subscription = yield self.subscribe(self.init_admin_user, u'liestudio.events.db.online')
 
         
     @inlineCallbacks        
     def init_admin_user(self, event=None):
         # Acquire lock before initializing the database
-        yield self.db_lock.acquire()
-
         try:
             if not self.db_initialized:
                 admin = yield self._get_user({'username': 'lieadmin'})
@@ -116,11 +108,8 @@ class AuthWampApi(BaseApplicationSession):
 
                 # Mark the database as initialized and unsubscribe
                 self.db_initialized = True
-                yield self.db_subscription.unsubscribe()
         except Exception:
             pass
-
-        self.db_lock.release()
 
     @inlineCallbacks
     def onExit(self, details=None):
