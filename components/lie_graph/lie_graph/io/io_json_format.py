@@ -16,6 +16,49 @@ from   .io_helpers        import _check_lie_graph_version, _open_anything
 
 BASICTYPES = (int, float, bool, long, str, unicode)
 
+def read_dict(dict_format):
+    """
+    Read graph in Python dictionary format
+    
+    :param dict_format: graph encoded as Python dictionary
+    :type dict_format:  :py:dict
+    
+    :return:            Graph object
+    :rtype:             Graph or GraphAxis object
+    """
+    
+    assert isinstance(dict_format, dict), TypeError("Graph representation not a dictionary, got: {0}".format(type(dict_format)))
+    
+    # Determine graph class to use
+    graph_object = Graph()
+    if dict_format['graph'].get('root') != None:
+        graph_object = GraphAxis()
+    
+    # Init graph meta-data attributes
+    for key,value in dict_format['graph'].items():
+        setattr(graph_object, key, value)
+    
+    # Init graph nodes
+    for node_key,node_value in dict_format['nodes'].items():
+        
+        # JSON objects don't accept integers as dictionary keys
+        # If graph.auto_nid equals True, course node_key to integer
+        if graph_object.auto_nid:
+            node_key = int(node_key)
+        
+        graph_object.nodes[node_key] = node_value
+    
+    # Init graph edges
+    for edge_key,edge_value in dict_format['edges'].items():
+        edge_value = tuple(edge_value)
+        graph_object.edges[edge_value] = dict_format['edge_attr'].get(edge_key, {})
+    
+    # Reset graph adjacency
+    graph_object._set_adjacency()
+    
+    return graph_object
+
+
 def read_json(json_format):
     """
     Read JSON graph format
@@ -34,42 +77,15 @@ def read_json(json_format):
     except:
         logging.error('Unable to decode JSON string')
         return
-        
+    
     # Check lie_graph version and format validity
     if not _check_lie_graph_version(parsed.get('lie_graph_version')):
         return
     if not set(['graph','nodes','edges','edge_attr']).issubset(set(parsed.keys())):
         logging.error('JSON format does not contain required graph data')
-        return 
+        return
     
-    # Determine graph class to use
-    graph_object = Graph()
-    if parsed['graph'].get('root') != None:
-        graph_object = GraphAxis()
-    
-    # Init graph meta-data attributes
-    for key,value in parsed['graph'].items():
-        setattr(graph_object, key, value)
-    
-    # Init graph nodes
-    for node_key,node_value in parsed['nodes'].items():
-        
-        # JSON objects don't accept integers as dictionary keys
-        # If graph.auto_nid equals True, course node_key to integer
-        if graph_object.auto_nid:
-            node_key = int(node_key)
-        
-        graph_object.nodes[node_key] = node_value
-    
-    # Init graph edges
-    for edge_key,edge_value in parsed['edges'].items():
-        edge_value = tuple(edge_value)
-        graph_object.edges[edge_value] = parsed['edge_attr'].get(edge_key, {})
-    
-    # Reset graph adjacency
-    graph_object._set_adjacency()
-    
-    return graph_object
+    return read_dict(parsed)
 
 def write_json(graph, indent=2, encoding="utf-8", **kwargs):
     """
@@ -111,7 +127,7 @@ def write_json(graph, indent=2, encoding="utf-8", **kwargs):
     for key,value in graph.__dict__.items():
         if not key.startswith('_') and type(value) in BASICTYPES:
             json_format['graph'][key] = value
-            
+    
     # Update nodes with graph node attributes
     json_format['nodes'].update(graph.nodes.dict())
     

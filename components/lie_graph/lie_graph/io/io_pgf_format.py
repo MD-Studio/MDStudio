@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
 
 """
-Import/Export files in propitiatory graph format (pgf)
+file: io_pgf_format.py
+
+Functions for reading and writing graphs defined in Propitiatory Graph Format
+(.pgf) a format specific to the lie_graph module.
 
 Graph nodes, edges and adjacency are stored as plain python dictionaries
 """
+
+import os
+import pprint
+import pickle
+import logging as logger
+
+from ..graph import Graph
+from .io_helpers import _coarse_type
 
 
 def write_graph(graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle=False):
@@ -26,8 +37,7 @@ def write_graph(graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle=False
 
     # Export graph as pickled Graph Python Format
     if pickle:
-
-        import pickle
+        
         pickle_dict = {}
         pickle_dict['nodes'] = graph.nodes.dict()
         pickle_dict['edges'] = graph.edges.dict()
@@ -74,8 +84,7 @@ def read_graph(graph_file, graph=None, pickle=False):
 
     # Import graph from pickled Graph Python Format
     if pickle:
-        import pickle
-
+        
         with open(graph_file, mode='rb') as graph_file:
             pickle_dict = pickle.load(graph_file)
 

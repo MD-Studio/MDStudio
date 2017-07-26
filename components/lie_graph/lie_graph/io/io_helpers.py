@@ -9,6 +9,13 @@ import logging
 
 from   .. import __version__
 
+def _coarse_type(n):
+
+    if n.isdigit():
+        return int(n)
+    return n
+
+
 def _check_lie_graph_version(version=None):
     """
     Check if the graph version of the file is (backwards) compatible with
