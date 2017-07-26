@@ -26,7 +26,7 @@
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.atom import Atom
 from lie_topology.forcefield.reference import ForceFieldReference
-from lie_topology.forcefield.forcefield import CoulombicType, VdwType, MassType, BondType, AngleType, DihedralType
+from lie_topology.forcefield.forcefield import CoulombicType, VdwType, MassType, BondType, AngleType, ImproperType, DihedralType
 
 def _WriteSoluteBonds( solute_group, forcefield ):
 
@@ -62,7 +62,6 @@ def _WriteSoluteBonds( solute_group, forcefield ):
             basic_output_str ="%7i%7i%5i" % ( atom_index_1, atom_index_2, bond_type_index )
             
             print (basic_output_str)
-
     print("END")
 
 def _WriteSoluteAngles( solute_group, forcefield ):
@@ -101,7 +100,46 @@ def _WriteSoluteAngles( solute_group, forcefield ):
             basic_output_str ="%7i%7i%7i%5i" % ( atom_index_1, atom_index_2, atom_index_3, angle_type_index )
             
             print (basic_output_str)
+    print("END")
 
+def _WriteSoluteImpropers( solute_group, forcefield ):
+
+    print("IMPROPER")
+    for molecule_key, molecule in solute_group.molecules.items():
+        for improper in molecule.impropers:
+            
+            # all of the force field types could be references
+            if not isinstance(improper.forcefield_type, ImproperType):
+                raise LieTopologyException("WriteGromosTopology", "improper types should be pre-resolved" ) 
+            
+            improper_type_index = forcefield.impropertypes.indexOf(improper.forcefield_type.key) + 1 # +1 as gromos starts from 1
+
+            # negative numbers indicate not found
+            if improper_type_index < 0:
+                raise LieTopologyException("WriteGromosTopology", "Could not find improper_type %s for atom %s->%s"\
+                                           % (improper.forcefield_type.key, molecule.key, atom.key ) ) 
+            
+            atom_references = improper.atom_references
+
+            if atom_references is None or len(atom_references) != 4:
+                raise LieTopologyException("WriteGromosTopology", "impropers require an atom indices array of size 4" ) 
+            
+            if not isinstance(atom_references[0], Atom) or\
+               not isinstance(atom_references[1], Atom) or\
+               not isinstance(atom_references[2], Atom) or\
+               not isinstance(atom_references[3], Atom):
+                raise LieTopologyException("WriteGromosTopology", "The atom indices for impropers should have been resolve to Atom links" )
+            
+            # print ( "BOND %s->%s" %(atom_references[0].key, atom_references[1].key))
+            # gromos indices start with 1
+            atom_index_1 = atom_references[0].internal_index + 1
+            atom_index_2 = atom_references[1].internal_index + 1
+            atom_index_3 = atom_references[2].internal_index + 1
+            atom_index_4 = atom_references[3].internal_index + 1
+
+            basic_output_str ="%7i%7i%7i%7i%5i" % ( atom_index_1, atom_index_2, atom_index_3, atom_index_4, improper_type_index )
+            
+            print (basic_output_str)
     print("END")
 
 def _WriteSoluteDihedrals( solute_group, forcefield ):
@@ -142,11 +180,9 @@ def _WriteSoluteDihedrals( solute_group, forcefield ):
             basic_output_str ="%7i%7i%7i%7i%5i" % ( atom_index_1, atom_index_2, atom_index_3, atom_index_4, dihedral_type_index )
             
             print (basic_output_str)
-
     print("END")
 
 def _WriteSoluteAtoms( solute_group, forcefield ):
-
     
     ##
     ## DEBUG
@@ -155,7 +191,6 @@ def _WriteSoluteAtoms( solute_group, forcefield ):
     molecule_number=1
 
     print("SOLUTEATOM")
-
     for molecule_key, molecule in solute_group.molecules.items():
         for atom_key, atom in molecule.atoms.items():
 
@@ -196,7 +231,6 @@ def _WriteSoluteAtoms( solute_group, forcefield ):
 
             atom_number+=1
         molecule_number+=1
-
     print("END")
 
 def WriteGromosTopology( ofstream, topology, forcefield ):
@@ -216,4 +250,5 @@ def WriteGromosTopology( ofstream, topology, forcefield ):
     _WriteSoluteAtoms( solute_group, forcefield )
     _WriteSoluteBonds( solute_group, forcefield )
     _WriteSoluteAngles( solute_group, forcefield )
+    _WriteSoluteImpropers( solute_group, forcefield )
     _WriteSoluteDihedrals( solute_group, forcefield )

@@ -144,6 +144,13 @@ class Molecule( Serializable ):
         if self.IndexOfBond(bond) < 0:
             self._bonds.append( bond )
 
+    def DeleteBond(self, bond):
+
+        index = self.IndexOfBond(bond)
+
+        if index >= 0:
+            del self._bonds[index]
+
     def AddAngle( self, angle ):
 
         #perform a sanity check if this bond is not already processed
@@ -151,6 +158,13 @@ class Molecule( Serializable ):
             raise LieTopologyException("Molecule::AddAngle", "Can only add angles that have 3 atom references" )
 
         self._angles.append( angle )
+
+    def DeleteAngle(self, angle):
+
+        index = self.IndexOfAngle(angle)
+
+        if index >= 0:
+            del self._angles[index]
 
     def AddImproper( self, improper ):
 
@@ -160,6 +174,13 @@ class Molecule( Serializable ):
 
         self._impropers.append( improper )
     
+    def DeleteImproper(self, improper):
+
+        index = self.IndexOfImproper(improper)
+
+        if index >= 0:
+            del self._impropers[index]
+
     def AddDihedral( self, dihedral ):
 
         #perform a sanity check if this bond is not already processed
@@ -167,6 +188,13 @@ class Molecule( Serializable ):
             raise LieTopologyException("Molecule::AddDihedral", "Can only add dihedrals that have 4 atom references" )
 
         self._dihedrals.append( dihedral )
+
+    def DeleteDihedral(self, dihedral):
+
+        index = self.IndexOfDihedral(dihedral)
+
+        if index >= 0:
+            del self._dihedrals[index]
 
     def IndexOfAtom( self, atom_key ):
 

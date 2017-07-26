@@ -118,18 +118,6 @@ def _BondedToTarget( molecule, atom_keys, target_molecule_key ):
         ref_1 = atom_references[0].ToReference()
         ref_2 = atom_references[1].ToReference()
 
-        #print ("Testing: ", atom_keys, target_molecule_key, target_group_key, " || ", ref_1.Debug(), ref_2.Debug() )
-
-        # make sure that if both are pointing to same molecule
-        # that we do not find known bonds
-        # if (  ref_2.molecule_key == target_molecule_key and\
-        #     ( ref_2.group_key is None or\
-        #       ref_2.group_key == target_group_key ) and\
-        #       ref_2.atom_key in atom_keys ) and\
-        # not ( molecule.key == target_molecule_key and\
-        #       ref_1.atom_key in atom_keys ):
-        #     response.append(ref_1)
-
         if ref_2 in atom_keys and not ref_1 in atom_keys:
             response.append(ref_1)
 
@@ -147,8 +135,6 @@ def _ReplacePositiveReferences( molecule, next_molecule, atom_references, templa
                 #might have modified the current atom count
                 atom_index = reference.external_index - template_atom_count + offset
 
-                print( "_ReplacePositiveReferences ", len(atom_references), molecule.key, reference.external_index, template_atom_count, " -> ", atom_index)
-
                 if atom_index < next_molecule.atom_count:
                     response = next_molecule.atoms.at(atom_index).ToReference()
             
@@ -158,16 +144,17 @@ def _ReplacePositiveReferences( molecule, next_molecule, atom_references, templa
                 reference.atom_key = response.atom_key
                 reference.molecule_key = response.molecule_key
 
-def _ReplaceNegativeReferences( molecule, prev_molecule, atom_references, nearest_bond_map, allow_multi_bond=False ):
+def _ReplaceNegativeReferences( molecule, prev_molecule, atom_references, nearest_bond_map, allow_multi_bond=False, 
+                                prev_atom_sub_select = None, offset=0, renew_on_response=False ):
+
+    if molecule == prev_molecule and not prev_atom_sub_select: 
+        raise LieTopologyException("Molecule::_AssertBonded", "Molecule is the same as prev_molecule. This in in principle allow for merge steps, but in that case a subselect MUST be given" )
 
     # find all references to atoms IN molcule
     atom_keys = []
     for reference in atom_references:
         if reference.IsNamedReference():
-            # if reference.molecule_key == molecule.key and\
-            #   (reference.group_key is None or\
-            #    reference.group_key    == molecule.group.key):
-                atom_keys.append(reference)
+            atom_keys.append(reference)
             
     #for reference in atom_references:
     num_references = len(atom_references)
@@ -181,9 +168,10 @@ def _ReplaceNegativeReferences( molecule, prev_molecule, atom_references, neares
             nearest_bond_list = nearest_bond_map[fetch_index]
 
         if reference.IsIndexedReference():
-
+            
             response = None
             if reference.external_index < 0:
+
                 # two options, either the negative index is an "offset" or it indicates that
                 # we might want to find the nearst bond. The map indicates if this external index
                 # should be tested as bonded, although only for a certain fetch_index (its value)
@@ -193,22 +181,24 @@ def _ReplaceNegativeReferences( molecule, prev_molecule, atom_references, neares
                     # key and mocule.key are the same as we already
                     bond_options = _BondedToTarget(prev_molecule, atom_keys, molecule.key)
                     
-                    if not allow_multi_bond and len(bond_options) != 1:
-                        print ( "reference.external_index in nearest_bond_map" )
-                        for option in bond_options:
-                            print ("option: ", option.Debug() )
-                        print ( "atom_keys: ", atom_keys )
-                        print ( prev_molecule.Debug() )
-                        print ( molecule.Debug() )
-                        
-                        raise LieTopologyException("Molecule::_AssertBonded", "Ambigous bonded assignment" )
+                    if len(bond_options) > 0:
+                        if not allow_multi_bond and len(bond_options) != 1: 
+                            print( atom_keys )       
+                            print( bond_options )
+                            raise LieTopologyException("Molecule::_AssertBonded", "Ambigous bonded assignment" )
                     
-                    #just get the last one
-                    response=bond_options[-1]
+                        selection=bond_options[-1]
+
+                        #only accept it if in subselect
+                        if prev_atom_sub_select == None or\
+                        selection in prev_atom_sub_select:
+                            
+                            #just get the last one
+                            response=selection
 
                 else: 
                     if abs(reference.external_index) <= prev_molecule.atom_count:
-                        atom_index = prev_molecule.atom_count + reference.external_index
+                        atom_index = prev_molecule.atom_count + reference.external_index + offset
                         response = prev_molecule.atoms.at(atom_index).ToReference()
 
 
@@ -218,9 +208,13 @@ def _ReplaceNegativeReferences( molecule, prev_molecule, atom_references, neares
                 reference.atom_key = response.atom_key
                 reference.molecule_key = response.molecule_key
 
-                # print ( "APPENDING ", reference.atom_key )
-                # atom_keys.append(reference.atom_key)
-                atom_keys.append(reference)
+                #if we reference replace a site 
+                #just use that one for bond detection if this flag is on
+                if renew_on_response:
+                    atom_keys = [ reference ]
+
+                else:
+                    atom_keys.append(reference)
 
 
 
@@ -271,13 +265,19 @@ def _HandleStartCapping( solute_group, capping_molecule, next_molecule, template
 
     for dihedral in merged_molecule.dihedrals:
         _ReplacePositiveReferences( merged_molecule, next_molecule_cpy, dihedral.atom_references, template_atom_count )
-
+    
+    # collection of all keys that belong to the capping group
+    atom_references_prev=[]
+    for atom in merged_molecule.atoms.values():
+        atom_references_prev.append(atom.ToReference())
+    
+    num_next_mol_atoms=next_molecule_cpy.atoms.size()
 
     # merge the atoms
-    for i in range( trailing_count, next_molecule_cpy.atoms.size() ):
+    for i in range( trailing_count, num_next_mol_atoms ):
         atom = next_molecule_cpy.atoms.at(i)
         merged_molecule.AddAtom( atom=atom )
-    
+        
     # merge bonds
     for bond in next_molecule_cpy.bonds:
         if merged_molecule.IndexOfBond( bond ) < 0:
@@ -286,33 +286,52 @@ def _HandleStartCapping( solute_group, capping_molecule, next_molecule, template
     # merge angles
     for angle in next_molecule_cpy.angles:
 
+        _ReplaceNegativeReferences( merged_molecule, merged_molecule, angle.atom_references,{}, True, atom_references_prev, -num_next_mol_atoms  )
+
+        ## currently gromos only allows angles that have at least one atom outside the replacement region!
+        include=False
+        for ref in angle.atom_references:
+            if ref not in atom_references_prev:
+                include=True
+
         # start by resolving references
         # use for both prev (i-1) and i the merged_molecule, as this one already contains the combined bonds
-        _ReplaceNegativeReferences( merged_molecule, merged_molecule, angle.atom_references,{}, True )
-
-        if merged_molecule.IndexOfAngle( angle ) < 0:
-            merged_molecule.AddAngle( angle )
+        if include:
+            if merged_molecule.IndexOfAngle( angle ) < 0:
+                merged_molecule.AddAngle( angle )
 
     # merge improper
     for improper in next_molecule_cpy.impropers:
 
+        _ReplaceNegativeReferences( merged_molecule, merged_molecule, improper.atom_references,{}, True, atom_references_prev, -num_next_mol_atoms  )
+
+        ## currently gromos only allows impropers that have at least one atom outside the replacement region!
+        include=False
+        for ref in improper.atom_references:
+            if ref not in atom_references_prev:
+                include=True
+
         # start by resolving references
         # use for both prev (i-1) and i the merged_molecule, as this one already contains the combined bonds
-        _ReplaceNegativeReferences( merged_molecule, merged_molecule, improper.atom_references,{}, True )
+        if include:
+            if merged_molecule.IndexOfImproper( improper ) < 0:
+                merged_molecule.AddImproper( improper )
 
-        if merged_molecule.IndexOfImproper( improper ) < 0:
-            merged_molecule.AddImproper( improper )
-    
     # treat dihedrals
+    num_capping_dihedrals = len(merged_molecule.dihedrals)
     for dihedral in next_molecule_cpy.dihedrals:
 
         # start by resolving references
         # use for both prev (i-1) and i the merged_molecule, as this one already contains the combined bonds
-        _ReplaceNegativeReferences( merged_molecule, merged_molecule, dihedral.atom_references,{ 0 : [-2,-3] }, True )
+        _ReplaceNegativeReferences( merged_molecule, merged_molecule, dihedral.atom_references,{ 0 : [-2,-3] }, True,\
+                                    atom_references_prev, -num_next_mol_atoms, renew_on_response=True )
         
         # in this case test the first 3 references 
         found = None
-        for ref_dihedral in merged_molecule.dihedrals:
+        # only sample original capping dihedrals
+        for i in range( 0, num_capping_dihedrals):
+        #for ref_dihedral in merged_molecule.dihedrals:
+            ref_dihedral = merged_molecule.dihedrals[i]
             if ref_dihedral.atom_references[0] == dihedral.atom_references[0] and\
                ref_dihedral.atom_references[1] == dihedral.atom_references[1] and\
                ref_dihedral.atom_references[2] == dihedral.atom_references[2]:
@@ -442,12 +461,15 @@ def _HandleEndCapping( solute_group, capping_molecule, prev_molecule, template_a
         _ReplaceNegativeReferences( capping_molecule_cpy, merged_molecule, dihedral.atom_references,{ 0 : [-1,-2,-3,-4],
                                     1 : [-1,-2,-3,-4], 2 : [-1,-2,-3,-4], 3 : [-1,-2,-3,-4] } )
 
-        dihedral_index = merged_molecule.IndexOfDihedral( dihedral ) 
-        if dihedral_index < 0:
-            merged_molecule.AddDihedrals( dihedral )
-        else:
-            # switch the type
-            merged_molecule.dihedrals[dihedral_index].forcefield_type = dihedral.forcefield_type
+        # dihedral duplicates are allowed
+        merged_molecule.AddDihedrals( dihedral )
+
+        # dihedral_index = merged_molecule.IndexOfDihedral( dihedral ) 
+        # if dihedral_index < 0:
+        #     merged_molecule.AddDihedrals( dihedral )
+        # else:
+        #     # switch the type
+        #     merged_molecule.dihedrals[dihedral_index].forcefield_type = dihedral.forcefield_type
 
     return merged_molecule
 
@@ -531,6 +553,7 @@ def _FinalizeLinking( solute_group, chain_lengths, template_atom_counts ):
             ##
             ## TODOODODOD check for duplicates
             ##
+            bond_delete_list=[]
             for bond in molecule.bonds:
                 if next_molecule: 
                     _ReplacePositiveReferences( molecule, next_molecule, bond.atom_references, template_atom_count, offset=0 )
@@ -538,27 +561,55 @@ def _FinalizeLinking( solute_group, chain_lengths, template_atom_counts ):
                 if prev_molecule:
                     _ReplaceNegativeReferences( molecule, prev_molecule, bond.atom_references, {}, allow_multi_bond=False )
                 
+                if not bond.IsNamedResolved():
+                    bond_delete_list.append(bond)
+                
+            angle_delete_list=[]
             for angle in molecule.angles:
                 if next_molecule: 
                     _ReplacePositiveReferences( molecule, next_molecule, angle.atom_references, template_atom_count, offset=0 )
                 
                 if prev_molecule:
                     _ReplaceNegativeReferences( molecule, prev_molecule, angle.atom_references, {}, allow_multi_bond=False )
+                
+                if not angle.IsNamedResolved():
+                    angle_delete_list.append(angle)
 
+            improper_delete_list=[]
             for improper in molecule.impropers:
                 if next_molecule: 
                     _ReplacePositiveReferences( molecule, next_molecule, improper.atom_references, template_atom_count, offset=0 )
                 
                 if prev_molecule:
                     _ReplaceNegativeReferences( molecule, prev_molecule, improper.atom_references, {}, allow_multi_bond=False )
+        
+                if not improper.IsNamedResolved():
+                    improper_delete_list.append(improper)
 
+            dihedral_delete_list=[]
             for dihedral in molecule.dihedrals:
                 if next_molecule: 
                     _ReplacePositiveReferences( molecule, next_molecule, dihedral.atom_references, template_atom_count, offset=0 )
                 
                 if prev_molecule:
                     _ReplaceNegativeReferences( molecule, prev_molecule, dihedral.atom_references, { 0: [-3] }, allow_multi_bond=False )
+                
+                if not dihedral.IsNamedResolved():
+                    dihedral_delete_list.append(dihedral)
             
+            # Delete all non-resolved stuff
+            for del_bond in bond_delete_list:
+                molecule.DeleteBond(del_bond)
+
+            for del_angle in angle_delete_list:
+                molecule.DeleteAngle(del_angle)
+
+            for del_improper in improper_delete_list:
+                molecule.DeleteImproper(del_improper)
+
+            for del_dihedral in dihedral_delete_list:
+                molecule.DeleteDihedral(del_dihedral)
+
             local_index+=1
 
         # global increment
@@ -604,8 +655,8 @@ def MakeSequence( forcefield, blueprint, sequence, solvent_name, disulfides ):
             len(dis_instance) != 2:
                 raise LieTopologyException("MakeTopology", "disulfides values should be of type list with length 2")
             
-        if not isinstance(dis_instance[0], Molecule) or\
-           not isinstance(dis_instance[1], Molecule):
+        if not isinstance(dis_instance[0], int) or\
+           not isinstance(dis_instance[1], int):
             raise LieTopologyException("MakeTopology", "disulfides inputs should be of type Molecule")
 
     # the notion of a chain disappears, we just have solute and solvent groups now
@@ -622,12 +673,12 @@ def MakeSequence( forcefield, blueprint, sequence, solvent_name, disulfides ):
     _GeneratePlainSequence( blueprint, sequence, solute_group, chain_cap_map, template_atom_counts )
     _HandleCappingGroups( solute_group, chain_cap_map, template_atom_counts, chain_lengths )
 
+    ## TODODODODODODODOD
+    ## HANDLE HEME AND CYS HERE!
+    ##
+
     print  ("FINAL_LINKING -----------------------------------------------------------------------")
     _FinalizeLinking( solute_group, chain_lengths, template_atom_counts )
-
-    # _PrepareMoleculeMerge( solute_group, chain_cap_map )
-    # _AssertBondedInMerge( topology, solute_group, chain_cap_map, template_atom_counts )
-    # _FinalizeLinking( topology, solute_group, chain_cap_map )
     
     return topology
     

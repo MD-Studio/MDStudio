@@ -79,6 +79,17 @@ class BondedTerm( Serializable ):
         
         return reponse
 
+    def IsNamedResolved(self):
+
+        reponse=True
+
+        for atom_reference in self._atom_references:
+            if not atom_reference.IsNamedReference():
+                reponse=False
+                break
+        
+        return reponse
+
     def ReKeyReferences( self,
                          old_atom_key = None, new_atom_key = None, 
                          old_molecule_key = None, new_molecule_key = None,

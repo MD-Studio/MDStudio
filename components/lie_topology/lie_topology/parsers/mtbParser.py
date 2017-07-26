@@ -189,7 +189,7 @@ def _ParseSoluteImpropers( block, solute, it ):
         atom_i_ref = _GenerateBondedReference( solute, index_i )
         atom_j_ref = _GenerateBondedReference( solute, index_j )
         atom_k_ref = _GenerateBondedReference( solute, index_k )
-        atom_l_name = _GenerateBondedReference( solute, index_k )
+        atom_l_name = _GenerateBondedReference( solute, index_l )
 
         dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
                              forcefield_type=dihedral_type  ) 
