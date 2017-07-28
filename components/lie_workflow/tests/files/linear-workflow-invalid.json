@@ -1,13 +1,10 @@
 {
   "edge_attr": {}, 
   "graph": {
-    "title": "Linear workflow (finished)",
-    "description": "A simple 6 node linear workflow",
-    "node_data_tag": "data",
-    "init_time": 1493819360,
-    "start_time": 1493819365,
-    "update_time": 1493819372,
-    "is_directed": true,
+    "title": "Linear workflow (invalid)",
+    "description": "A simple 6 node linear workflow that is invalid: it is not directed and does not contain a start node",
+    "node_data_tag": "data", 
+    "is_directed": false,
     "is_running": false,
     "edge_data_tag": "label", 
     "is_masked": false, 
@@ -35,7 +32,8 @@
       4, 
       5
     ]
-  },
+  }, 
+  "time": 1493819372, 
   "nodes": {
     "1": {
       "status": "completed", 
@@ -52,7 +50,7 @@
         "file": "input"
       }, 
       "_id": 1, 
-      "task_type": "Start",
+      "task_type": "Task",
       "utime": 1493819365
     }, 
     "2": {
