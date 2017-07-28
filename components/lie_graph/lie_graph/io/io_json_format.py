@@ -5,7 +5,6 @@ Import/Export files in JSON compliant format
 """
 
 import json
-import time
 import inspect
 import logging
 
@@ -58,7 +57,6 @@ def read_dict(dict_format):
     
     return graph_object
 
-
 def read_json(json_format):
     """
     Read JSON graph format
@@ -110,7 +108,6 @@ def write_json(graph, indent=2, encoding="utf-8", **kwargs):
     
     # Init JSON format envelope
     json_format = {
-        'time': int(time.time()),
         'lie_graph_version': __version__,
         'graph':{},
         'nodes':{},
