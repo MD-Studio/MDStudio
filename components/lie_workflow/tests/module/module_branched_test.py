@@ -19,7 +19,7 @@ sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 from   lie_graph.io.io_json_format import write_json
 from   lie_workflow                import Workflow
 
-from   dummy_task_runners          import TaskRunner
+from   dummy_task_runners          import task_runner
 
 # class TestBranchedWorkflow(unittest2.TestCase):
 #     """
@@ -33,7 +33,7 @@ from   dummy_task_runners          import TaskRunner
 #
 #         # Construct the workflow specification
 #         self.wf = Workflow()
-#         self.wf.task_runner = TaskRunner()
+#         self.wf.task_runner = task_runner()
 #
 #         # Add task nodes
 #         for task in range(7):
@@ -83,7 +83,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
 
         # Construct the workflow specification
         self.wf = Workflow()
-        self.wf.task_runner = TaskRunner()
+        self.wf.task_runner = task_runner()
 
         # Add task nodes
         for task in range(9):

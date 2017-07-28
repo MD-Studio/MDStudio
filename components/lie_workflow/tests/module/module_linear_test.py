@@ -13,7 +13,7 @@ import logging
 import time
 
 from   lie_workflow                import Workflow
-from   dummy_task_runners          import TaskRunner
+from   dummy_task_runners          import task_runner
 
 currpath = os.path.dirname(__file__)
 
@@ -32,7 +32,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         
         # Construct the workflow specification
         self.wf = Workflow()
-        self.wf.task_runner = TaskRunner()
+        self.wf.task_runner = task_runner
         self.wf.load(self.workflow_spec_path)
     
     def tester(self):

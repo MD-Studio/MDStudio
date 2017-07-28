@@ -7,6 +7,7 @@ import threading
 import logging
 import jsonschema
 import json
+import importlib
 
 from   .common        import WorkflowError
 from   .workflow_spec import WorkflowSpec
@@ -155,7 +156,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Define task runner
         self.task_runner = None
         self.workflow_thread = None
-    
+        
     def _error_callback(self, failure, tid):
         """
         Process the output of a failed task and stage the next task to run
@@ -294,16 +295,60 @@ class WorkflowRunner(_WorkflowQueryMethods):
             self.workflow.is_running = True
             self.workflow.update_time = int(time.time())
             
+            # Get the task runner
+            task_runner = self.load_task_function(task.get('class', None))
+            
             task.active = True
             task.status = 'running'
             
             logging.info('Task "{0}" ({1}), status: {2}'.format(task.task_name, tid, task.status))
-            task.run_task(self.task_runner, callback=self._output_callback, errorback=self._error_callback)
+            task.run_task(task_runner, callback=self._output_callback, errorback=self._error_callback)
         
         # In all other cases, pass task data to default output callback.
         else:
             self._output_callback(self.workflow.nodes[tid], update=False)
     
+    def load_task_function(self, class_name):
+        """
+        Load function that needs to be run with a specific workflow task type
+        
+        Custom Python function can be run on the local machine using a blocking
+        or non-blocking task runner.
+        These functions are loaded dynamically ar runtime using the URI of the
+        function as stored in the task 'class' attribute. A function URI is 
+        defined as a dot-seperated string in wich the last name defines the
+        function name and all names in front the absolute or relative path to
+        the module containg the function. The module needs to be in the 
+        python path.
+        
+        Example: 'path.to.module.function'
+        
+        If a global function is defined using the `task_runner` attribute it is
+        used as fallback in case a custom function is not defined or cannot be
+        loaded.
+        
+        :param class_name: Python absolute or relative function URI
+        :type class_name:  :py:str
+        
+        :rtype:            function object
+        """
+        
+        if class_name:
+            module_name = '.'.join(class_name.split('.')[:-1])
+            function = class_name.split('.')[-1]
+            
+            func = self.task_runner
+            try:
+                module = importlib.import_module(module_name)
+                func = getattr(module, function)
+                logging.debug('Load task runner function: {0} from module: {1}'.format(function, module_name))
+            except: 
+                logging.error('Unable to load task runner function: {0} from module: {1}'.format(function, module_name))
+        
+            return func
+            
+        return self.task_runner
+        
     def delete(self):
         
         pass

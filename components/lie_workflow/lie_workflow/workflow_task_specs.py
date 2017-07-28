@@ -73,7 +73,7 @@ class Task(_TaskBase):
         
         logging.info('running "{0}"'.format(self.task_name))
         
-        d = threads.deferToThread(runner.task, self.nodes[self.nid])
+        d = threads.deferToThread(runner, self.nodes[self.nid])
         if errorback:
             d.addErrback(errorback, self.nid)
         if callback:

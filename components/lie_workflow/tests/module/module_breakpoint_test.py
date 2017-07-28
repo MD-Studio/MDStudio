@@ -18,7 +18,7 @@ sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 from   lie_graph.io.io_json_format import read_json, write_json
 from   lie_workflow                import Workflow
 
-from   dummy_task_runners          import TaskRunner
+from   dummy_task_runners          import task_runner
 
 class TestWorkflowBreakpoints(unittest2.TestCase):
     """
@@ -31,7 +31,7 @@ class TestWorkflowBreakpoints(unittest2.TestCase):
         
         # Construct the workflow specification
         wf = Workflow(workflow=workflow)
-        wf.task_runner = TaskRunner()
+        wf.task_runner = task_runner()
         wf.run()
         
         self.assertFalse(wf.is_completed)

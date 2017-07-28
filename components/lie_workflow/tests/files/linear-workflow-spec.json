@@ -55,7 +55,8 @@
     "2": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
+      "uri": "liestudio.default.task",
+      "class": "dummy_task_runners.task_runner",
       "nid": 2, 
       "retry_count": 0, 
       "configuration": {
