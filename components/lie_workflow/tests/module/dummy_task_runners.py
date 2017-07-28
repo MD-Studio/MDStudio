@@ -38,6 +38,12 @@ class TaskRunner(object):
         # Simulate running the task
         time.sleep(conf.get('sleep',0))
         
+        # Perform some calculations to simulate work
+        # Add number to input
+        inp = inp.get('dummy')
+        if type(inp) == int:
+            inp += conf.get('add_number',0)
+        
         # Fail or not
         if conf.get('fail', False):
             session.status = 'failed'
@@ -51,7 +57,7 @@ class TaskRunner(object):
         
         # Prepaire the output
         session._metadata['utime'] = int(time.time())
-        task_data['output'] = {session['task_id']: task_data['task_name']}
+        task_data['output'] = {'dummy': inp}
         task_data.update(session.dict())
         
         return task_data

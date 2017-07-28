@@ -20,6 +20,7 @@ def module_test_suite():
     Run lie_workflow module unit tests
     """
     
+    testpath = os.path.join(os.path.dirname(__file__), 'module')
     loader = unittest2.TestLoader()
-    suite = loader.discover(os.path.dirname(__file__), pattern='module_*.py')
+    suite = loader.discover(testpath, pattern='module_*.py')
     return suite

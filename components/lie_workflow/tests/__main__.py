@@ -20,7 +20,8 @@ def module_test_suite():
     loader = unittest2.TestLoader()
     
     print('Running lie_workflow unittests')
-    suite = loader.discover(os.path.dirname(__file__), pattern='module_branched*.py')
+    testpath = os.path.join(os.path.dirname(__file__), 'module')
+    suite = loader.discover(testpath, pattern='module_linear_test.py')
     runner = unittest2.TextTestRunner(verbosity=2)
     runner.run(suite)
 
