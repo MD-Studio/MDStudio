@@ -10,13 +10,17 @@ import os
 import re
 import copy
 import json
+import pytz
 import base64
+import datetime
 import itertools
 
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
+from autobahn.twisted.util import sleep
 from twisted.logger import Logger
-from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock
+from twisted.internet import reactor
+from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock, Deferred
 from oauthlib import oauth2
 from oauthlib.common import Request as OAuthRequest, generate_client_id as generate_secret
 try:
@@ -29,6 +33,7 @@ from lie_componentbase import db
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 from .oauth.request_validator import OAuthRequestValidator
+from .authorizer import Authorizer
 
 class AuthWampApi(BaseApplicationSession):
     """
@@ -48,6 +53,7 @@ class AuthWampApi(BaseApplicationSession):
         })
 
         self.oauth_client = oauth2.BackendApplicationClient('auth')
+        self.session_config['loggernamespace'] = 'auth'
 
     def onInit(self, **kwargs):
         password_retrieval_message_file = os.path.join(self._config_dir, 'password_retrieval.txt')
@@ -66,10 +72,42 @@ class AuthWampApi(BaseApplicationSession):
         # TODO: check this before accessing the DB
         self.db_initialized = False
 
+        self.authorizer = Authorizer()
+        
+        # # TODO: make this a dict of  {vendor}.{namespace}: [urilist] for faster lookup
+        # self.registrations = []
+
     @inlineCallbacks
     def onRun(self, details=None):
         # Subscribe DB initialization to the DB online event
         self.db_subscription = yield self.subscribe(self.init_admin_user, u'liestudio.db.events.online')
+
+        # yield sleep(5)
+        # subs = yield self.call(u'wamp.subscription.list')
+        # print(subs)
+
+        # @inlineCallbacks
+        # def sub_info(id):
+        #     sub = yield self.call(u'wamp.subscription.get', id)
+        #     print(sub)
+        #     count = yield self.call(u'wamp.subscription.list_subscribers', id)
+        #     print(count)
+
+        # for id in itertools.chain(subs['exact'], subs['prefix'], subs['wildcard']):
+        #     yield sub_info(id)
+
+        # @inlineCallbacks
+        # def reg_info(id):
+        #     reg = yield self.call(u'wamp.registration.get', id)
+        #     print(reg)
+        #     count = yield self.call(u'wamp.registration.list_callees', id)
+        #     print(count)
+
+        # regs = yield self.call(u'wamp.registration.list')
+        # print(regs)
+
+        # for id in itertools.chain(regs['exact'], regs['prefix'], regs['wildcard']):
+        #     yield reg_info(id)
 
         
     @inlineCallbacks        
@@ -115,6 +153,7 @@ class AuthWampApi(BaseApplicationSession):
 
                 # Mark the database as initialized and unsubscribe
                 self.db_initialized = True
+                yield self.db_subscription.unsubscribe()
         except Exception:
             pass
 
@@ -251,68 +290,33 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(auth_ticket)
 
-    @register(u'liestudio.auth.registerscopes', {}, {}, details_arg=True)
-    def register_scopes(self, request, details):
-        print(request, details)
-        pass
+    @register(u'liestudio.auth.oauth.registerscopes', {}, {}, match='prefix')
+    def register_scopes(self, request):
+        for scope in request['scopes']:
+            
 
     @wamp.register(u'liestudio.auth.authorize')
     @inlineCallbacks
     def authorize(self, session, uri, action, options):
         role = session.get('authrole')
-                    
-        if session.get('authprovider') is None and role in ('auth', 'schema', 'db', 'logger'):
-            # Handle ring0 components
-            
-            # Allow full access on the role namespace
-            if uri.startswith('liestudio.{}.'.format(role)):
-                returnValue({'allow': True, 'disclose': True, 'cache': True})
+        
+        authorization = False
 
-            # Allow subscribe access on system events
-            if re.match('liestudio\\.\\w+\\.events\\.\\w+', uri) and action == 'subscribe':
-                returnValue({'allow': True, 'disclose': False, 'cache': True})
+        if role == u'admin' and action in ('call', 'subscribe', 'publish'):
+            # Allow admin to call, subscribe and publish on any uri
+            authorization = {'allow': True}
+        elif session.get('authprovider') is None and role in ('auth', 'schema', 'db', 'logger'):
+            authid = role
 
-            # Allow retrieving namespaces for users
-            if uri == u'liestudio.auth.namespaces' and action == 'call':
-                returnValue({'allow': True, 'disclose': False, 'cache': True})
-
-            # Allow retrieval of oauth client username
-            if uri.startswith('liestudio.auth.oauth.client.getusername'):
-                returnValue({'allow': True, 'disclose': False, 'cache': True})
-
-            # Allow DB access and schema registration & retrieval
-            if action == 'call':
-                if re.match('liestudio\\.db\\.\\w+\\.{}'.format(role), uri) or uri == u'liestudio.schema.register.{}'.format(role):
-                    returnValue({'allow': True, 'disclose': False})
-
-                if uri == u'liestudio.schema.get':
-                    returnValue({'allow': True, 'disclose': False})
-
-            # Allow log publishing
-            if action == 'publish' and uri == u'liestudio.logger.log.{}'.format(role):
-                self.log.debug('DEBUG: authorizing {} to perform {} on {}'.format(role, action, uri))            
-                returnValue({'allow': True, 'disclose': True})
+            authorization = self.authorizer.authorize_ring0(uri, action, role)
         else:
             authid = session.get('authid')
 
             if role == 'oauthclient':
                 client = yield self._get_client(authid)
                 session = yield self._get_session(session.get('session'))
-                namespaces = yield self.get_namespaces({'userId': client['userId']})
 
-                def iter_scopes(pattern, **kwargs):
-                    yield pattern.format(action=action, **kwargs)
-                    yield pattern.format(action='*', **kwargs)
-                
-                ns = re.match('liestudio\\.(.+)\\..+', uri).group(1)
-
-                scopes = itertools.chain(iter_scopes('{uri}:{action}', uri=uri), iter_scopes('ns.{ns}:{action}', ns=ns))
-
-                # TODO: check custom scope name on uri
-                scope_name = None
-
-                if scope_name:
-                    scopes = itertools.chain(scopes, iter_scopes('ns.{ns}.{scope}:{action}', ns=ns, scope=scope_name))
+                scopes = self.authorizer.oauthclient_scopes(uri, action, authid)
                 
                 headers = {'access_token': session['accessToken']}
                 valid, r = self.oauth_backend_server.verify_request(uri, headers=headers, scopes=[scope for scope in scopes])
@@ -320,15 +324,71 @@ class AuthWampApi(BaseApplicationSession):
                 valid = yield valid
 
                 if valid:
-                    returnValue({'allow': True, 'disclose': True, 'cache': True})
+                    authorization = {'allow': True}
 
-        # Allow admin to call, subscribe and publish on any uri
-        if role == u'admin' and action in ('call', 'subscribe', 'publish'):
-            returnValue({'allow': True, 'disclose': True})
+        if not authorization:
+            self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
+        else:
+            if 'disclose' not in authorization:
+                authorization['disclose'] = False
 
-        self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
+            registration = db.Model(self, 'registration_info')
 
-        returnValue(False)
+            now = datetime.datetime.now(pytz.utc).isoformat()
+
+            if action == 'register':
+                match = options.get('match', 'exact')
+
+                @inlineCallbacks
+                def update_registration():
+                    upd = yield registration.update_one(
+                        {
+                            'uri': uri,
+                            'match': match
+                        }, 
+                        {
+                            '$inc': {
+                                'registrationCount': 1
+                            },
+                            '$set': {
+                                'latestRegistration': now
+                            },
+                            '$setOnInsert': {
+                                'uri': uri,
+                                'firstRegistration': now,
+                                'match': match
+                            }
+                        }, 
+                        upsert=True, 
+                        date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
+                    )
+                    
+                yield DBWaiter(self, update_registration).run()
+            elif action == 'call':
+                @inlineCallbacks
+                def update_registration():
+                    id = yield self.call(u'wamp.registration.match', uri)
+                    if id:
+                        reg_info = yield self.call(u'wamp.registration.get', id)
+                        yield registration.update_one(
+                            {
+                                'uri': reg_info['uri'],
+                                'match': reg_info['match']
+                            },
+                            {
+                                '$inc': {
+                                    'callCount': 1
+                                },
+                                '$set': {
+                                    'latestCall': now
+                                }
+                            },
+                            date_fields=['update.$set.latestCall']
+                        )
+
+                yield DBWaiter(self, update_registration).run()
+
+        returnValue(authorization)
     
     @wamp.register(u'liestudio.auth.namespaces')
     @inlineCallbacks
@@ -597,3 +657,39 @@ class AuthWampApi(BaseApplicationSession):
           res = yield db.Model(self, 'users').update_one({'id': user['id']}, {'password': new_password})
 
         returnValue(user)
+
+class DBWaiter:
+    def __init__(self, session, callback):
+        self.session = session
+        self.callback = callback
+        self.unsub = Deferred()
+        self.called = False
+        self.sub = None
+
+        self.unsub.addCallback(self._unsubscribe)
+
+    @inlineCallbacks
+    def run(self):
+        if not self.session.db_initialized:
+            self.sub = yield self.session.subscribe(self._callback_wrapper, u'liestudio.db.events.online')
+
+            reactor.callLater(0.25, self._check_called)
+        else:
+            yield self.callback()
+            self.called = True
+
+    @inlineCallbacks
+    def _callback_wrapper(self, event):
+        yield self.callback()
+        self.called = True
+        self.unsub.callback(True)
+
+    def _unsubscribe(self, event=None):
+        self.sub.unsubscribe()
+
+    def _check_called(self):
+        if self.session.db_initialized:
+            if not self.called:
+                self._callback_wrapper(True)
+        else:
+            reactor.callLater(0.25, self._check_called)

@@ -20,6 +20,8 @@ class LoggerWampApi(BaseApplicationSession):
     """
     Logger management WAMP methods.
     """
+    def preInit(self, **kwargs):
+        self.session_config['loggernamespace'] = 'logger'
 
     @inlineCallbacks
     def onRun(self, details):
@@ -39,29 +41,9 @@ class LoggerWampApi(BaseApplicationSession):
         :return:      standard return
         :rtype:       :py:class:`dict` to JSON
         """
-        authid = self._get_authid(details)
-        namespace = re.match('^liestudio\\.logger\\.log\\.(\\w+)$', details.topic).group(1)
+        namespace = re.match('^liestudio\\.logger\\.log\\.((namespace-)?\\w+)$', details.topic).group(1)
 
-        do_log = False
-
-        if details.publisher_authrole == 'oauthclient':
-            res = yield self.call(u'liestudio.auth.oauth.client.getusername', {'clientId': authid})
-            if res:
-                authid = res['username']
-                do_log = True
-        else:
-            do_log = True
-
-        if do_log:
-            if namespace != authid:
-                namespace = 'namespace-{}'.format(namespace)
-
-            try:
-                res = yield db.Model(self, namespace).insert_many(request['logs'])
-            except Exception as e:
-                raise e
-
-        returnValue({})
+        res = yield db.Model(self, namespace).insert_many(request['logs'], date_fields=['insert.time'])
 
     @register(u'liestudio.logger.get', {}, {})
     def get_log_events(self, user):

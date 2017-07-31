@@ -325,3 +325,8 @@ def config_from_dotenv(dotenvfile):
             config[key] = value
 
     return config
+
+def config_to_dotenv(config, tofile):
+    with open(tofile, 'w') as f:
+        for key, value in config.items():
+            f.write('{}="{}"\n'.format(key, value))

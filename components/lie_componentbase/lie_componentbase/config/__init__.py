@@ -63,7 +63,7 @@ except BaseException:
 
 # Component imports
 from .config_handler import ConfigHandler
-from .config_io import config_from_dotenv, config_to_json, PY3
+from .config_io import config_from_dotenv, config_to_dotenv, config_to_json, PY3
 
 # Runtime wide configuration store
 configurations = {}

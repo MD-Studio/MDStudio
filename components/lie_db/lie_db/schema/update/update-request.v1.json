@@ -13,8 +13,14 @@
             "$ref": "wamp://liestudio.schema.get/db/filter/filter.v1.json"
         },
         "upsert": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
+        },
+        "dateFields": {
+            "type": "array",
+            "description": "List of keys of date fields to transform",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "required": [

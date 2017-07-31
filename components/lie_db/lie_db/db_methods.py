@@ -6,17 +6,20 @@ file: db_methods.py
 
 import os
 import copy
-import subprocess
+import pytz
+import getpass
 import logging
 import datetime
-import getpass
+import itertools
+import subprocess
 
-from distutils import spawn
-from pymongo import MongoClient
-from bson import ObjectId
+from dateutil.parser import parse as parsedate
 from pymongo.errors import ConnectionFailure
-from autobahn import wamp
 from twisted.logger import Logger
+from pymongo import MongoClient
+from distutils import spawn
+from autobahn import wamp
+from bson import ObjectId
 
 from lie_componentbase import WampSchema, validate_json_schema
 
@@ -27,37 +30,45 @@ class MongoDatabaseWrapper:
         self._namespace = namespace
         self._db = db
 
-    def count(self, collection=None, filter=None, skip=0, limit=0):
+    def count(self, collection=None, filter=None, skip=0, limit=0, dateFields=None):
         coll = self._get_collection(collection)
+        self._transform_to_datetime({'filter': filter}, dateFields)
 
         return 0 if coll is None else coll.count(filter, skip=skip, limit=limit)
 
-    def delete_one(self, collection=None, filter=None):
+    def delete_one(self, collection=None, filter=None, dateFields=None):
         coll = self._get_collection(collection)
+        self._transform_to_datetime({'filter': filter}, dateFields)
 
         return 0 if coll is None else coll.delete_one(filter).deleted_count
 
-    def delete_many(self, collection=None, filter=None):
+    def delete_many(self, collection=None, filter=None, dateFields=None):
         coll = self._get_collection(collection)
+        self._transform_to_datetime({'filter': filter}, dateFields)
 
         return 0 if coll is None else coll.delete_many(filter).deleted_count
 
-    def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None):
+    def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None, dateFields=None):
         coll = self._get_collection(collection)
+        self._transform_to_datetime({'filter': filter}, dateFields)
 
         if coll is None:
             return {}
         else:
             if filter and 'id' in filter:
                 filter['_id'] = ObjectId(filter.pop('id'))
+
             result = coll.find_one(filter, projection, skip, sort=sort)
+
             if result:
                 result['id'] = str(result.pop('_id'))
+                self._transform_datetime_to_isostring(result)
 
             return result
 
-    def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None):
+    def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None, dateFields=None):
         coll = self._get_collection(collection)
+        self._transform_to_datetime({'filter': filter}, dateFields)
 
         if not coll:
             return []
@@ -67,24 +78,32 @@ class MongoDatabaseWrapper:
 
         for doc in coll.find(filter, projection, skip, sort=sort):
             doc['id'] = str(doc.pop('_id'))
+            self._transform_datetime_to_isostring(doc)
             yield doc
 
-    def insert_one(self, collection=None, insert=None):
+    def insert_one(self, collection=None, insert=None, dateFields=None):
         coll = self._get_collection(collection, True)
+        self._transform_to_datetime({'insert': insert}, dateFields)
+        
         if isinstance(insert, dict) and 'id' in insert.keys():
             insert['_id'] = ObjectId(insert.pop('id'))
+
         return str(coll.insert_one(insert).inserted_id)
 
-    def insert_many(self, collection=None, insert=None):
+    def insert_many(self, collection=None, insert=None, dateFields=None):
         coll = self._get_collection(collection, True)
+        self._transform_to_datetime({'insert': insert}, dateFields)
+        
         for doc in insert:
             if isinstance(doc, dict) and 'id' in doc.keys():
                 doc['_id'] = ObjectId(doc.pop('id'))
+
         for id in coll.insert_many(insert).inserted_ids:
             yield str(id)
 
-    def update_one(self, collection=None, filter=None, update=None, upsert=False):
-        coll = self._get_collection(collection)
+    def update_one(self, collection=None, filter=None, update=None, upsert=False, dateFields=None):
+        coll = self._get_collection(collection, upsert)
+        self._transform_to_datetime({'filter': filter, 'update': update}, dateFields)
 
         if coll is None:
             return self._update_response(upsert, None)
@@ -93,8 +112,9 @@ class MongoDatabaseWrapper:
 
         return self._update_response(upsert, updateresult)
 
-    def update_many(self, collection=None, filter=None, update=None, upsert=False):
-        coll = self._get_collection(collection)
+    def update_many(self, collection=None, filter=None, update=None, upsert=False, dateFields=None):
+        coll = self._get_collection(collection, upsert)
+        self._transform_to_datetime({'filter': filter, 'update': update}, dateFields)
 
         if coll is None:
             return self._update_response(upsert, None)
@@ -116,7 +136,7 @@ class MongoDatabaseWrapper:
         }
 
         if upsert and updateresult.upserted_id:
-            response['upsertedId'] = updateresult.upserted_id
+            response['upsertedId'] = str(updateresult.upserted_id)
 
         return response
 
@@ -133,6 +153,55 @@ class MongoDatabaseWrapper:
                 return None
 
         return self._db[collection_name]
+
+    def _transform_to_datetime(self, document, date_fields):
+        if date_fields is None:
+            return
+
+        for field in date_fields:
+            fields = field.split('.')
+            self._transform_docfield_to_datetime(document, fields)
+
+    def _transform_docfield_to_datetime(self, doc, field):
+        subdoc = doc
+
+        l = 0
+        for level in field[:-1]:
+            if isinstance(subdoc, dict) and level in subdoc:
+                subdoc = subdoc[level]
+            else:
+                if isinstance(subdoc, list):
+                    for d in subdoc:
+                        self._transform_docfield_to_datetime(d, field[l:])
+                subdoc = None
+                break
+
+            l = l + 1
+
+        if subdoc is None:
+            return
+
+        key = field[-1]
+
+        if isinstance(subdoc, list):
+            for d in subdoc:
+                d[key] = parsedate(d[key]).astimezone(pytz.utc)
+        else:
+            subdoc[key] = parsedate(subdoc[key]).astimezone(pytz.utc)
+    
+    def _transform_datetime_to_isostring(self, document):
+        if isinstance(document, dict):
+            iter = document.items()
+        elif isinstance(document, list):
+            iter = enumerate(document)
+        else:
+            return
+
+        for key, value in iter:
+            if isinstance(value, datetime.datetime):
+                document[key] = value.isoformat()
+            else:
+                self._transform_datetime_to_isostring(value)
 
 class MongoClientWrapper:
     def __init__(self, host, port):

@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "ScopeRegisterRequest",
+    "type": "object",
+    "properties": {
+        "scopes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "scope": {
+                        "type": "string"
+                    },
+                    "uri": {
+                        "type": "string"
+                    }
+                },
+                "required": ["scope", "uri"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": ["scopes"],
+    "additionalProperties": false
+}

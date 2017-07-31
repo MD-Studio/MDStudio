@@ -2,11 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema",
     "title": "LogRequest",
     "type": "object",
-    "propterties": {
-        "namespace": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_\\.]+$"            
-        },
+    "properties": {
         "logs": {
             "type": "array",
             "items": {
@@ -39,7 +35,8 @@
                         "default": null
                     },
                     "time": {
-                        "type": "number"
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "message": {
                         "type": "string"
@@ -48,5 +45,6 @@
                 "additionalProperties": false
             }
         }
-    }
+    },
+    "additionalProperties": false
 }

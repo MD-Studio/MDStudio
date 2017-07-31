@@ -1,0 +1,74 @@
+import itertools
+import re
+
+class ActionRule:
+    def __init__(self, actions):
+        self.actions = actions
+
+    def match(self, uri, action, **kw):
+        return any(a in self.actions for a in ('*', action))
+
+class PrefixRule(ActionRule):
+    def __init__(self, prefix, actions=['call']):
+        self.prefix = prefix
+        super(PrefixRule, self).__init__(actions)
+
+    def match(self, uri, action, **kw):
+        return uri.startswith(self.prefix.format(uri=uri, **kw)) and super(PrefixRule, self).match(uri, action, **kw)
+
+class RegexRule(ActionRule):
+    def __init__(self, pattern, actions=['call']):
+        self.pattern = pattern
+        self.actions = actions
+
+    def match(self, uri, action, **kw):
+        return super(RegexRule, self).match(uri, action, **kw) and re.match(self.pattern.format(uri=uri, **kw), uri)
+
+class ExactRule(ActionRule):
+    def __init__(self, uri, actions=['call']):
+        self.uri = uri
+        super(ExactRule, self).__init__(actions)
+
+    def match(self, uri, action, **kw):
+        return self.uri.format(uri=uri, **kw) == uri and super(ExactRule, self).match(uri, action, **kw)
+
+class Authorizer:
+    def __init__(self):
+        # Build ruleset for communication inside ring0
+        self.ring0_rules = [
+            PrefixRule('liestudio.{role}.', ['*']),
+            RegexRule('liestudio\\.\\w+\\.events\\.\\w+', ['subscribe']),
+            ExactRule('liestudio.auth.namespaces'),
+            ExactRule('liestudio.auth.oauth.registerscopes'),
+            ExactRule('liestudio.auth.oauth.client.getusername'),
+            RegexRule('liestudio\\.db\\.\\w+\\.{role}'),
+            ExactRule('liestudio.schema.register.{role}'),
+            ExactRule('liestudio.schema.get'),
+            ExactRule('liestudio.logger.log.{role}', ['publish'])
+        ]
+    
+    def authorize_ring0(self, uri, action, role):
+        if any(rule.match(uri, action, role=role) for rule in self.ring0_rules):
+            return {'allow': True}
+
+        return False
+
+    def oauthclient_scopes(self, uri, action, authid):
+        # Generator for multiple scopes with this pattern
+        def iter_scopes(pattern, **kw):
+            yield pattern.format(action=action, **kw)
+            yield pattern.format(action='*', **kw)
+        
+        match = re.match('(.*?)\\.(.*?)\\..+', uri)
+        vendor = match.group(1)
+        ns = match.group(2)
+
+        scopes = itertools.chain(iter_scopes('{uri}:{action}', uri=uri), iter_scopes('ns.{vendor}.{ns}:{action}', ns=ns, vendor=vendor))
+
+        # TODO: check custom scope name on uri
+        scope_name = None
+
+        if scope_name:
+            scopes = itertools.chain(scopes, iter_scopes('ns.{vendor}.{ns}.{scope}:{action}', ns=ns, scope=scope_name))
+
+        return scopes

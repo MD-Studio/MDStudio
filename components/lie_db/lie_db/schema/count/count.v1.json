@@ -16,6 +16,13 @@
         "limit": {
             "type": "integer",
             "minimum": 0
+        },
+        "dateFields": {
+            "type": "array",
+            "description": "List of keys of date fields to transform",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "required": [

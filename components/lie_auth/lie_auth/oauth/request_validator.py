@@ -1,5 +1,7 @@
 import datetime
+import tzlocal
 import copy
+import pytz
 import re
 
 from twisted.internet.defer import inlineCallbacks, returnValue
@@ -65,9 +67,9 @@ class OAuthRequestValidator(oauth2.RequestValidator):
             client = token.pop('client')
             token['clientId'] = client['clientId']
             token['accessToken'] = token.pop('access_token')
-            token['expirationTime'] = (datetime.datetime.utcnow() + datetime.timedelta(seconds=token.pop('expires_in'))).timestamp()
+            token['expirationTime'] = (datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=token.pop('expires_in'))).isoformat()
 
-            db.Model(self.session, 'tokens').insert_one(copy.deepcopy(token))
+            db.Model(self.session, 'tokens').insert_one(copy.deepcopy(token), date_fields=['insert.expirationTime'])
         else:
             raise NotImplementedError('Subclasses has not implemented this path.')
 
@@ -83,7 +85,7 @@ class OAuthRequestValidator(oauth2.RequestValidator):
 
         bearer = bearer['result']
 
-        if datetime.datetime.utcnow().timestamp() > bearer['expirationTime']:
+        if datetime.datetime.now(pytz.utc).timestamp() > bearer['expirationTime']:
             returnValue(False)
 
         for scope in oauth2.rfc6749.utils.scope_to_list(bearer['scope']):

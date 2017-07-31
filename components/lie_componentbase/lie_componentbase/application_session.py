@@ -18,7 +18,6 @@ from autobahn import wamp
 from twisted.python.failure import Failure
 from pprint import pprint
 
-from .wamp_taskmeta import WAMPTaskMetaData
 from .logging import WampLogObserver, PrintingObserver
 from .util import resolve_config, block_on, WampSchema, WampSchemaHandler, validate_json_schema
 from .config import PY3, config_from_dotenv, ConfigHandler
@@ -128,22 +127,32 @@ class BaseApplicationSession(ApplicationSession):
 
         # initialize defaults
         self.session_config_environment_variables = {
-            'authid':       '_LIE_AUTH_USERNAME',
-            'password':     '_LIE_AUTH_PASSWORD',
-            'realm':        '_LIE_AUTH_REALM',
-            'authmethod':   '_LIE_AUTH_METHOD'
+            'authid':           '_LIE_AUTH_USERNAME',
+            'password':         '_LIE_AUTH_PASSWORD',
+            'realm':            '_LIE_AUTH_REALM',
+            'authmethod':       '_LIE_AUTH_METHOD',
+            'loggernamespace':  '_LIE_LOGGER_NAMESPACE'
         }
 
         self.package_config_template = WampSchema('componentbase', 'settings/settings', 1)
         self.session_config_template = WampSchema('componentbase', 'session_config/session_config', 1)
 
         self.json_schemas = []
+        self.function_scopes = []
 
         # Scan for input/output schemas on registrations
         for key, f in self.__class__.__dict__.items():
             try:
                 self.json_schemas.append(f._lie_input_schema)
                 self.json_schemas.append(f._lie_output_schema)
+            except AttributeError:
+                pass
+
+            try:
+                self.function_scopes.append({
+                    'scope': f._lie_scope,
+                    'uri': f._lie_uri
+                })
             except AttributeError:
                 pass
 
@@ -156,6 +165,10 @@ class BaseApplicationSession(ApplicationSession):
             'module_path': os.path.dirname(inspect.getfile(self.__class__)),
             'componentbase_path': os.path.dirname(__file__)
         }
+
+        self.session_config = ConfigHandler()
+        if namespace:
+            self.session_config['loggernamespace'] = 'namespace-{}'.format(namespace.group(1))
 
         # determine package config directory
         package_config_dir = os.path.join(os.path.dirname(self.component_info.get('module_path')), 'data')
@@ -184,8 +197,6 @@ class BaseApplicationSession(ApplicationSession):
         # argument and finaly config.extra
         self.package_config = ConfigHandler()
         self.package_config.update(resolve_config(extra.get('package_config')))
-
-        self.session_config = ConfigHandler()
         self.session_config.update(resolve_config(extra.get('sesion_config')))
 
         # Update session_info with key/value pairs in config.extra except
@@ -449,14 +460,16 @@ class BaseApplicationSession(ApplicationSession):
             self.logger_subscription = yield self.subscribe(logger_event, u'liestudio.logger.events.online')
 
         if self.autoschema:
-            self.register_schemas()
+            self._register_schemas()
         else:
             def schema_event(event):
-                self.register_schemas()
+                self._register_schemas()
                 self.schema_subscription.unsubscribe()
                 self.schema_subscription = None
 
             self.schema_subscription = yield self.subscribe(schema_event, u'liestudio.schema.events.online')
+
+        self._register_scopes()
         
         reactor.addSystemEventTrigger('before', 'shutdown', self.onCleanup)
 
@@ -571,7 +584,7 @@ class BaseApplicationSession(ApplicationSession):
         returnValue({})
 
     @inlineCallbacks
-    def register_schemas(self):
+    def _register_schemas(self):
         for schema in self.json_schemas:
             if isinstance(schema, WampSchema):
                 for schema_path in schema.paths():
@@ -588,3 +601,8 @@ class BaseApplicationSession(ApplicationSession):
                         else:
                             self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
                                            namespace=schema.namespace, path=schema_path)
+
+    @inlineCallbacks
+    def _register_scopes(self):
+        if self.function_scopes:
+            yield self.call('liestudio.auth.oauth.registerscopes', {'scopes': self.function_scopes})

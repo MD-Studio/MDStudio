@@ -46,6 +46,23 @@ services:
             - COMPONENT=lie_atb
         links:
             - crossbar
+    
+    cli:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py3
+        volumes:
+            # mount component
+            - ./components/lie_cli:/app/components/lie_cli
+            # mount config directory
+            - ./data/lie_cli:/app/data/lie_cli
+            # mount cache volumes
+            - cli_pipcache:/root/.cache
+            - cli_pip:/usr/local/lib/python3.5/site-packages
+        environment:
+            - COMPONENT=lie_cli
+        links:
+            - crossbar
 
     mongo:
         image: mongo:latest
@@ -62,4 +79,8 @@ volumes:
     crossbar_pipcache:
         driver: "local"
     crossbar_pip:
+        driver: "local"
+    cli_pipcache:
+        driver: "local"
+    cli_pip:
         driver: "local"

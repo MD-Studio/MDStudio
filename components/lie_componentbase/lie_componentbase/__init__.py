@@ -20,11 +20,10 @@ __licence__ = 'Apache Software License 2.0'
 __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) 2016, Marc van Dijk, VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
-__all__ = ['ComponentManager', 'BaseApplicationSession', 'WAMPTaskMetaData']
+__all__ = ['ComponentManager', 'BaseApplicationSession']
 
 # Component imports
 from .component_manager import ComponentManager
 from .application_session import BaseApplicationSession, block_on
 from .util import register, WampSchema, Schema, InlineSchema, validate_json_schema, validate_input, validate_output
-from .wamp_taskmeta import WAMPTaskMetaData
 from .config import PY3

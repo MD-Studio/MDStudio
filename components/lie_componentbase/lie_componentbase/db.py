@@ -51,37 +51,45 @@ class SessionDatabaseWrapper:
 
         return self.session.call(u'liestudio.db.findmany.{}'.format(self.namespace), request)
 
-    def insert_one(self, collection=None, insert=None):
+    def insert_one(self, collection=None, insert=None, date_fields=None):
         request = {'collection': collection}
         if insert:
             request['insert'] = insert
+        if date_fields:
+            request['dateFields'] = date_fields
 
         return self.session.call(u'liestudio.db.insertone.{}'.format(self.namespace), request)
 
-    def insert_many(self, collection=None, insert=None):
+    def insert_many(self, collection=None, insert=None, date_fields=None):
         request = {'collection': collection}
         if insert:
             request['insert'] = insert
+        if date_fields:
+            request['dateFields'] = date_fields
 
         return self.session.call(u'liestudio.db.insertmany.{}'.format(self.namespace), request)
 
-    def update_one(self, collection=None, filter=None, update=None, upsert=False):
+    def update_one(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
         request = {'collection': collection, 'filter': filter or {}}
 
         if update:
             request['update'] = update
-        if insert:
-            request['insert'] = insert
+        if upsert:
+            request['upsert'] = upsert
+        if date_fields:
+            request['dateFields'] = date_fields
 
         return self.session.call(u'liestudio.db.updateone.{}'.format(self.namespace), request)
 
-    def update_many(self, collection=None, filter=None, update=None, upsert=False):
+    def update_many(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
         request = {'collection': collection, 'filter': filter or {}}
 
         if update:
             request['update'] = update
-        if insert:
-            request['insert'] = insert
+        if upsert:
+            request['upsert'] = upsert
+        if date_fields:
+            request['dateFields'] = date_fields
 
         return self.session.call(u'liestudio.db.updatemany.{}'.format(self.namespace), request)
 
@@ -109,14 +117,14 @@ class Model:
     def find_many(self, filter=None, projection=None, skip=0, sort=None):
         return self.database_wrapper.find_many(self.collection, filter, projection, skip, sort)
 
-    def insert_one(self, insert=None):
-        return self.database_wrapper.insert_one(self.collection, insert)
+    def insert_one(self, insert=None, date_fields=None):
+        return self.database_wrapper.insert_one(self.collection, insert, date_fields)
 
-    def insert_many(self, insert=None):
-        return self.database_wrapper.insert_many(self.collection, insert)
+    def insert_many(self, insert=None, date_fields=None):
+        return self.database_wrapper.insert_many(self.collection, insert, date_fields)
 
-    def update_one(self, filter=None, update=None, upsert=False):
-        return self.database_wrapper.update_one(self.collection, filter, update, upsert)
+    def update_one(self, filter=None, update=None, upsert=False, date_fields=None):
+        return self.database_wrapper.update_one(self.collection, filter, update, upsert, date_fields)
 
-    def update_many(self, filter=None, update=None, upsert=False):
-        return self.database_wrapper.update_many(self.collection, filter, update, upsert)
+    def update_many(self, filter=None, update=None, upsert=False, date_fields=None):
+        return self.database_wrapper.update_many(self.collection, filter, update, upsert, date_fields)

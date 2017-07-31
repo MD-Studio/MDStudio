@@ -15,6 +15,7 @@ class SchemaWampApi(BaseApplicationSession):
         self._schemas = {}
         self.lock = DeferredLock()
         self.session_config_template = {}
+        self.session_config['loggernamespace'] = 'schema'
 
     def onInit(self, **kwargs):
         self.autolog = False
@@ -23,7 +24,7 @@ class SchemaWampApi(BaseApplicationSession):
     def onRun(self, details):
         yield self.publish(u'liestudio.schema.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
-    @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, options=wamp.RegisterOptions(match='prefix'), details_arg=True)
+    @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, details_arg=True, match='prefix')
     def schema_register(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 

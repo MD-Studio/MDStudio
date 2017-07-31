@@ -224,18 +224,21 @@ def validate_input(input_schema, strict=True):
 
     return wrap_f
 
-def register(uri, input_schema, output_schema, details_arg=False, options=None):
+def register(uri, input_schema, output_schema, details_arg=False, match=None, options=None, scope=None):
     if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
         input_schema = InlineSchema(input_schema)
 
     if not isinstance(output_schema, (Schema, WampSchema, InlineSchema)):
         output_schema = InlineSchema(output_schema)
 
+    if options is None and (match or details_arg):
+        options = wamp.RegisterOptions()
+
     if details_arg:
-        if options is None:
-            options = wamp.RegisterOptions(details_arg='details')
-        else:
-            options.details_arg = 'details'
+        options.details_arg='details'
+
+    if match:
+        options.match = match
 
     def wrap_f(f):
         @wamp.register(uri, options)
@@ -249,6 +252,10 @@ def register(uri, input_schema, output_schema, details_arg=False, options=None):
 
         wrapped_f._lie_input_schema = input_schema
         wrapped_f._lie_output_schema = output_schema
+
+        if scope:
+            wrapped_f._lie_uri = uri
+            wrapped_f._lie_scope = scope
 
         return wrapped_f
     

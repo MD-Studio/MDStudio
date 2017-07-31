@@ -1,6 +1,7 @@
 import threading
-import json
 import copy
+import json
+import pytz
 import sys
 import os
 
@@ -57,7 +58,6 @@ class PrintingObserver:
         self._out = open(out, 'w') if out == os.devnull else out
 
         self.format_event = '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n'
-        self.datefmt = '%Y-%m-%d %H:%M:%S'
         self.namespace = namespace
         self.min_level_index = LOGLEVELS.index(min_level)
 
@@ -86,7 +86,7 @@ class PrintingObserver:
 
             oldMsg = event.pop('message')
 
-            asctime = datetime.fromtimestamp(event['log_time']).strftime(self.datefmt)
+            asctime = datetime.fromtimestamp(event['log_time'], tz=pytz.utc).isoformat()
             self._out.write(self.format_event.format(asctime=asctime, message=message, **event))
 
             if oldMsg:
@@ -99,6 +99,7 @@ class WampLogObserver(object):
 
         self.session = session
         self.namespace = self.session.component_info.get('namespace')
+        self.logger_namespace = self.session.session_config['loggernamespace']
         self.min_level_index = LOGLEVELS.index(min_level)
         self.log_list = []
         self.log_queue = Queue()
@@ -127,7 +128,7 @@ class WampLogObserver(object):
                 'level': levelName,
                 'namespace': self.session.component_info['namespace'],
                 'user': self.session.session_config.get('authid', self.session.session_config.get('role')),
-                'time': event['log_time'],
+                'time': datetime.fromtimestamp(event['log_time'], tz=pytz.utc).isoformat(),
                 'message': message
             }
 
@@ -151,7 +152,7 @@ class WampLogObserver(object):
 
         if len(self.log_list) > 0 and not self.shutdown:
             try:
-                yield self.session.flush_logs(self.namespace, self.log_list)
+                yield self.session.flush_logs(self.logger_namespace, self.log_list)
             except ApplicationError as e:
                 print(e)
                 yield sleep(5)
