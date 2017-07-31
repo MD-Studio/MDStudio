@@ -1,8 +1,11 @@
 {
   "edge_attr": {}, 
   "graph": {
-    "node_data_tag": "data", 
-    "is_directed": true, 
+    "title": "Linear workflow (unfinished)",
+    "description": "A simple 6 node linear workflow",
+    "node_data_tag": "task_name", 
+    "is_directed": true,
+    "is_running": false,
     "edge_data_tag": "label", 
     "is_masked": false, 
     "root": 1, 
@@ -30,21 +33,23 @@
       5
     ]
   }, 
-  "time": 1493819372, 
   "nodes": {
     "1": {
       "status": "completed", 
       "itime": 1493819365, 
       "system_user": "mvdijk", 
       "task_id": "1493819367-6252", 
-      "data": "start", 
+      "task_name": "start", 
       "uri": "liestudio.default.task", 
       "nid": 1, 
       "retry_count": 0, 
       "breakpoint": false, 
       "active": false, 
       "output": {
-        "file": "input"
+        "dummy": 1
+      },
+      "input": {
+        "dummy": 1
       }, 
       "_id": 1, 
       "task_type": "Start",
@@ -58,9 +63,12 @@
       "system_user": "mvdijk", 
       "task_id": "1493819367-6146", 
       "output": {
-        "file": "task1"
+        "dummy": 2
+      },
+      "input": {
+        "dummy": 1
       }, 
-      "data": "task1", 
+      "task_name": "task1", 
       "uri": "liestudio.default.task", 
       "nid": 2, 
       "retry_count": 0, 
@@ -79,9 +87,12 @@
       "system_user": "mvdijk", 
       "task_id": "1493819368-7176", 
       "output": {
-        "file": "task2"
+        "dummy": 4
+      },
+      "input": {
+        "dummy": 2
       }, 
-      "data": "task2", 
+      "task_name": "task2", 
       "uri": "liestudio.default.task", 
       "nid": 3, 
       "retry_count": 0, 
@@ -100,9 +111,12 @@
       "system_user": "mvdijk", 
       "task_id": "1493819369-6710", 
       "output": {
-        "file": "task3"
+        "dummy": 5
+      },
+      "input": {
+        "dummy": 4
       }, 
-      "data": "task3", 
+      "task_name": "task3", 
       "uri": "liestudio.default.task", 
       "nid": 4, 
       "retry_count": 0, 
@@ -117,13 +131,8 @@
       "status": "ready", 
       "configuration": {
         "sleep": 1
-      }, 
-      "system_user": "mvdijk", 
-      "task_id": "1493819370-5050", 
-      "output": {
-        "file": "task4"
-      }, 
-      "data": "task4", 
+      },
+      "task_name": "task4", 
       "uri": "liestudio.default.task", 
       "nid": 5, 
       "retry_count": 0,
@@ -137,12 +146,7 @@
       "configuration": {
         "sleep": 1
       }, 
-      "system_user": "mvdijk", 
-      "task_id": "1493819371-1366", 
-      "output": {
-        "file": "task5"
-      }, 
-      "data": "task5", 
+      "task_name": "task5", 
       "uri": "liestudio.default.task", 
       "nid": 6, 
       "retry_count": 0,

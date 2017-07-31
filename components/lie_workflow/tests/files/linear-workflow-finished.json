@@ -3,7 +3,7 @@
   "graph": {
     "title": "Linear workflow (finished)",
     "description": "A simple 6 node linear workflow",
-    "node_data_tag": "data",
+    "node_data_tag": "task_name",
     "init_time": 1493819360,
     "start_time": 1493819365,
     "update_time": 1493819372,
@@ -42,7 +42,7 @@
       "itime": 1493819365, 
       "system_user": "mvdijk", 
       "task_id": "1493819367-6252", 
-      "data": "start", 
+      "task_name": "start", 
       "uri": "liestudio.default.task", 
       "nid": 1, 
       "retry_count": 0, 
@@ -65,7 +65,7 @@
       "output": {
         "file": "task1"
       }, 
-      "data": "task1", 
+      "task_name": "task1", 
       "uri": "liestudio.default.task", 
       "nid": 2, 
       "retry_count": 0, 
@@ -86,7 +86,7 @@
       "output": {
         "file": "task2"
       }, 
-      "data": "task2", 
+      "task_name": "task2", 
       "uri": "liestudio.default.task", 
       "nid": 3, 
       "retry_count": 0, 
@@ -107,7 +107,7 @@
       "output": {
         "file": "task3"
       }, 
-      "data": "task3", 
+      "task_name": "task3", 
       "uri": "liestudio.default.task", 
       "nid": 4, 
       "retry_count": 0, 
@@ -128,7 +128,7 @@
       "output": {
         "file": "task4"
       }, 
-      "data": "task4", 
+      "task_name": "task4", 
       "uri": "liestudio.default.task", 
       "nid": 5, 
       "retry_count": 0, 
@@ -149,7 +149,7 @@
       "output": {
         "file": "task5"
       }, 
-      "data": "task5", 
+      "task_name": "task5", 
       "uri": "liestudio.default.task", 
       "nid": 6, 
       "retry_count": 0, 

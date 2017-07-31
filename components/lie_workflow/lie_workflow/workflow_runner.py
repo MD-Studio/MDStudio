@@ -191,7 +191,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # The data construct returned should be a valid task object
         # according to the task_schema JSON schema
         jsonschema.validate(output, task_schema)
-        print(output)
+        
         # Update the task data
         if update:
             self.workflow.nodes[output['nid']].update(output)
@@ -291,6 +291,16 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
         # Run the task if ready
         if task.status == 'ready':
+            
+            # Check if there is 'input' defined
+            if not 'input' in self.workflow.nodes[tid]:
+                
+                # Check if previous task has output and use it as input for the current
+                parent = task.parent()
+                if parent and 'output' in self.workflow.nodes[parent.nid]:
+                    logging.info('Use output of parent task to tid {0} (tid {1})'.format(tid, parent.nid))
+                    self.workflow.nodes[tid]['input'] = {}
+                    self.workflow.nodes[tid]['input'].update(parent.output)
             
             self.workflow.is_running = True
             self.workflow.update_time = int(time.time())
@@ -463,13 +473,15 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
         logging.info('Running workflow: {0}, start task ID: {1}'.format(self.workflow.title, tid))
         
-        # If starting at non-root task, check if previous task has output
-        parent = self.workflow.getnodes(tid).parent()
-        if parent and not 'output' in parent.nodes[parent.nid]:
-            logging.error('Parent task to tid {0} (parent {1}) has no output defined'.format(tid, parent.nid))
-            return
+        # Always set is_running to True to allow for immediate interactive use
+        # preventing race conditions.
+        self.workflow.is_running = True
         
-        self.workflow.start_time = int(time.time())
+        # Set workflow start time if not defined. Don't rerun to allow
+        # continuation of unfinished workflows.
+        if not hasattr(self.workflow, 'start_time'):
+            self.workflow.start_time = int(time.time())
+        
         self.workflow_thread = threading.Thread(target=self._run_task, args=[tid])
         self.workflow_thread.daemon = True
         self.workflow_thread.start()
