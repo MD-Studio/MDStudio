@@ -1,0 +1,1708 @@
+meta:
+    version: V1.0
+    forcefield: GROMOS_53A6
+
+linkexclusions: 2
+
+physicalconstants: 
+    fpepsi: 138.9354
+    hbar: 0.0635078
+    spdl: 2.9979245800E05
+    boltz: 0.00831441
+
+mass_types:
+    H:    1.008 
+    CH1:  13.019  
+    CH2:  14.027  
+    CH3:  15.035  
+    CH4:  16.043  
+    C:    12.011  
+    N:    14.0067 
+    O:    15.9994 
+    F:    18.9984 
+    NA:   22.9898 
+    MG:   24.305 
+    SI:   28.08   
+    P:    30.9738 
+    S:    32.06   
+    CL:   35.453  
+    AR:   39.948  
+    CA:   40.08  
+    FE:   55.847 
+    CU:   63.546  
+    ZN:   65.37  
+    BR:   79.904 
+
+atom_types:
+    O:  #1 O carbonyl oxygen (C[DOUBLE BOND]O)
+        atom_number:  8 
+        c6_sqrt:      0.04756          
+        c12_sqrt:    [0.001, 0.00113, 0.0]
+        c6_1-4_sqrt:  0.04756
+        c12_1-4_sqrt: 0.0008611
+        
+    OM: #2 OM carboxyl oxygen (CO\u2212)
+        atom_number:  8 
+        c6_sqrt:      0.04756          
+        c12_sqrt:    [0.0008611, 0.001841, 0.003068]
+        c6_1-4_sqrt:  0.04756
+        c12_1-4_sqrt: 0.0008611
+
+    OA: #3 OA hydroxyl or sugar oxygen
+        atom_number:  8 
+        c6_sqrt:      0.04756         
+        c12_sqrt:    [0.0011, 0.001227, 0.0]
+        c6_1-4_sqrt:  0.04756
+        c12_1-4_sqrt: 0.001125
+
+    OE: # 4 OE ether or ester oxygen
+        atom_number:  8 
+        c6_sqrt:      0.04756         
+        c12_sqrt:    [0.0011, 0.001227, 0.0]
+        c6_1-4_sqrt:  0.04756
+        c12_1-4_sqrt: 0.001125        
+
+    OW: # 5 OW water oxygen
+        atom_number:  8 
+        c6_sqrt:      0.05116         
+        c12_sqrt:    [0.001623, 0.001623, 0.0]
+        c6_1-4_sqrt:  0.05116
+        c12_1-4_sqrt: 0.001623   
+
+    N:  # 6 N peptide nitrogen (NH)
+        atom_number:  7 
+        c6_sqrt:      0.04936         
+        c12_sqrt:    [0.001523, 0.001943, 0.0]
+        c6_1-4_sqrt:  0.04936
+        c12_1-4_sqrt: 0.001301   
+
+    NT: # 7 NT terminal nitrogen (NH2)
+        atom_number:  7 
+        c6_sqrt:      0.04936         
+        c12_sqrt:    [0.001523, 0.00225, 0.0]
+        c6_1-4_sqrt:  0.04936
+        c12_1-4_sqrt: 0.001301 
+
+    NL: # 8 NL terminal nitrogen (NH3)
+        atom_number:  7 
+        c6_sqrt:      0.04936         
+        c12_sqrt:    [0.001523, 0.003068, 0.0]
+        c6_1-4_sqrt:  0.04936
+        c12_1-4_sqrt: 0.001301 
+
+    NR: # 9 NR aromatic nitrogen
+        atom_number:  7 
+        c6_sqrt:      0.04936         
+        c12_sqrt:    [0.001523, 0.001841, 0.0]
+        c6_1-4_sqrt:  0.04936
+        c12_1-4_sqrt: 0.001301         
+
+    NZ: # 10 NZ Arg NH (NH2)
+        atom_number:  7 
+        c6_sqrt:      0.04936         
+        c12_sqrt:    [0.001523, 0.002148, 0.0]
+        c6_1-4_sqrt:  0.04936
+        c12_1-4_sqrt: 0.001301        
+
+    NE: # 11 NE Arg NE (NH)
+        atom_number:  7 
+        c6_sqrt:      0.04936         
+        c12_sqrt:    [0.001523, 0.001984, 0.0]
+        c6_1-4_sqrt:  0.04936
+        c12_1-4_sqrt: 0.001301     
+
+    C:  #  12 C bare carbon
+        atom_number:  6 
+        c6_sqrt:      0.04838         
+        c12_sqrt:    [0.002222, 0.0, 0.0]
+        c6_1-4_sqrt:  0.04838
+        c12_1-4_sqrt: 0.001837     
+
+    CH0: # 13 CH0 bare sp3 carbon, 4 bound heavy atoms
+        atom_number:  6 
+        c6_sqrt:      0.04838         
+        c12_sqrt:    [0.002222, 0.0, 0.0]
+        c6_1-4_sqrt:  0.04838
+        c12_1-4_sqrt: 0.001837   
+
+    CH1: # 14 CH1 aliphatic or sugar CH-group
+        atom_number:  6 
+        c6_sqrt:      0.0779         
+        c12_sqrt:    [0.00985, 0.0, 0.0]
+        c6_1-4_sqrt:  0.05396
+        c12_1-4_sqrt: 0.001933   
+
+    CH2: # 15 CH2 aliphatic or sugar CH2-group
+        atom_number:  6 
+        c6_sqrt:      0.08642         
+        c12_sqrt:    [0.005828, 0.0, 0.0]
+        c6_1-4_sqrt:  0.06873
+        c12_1-4_sqrt: 0.0021775964   
+        
+    CH3: # 16 CH3 aliphatic CH3-group
+        atom_number:  6 
+        c6_sqrt:      0.09805         
+        c12_sqrt:    [0.005162, 0.0, 0.0]
+        c6_1-4_sqrt:  0.08278
+        c12_1-4_sqrt: 0.002455782   
+
+    CH4: # 17 CH4 methane
+        atom_number:  6 
+        c6_sqrt:      0.1148         
+        c12_sqrt:    [0.005862, 0.0, 0.0]
+        c6_1-4_sqrt:  0.1148
+        c12_1-4_sqrt: 0.005862  
+
+    CH2r: # 18 CH2r CH2-group in a ring
+        atom_number:  6 
+        c6_sqrt:      0.08564         
+        c12_sqrt:    [0.005297, 0.0, 0.0]
+        c6_1-4_sqrt:  0.06873
+        c12_1-4_sqrt: 0.0021775964  
+
+    CR1: # 19 CR1 aromatic CH-group
+        atom_number:  6 
+        c6_sqrt:      0.07425         
+        c12_sqrt:    [0.003888, 0.0, 0.0]
+        c6_1-4_sqrt:  0.07435
+        c12_1-4_sqrt: 0.002886      
+
+    HC: # 20 HC hydrogen bound to carbon
+        atom_number:  1
+        c6_sqrt:      0.0092         
+        c12_sqrt:    [0.000123, 0.0, 0.0]
+        c6_1-4_sqrt:  0.0092
+        c12_1-4_sqrt: 0.000123      
+
+    H:  # 21 H hydrogen not bound to carbon
+        atom_number:  1
+        c6_sqrt:      0.0         
+        c12_sqrt:    [0.0, 0.0, 0.0]
+        c6_1-4_sqrt:  0.0
+        c12_1-4_sqrt: 0.0      
+
+    DUM: # 22 DUM dummy atom
+        atom_number:  0
+        c6_sqrt:      0.0         
+        c12_sqrt:    [0.0, 0.0, 0.0]
+        c6_1-4_sqrt:  0.0
+        c12_1-4_sqrt: 0.0  
+
+    S:  # 23 S sulfur
+        atom_number:  16
+        c6_sqrt:      0.09992         
+        c12_sqrt:    [0.003616, 0.0, 0.0]
+        c6_1-4_sqrt:  0.09992
+        c12_1-4_sqrt: 0.003616  
+
+    CU1+: # 24 CU1+ copper (charge 1+)
+        atom_number:  29
+        c6_sqrt:      0.02045         
+        c12_sqrt:    [7.159e-05, 0.000225, 0.0]
+        c6_1-4_sqrt:  0.02045
+        c12_1-4_sqrt: 7.159e-05
+
+    CU2+: # 25 CU2+ copper (charge 2+)
+        atom_number:  29
+        c6_sqrt:      0.02045         
+        c12_sqrt:    [7.159e-05, 0.0004091, 0.0]
+        c6_1-4_sqrt:  0.02045
+        c12_1-4_sqrt: 7.159e-05      
+
+    FE: # 26 FE iron (heme)
+        atom_number:  26
+        c6_sqrt:      0.0         
+        c12_sqrt:    [0.0, 0.0, 0.0]
+        c6_1-4_sqrt:  0.0
+        c12_1-4_sqrt: 0.0     
+
+    ZN2+: # 27 ZN2+ zinc (charge 2+)
+        atom_number:  30
+        c6_sqrt:      0.02045         
+        c12_sqrt:    [9.716e-05, 9.716e-05, 0.0]
+        c6_1-4_sqrt:  0.02045
+        c12_1-4_sqrt: 9.716e-05
+        
+    MG2+: # 28 MG2+ magnesium (charge 2+)
+        atom_number:  12
+        c6_sqrt:      0.00808         
+        c12_sqrt:    [5.838e-05, 5.838e-05, 0.0]
+        c6_1-4_sqrt:  0.00808
+        c12_1-4_sqrt: 5.838e-05
+
+    CA2+: # 29 CA2+ calcium (charge 2+)
+        atom_number:  20
+        c6_sqrt:      0.0317         
+        c12_sqrt:    [0.0007057, 0.0007057, 0.0]
+        c6_1-4_sqrt:  0.0317
+        c12_1-4_sqrt: 0.0007057
+
+    P: # 30 P, SI phosphor or silicon
+        atom_number:  15
+        c6_sqrt:      0.1214         
+        c12_sqrt:    [0.004711, 0.004711, 0.0]
+        c6_1-4_sqrt:  0.1214
+        c12_1-4_sqrt: 0.004711
+
+    AR: # 31 AR argon
+        atom_number:  18
+        c6_sqrt:      0.07915         
+        c12_sqrt:    [0.003138, 0.0, 0.0]
+        c6_1-4_sqrt:  0.07915
+        c12_1-4_sqrt: 0.003138
+
+    F:  # 32 F fluor (nonionic)
+        atom_number:  18
+        c6_sqrt:      0.03432         
+        c12_sqrt:    [0.0008722, 0.001227, 0.0]
+        c6_1-4_sqrt:  0.03432
+        c12_1-4_sqrt: 0.0008722
+
+    CL: # 33 CL chlorine (nonionic)
+        atom_number:  17
+        c6_sqrt:      0.09362         
+        c12_sqrt:    [0.003911, 0.0, 0.0]
+        c6_1-4_sqrt:  0.09362
+        c12_1-4_sqrt: 0.003911
+
+    BR: # 34 BR bromine (nonionic)
+        atom_number:  35
+        c6_sqrt:      0.1663         
+        c12_sqrt:    [0.008092, 0.0, 0.0]
+        c6_1-4_sqrt:  0.1663
+        c12_1-4_sqrt: 0.008092
+
+    CMet: # 35 CMet CH3-group in methanol (solvent)
+        atom_number:  6
+        c6_sqrt:      0.09421         
+        c12_sqrt:    [0.0044, 0.0, 0.0]
+        c6_1-4_sqrt:  0.09421
+        c12_1-4_sqrt: 0.0044
+
+    OMet: # 36 OMet oxygen in methanol (solvent)
+        atom_number:  8
+        c6_sqrt:      0.04756         
+        c12_sqrt:    [0.001525, 0.001525, 0.0]
+        c6_1-4_sqrt:  0.04756
+        c12_1-4_sqrt: 0.001525        
+
+    NA+: # 37 NA+ sodium (charge 1+)
+        atom_number:  11
+        c6_sqrt:      0.008489         
+        c12_sqrt:    [0.000145, 0.000145, 0.0]
+        c6_1-4_sqrt:  0.008489
+        c12_1-4_sqrt: 0.000145        
+
+    CL-: # 38 CL\u2212 chloride (charge 1\u2212)
+        atom_number:  17
+        c6_sqrt:      0.1175         
+        c12_sqrt:    [0.01034, 0.01034, 0.01034]
+        c6_1-4_sqrt:  0.1175
+        c12_1-4_sqrt: 0.01034  
+
+    CChl: # 39 CChl carbon in chloroform (solvent)
+        atom_number:  6
+        c6_sqrt:      0.051292         
+        c12_sqrt:    [0.002016, 0.0, 0.0]
+        c6_1-4_sqrt:  0.051292
+        c12_1-4_sqrt: 0.002016 
+
+    CLChl: # 40 CLChl chloride in chloroform (solvent)
+        atom_number:  17
+        c6_sqrt:      0.091141         
+        c12_sqrt:    [0.0037101, 0.0, 0.0]
+        c6_1-4_sqrt:  0.091141
+        c12_1-4_sqrt: 0.0037101    
+
+    HChl: # 41 HChl hydrogen in chloroform (solvent)
+        atom_number:  1
+        c6_sqrt:      0.00614         
+        c12_sqrt:    [6.5574e-05, 0.0, 0.0]
+        c6_1-4_sqrt:  0.00614
+        c12_1-4_sqrt: 6.5574e-05  
+
+    SDmso: # 42 SDmso sulphur in DMSO (solvent)
+        atom_number:  16
+        c6_sqrt:      0.10277         
+        c12_sqrt:    [0.0046366, 0.0, 0.0]
+        c6_1-4_sqrt:  0.10277
+        c12_1-4_sqrt: 0.0046366 
+
+    CDmso: # 43 CDmso CH3-group in DMSO (solvent)
+        atom_number:  6
+        c6_sqrt:      0.09805         
+        c12_sqrt:    [0.005162, 0.0, 0.0]
+        c6_1-4_sqrt:  0.09805
+        c12_1-4_sqrt: 0.005162      
+
+    ODmso: # 44 ODmso oxygen in DMSO (solvent)
+        atom_number:  8
+        c6_sqrt:      0.047652         
+        c12_sqrt:    [0.00086686, 0.001125, 0.0]
+        c6_1-4_sqrt:  0.047652
+        c12_1-4_sqrt: 0.00086686  
+
+    CCl4: # 45 CCl4 carbon in carbontetrachloride (solvent)
+        atom_number:  6
+        c6_sqrt:      0.051292         
+        c12_sqrt:    [0.0027568, 0.0, 0.0]
+        c6_1-4_sqrt:  0.051292
+        c12_1-4_sqrt: 0.0027568  
+
+    CLCl4: # 46 CLCl4 chloride in carbontetrachloride (solvent)
+        atom_number:  17
+        c6_sqrt:      0.087201         
+        c12_sqrt:    [0.0035732, 0.0, 0.0]
+        c6_1-4_sqrt:  0.087201
+        c12_1-4_sqrt: 0.0035732  
+
+    FTFE: # 47 FTfe fluor in trifluoroethanol
+        atom_number:  9
+        c6_sqrt:      0.03432         
+        c12_sqrt:    [0.001, 0.001, 0.0]
+        c6_1-4_sqrt:  0.03432
+        c12_1-4_sqrt: 0.001  
+
+    CTFE: # 48 CTfe carbon in trifluoroethanol
+        atom_number:  6
+        c6_sqrt:      0.04838         
+        c12_sqrt:    [0.001837, 0.0, 0.0]
+        c6_1-4_sqrt:  0.04838
+        c12_1-4_sqrt: 0.001837
+
+    CHTFE: # 49 CHTfe CH2-group in trifluoroethanol
+        atom_number:  6
+        c6_sqrt:      0.08429         
+        c12_sqrt:    [0.005077, 0.0, 0.0]
+        c6_1-4_sqrt:  0.08429
+        c12_1-4_sqrt: 0.005077       
+
+    OTFE: # 50 OTfe oxygen in trifluoroethanol
+        atom_number:  8
+        c6_sqrt:      0.04756         
+        c12_sqrt:    [0.001227, 0.001227, 0.0]
+        c6_1-4_sqrt:  0.04756
+        c12_1-4_sqrt: 0.001227 
+
+    CUrea: # 51 CUrea carbon in urea
+        atom_number:  6
+        c6_sqrt:      0.069906         
+        c12_sqrt:    [0.0036864, 0.0, 0.0]
+        c6_1-4_sqrt:  0.069906
+        c12_1-4_sqrt: 0.0036864 
+
+    OUrea: # 52 OUrea oxygen in urea
+        atom_number:  8
+        c6_sqrt:      0.04862         
+        c12_sqrt:    [0.0012609, 0.0012609, 0.0]
+        c6_1-4_sqrt:  0.04862
+        c12_1-4_sqrt: 0.0012609 
+
+    NUrea: # 53 NUrea nitrogen in urea
+        atom_number:  7
+        c6_sqrt:      0.057903         
+        c12_sqrt:    [0.0019877, 0.0019877, 0.0]
+        c6_1-4_sqrt:  0.057903
+        c12_1-4_sqrt: 0.0019877 
+
+pair_interactions:
+    O: { OA: 2, OW: 2, N: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
+         NE: 2, CU1+: 2, CU2+: 2, FE: 2, ZN2+: 2, MG2+: 2,
+         CA2+: 2, 'P,SI': 2, OMet: 2, NA+: 2}
+    OM: {OA: 2, OW: 2, N: 2, NT: 2, NR: 2, OMet: 2,
+        NL: 3, NZ: 3, NE: 3, CU1+: 3, CU2+: 3, FE: 3, ZN2+: 3,
+        MG2+: 3, CA2+: 3, P: 3, NA+: 3}
+    OA: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, N: 2, NT: 2,
+        NL: 2, NR: 2, NZ: 2, NE: 2, CU1+: 2, CU2+: 2, FE: 2,
+        ZN2+: 2, MG2+: 2, CA2+: 2, P: 2, F: 2, CL: 2,
+        BR: 2, OMet: 2, NA+: 2, CL-: 2}
+    OE: {OA: 2, OW: 2, N: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
+        NE: 2, CU1+: 2, CU2+: 2, FE: 2, ZN2+: 2, MG2+: 2,
+        CA2+: 2, P: 2, OMet: 2, NA+: 2}
+    OW: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, N: 2, NT: 2,
+        NL: 2, NR: 2, NZ: 2, NE: 2, CU1+: 2, CU2+: 2, FE: 2,
+        ZN2+: 2, MG2+: 2, CA2+: 2, P: 2, F: 2, CL: 2,
+        BR: 2, OMet: 2, NA+: 2, CL-: 2}
+    N: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NT: 2, NR: 2,
+        F: 2, CL: 2, BR: 2, OMet: 2, CL-: 2}
+    NT: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, N: 2, NT: 2,
+        NL: 2, NR: 2, NZ: 2, NE: 2, F: 2, CL: 2, BR: 2,
+        OMet: 2, CL-: 2}
+    NL: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NT: 2, NR: 2,
+        F: 2, CL: 2, BR: 2, OMet: 2, CL-: 2}
+    NR: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, N: 2, NT: 2,
+        NL: 2, NR: 2, NZ: 2, NE: 2, CU1+: 2, CU2+: 2, FE: 2,
+        ZN2+: 2, MG2+: 2, CA2+: 2, P: 2, F: 2, CL: 2,
+        BR: 2, OMet: 2, NA+: 2, CL-: 2}
+    NZ: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NT: 2, NR: 2,
+        F: 2, CL: 2, BR: 2, OMet: 2, CL-: 2}
+    NE: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NT: 2, NR: 2,
+        F: 2, CL: 2, BR: 2, OMet: 2, CL-: 2}
+    CU1+: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NR: 2, F: 2,
+        CL: 2, BR: 2, OMet: 2, CL-: 2}
+    FE: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NR: 2, F: 2,
+        CL: 2, BR: 2, OMet: 2, CL-: 2}
+    ZN2+: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NR: 2, F: 2,
+        CL: 2, BR: 2, OMet: 2, CL-: 2}
+    MG2+: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NR: 2, F: 2,
+        CL: 2, BR: 2, OMet: 2, CL-: 2}
+    CA2+: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NR: 2, F: 2,
+        CL: 2, BR: 2, OMet: 2, CL-: 2}
+    F: {OA: 2, OW: 2, N: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
+        NE: 2, CU1+: 2, CU2+: 2, FE: 2, ZN2+: 2, MG2+: 2,
+        CA2+: 2, P: 2, OMet: 2, NA+: 2}
+    OMet: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, N: 2, NT: 2,
+        NL: 2, NR: 2, NZ: 2, NE: 2, CU1+: 2, CU2+: 2, FE: 2,
+        ZN2+: 2, MG2+: 2, CA2+: 2, P: 2, F: 2, CL: 2,
+        BR: 2, OMet: 2, NA+: 2, CL-: 2}
+    NA+: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, NR: 2, F: 2,
+        CL: 2, BR: 2, OMet: 2, CL-: 2}
+    CL-: {OA: 2, OW: 2, N: 2, NT: 2, NR: 2, OMet: 2,
+        NL: 3, NZ: 3, NE: 3, CU1+: 3, CU2+: 3, FE: 3, ZN2+: 3,
+        MG2+: 3, CA2+: 3, P: 3, NA+: 3}
+    ODmso: {OA: 2, OW: 2, N: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
+        NE: 2, CU1+: 2, CU2+: 2, FE: 2, ZN2+: 2, MG2+: 2,
+        CA2+: 2, P: 2, OMet: 2, NA+: 2}
+    FTFE: {OA: 2, OW: 2, N: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
+        NE: 2, CU1+: 2, CU2+: 2, FE: 2, ZN2+: 2, MG2+: 2,
+        CA2+: 2, P: 2, OMet: 2, NA+: 2}
+    OTFE: {OA: 2, OW: 2, NT: 2, NR: 2, OMet: 2}
+    OUrea: {OA: 2, OW: 2, N: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
+        NE: 2, CU1+: 2, CU2+: 2, FE: 2, ZN2+: 2, MG2+: 2,
+        CA2+: 2, P: 2, OMet: 2, NA+: 2}
+    NUrea: {O: 2, OM: 2, OA: 2, OE: 2, OW: 2, N: 2, NT: 2,
+        NL: 2, NR: 2, NZ: 2, NE: 2, F: 2, CL: 2, BR: 2,
+        OMet: 2, CL-: 2}
+
+vdwmixed:
+  CChl::CLChl:
+    i: CChl
+    j: CLChl
+    c6: {default: 0.0046754, 1-4: 0.0046754}
+    c12: {default: 7.4813e-06, 1-4: 7.4813e-06}
+  CChl::HChl:
+    i: CChl
+    j: HChl
+    c6: {default: 0.0003622, 1-4: 0.0003622}
+    c12: {default: 1.745e-07, 1-4: 1.745e-07}
+  CLChl::HChl:
+    i: CLChl
+    j: HChl
+    c6: {default: 0.0006493, 1-4: 0.0006493}
+    c12: {default: 3.266e-07, 1-4: 3.266e-07}
+
+coultypes:
+  backbone-N:
+    charge: -0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  backbone-H:
+    charge: 0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  backbone-C:
+    charge: 0.45
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  backbone-O:
+    charge: -0.45
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  ala_val_ile_leu-CH3:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  ala_val_ile_leu-CH2:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  ala_val_ile_leu-CH:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(+)-CD:
+    charge: 0.09
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(+)-NE:
+    charge: -0.11
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(+)-HE:
+    charge: 0.24
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(+)-CZ:
+    charge: 0.34
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(+)-NHx:
+    charge: -0.26
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(+)-NHxx:
+    charge: 0.24
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(n)-NE:
+    charge: -0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(n)-HE:
+    charge: 0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(n)-CZ:
+    charge: 0.266
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(n)-NH1:
+    charge: -0.674
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(n)-HH1:
+    charge: 0.408
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(n)-NH2:
+    charge: -0.88
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  arg(n)-HHxx:
+    charge: 0.44
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asn_gln-Cx:
+    charge: 0.29
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asn_gln-Ox1:
+    charge: -0.45
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asn_gln-Nx:
+    charge: -0.72
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asn_gln-Hxx:
+    charge: 0.44
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asp_glu(-)-Cx:
+    charge: 0.27
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asp_glu(-)-Oxx:
+    charge: -0.635
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asp_glu(n)-Cx:
+    charge: 0.33
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asp_glu(n)-Ox1:
+    charge: -0.45
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asp_glu(n)-Ox2:
+    charge: -0.288
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  asp_glu(n)-Hx2:
+    charge: 0.408
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  cys(-)-CB:
+    charge: -0.1
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  cys(-)-SG:
+    charge: -0.4
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  cys(n)-CB:
+    charge: 0.15
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  cys(n)-SG:
+    charge: -0.37
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  cys(n)-HG:
+    charge: 0.22
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-CG:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-ND1:
+    charge: -0.05
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-HD1:
+    charge: 0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-CD2:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-HD2:
+    charge: 0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-CE1:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-HE1:
+    charge: 0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(a)-NE2:
+    charge: -0.54
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-CG:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-ND1:
+    charge: -0.54
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-CD2:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-HD2:
+    charge: 0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-CE1:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-HE1:
+    charge: 0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-NE2:
+    charge: -0.05
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(b)-HE2:
+    charge: 0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-CG:
+    charge: -0.05
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-ND1:
+    charge: 0.38
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-HD1:
+    charge: 0.3
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-CD2:
+    charge: -0.1
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-HD2:
+    charge: 0.1
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-CE1:
+    charge: -0.34
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-HE1:
+    charge: 0.1
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-NE2:
+    charge: 0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  his(+)-HE2:
+    charge: 0.3
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  hyp_ser_thr-Cx:
+    charge: 0.266
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  hyp_ser_thr-Ox:
+    charge: -0.674
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  hyp_ser_thr-Hx:
+    charge: 0.408
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  lys(+)-CE:
+    charge: 0.127
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  lys(+)-NZ:
+    charge: 0.129
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  lys(+)-HZx:
+    charge: 0.248
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  lys(n)-CE:
+    charge: -0.24
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  lys(n)-NZ:
+    charge: -0.64
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  lys(n)-HZx:
+    charge: 0.44
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  met-Cx:
+    charge: 0.241
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  met-SD:
+    charge: -0.482
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  trp-CG:
+    charge: -0.21
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  trp-CD1:
+    charge: -0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  trp-HD1:
+    charge: 0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  trp-CD2:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  trp-NE1:
+    charge: -0.1
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  trp-HE1:
+    charge: 0.31
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  trp-CE2:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  tyr-CZ:
+    charge: 0.203
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  tyr-OH:
+    charge: -0.611
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  tyr-HH:
+    charge: 0.408
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  phe_tyr_trp-C:
+    charge: -0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  phe_tyr_trp-H:
+    charge: 0.14
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  phe_tyr-C:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  phe_tyr-CH2:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  SPC-OW:
+    charge: -0.82
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+  SPC-HWx:
+    charge: 0.41
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarisability: 0.0
+    gamma: 0.0
+
+bondtypes: 
+  gb_1: # H - OA 750
+    fc-quartic: 15700000.0
+    fc-harmonic: 314000.0
+    b0: 0.1
+  gb_2: # H - N (all) 895
+    fc-quartic: 18700000.0
+    fc-harmonic: 374000.0
+    b0: 0.1
+  gb_3: # HC - C 700
+    fc-quartic: 12300000.0
+    fc-harmonic: 292272.6
+    b0: 0.109
+  gb_4: # C - O (CO in heme) 2220
+    fc-quartic: 37000000.0
+    fc-harmonic: 928256.0
+    b0: 0.112
+  gb_5: # C - O 1200
+    fc-quartic: 16600000.0
+    fc-harmonic: 502282.8
+    b0: 0.123
+  gb_6: # C - OM 1000
+    fc-quartic: 13400000.0
+    fc-harmonic: 418750.0
+    b0: 0.125
+  gb_7: # CR1 - NR (6-ring) 1000
+    fc-quartic: 12000000.0
+    fc-harmonic: 418176.0
+    b0: 0.132
+  gb_8: # H - S 750
+    fc-quartic: 8870000.0
+    fc-harmonic: 313802.86
+    b0: 0.133
+  gb_9: # C - NT, NL 900
+    fc-quartic: 10600000.0
+    fc-harmonic: 375006.8
+    b0: 0.133
+  gb_10: # C, CR1 - N, NR, CR1, C (peptide, 5-ring) 1000
+    fc-quartic: 11800000.0
+    fc-harmonic: 417460.4
+    b0: 0.133
+  gb_11: # C - N, NZ, NE 900
+    fc-quartic: 10500000.0
+    fc-harmonic: 377076.0
+    b0: 0.134
+  gb_12: # C - NR (no H) (6-ring) 1000
+    fc-quartic: 11700000.0
+    fc-harmonic: 420170.4
+    b0: 0.134
+  gb_13: # C - OA 900
+    fc-quartic: 10200000.0
+    fc-harmonic: 377318.4
+    b0: 0.136
+  gb_14: # C - NR (heme) 1000
+    fc-quartic: 11000000.0
+    fc-harmonic: 418968.0
+    b0: 0.138
+  gb_15: # CH2 - C, CR1 (6-ring) 800
+    fc-quartic: 8660000.0
+    fc-harmonic: 334639.72
+    b0: 0.139
+  gb_16: # C, CR1 - CH2, C, CR1 (6-ring) 1000
+    fc-quartic: 10800000.0
+    fc-harmonic: 417333.6
+    b0: 0.139
+  gb_17: # C, CR1, CH2 - NR (6-ring) 800
+    fc-quartic: 8540000.0
+    fc-harmonic: 334768.0
+    b0: 0.14
+  gb_18: # CHn - OA 800
+    fc-quartic: 8180000.0
+    fc-harmonic: 334545.64
+    b0: 0.143
+  gb_19: # CHn - OM 900
+    fc-quartic: 9210000.0
+    fc-harmonic: 376670.58
+    b0: 0.143
+  gb_20: # CHn - OA (sugar) 600
+    fc-quartic: 6100000.0
+    fc-harmonic: 251225.45
+    b0: 0.1435
+  gb_21: # CHn - N, NT, NL, NZ, NE 900
+    fc-quartic: 8710000.0
+    fc-harmonic: 376428.78
+    b0: 0.147
+  gb_22: # CHn - NR (5-ring) 600
+    fc-quartic: 5730000.0
+    fc-harmonic: 251019.84
+    b0: 0.148
+  gb_23: # CHn - NR (6-ring) 800
+    fc-quartic: 7640000.0
+    fc-harmonic: 334693.12
+    b0: 0.148
+  gb_24: # O, OM - P 900
+    fc-quartic: 8600000.0
+    fc-harmonic: 376748.8
+    b0: 0.148
+  gb_25: # O - S 900
+    fc-quartic: 8370000.0
+    fc-harmonic: 376650.0
+    b0: 0.15
+  gb_26: # CHn - CHn (sugar) 600
+    fc-quartic: 5430000.0
+    fc-harmonic: 250909.44
+    b0: 0.152
+  gb_27: # C, CHn - C, CHn 800
+    fc-quartic: 7150000.0
+    fc-harmonic: 334748.7
+    b0: 0.153
+  gb_28: # OA - P 600
+    fc-quartic: 4840000.0
+    fc-harmonic: 250915.28
+    b0: 0.161
+  gb_29: # OA - SI 600
+    fc-quartic: 4720000.0
+    fc-harmonic: 250811.36
+    b0: 0.163
+  gb_30: # FE - C (Heme)
+    fc-quartic: 2720000.0
+    fc-harmonic: 172360.96
+    b0: 0.178
+  gb_31: # CH3 - S 900
+    fc-quartic: 5940000.0
+    fc-harmonic: 376405.92
+    b0: 0.178
+  gb_32: # CH2 - S 900
+    fc-quartic: 5620000.0
+    fc-harmonic: 376416.36
+    b0: 0.183
+  gb_33: # CH1 - SI 600
+    fc-quartic: 3590000.0
+    fc-harmonic: 251077.42
+    b0: 0.187
+  gb_34: # NR - FE 120
+    fc-quartic: 640000.0
+    fc-harmonic: 50181.12
+    b0: 0.198
+  gb_35: # NR (heme) - FE 120
+    fc-quartic: 628000.0
+    fc-harmonic: 50240.0
+    b0: 0.2
+  gb_36: # S - S 1000
+    fc-quartic: 5030000.0
+    fc-harmonic: 418656.96
+    b0: 0.204
+  gb_37: # NR - FE 126
+    fc-quartic: 540000.0
+    fc-harmonic: 52748.28
+    b0: 0.221
+  gb_38: # HWat - OWat 1110
+    fc-quartic: 23200000.0
+    fc-harmonic: 464000.0
+    b0: 0.1
+  gb_39: # HChl - CChl 700
+    fc-quartic: 12100000.0
+    fc-harmonic: 292820.0
+    b0: 0.11
+  gb_40: # CChl - CLChl 1200
+    fc-quartic: 8120000.0
+    fc-harmonic: 501907.59
+    b0: 0.1758
+  gb_41: # ODmso - SDmso 900
+    fc-quartic: 8040000.0
+    fc-harmonic: 376416.72
+    b0: 0.153
+  gb_42: # SDmso - CDmso 890
+    fc-quartic: 4950000.0
+    fc-harmonic: 371824.72
+    b0: 0.193799
+  gb_43: # CCl4 - CLCl4 1200
+    fc-quartic: 8100000.0
+    fc-harmonic: 501811.2
+    b0: 0.176
+  gb_44: # CUrea - OUrea 1000
+    fc-quartic: 13100000.0
+    fc-harmonic: 419258.95
+    b0: 0.1265
+  gb_45: # CUrea - NUrea 900
+    fc-quartic: 10300000.0
+    fc-harmonic: 375435.0
+    b0: 0.135
+  gb_46: # HWat - HWat 1110
+    fc-quartic: 8710000.0
+    fc-harmonic: 464531.53
+    b0: 0.163299
+  gb_47: # HChl - CLChl 700
+    fc-quartic: 2680000.0
+    fc-harmonic: 293088.43
+    b0: 0.233839
+  gb_48: # CLChl - CLChl 1200
+    fc-quartic: 2980000.0
+    fc-harmonic: 502214.75
+    b0: 0.290283
+  gb_49: # ODmso - CDmso 890
+    fc-quartic: 2390000.0
+    fc-harmonic: 373115.59
+    b0: 0.279388
+  gb_50: # CDmso - CDmso 890
+    fc-quartic: 2190000.0
+    fc-harmonic: 371384.73
+    b0: 0.291189
+  gb_51: # HMet - CMet 820
+    fc-quartic: 3970000.0
+    fc-harmonic: 342525.96
+    b0: 0.2077
+  gb_52: # CLCl4 - CLCl4 1200
+    fc-quartic: 3040000.0
+    fc-harmonic: 502224.92
+    b0: 0.287407
+
+angletypes:
+  ga_1: # NR(heme) - FE - C 90
+    fc-non-harmonic: 380.0
+    fc-harmonic: 0.11550101
+    angle0: 90.0
+  ga_2: # NR(heme) - FE - NR(heme) 100
+    fc-non-harmonic: 420.0
+    fc-harmonic: 0.12768574
+    angle0: 90.0
+  ga_3: # H - S - CH2 95
+    fc-non-harmonic: 405.0
+    fc-harmonic: 0.12177061
+    angle0: 96.0
+  ga_4: # CH2 - S - CH3 110
+    fc-non-harmonic: 475.0
+    fc-harmonic: 0.14008261
+    angle0: 100.0
+  ga_5: # OA - P - OA 95
+    fc-non-harmonic: 420.0
+    fc-harmonic: 0.12122177
+    angle0: 103.0
+  ga_6: # CH2 - S - S 110
+    fc-non-harmonic: 490.0
+    fc-harmonic: 0.14028506
+    angle0: 104.0
+  ga_7: # NR, C, CR1(5-ring) 100
+    fc-non-harmonic: 465.0
+    fc-harmonic: 0.12788754
+    angle0: 108.0
+  ga_8: # CHn - CHn - CHn, NR(6-ring) (sugar) 60
+    fc-non-harmonic: 285.0
+    fc-harmonic: 0.076912479
+    angle0: 109.5
+  ga_9: # CHn, OA - CHn - OA, NR(ring) (sugar) 68
+    fc-non-harmonic: 320.0
+    fc-harmonic: 0.08638614
+    angle0: 109.5
+  ga_10: # H - NL, NT - H, CHn - OA - CHn(sugar) 80
+    fc-non-harmonic: 380.0
+    fc-harmonic: 0.10262668
+    angle0: 109.5
+  ga_11: # H - NL - C, CHn H - NT - CHn 90
+    fc-non-harmonic: 425.0
+    fc-harmonic: 0.11480708
+    angle0: 109.5
+  ga_12: # X - OA, SI - X 95
+    fc-non-harmonic: 450.0
+    fc-harmonic: 0.12157397
+    angle0: 109.5
+  ga_13: # CHn,C - CHn - C, CHn, OA, OM, N, NE 110
+    fc-non-harmonic: 520.0
+    fc-harmonic: 0.14052124
+    angle0: 109.5
+  ga_14: # OM - P - OA 95
+    fc-non-harmonic: 450.0
+    fc-harmonic: 0.12142334
+    angle0: 109.6
+  ga_15: # CHn - CHn - C, CHn, OA, NR, NT, NL 110
+    fc-non-harmonic: 530.0
+    fc-harmonic: 0.14048747
+    angle0: 111.0
+  ga_16: # CHn - CH2 - S 110
+    fc-non-harmonic: 545.0
+    fc-harmonic: 0.14045138
+    angle0: 113.0
+  ga_17: # NR(heme) - FE - NR 10
+    fc-non-harmonic: 50.0
+    fc-harmonic: 0.01229657
+    angle0: 115.0
+  ga_18: # H - N - CHn 90
+    fc-non-harmonic: 460.0
+    fc-harmonic: 0.11488482
+    angle0: 115.0
+  ga_19: # CHn, C - C - OA, N, NT, NL 120
+    fc-non-harmonic: 610.0
+    fc-harmonic: 0.1524165
+    angle0: 115.0
+  ga_20: # H - NE - CH2 90
+    fc-non-harmonic: 465.0
+    fc-harmonic: 0.11421859
+    angle0: 116.0
+  ga_21: # CH2 - N - CH1 120
+    fc-non-harmonic: 620.0
+    fc-harmonic: 0.15236094
+    angle0: 116.0
+  ga_22: # CH3 - N - C, CHn - C - OM 120
+    fc-non-harmonic: 635.0
+    fc-harmonic: 0.15336019
+    angle0: 117.0
+  ga_23: # H - NT, NZ, NE - C 70
+    fc-non-harmonic: 390.0
+    fc-harmonic: 0.088910434
+    angle0: 120.0
+  ga_24: # H - NT, NZ - H 80
+    fc-non-harmonic: 445.0
+    fc-harmonic: 0.10147593
+    angle0: 120.0
+  ga_25: # H - N - CH3, H, HC - 6-ring, H - NT - CHn 90
+    fc-non-harmonic: 505.0
+    fc-harmonic: 0.11518373
+    angle0: 120.0
+  ga_26: # P, SI - OA - CHn, P 95
+    fc-non-harmonic: 530.0
+    fc-harmonic: 0.12089532
+    angle0: 120.0
+  ga_27: # N, C, CR1 (6-ring, no H) 100
+    fc-non-harmonic: 560.0
+    fc-harmonic: 0.12774922
+    angle0: 120.0
+  ga_28: # NZ - C - NZ, NE 120
+    fc-non-harmonic: 670.0
+    fc-harmonic: 0.15288018
+    angle0: 120.0 
+  ga_29: # OM - P - OM 140
+    fc-non-harmonic: 780.0
+    fc-harmonic: 0.17801113
+    angle0: 120.0
+  ga_30: # O - C - CHn, C CH3 - N - CHn 120
+    fc-non-harmonic: 685.0
+    fc-harmonic: 0.15312732
+    angle0: 121.0
+  ga_31: # CH1, CH2 - N - C 120
+    fc-non-harmonic: 700.0
+    fc-harmonic: 0.15317431
+    angle0: 122.0
+  ga_32: # H - N - C 70
+    fc-non-harmonic: 415.0
+    fc-harmonic: 0.088743846
+    angle0: 123.0
+  ga_33: # O - C - OA, N, NT, NL C - NE - CH2 120
+    fc-non-harmonic: 730.0
+    fc-harmonic: 0.15266919
+    angle0: 124.0 
+  ga_34: # FE - NR - CR1 (5-ring) 60
+    fc-non-harmonic: 375.0
+    fc-harmonic: 0.076490216
+    angle0: 125.0
+  ga_35: #  - 120
+    fc-non-harmonic: 750.0
+    fc-harmonic: 0.1531408
+    angle0: 125.0
+  ga_36: # H, HC - 5-ring 90
+    fc-non-harmonic: 575.0
+    fc-harmonic: 0.11448735
+    angle0: 126.0 
+  ga_37: # X(noH) - 5-ring 100
+    fc-non-harmonic: 640.0
+    fc-harmonic: 0.12744672
+    angle0: 126.0
+  ga_38: # OM - C - OM 120
+    fc-non-harmonic: 770.0
+    fc-harmonic: 0.15336544
+    angle0: 126.0
+  ga_39: #  5, 6 ring connnection 100
+    fc-non-harmonic: 760.0
+    fc-harmonic: 0.12775497
+    angle0: 132.0
+  ga_40: #  SI - OA - SI 95
+    fc-non-harmonic: 2215.0
+    fc-harmonic: 0.12112698
+    angle0: 155.0
+  ga_41: # Fe - C - O (heme) 57
+    fc-non-harmonic: 91350.0
+    fc-harmonic: 0.072640156
+    angle0: 180.0
+  ga_42: # HWat - OWat - HWat 92
+    fc-non-harmonic: 434.0
+    fc-harmonic: 0.11724316
+    angle0: 109.5
+  ga_43: # HChl - CChl - CLChl 105
+    fc-non-harmonic: 484.0
+    fc-harmonic: 0.13376523
+    angle0: 107.57
+  ga_44: # CLChl - CChl - CLChl 131
+    fc-non-harmonic: 632.0
+    fc-harmonic: 0.16689058
+    angle0: 111.3
+  ga_45: # CDmso - SDmso - CDmso 110
+    fc-non-harmonic: 469.0
+    fc-harmonic: 0.14024534
+    angle0: 97.4
+  ga_46: # CDmso - SDmso - ODmso 110
+    fc-non-harmonic: 503.0
+    fc-harmonic: 0.14026005
+    angle0: 106.75
+  ga_47: # HMet - OMet - CMet 95
+    fc-non-harmonic: 443.0
+    fc-harmonic: 0.12108416
+    angle0: 108.53
+  ga_48: # CLCl4 - CCl4 - CLCl4 131
+    fc-non-harmonic: 618.0
+    fc-harmonic: 0.1670474
+    angle0: 109.5
+  ga_49: # FTFE - CTFE - FTFE 100
+    fc-non-harmonic: 507.0
+    fc-harmonic: 0.14008648
+    angle0: 107.6
+  ga_50: # HTFE - OTFE - CHTFE 85
+    fc-non-harmonic: 448.0
+    fc-harmonic: 0.12103261
+    angle0: 109.5
+  ga_51: # OTFE - CHTFE - CTFE 97
+    fc-non-harmonic: 524.0
+    fc-harmonic: 0.14017954
+    angle0: 110.3
+  ga_52: # CHTFE - CTFE - FTFE 95
+    fc-non-harmonic: 532.0
+    fc-harmonic: 0.14025677
+    angle0: 111.4
+  ga_53: # NUrea - CUrea - NUrea 120
+    fc-non-harmonic: 636.0
+    fc-harmonic: 0.15305438
+    angle0: 117.2
+  ga_54: # OUrea - CUrea - NUrea 120
+    fc-non-harmonic: 690.0
+    fc-harmonic: 0.1529482
+    angle0: 121.4
+
+dihedraltypes:
+  gd_1: # CHn-CHn-CHn-OA (sugar) 0.6 (sugar: C4-C5-C6-O6, omega dihedral, specific to residue with syn C4,C5 like Gal, 1-fold term)
+    fc: 2.67
+    phase-shift: 180.0
+    multiplicity: 1
+  gd_2: # OA-CHn-OA-CHn,H (beta sugar) 0.8 (sugar: O5-C1-O1-CX_next, glycosidic phi dihedral, for beta anomer, 1-fold term)
+    fc: 3.41
+    phase-shift: 180.0
+    multiplicity: 1
+  gd_3: # OA-CHn-CHn-OA (sugar) 1.2 (sugar: O5-C5-C6-O6, omega-tilde dihedral, for residue with syn C4,C5 like Gal, 1-fold term)
+    fc: 6.66
+    phase-shift: 180.0
+    multiplicity: 1
+  gd_4: # N-CHn-CHn-OA (lipid) 1.4
+    fc: 5.86
+    phase-shift: 180.0
+    multiplicity: 1
+  gd_5: # OA-CHn-CHn-OA (sugar) 2.2 (sugar: O5-C5-C6-O6, omega-tilde dihedral, for residue with anti C4,C5 like Glc, 1-fold term)
+    fc: 9.35
+    phase-shift: 180.0
+    multiplicity: 1
+  gd_6: # OA-CHn-OA-CHn,H (alpha sugar) 2.3 (sugar: O5-C1-O1-CX_next, glycosidic phi dihedral, for alpha anomer, 1-fold term)
+    fc: 9.45
+    phase-shift: 180.0
+    multiplicity: 1
+  gd_7: # P-O5*-C5*-C4* (dna) 0.7
+    fc: 2.79
+    phase-shift: 0.0
+    multiplicity: 1 
+  gd_8: # O5*-C5*-C4*-O4* (dna) 1.3
+    fc: 5.35
+    phase-shift: 0.0
+    multiplicity: 1
+  gd_9: # C1-C2-CAB-CBB (heme) 0.4
+    fc: 1.53
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_10: # -C-C- 1.4
+    fc: 5.86
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_11: # -C-OA,OE- (at ring) 1.7
+    fc: 7.11
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_12: # -C-OA,OE- (carboxyl) 4.0
+    fc: 16.7
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_13: # CHn-OE-C-CHn (ester lipid) 5.7
+    fc: 24.0
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_14: # -C-N,NT,NE,NZ,NR- 8.0
+    fc: 33.5
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_15: # -C-CR1- (6-ring) 10.0
+    fc: 41.8
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_16: # -CH1(sugar)-NR(base) 0.0
+    fc: 0.0
+    phase-shift: 0.0
+    multiplicity: 2
+  gd_17: # O-CH1-CHn-no O 0.1
+    fc: 0.418
+    phase-shift: 0.0
+    multiplicity: 2
+  gd_18: # O-CH1-CHn-O 0.5
+    fc: 2.09
+    phase-shift: 0.0
+    multiplicity: 2
+  gd_19: # -OA-P- 0.75
+    fc: 3.14
+    phase-shift: 0.0
+    multiplicity: 2
+  gd_20: # O-P-O- (dna, lipids) 1.2
+    fc: 5.09
+    phase-shift: 0.0
+    multiplicity: 2
+  gd_21: # -S-S- 4.0
+    fc: 16.7
+    phase-shift: 0.0
+    multiplicity: 2
+  gd_22: # -OA-P- 0.25
+    fc: 1.05
+    phase-shift: 0.0
+    multiplicity: 3 
+  gd_23: # -CHn-OA(no sugar)- 0.3
+    fc: 1.26
+    phase-shift: 0.0
+    multiplicity: 3 
+  gd_24: # HTFE-OTFE-CHTFE-CTFE 0.3
+    fc: 1.3
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_25: # O5*-C5*-C4*-O4* (dna) 0.6
+    fc: 2.53
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_26: # -CH2-S- 0.7
+    fc: 2.93
+    phase-shift: 0.0
+    multiplicity: 3 
+  gd_27: # O-P-O- (dna, lipids) 0.8
+    fc: 3.19
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_28: # OA-CHn-OA-CHn,H (alpha sugar) 0.9 (sugar: O5-C1-O1-CX_next, glycosidic phi dihedral, for alpha anomer, 3-fold term)
+    fc: 3.65
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_29: # -C,CHn,SI- 0.9
+    fc: 3.77
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_30: # CHn-CHn-OA-H (sugar) 0.9 (sugar: C(n-1)-Cn-On-Hn with n=2,3,4,6, chi dihedrals, including glycosidic psi dihedral)
+    fc: 3.9
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_31: # HC-C-S- 1.0
+    fc: 4.18
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_32: # AO-CHn-OA-CHn,H (beta sugar) (sugar: O5-C1-O1-CX_next, glycosidic phi dihedral, for beta anomer, 3-fold term)
+    fc: 4.69
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_33: # HC-C-C- 1.3
+    fc: 5.44
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_34: # -CHn,SI-CHn- 1.4
+    fc: 5.92
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_35: # OA-CHn-CHn-OA (sugar) 1.8 (sugar: O5-C5-C6-O6, omega-tilde dihedral, for residue with syn C4,C5 like Gal, 3-fold term)
+    fc: 7.69
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_36: # N-CHn-CHn-OA (lipid) 2.1
+    fc: 8.62
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_37: # OA-CHn-CHn-OA (sugar) 2.3 (sugar: O5-C5-C6-O6, omega-tilde dihedral, for residue with anti C4,C5 like Glc, 3-fold term)
+    fc: 9.5
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_38: # -NR-FE- 0.0
+    fc: 0.0
+    phase-shift: 0.0
+    multiplicity: 4 
+  gd_39: # -CHn-N,NE- 0.24
+    fc: 1.0
+    phase-shift: 180.0
+    multiplicity: 6
+  gd_40: # -CHn-C,NR(ring), CR1- 0.24
+    fc: 1.0
+    phase-shift: 0.0
+    multiplicity: 6
+  gd_41: # -CHn-NT- 0.9
+    fc: 3.77
+    phase-shift: 0.0
+    multiplicity: 6
+
+impropertypes:
+  gi_1: # planar groups 40
+    fc: 0.051
+    angle0: 0.0
+  gi_2: # tetrahedral centres 80
+    fc: 0.102
+    angle0: 35.26439 
+  gi_3: # heme iron 160
+    fc: 0.204
+    angle0: 0.0

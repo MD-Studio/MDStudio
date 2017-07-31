@@ -12,6 +12,7 @@ from lie_topology.parsers.pdbParser import ParsePdb
 from lie_topology.parsers.groParser import ParseGro
 from lie_topology.parsers.sdfParser import ParseSdf
 from lie_topology.parsers.mol2Parser import ParseMol2
+from lie_topology.parsers.mdtopParser import ParseMdtop
 
 from lie_topology.utilities.makeTopology import MakeSequence
 
@@ -23,59 +24,25 @@ from lie_topology.molecule.crystal import BoxVectorsToLattice, LatticeToBoxVecto
 
 def main():
 
-    # with open( "../tests/data/pdb/peptide.pdb", 'r') as ifstream:    
-        
-    #     pdb_structures = ParsePdb( ifstream )
-        
-    #     with open( "../tests/data/cnf/test_write.cnf", 'w') as ofstream:
-            
-    #         WriteCnf( ofstream, pdb_structures )
+    with open( "../tests/data/md_top/forcefield.mdtop", 'r') as mdtop_ifs:
+
+        forcefield = ParseMdtop( mdtop_ifs )
+
     
-    # with open( "../tests/data/cnf/md_fX_apixaban_1.cnf", 'r') as ifstream:
-
-    #     cnf_structures = ParseCnf( ifstream )
-
-    #     with open( "../tests/data/cnf/test_write2.cnf", 'w') as ofstream:
-            
-    #         WriteCnf( ofstream, cnf_structures )
-    
-    # with open( "../tests/data/gro/run1_combined_pbc.gro", 'r') as ifstream:
-
-    #     gro_structures = ParseGro( ifstream )
-
-    #     with open( "../tests/data/cnf/test_write3.cnf", 'w') as ofstream:
-            
-    #         WriteCnf( ofstream, gro_structures )
-
-    # with open( "../tests/data/sdf/BHC2.sdf", 'r') as ifstream:
-
-    #     sdf_structures = ParseSdf( ifstream )
-
-    #     with open( "../tests/data/cnf/test_write4.cnf", 'w') as ofstream:
-            
-    #         WriteCnf( ofstream, sdf_structures )     
-
-    # with open( "../tests/data/mol2/BHC2.mol2", 'r') as ifstream:
-
-    #     mol2_structures = ParseMol2( ifstream )
-
-    #     with open( "../tests/data/cnf/test_write5.cnf", 'w') as ofstream:
-            
-    #         WriteCnf( ofstream, mol2_structures )  
 
 
-    with open( "../tests/data/mtb/54a7.mtb", 'r') as mtb_ifstream,\
-         open( "../tests/data/ifp/54a7.ifp", 'r') as ifp_ifstream:
+    # with open( "../tests/data/mtb/54a7.mtb", 'r') as mtb_ifstream,\
+    #      open( "../tests/data/ifp/54a7.ifp", 'r') as ifp_ifstream:
 
-        blueprint = ParseMtb( mtb_ifstream )
-        forcefield = ParseIfp( ifp_ifstream )
+        # blueprint = ParseMtb( mtb_ifstream )
+        # forcefield = ParseIfp( ifp_ifstream )
 
-        topology = MakeSequence( forcefield, blueprint, ["NH3+","ALA","ALA","ALA","COO-"], "SPC", [] )
+        # topology = MakeSequence( forcefield, blueprint, ["NH3+","ALA","ALA","ALA","COO-"], "SPC", [] )
 
-        print (topology.Debug())
+        # print (topology.Debug())
 
-        with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
-            WriteGromosTopology( top_ofstream, topology, forcefield )
+        # with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
+        #     WriteGromosTopology( top_ofstream, topology, forcefield )
             
 
 

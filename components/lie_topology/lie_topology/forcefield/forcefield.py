@@ -58,7 +58,7 @@ class CoulombicType( Serializable ):
 
 class VdwType( Serializable ):
     
-    def __init__( self, key = None, type_name = None, c6 = None, c6_14 = None, c12 = None, c12_14 = None, matrix = None ):
+    def __init__( self, key = None, type_name = None, c6_sqrt = None, c6_14_sqrt = None, c12_sqrt = None, c12_14_sqrt = None, matrix = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -69,13 +69,13 @@ class VdwType( Serializable ):
         # specific type name as name could be anything
         self.type_name = type_name
 
-        self.c6     = c6
+        self.c6_sqrt     = c6_sqrt
 
-        self.c6_14  = c6_14
+        self.c6_14_sqrt  = c6_14_sqrt
 
-        self.c12    = c12
+        self.c12_sqrt    = c12_sqrt
 
-        self.c12_14 = c12_14
+        self.c12_14_sqrt = c12_14_sqrt
 
         self.matrix = matrix
         
