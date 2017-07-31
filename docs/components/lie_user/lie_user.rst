@@ -16,10 +16,10 @@ Subpackages
 Submodules
 ----------
 
-lie\_user\.management module
-----------------------------
+lie\_user\.password\_retrieval module
+-------------------------------------
 
-.. automodule:: lie_user.management
+.. automodule:: lie_user.password_retrieval
     :members:
     :undoc-members:
     :show-inheritance:
@@ -32,10 +32,10 @@ lie\_user\.sendmail module
     :undoc-members:
     :show-inheritance:
 
-lie\_user\.settings module
---------------------------
+lie\_user\.util module
+----------------------
 
-.. automodule:: lie_user.settings
+.. automodule:: lie_user.util
     :members:
     :undoc-members:
     :show-inheritance:

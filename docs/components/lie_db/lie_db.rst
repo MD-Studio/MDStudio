@@ -24,10 +24,10 @@ lie\_db\.db\_methods module
     :undoc-members:
     :show-inheritance:
 
-lie\_db\.settings module
-------------------------
+lie\_db\.wamp\_services module
+------------------------------
 
-.. automodule:: lie_db.settings
+.. automodule:: lie_db.wamp_services
     :members:
     :undoc-members:
     :show-inheritance:

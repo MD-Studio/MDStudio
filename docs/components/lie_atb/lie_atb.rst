@@ -9,6 +9,14 @@ lie\_atb package
 Submodules
 ----------
 
+lie\_atb\.\_\_main\_\_ module
+-----------------------------
+
+.. automodule:: lie_atb.__main__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie\_atb\.atb\_api\_py2 module
 ------------------------------
 

@@ -13,15 +13,3 @@ Subpackages
 
     lie_graph.tests.module
 
-Submodules
-----------
-
-lie\_graph\.tests\.\_\_main\_\_ module
---------------------------------------
-
-.. automodule:: lie_graph.tests.__main__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
