@@ -38,8 +38,8 @@ def resolve_config(config):
 
     :param config: package configuration to resolve
     :type config:  mixed
-    :return:               configuration
-    :rtype:                dict
+    :return:       configuration
+    :rtype:        :py:dict
     """
 
     settings = {}

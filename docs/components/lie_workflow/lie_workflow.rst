@@ -6,6 +6,13 @@ lie\_workflow package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    lie_workflow.tests
+
 Submodules
 ----------
 

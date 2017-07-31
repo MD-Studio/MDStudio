@@ -1,7 +1,7 @@
-lie_system
+lie_schema
 ==========
 
 .. toctree::
    :maxdepth: 4
 
-   lie_system
+   lie_schema

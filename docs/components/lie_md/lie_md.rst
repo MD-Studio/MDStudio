@@ -9,6 +9,14 @@ lie\_md package
 Submodules
 ----------
 
+lie\_md\.\_\_main\_\_ module
+----------------------------
+
+.. automodule:: lie_md.__main__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie\_md\.wamp\_services module
 ------------------------------
 
