@@ -1,25 +1,27 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "DeleteRequest",
+    "title": "UpdateOneRequest",
     "type": "object",
     "properties": {
         "collection": {
             "$ref": "wamp://liestudio.schema.get/db/collection/collection.v1.json"
         },
+        "update": {
+            "$ref": "wamp://liestudio.schema.get/db/document/document.v1.json"
+        },
         "filter": {
             "$ref": "wamp://liestudio.schema.get/db/filter/filter.v1.json"
         },
-        "dateFields": {
-            "type": "array",
-            "description": "List of keys of date fields to transform",
-            "items": {
-                "type": "string"
-            }
+        "upsert": {
+            "type": "boolean"
+        },
+        "fields": {
+            "$ref": "wamp://liestudio.schema.get/db/fields/fields.v1.json"
         }
     },
     "required": [
         "collection",
-        "filter"
+        "update"
     ],
     "additionalProperties": false
 }

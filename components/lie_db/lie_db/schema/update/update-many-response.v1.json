@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "UpdateManyResponse",
+    "type": "object",
+    "properties": {
+        "matchedCount": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "modifiedCount": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "upsertedId": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "matchedCount",
+        "modifiedCount"
+    ],
+    "additionalProperties": false
+}

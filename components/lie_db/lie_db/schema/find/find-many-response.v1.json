@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "FindManyResponse",
+    "type": "object",
+    "properties": {
+        "results": {
+            "type": "array",
+            "items": {
+                "$ref": "wamp://liestudio.schema.get/db/document/document.v1.json"
+            },
+            "additionalItems": false
+        },
+        "total": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "size": {
+            "type": "integer",
+            "minimum": 0
+        }
+    },
+    "required": [
+        "result",
+        "total",
+        "size"
+    ],
+    "additionalProperties": false
+}

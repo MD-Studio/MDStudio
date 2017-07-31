@@ -9,12 +9,8 @@
         "insert": {
             "$ref": "wamp://liestudio.schema.get/db/document/document.v1.json"
         },
-        "dateFields": {
-            "type": "array",
-            "description": "List of keys of date fields to transform",
-            "items": {
-                "type": "string"
-            }
+        "fields": {
+            "$ref": "wamp://liestudio.schema.get/db/fields/fields.v1.json"
         }
     },
     "required": [

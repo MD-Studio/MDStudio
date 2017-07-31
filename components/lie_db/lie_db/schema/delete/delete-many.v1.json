@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "DeleteManyRequest",
+    "type": "object",
+    "properties": {
+        "collection": {
+            "$ref": "wamp://liestudio.schema.get/db/collection/collection.v1.json"
+        },
+        "filter": {
+            "$ref": "wamp://liestudio.schema.get/db/filter/filter.v1.json"
+        },
+        "fields": {
+            "$ref": "wamp://liestudio.schema.get/db/fields/fields.v1.json"
+        }
+    },
+    "required": [
+        "collection",
+        "filter"
+    ],
+    "additionalProperties": false
+}

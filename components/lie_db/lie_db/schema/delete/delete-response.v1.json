@@ -4,7 +4,8 @@
     "type": "object",
     "properties": {
         "count": {
-            "type": "integer"
+            "type": "integer",
+            "min": 0
         }
     },
     "required": [

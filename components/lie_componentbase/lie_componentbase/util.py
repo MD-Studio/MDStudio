@@ -7,7 +7,7 @@ import re
 from twisted.internet.defer import TimeoutError, inlineCallbacks, returnValue
 from twisted.logger import LogLevel
 from twisted.python.failure import Failure
-from autobahn               import wamp
+from autobahn import wamp
 import jsonschema
 
 from .config.config_handler import ConfigHandler
@@ -60,23 +60,27 @@ def resolve_config(config):
 
     return settings
 
+
 def extend_with_default(validator_class, session):
     validate_properties = validator_class.VALIDATORS["properties"]
 
     def set_defaults(validator, properties, instance, schema):
         for property, subschema in properties.items():
             if "default" in subschema and property not in instance.keys():
-                session.log.warn('WARNING: during json schema validation, {} was not present in the instance, setting to default'.format(property))
+                session.log.warn(
+                    'WARNING: during json schema validation, {} was not present in the instance, setting to default'.format(
+                        property))
                 instance.setdefault(property, subschema["default"])
 
         for error in validate_properties(
-            validator, properties, instance, schema,
+                validator, properties, instance, schema,
         ):
             yield error
 
     return jsonschema.validators.extend(
-        validator_class, {"properties" : set_defaults},
+        validator_class, {"properties": set_defaults},
     )
+
 
 class WampSchemaHandler:
     def __init__(self, session):
@@ -84,26 +88,25 @@ class WampSchemaHandler:
         self.package_name = session.component_info.get('package_name')
         self.session = session
         self.cache = {}
-    
+
     def handler(self, uri):
         if uri not in self.cache.keys():
             res = block_on(self.resolve(uri))
-            self.cache[uri]=res
+            self.cache[uri] = res
         else:
             res = self.cache[uri]
 
         return res
 
-    
     @inlineCallbacks
     def resolve(self, uri):
         schema_path_match = re.match('wamp://liestudio\.schema\.get/([a-z_]+)/(.+)', uri)
         if not schema_path_match:
             self.session.log.error("Not a proper wamp uri")
-            
+
         schema_namespace = schema_path_match.group(1)
         schema_path = schema_path_match.group(2)
-        
+
         if 'lie_{}'.format(schema_namespace) == self.package_name:
             res = self.session.get_schema(schema_path)
         elif 'lie_{}'.format(schema_namespace) == 'lie_componentbase':
@@ -114,21 +117,22 @@ class WampSchemaHandler:
         if res is None:
             self.session.log.warn('WARNING: could not retrieve a valid schema')
             res = {}
-        
+
         returnValue(res)
+
 
 def validate_json_schema(session, schema_def, request):
     if not isinstance(schema_def, (Schema, WampSchema, InlineSchema)):
         schema_def = InlineSchema(schema_def)
 
     valid = False
-    
+
     for schema in schema_def.schemas():
         resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': session.wamp_schema_handler.handler})
-        
+
         DefaultValidatingDraft4Validator = extend_with_default(jsonschema.Draft4Validator, session)
-        validator=DefaultValidatingDraft4Validator(schema, resolver=resolver)
-        
+        validator = DefaultValidatingDraft4Validator(schema, resolver=resolver)
+
         errors = sorted(validator.iter_errors(request), key=lambda e: e.path)
 
         if len(errors) == 0:
@@ -140,6 +144,7 @@ def validate_json_schema(session, schema_def, request):
 
     return valid
 
+
 class Schema:
     def __init__(self, url, transport='http'):
         self.schema_uri = '{}://{}'.format(transport, url)
@@ -150,8 +155,10 @@ class Schema:
     def schemas(self):
         yield {'$ref': self.schema_uri}
 
+
 class WampSchema:
     def __init__(self, namespace, path, versions):
+        # type: (str, str, int) -> None
         if not isinstance(versions, list):
             versions = [versions]
 
@@ -163,7 +170,7 @@ class WampSchema:
 
     def __str__(self):
         return self.url_format.format('{}', '{}.{}') \
-                              .format(self.namespace, self.path, ['v{}'.format(v) for v in self.versions])
+            .format(self.namespace, self.path, ['v{}'.format(v) for v in self.versions])
 
     def paths(self):
         for version in self.versions:
@@ -177,6 +184,7 @@ class WampSchema:
         for uri in self.uris():
             yield {'$ref': uri}
 
+
 class InlineSchema:
     def __init__(self, schema):
         self.schema = schema
@@ -186,6 +194,7 @@ class InlineSchema:
 
     def schemas(self):
         yield self.schema if isinstance(self.schema, dict) else {'$ref': self.schema}
+
 
 def validate_output(output_schema):
     if not isinstance(output_schema, (Schema, WampSchema, InlineSchema)):
@@ -199,10 +208,11 @@ def validate_output(output_schema):
             validate_json_schema(self, output_schema, res)
 
             returnValue(res)
-        
+
         return wrapped_f
 
     return wrap_f
+
 
 def validate_input(input_schema, strict=True):
     if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
@@ -224,6 +234,7 @@ def validate_input(input_schema, strict=True):
 
     return wrap_f
 
+
 def register(uri, input_schema, output_schema, details_arg=False, match=None, options=None, scope=None):
     if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
         input_schema = InlineSchema(input_schema)
@@ -235,7 +246,7 @@ def register(uri, input_schema, output_schema, details_arg=False, match=None, op
         options = wamp.RegisterOptions()
 
     if details_arg:
-        options.details_arg='details'
+        options.details_arg = 'details'
 
     if match:
         options.match = match
@@ -247,7 +258,7 @@ def register(uri, input_schema, output_schema, details_arg=False, match=None, op
         @inlineCallbacks
         def wrapped_f(self, request, *args, **kwargs):
             res = yield f(self, request, *args, **kwargs)
-                
+
             returnValue(res)
 
         wrapped_f._lie_input_schema = input_schema
@@ -258,5 +269,5 @@ def register(uri, input_schema, output_schema, details_arg=False, match=None, op
             wrapped_f._lie_scope = scope
 
         return wrapped_f
-    
+
     return wrap_f

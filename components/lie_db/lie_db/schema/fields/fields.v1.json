@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Fields",
+    "type": "object",
+    "properties": {
+        "date": {
+            "type": "array",
+            "description": "List of keys of date fields to transform",
+            "items": {
+                "$ref": "wamp://liestudio.schema.get/db/fields/type.v1.json"
+            }
+        },
+        "protected": {
+            "type": "array",
+            "description": "List of keys of fields that should be stored encrypted for you",
+            "items": {
+                "$ref": "wamp://liestudio.schema.get/db/fields/type.v1.json"
+            }
+        }
+    },
+    "additionalProperties": false
+}

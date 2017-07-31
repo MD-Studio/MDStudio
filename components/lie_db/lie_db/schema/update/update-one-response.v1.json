@@ -1,9 +1,9 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "UpdateResponse",
+    "title": "UpdateOneRequest",
     "type": "object",
     "properties": {
-        "matchedCount": {
+        "matched": {
             "type": "integer",
             "minimum": 0
         },
