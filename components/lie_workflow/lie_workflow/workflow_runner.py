@@ -9,7 +9,7 @@ import jsonschema
 import json
 import importlib
 
-from   .common        import WorkflowError
+from   .common import WorkflowError
 from   .workflow_spec import WorkflowSpec
 
 # Get the task schema definitions from the default task_schema.json file

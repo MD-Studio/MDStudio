@@ -9,6 +9,7 @@ Graph node task classes
 import random
 import logging
 import jsonschema
+import json
 import time
 import os
 import copy
@@ -18,7 +19,10 @@ from   twisted.internet.defer   import inlineCallbacks
 from   lie_graph.graph_orm      import GraphORM
 
 from   .common                  import _schema_to_data
-from   .task_metadata           import task_schema
+
+# Get the task schema definitions from the default task_schema.json file
+TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
+task_schema = json.load(open(TASK_SCHEMA_PATH))
 
 
 class _TaskBase(object):
