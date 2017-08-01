@@ -72,6 +72,10 @@ class _TaskBase(object):
 
 
 class Task(_TaskBase):
+    """
+    A task runner class that runs Python functions or classes in
+    threaded mode using Twisted `deferToThread`. 
+    """
     
     def run_task(self, runner, callback=None, errorback=None):
         
@@ -86,6 +90,29 @@ class Task(_TaskBase):
         if not reactor.running:
             reactor.run(installSignalHandlers=0)
 
+class BlockingTask(_TaskBase):
+    """
+    A task runner class that runs Python functions or classes in
+    blocking mode resulting in the main workflow thread to be 
+    blocked until a result is returned or an exception is raised.
+    """
+    
+    def run_task(self, runner, callback=None, errorback=None):
+        
+        logging.info('running "{0}"'.format(self.task_name))
+        
+        try:
+            output = runner(self.nodes[self.nid])
+        except Exception as e:
+            if errorback:
+                return errorback(e, self.nid)
+            else:
+                logging.error('Error in running task "{0}" (nid {1})'.format(self.task_name, self.nid))
+                logging.error(e)
+                return
+        
+        if callback:
+            callback(output)
 
 class StartTask(_TaskBase):
     
@@ -159,3 +186,4 @@ WORKFLOW_ORM.map_node(StartTask, {'task_type':'Start'})
 WORKFLOW_ORM.map_node(Task, {'task_type':'Task'})
 WORKFLOW_ORM.map_node(Choice, {'task_type':'Choice'})
 WORKFLOW_ORM.map_node(Collect, {'task_type':'Collect'})
+WORKFLOW_ORM.map_node(BlockingTask, {'task_type': 'BlockingTask'})
