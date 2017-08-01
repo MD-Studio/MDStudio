@@ -25,13 +25,25 @@ class _WorkflowQueryMethods(object):
     @property
     def is_running(self):
         """
-        If the workflow is currently running or not
+        Returns the global state of the workflow as running or not.
         
         :rtype: :py:bool
         """
         
         return getattr(self.workflow, 'is_running', False)
     
+    @is_running.setter
+    def is_running(self, state):
+        """
+        Set the global state of the workflow as running or not.
+        If the new state is 'False' first check if there are no other parallel
+        active tasks.
+        """
+        
+        if not state:
+            state = len(self.active_tasks) >= 1
+        self.workflow.is_running = state
+        
     @property
     def is_completed(self):
         """
@@ -41,6 +53,17 @@ class _WorkflowQueryMethods(object):
         """
         
         return all([task['status'] in ('completed','disabled') for task in self.workflow.nodes.values()])
+    
+    @property
+    def has_failed(self):
+        """
+        Did the workflow finish unsuccessfully?
+        True if there are no more active tasks and at least one task has failed or was aborted
+        """
+        
+        if not len(self.active_tasks) and len([task['status'] in ('failed','aborted') for task in self.workflow.nodes.values()]):
+            return True
+        return False
     
     @property
     def starttime(self):
@@ -64,15 +87,22 @@ class _WorkflowQueryMethods(object):
         if not self.is_running:
             return getattr(self.workflow, 'update_time', None)
         return None
-        
-    @property
-    def runtime(self):
+    
+    def runtime(self, tid=None):
         """
-        Return the workflow runtime in seconds
+        Return the total workflow runtime in seconds or the
+        runtime of a specific task defined by the task ID
+        
+        :param tid: task for wich to calculate the runtime
+        :type tid:  :py:int
         
         :rtype: :py:int
         """
         
+        if tid:
+            task = self.workflow.getnodes(tid)
+            return task.get('utime',0) - task.get('itime',0)
+            
         start = self.starttime or 0
         end = self.finishtime or 0
         if self.is_running:
@@ -143,6 +173,10 @@ class WorkflowRunner(_WorkflowQueryMethods):
     :type workflow:    JSON object
     :param schema_url: URL of the JSON schema describing the DAG
     :type schema_url:  :py:str
+    
+    TODO: for branched workflows: if one branch failes, should others be
+          allowed to finish? perhaps only if final result is not affected
+          by failed branch. For now, we simply stop.
     """
     
     def __init__(self):
@@ -172,8 +206,14 @@ class WorkflowRunner(_WorkflowQueryMethods):
         task.active = False
         task.status = 'failed'
         
-        logging.error('Task "{0}" ({1}) crashed with error: {2}'.format(task.task_name, task.nid, failure.getErrorMessage()))
-        self.workflow.is_running = False
+        failure_message = ""
+        if isinstance(failure, Exception):
+            failure_message = str(failure)
+        else:
+            failure.getErrorMessage()
+        
+        logging.error('Task "{0}" ({1}) crashed with error: {2}'.format(task.task_name, task.nid, failure_message))
+        self.is_running = False
         self.workflow.update_time = int(time.time())
         
         return
@@ -205,26 +245,24 @@ class WorkflowRunner(_WorkflowQueryMethods):
         if task.status == 'completed':
             task.active = False
             
-            # Get data from previous task and use as input for new task
+            # Get data from just completed task and use as input for new task
             task_input = task.get('output')
         
             # Get next task(s) to run
             next_tasks = [t for t in task.children() if task.status != 'disabled']
-            if next_tasks:
+            logging.info('{0} new tasks to run with the output of "{1}" ({2})'.format(len(next_tasks), task.task_name, task.nid))         
+            for ntask in next_tasks:
+                if not 'input' in ntask.nodes[ntask.nid]:
+                    ntask.nodes[ntask.nid]['input'] = {}
             
-                logging.info('{0} new tasks to run with the output of "{1}" ({2})'.format(len(next_tasks), task.task_name, task.nid))
-                for ntask in next_tasks:
-                    if not 'input' in ntask.nodes[ntask.nid]:
-                        ntask.nodes[ntask.nid]['input'] = {}
+                # Should we replace the input with output of previous task
+                if task_input:
+                    if ntask.get('replace_input', False):
+                        ntask.nodes[ntask.nid]['input'] = task_input
+                    else:
+                        ntask.nodes[ntask.nid]['input'].update(task_input)
                 
-                    # Should we replace the input with output of previous task
-                    if task_input:
-                        if ntask.get('replace_input', False):
-                            ntask.nodes[ntask.nid]['input'] = task_input
-                        else:
-                            ntask.nodes[ntask.nid]['input'].update(task_input)
-                    
-                    next_task_nids.append(ntask.nid)
+                next_task_nids.append(ntask.nid)
         
         # If the task failed, retry if allowed and reset status to "ready"
         if task.status == 'failed' and task.retry_count > 0:
@@ -239,26 +277,25 @@ class WorkflowRunner(_WorkflowQueryMethods):
         if task.status == 'failed' and task.retry_count == 0:
             task.active = False
             logging.error('Task "{0}" ({1}) failed'.format(task.task_name, task.nid))
-            self.workflow.is_running = False
+            self.is_running = False
             return
         
         # If the task is completed but a breakpoint is defined, wait for the breakpoint to be lifted
         if task.breakpoint:
             logging.info('Task "{0}" ({1}) finished but breakpoint is active'.format(task.task_name, task.nid))
-            self.workflow.is_running = False
+            self.is_running = False
             return
-        
-        # Launch new tasks
-        if self.workflow.is_running:
-            for tid in next_task_nids:
-                self._run_task(tid)
         
         # Finish of if there are no more tasks to run and all are completed
-        if not next_task_nids and self.is_completed:
+        if not next_task_nids and (self.is_completed or self.has_failed):
             logging.info('finished workflow')
-            self.workflow.is_running = False
+            self.is_running = False
             return
-    
+            
+        # Launch new tasks
+        for tid in next_task_nids:
+            self._run_task(tid)
+        
     def _run_task(self, tid=None):
         """
         Run a task by task ID (tid)
@@ -281,15 +318,17 @@ class WorkflowRunner(_WorkflowQueryMethods):
         :type tid:  :py:int
         """
         
-        # Get the task object from the graph
+        # Get the task object from the graph. nid is expected to be in graph.
+        # Check ifn the task has a 'run_task' method.
         task = self.workflow.getnodes(tid)
+        assert hasattr(task, 'run_task'), logging.error('Task object (tid {0}) requires "run_task" method'.format(task.nid))
         
         # Bailout if the task is active
         if task.active:
             logging.debug('Task "{0}" ({1}) already active'.format(task.task_name, tid))
             return
         
-        # Run the task if ready
+        # Run the task if status is 'ready'
         if task.status == 'ready':
             
             # Check if there is 'input' defined
@@ -302,21 +341,24 @@ class WorkflowRunner(_WorkflowQueryMethods):
                     self.workflow.nodes[tid]['input'] = {}
                     self.workflow.nodes[tid]['input'].update(parent.output)
             
-            self.workflow.is_running = True
+            self.is_running = True
             self.workflow.update_time = int(time.time())
             
-            # Get the task runner
-            task_runner = self.load_task_function(task.get('class', None))
-            
+            # Set workflow task meta-data
             task.active = True
             task.status = 'running'
             
             logging.info('Task "{0}" ({1}), status: {2}'.format(task.task_name, tid, task.status))
-            task.run_task(task_runner, callback=self._output_callback, errorback=self._error_callback)
+            task.run_task(self.load_task_function(task.get('class', None)),
+                          callback=self._output_callback,
+                          errorback=self._error_callback)
         
-        # In all other cases, pass task data to default output callback.
+        # In all other cases, pass task data to default output callback
+        # instructing it to not update the data but decide on the followup
+        # workflow step to take. 
         else:
             self._output_callback(self.workflow.nodes[tid], update=False)
+        
     
     def load_task_function(self, class_name):
         """
@@ -388,7 +430,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             self.workflow.nodes[task]['status'] = 'aborted'
             self.workflow.nodes[task]['active'] = False
         
-        self.workflow.is_running = False
+        self.is_running = False
         self.workflow.update_time = int(time.time())
         
     def step_breakpoint(self, tid):
@@ -453,7 +495,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
         A workflow is started from the first 'Start' task and then moves 
         onwards. It can be started from any other task provided that the
-        parent task has input defined.
+        parent task was successfully completed.
         
         The workflow will be excecuted on a different thread allowing for
         interactivity with the workflow instance while the workflow is 
@@ -474,7 +516,9 @@ class WorkflowRunner(_WorkflowQueryMethods):
         logging.info('Running workflow: {0}, start task ID: {1}'.format(self.workflow.title, tid))
         
         # Always set is_running to True to allow for immediate interactive use
-        # preventing race conditions.
+        # preventing race conditions. If the already running, return
+        if self.is_running:
+            return
         self.workflow.is_running = True
         
         # Set workflow start time if not defined. Don't rerun to allow

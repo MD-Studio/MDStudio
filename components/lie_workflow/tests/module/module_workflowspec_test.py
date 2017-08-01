@@ -128,7 +128,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         self.assertTrue(spec.is_completed)
         self.assertIsNotNone(spec.starttime)
         self.assertIsNotNone(spec.finishtime)
-        self.assertEqual(spec.runtime, 7)
+        self.assertEqual(spec.runtime(), 7)
         
         # Query local metadata
         task2 = spec.get_task('task1')
@@ -158,7 +158,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         self.assertFalse(spec.is_completed)
         self.assertIsNone(spec.starttime)
         self.assertIsNone(spec.finishtime)
-        self.assertEqual(spec.runtime, 0)
+        self.assertEqual(spec.runtime(), 0)
                 
     def test_build_branched_spec(self):
         """
@@ -189,7 +189,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         self.assertFalse(spec.is_completed)
         self.assertIsNone(spec.starttime)
         self.assertIsNone(spec.finishtime)
-        self.assertEqual(spec.runtime, 0)
+        self.assertEqual(spec.runtime(), 0)
        
         maptask = [n for n in spec.workflow.nodes if len(spec.workflow.adjacency[n]) > 1 and spec.workflow.nodes[n]['task_type'] == 'Task']
         redtask = [n for n in spec.workflow.nodes if spec.workflow.nodes[n]['task_type'] == 'Collect']

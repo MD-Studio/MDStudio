@@ -20,7 +20,7 @@ currpath = os.path.dirname(__file__)
 
 class TestLinearWorkflow(unittest2.TestCase):
     """
-    Test workflow specification construction
+    Test linear workflows
     """
     
     workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-spec.json'))
@@ -52,7 +52,7 @@ class TestLinearWorkflow(unittest2.TestCase):
 
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
-        self.assertEqual(self.wf.runtime, 3)
+        self.assertEqual(self.wf.runtime(), 3)
 
     def test_workflow_simple_linear_fail(self):
         """
@@ -189,7 +189,7 @@ class TestLinearWorkflow(unittest2.TestCase):
             time.sleep(1)
         
         self.assertTrue(self.wf.is_completed)
-        self.assertEqual(self.wf.runtime, 7)
+        self.assertEqual(self.wf.runtime(), 7)
         
     def test_workflow_simple_linear_unfinished(self):
         """
