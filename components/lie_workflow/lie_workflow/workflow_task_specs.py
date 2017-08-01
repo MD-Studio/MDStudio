@@ -115,6 +115,11 @@ class BlockingTask(_TaskBase):
             callback(output)
 
 class StartTask(_TaskBase):
+    """
+    Workflow start task
+    
+    Responsible for handling intitial workflow input and pre-processing
+    """
     
     def run_task(self, runner, callback=None, errorback=None):
         
@@ -158,6 +163,11 @@ class Choice(_TaskBase):
 
 
 class Collect(_TaskBase):
+    """
+    Reducer class
+    
+    Waits for all parent tasks to finish and collects the output
+    """
     
     def run_task(self, runner, callback=None, errorback=None):
         
@@ -165,13 +175,24 @@ class Collect(_TaskBase):
         # are the ancestors
         ancestors = [nid for nid,adj in self.adjacency.items() if self.nid in adj]
         
-        # Check if all the output of the ancestors is available
-        task_ids = [self._full_graph.nodes[task]['task_id'] for task in ancestors]
-        if all([tid in self.input for tid in task_ids]):
+        # Check if there are failed tasks among the ancestors and if we are
+        # allowed to continue with less
+        failed_ancestors = [tid for tid in ancestors if self._full_graph.nodes[tid]['status'] in ('failed','aborted')]
+        if failed_ancestors:
+            logging.error('Failed parent tasks detected. Unable to collect all output')
+            self.active = False
+            self.status = 'failed'
+            self.is_running = False
+            callback(self.nodes[self.nid])
+        
+        # Check if the ancestors are al completed
+        if all([self._full_graph.nodes[tid]['status'] in ('completed','disabled') for tid in ancestors]):
             logging.info('{0}: Output of {1} parent tasks available, continue'.format(self.task_name, len(ancestors)))
-            self.nodes[self.nid]['output'] = self.input
+            
+            collected_output = [self._full_graph.nodes[tid].get('output') for tid in ancestors]
+            
+            self.nodes[self.nid]['output'] = runner(collected_output)
             self.status = 'completed'
-
             callback(self.nodes[self.nid])
             
         else:

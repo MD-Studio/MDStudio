@@ -18,6 +18,17 @@ from lie_system import WAMPTaskMetaData
 from lie_workflow import task_schema
 
 
+def calculate_accumulated_task_runtime(workflow):
+    """
+    Calculate cumultative task runtime
+    """
+    
+    runtime = 0
+    for tid,task in workflow.nodes.items():
+        runtime += (task.get('utime',0) - task.get('itime',0))
+    
+    return runtime
+    
 def task_runner(task_data):
     """
     Run a task based on the information in the task_data.
@@ -62,3 +73,16 @@ def task_runner(task_data):
     task_data.update(session.dict())
     
     return task_data
+
+def reduce_function(task_data):
+    """
+    Dummy test reducer function taking the 'dummy' output from all previous
+    tasks and adding them together
+    """
+    
+    total = 0
+    for output in task_data:
+        total += output.get('dummy',0)
+    
+    return {'dummy': total}
+    
