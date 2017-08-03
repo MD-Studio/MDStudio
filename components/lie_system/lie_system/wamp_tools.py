@@ -157,11 +157,11 @@ class LieApplicationSession(ApplicationSession):
             package_config = {}
 
         # Init session_config with default values
-        self.session_config = WAMPMessageEnvelope(realm=config.realm,
-                                                  package_name=self.__module__.split('.')[0],
-                                                  class_name=type(self).__name__,
-                                                  **kwargs
-                                                  )
+        self.session_config = WAMPTaskMetaData(realm=config.realm,
+                                               package_name=self.__module__.split('.')[0],
+                                               class_name=type(self).__name__,
+                                               **kwargs
+                                              )
 
         # Update session_config with key/value pairs in config.extra except
         # for package config
