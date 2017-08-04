@@ -4,7 +4,7 @@ from twisted.internet.defer import DeferredLock
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from lie_componentbase import BaseApplicationSession, register, WampSchema
+from lie_corelib import BaseApplicationSession, register, WampSchema
 
 class SchemaWampApi(BaseApplicationSession):
     """
@@ -28,6 +28,8 @@ class SchemaWampApi(BaseApplicationSession):
     def schema_register(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
+        res = False
+
         # Lock schema's resource
         self.lock.acquire()
 
@@ -36,17 +38,18 @@ class SchemaWampApi(BaseApplicationSession):
 
         schemas = self._schemas[namespace]
 
-        if request['path'] not in schemas.keys():
-            schemas[request['path']] = request['schema']
+        for schema in request['schemas']:
+            if schema['path'] not in schemas.keys():
+                schemas[schema['path']] = schema['schema']
 
-            self.log.info('Stored {path} for {namespace}', path=request['path'], namespace=namespace)
+                self.log.info('Stored {path} for {namespace}', path=schema['path'], namespace=namespace)
 
-            res = True
-        else:
-            self.log.info('Already stored {path} for {namespace}, checking equality', path=request['path'], namespace=namespace)
+                res = True
+            else:
+                self.log.info('Already stored {path} for {namespace}, checking equality', path=schema['path'], namespace=namespace)
 
-            # TODO: implement equality check
-            res = True
+                # TODO: implement equality check
+                res = True
             
         # Done with schema's resource, release
         self.lock.release()

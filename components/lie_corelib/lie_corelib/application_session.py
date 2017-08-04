@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import jsonschema
+import itertools
 import inspect
 import json
 import time
@@ -134,8 +135,8 @@ class BaseApplicationSession(ApplicationSession):
             'loggernamespace':  '_LIE_LOGGER_NAMESPACE'
         }
 
-        self.package_config_template = WampSchema('componentbase', 'settings/settings', 1)
-        self.session_config_template = WampSchema('componentbase', 'session_config/session_config', 1)
+        self.package_config_template = WampSchema('corelib', 'settings/settings', 1)
+        self.session_config_template = WampSchema('corelib', 'session_config/session_config', 1)
 
         self.json_schemas = []
         self.function_scopes = []
@@ -163,7 +164,7 @@ class BaseApplicationSession(ApplicationSession):
             'package_name': self.__module__.split('.')[0],
             'class_name': type(self).__name__,
             'module_path': os.path.dirname(inspect.getfile(self.__class__)),
-            'componentbase_path': os.path.dirname(__file__)
+            'corelib_path': os.path.dirname(__file__)
         }
 
         self.session_config = ConfigHandler()
@@ -460,10 +461,10 @@ class BaseApplicationSession(ApplicationSession):
             self.logger_subscription = yield self.subscribe(logger_event, u'liestudio.logger.events.online')
 
         if self.autoschema:
-            self._register_schemas()
+            self._register_schemas(self.json_schemas)
         else:
             def schema_event(event):
-                self._register_schemas()
+                self._register_schemas(self.json_schemas)
                 self.schema_subscription.unsubscribe()
                 self.schema_subscription = None
 
@@ -584,25 +585,46 @@ class BaseApplicationSession(ApplicationSession):
         returnValue({})
 
     @inlineCallbacks
-    def _register_schemas(self):
-        for schema in self.json_schemas:
-            if isinstance(schema, WampSchema):
+    def _register_schemas(self, schemas):
+        schema_list = []
+
+        self._filter_schemas(schemas, schema_list)
+
+        if schema_list:
+            yield self.call(u'liestudio.schema.register.{}'.format(self.component_info.get('namespace')), {'schemas': schema_list})
+
+    def _filter_schemas(self, schemas, schema_list):
+        subschemas = []
+
+        for schema in schemas:
+            if isinstance(schema, WampSchema) and schema.namespace == self.component_info.get('namespace'):
                 for schema_path in schema.paths():
-                    if schema.namespace == self.component_info.get('namespace'):
+                    if not any(s['path'] == schema_path for s in schema_list):
                         schema_def = self.get_schema(schema_path)
                         if schema_def:
-                            schema_res = yield self.call(u'liestudio.schema.register.{}'.format(self.component_info.get('namespace')), {
-                                'path': schema_path, 
-                                'schema': schema_def
-                            })
-                            if not schema_res:
-                                self.log.error('ERROR: failed to register json schema {path} for {namespace}, schema component returned False',
-                                                path=schema_path, namespace=schema.namespace)
+                            schema_list.append({'path': schema_path, 'schema': schema_def})
+                            self._collect_subschemas(schema_def, subschemas)
                         else:
                             self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
-                                           namespace=schema.namespace, path=schema_path)
+                                            namespace=schema.namespace, path=schema_path)
+        if subschemas:
+            self._filter_schemas(itertools.chain(s['schema'] for s in subschemas), schema_list)
+
+    def _collect_subschemas(self, schema_def, subschemas):
+        if isinstance(schema_def, dict):
+            for k, v in schema_def.items():
+                if k == u"$ref":
+                    if v.startswith('wamp://') and not any(s['uri'] == v for s in subschemas):
+                        match = re.match('wamp://liestudio\.schema\.get/([a-z_]+)/(.+)\\.v([0-9]+)(.json)?', v)
+                        subschemas.append({'uri': v, 'schema': WampSchema(match.group(1), match.group(2), match.group(3))})
+                else:
+                    self._collect_subschemas(v, subschemas)
+        elif isinstance(schema_def, list):
+            for v in schema_def:
+                self._collect_subschemas(v, subschemas)
 
     @inlineCallbacks
     def _register_scopes(self):
         if self.function_scopes:
-            yield self.call('liestudio.auth.oauth.registerscopes', {'scopes': self.function_scopes})
+            res = yield self.call('liestudio.auth.oauth.registerscopes.{}'.format(self.component_info.get('namespace')), {'scopes': self.function_scopes})
+            print(res)

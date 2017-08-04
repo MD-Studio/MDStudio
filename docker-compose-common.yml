@@ -3,13 +3,13 @@ services:
     
     base-py2:
         build:
-            context: ./docker/lie_componentbase
+            context: ./docker/lie_corelib
             dockerfile: Dockerfile.py2
         volumes:
             # mount server certificate for CA
             - ./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem
             # mount component base and component
-            - ./components/lie_componentbase:/app/components/lie_componentbase
+            - ./components/lie_corelib:/app/components/lie_corelib
             # mount python cache
             - /usr/local/lib/python2.7
             - /.cache
@@ -19,13 +19,13 @@ services:
     
     base-py3:
         build:
-            context: docker/lie_componentbase
+            context: docker/lie_corelib
             dockerfile: Dockerfile.py3
         volumes:
             # mount server certificate for CA
             - ./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem
             # mount component base and component
-            - ./components/lie_componentbase:/app/components/lie_componentbase
+            - ./components/lie_corelib:/app/components/lie_corelib
             # mount python cache
             - /usr/local/lib/python3.5
             - /.cache

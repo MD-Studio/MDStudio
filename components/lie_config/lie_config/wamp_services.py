@@ -13,8 +13,8 @@ import json
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks
 
-from lie_componentbase import BaseApplicationSession
-from lie_componentbase.config import config_to_json
+from lie_corelib import BaseApplicationSession
+from lie_corelib.config import config_to_json
 
 
 class ConfigWampApi(BaseApplicationSession):

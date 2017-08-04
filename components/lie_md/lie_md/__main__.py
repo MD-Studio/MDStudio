@@ -1,4 +1,4 @@
-from lie_componentbase.runner import main
+from lie_corelib.runner import main
 from . import wampapi
 
 if __name__=='__main__':

@@ -84,7 +84,7 @@ def extend_with_default(validator_class, session):
 
 class WampSchemaHandler:
     def __init__(self, session):
-        self.componentbase_path = session.component_info.get('componentbase_path')
+        self.corelib_path = session.component_info.get('corelib_path')
         self.package_name = session.component_info.get('package_name')
         self.session = session
         self.cache = {}
@@ -109,8 +109,8 @@ class WampSchemaHandler:
 
         if 'lie_{}'.format(schema_namespace) == self.package_name:
             res = self.session.get_schema(schema_path)
-        elif 'lie_{}'.format(schema_namespace) == 'lie_componentbase':
-            res = self.session.get_schema(schema_path, self.componentbase_path)
+        elif 'lie_{}'.format(schema_namespace) == 'lie_corelib':
+            res = self.session.get_schema(schema_path, self.corelib_path)
         else:
             res = yield self.session.call(u'liestudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
 

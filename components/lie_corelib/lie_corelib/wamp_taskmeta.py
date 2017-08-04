@@ -13,7 +13,7 @@ import jsonschema
 
 from getpass import getuser
 
-from lie_componentbase.wamp_schema import liestudio_task_schema
+from lie_corelib.wamp_schema import liestudio_task_schema
 
 class WAMPTaskMetaData(object):
     """

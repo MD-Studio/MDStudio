@@ -28,8 +28,8 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from lie_componentbase import BaseApplicationSession, WampSchema, register
-from lie_componentbase import db
+from lie_corelib import BaseApplicationSession, WampSchema, register
+from lie_corelib import db
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 from .oauth.request_validator import OAuthRequestValidator
@@ -64,7 +64,6 @@ class AuthWampApi(BaseApplicationSession):
             open(password_retrieval_message_file, 'w').write(self._password_retrieval_message_template)
 
         self.oauth_backend_server = oauth2.BackendApplicationServer(OAuthRequestValidator(self))
-        self.db_lock = DeferredLock()
 
         self.autolog = False
         self.autoschema = False
@@ -80,7 +79,7 @@ class AuthWampApi(BaseApplicationSession):
     @inlineCallbacks
     def onRun(self, details=None):
         # Subscribe DB initialization to the DB online event
-        self.db_subscription = yield self.subscribe(self.init_admin_user, u'liestudio.db.events.online')
+        yield DBWaiter(self, self.init_admin_user).run()
 
         # yield sleep(5)
         # subs = yield self.call(u'wamp.subscription.list')
@@ -130,30 +129,28 @@ class AuthWampApi(BaseApplicationSession):
                         self.log.error('Unable to create default admin account')
                         self.leave('Unable to create default admin account, could not properly start.')
 
-                    adminId = admin['ids'][0]
+                    adminId = admin
 
                     namespaces = yield db.Model(self, 'namespaces').insert_many([
                         {'userId': adminId, 'namespace': 'md'},
                         {'userId': adminId, 'namespace': 'atb'},
                         {'userId': adminId, 'namespace': 'docking'},
                         {'userId': adminId, 'namespace': 'structures'},
-                        {'userId': adminId, 'namespace': 'logger'},
                         {'userId': adminId, 'namespace': 'config'}
                     ])
 
                 # Cleanup previous run
                 # Count number of active user sessions
                 active_session_count = yield db.Model(self, 'sessions').count()
-                self.log.info('{0} active user sessions'.format(active_session_count['total']))
+                self.log.info('{0} active user sessions'.format(active_session_count))
 
                 # Terminate active sessions
                 if active_session_count:
                     deleted = yield db.Model(self, 'sessions').delete_many()
-                    self.log.info('Terminate {0} active user sessions'.format(deleted["count"]))
+                    self.log.info('Terminate {0} active user sessions'.format(deleted))
 
                 # Mark the database as initialized and unsubscribe
                 self.db_initialized = True
-                yield self.db_subscription.unsubscribe()
         except Exception:
             pass
 
@@ -291,10 +288,12 @@ class AuthWampApi(BaseApplicationSession):
         returnValue(auth_ticket)
 
     @register(u'liestudio.auth.oauth.registerscopes', {}, {}, match='prefix')
+    @inlineCallbacks
     def register_scopes(self, request):
         for scope in request['scopes']:
+            # update/insert the uri scope
+            yield db.Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
             
-
     @wamp.register(u'liestudio.auth.authorize')
     @inlineCallbacks
     def authorize(self, session, uri, action, options):
@@ -515,7 +514,7 @@ class AuthWampApi(BaseApplicationSession):
         # Add the new user to the database
         result = yield db.Model(self, 'users').insert_one(user_template)
         if result:
-            self.log.debug('Added new user. user: {username}, id: {id}', id=result['ids'][0], **user_template)
+            self.log.debug('Added new user. user: {username}, id: {id}', id=result, **user_template)
         else:
             self.log.error('Unable to add new user to database')
             returnValue({})
@@ -573,14 +572,14 @@ class AuthWampApi(BaseApplicationSession):
 
         res = yield db.Model(self, 'users').find_one(filter)
 
-        returnValue(res['result'])
+        returnValue(res)
 
     @inlineCallbacks
     def _get_client(self, client_id):
         client = yield db.Model(self, 'clients').find_one({'clientId': client_id})
 
         if client:
-            returnValue(client['result'])
+            returnValue(client)
         else:
             returnValue(None)
 
@@ -604,12 +603,12 @@ class AuthWampApi(BaseApplicationSession):
     @inlineCallbacks
     def _get_session(self, session_id):
         res = yield db.Model(self, 'sessions').find_one({'sessionId': session_id})
-        returnValue(res['result'])
+        returnValue(res)
 
     @inlineCallbacks
     def _end_session(self, user_id, session_id):
         res = yield db.Model(self, 'sessions').delete_one({'userId': user_id, 'sessionId': session_id})
-        returnValue(res['count'] > 0)
+        returnValue(res > 0)
 
     def _strip_unsafe_properties(self, _user):
         user = _user.copy()
@@ -683,6 +682,7 @@ class DBWaiter:
         yield self.callback()
         self.called = True
         self.unsub.callback(True)
+        self.session.db_initialized = True
 
     def _unsubscribe(self, event=None):
         self.sub.unsubscribe()

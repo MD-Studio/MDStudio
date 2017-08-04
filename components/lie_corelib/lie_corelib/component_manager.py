@@ -23,7 +23,7 @@ class ComponentManager(object):
 
     :param config: component settings required for initiation
                    and exit routines
-    :type config:  :py:class:`dict` or :lie_componentbase:ConfigHandler instance
+    :type config:  :py:class:`dict` or :lie_corelib:ConfigHandler instance
     :param prefix: prefix to add to component names on import to
                    avoid namespace collision
     :type prefix:  str

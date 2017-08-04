@@ -3,7 +3,7 @@
     "title": "UpdateManyResponse",
     "type": "object",
     "properties": {
-        "matchedCount": {
+        "matched": {
             "type": "integer",
             "minimum": 0
         },
@@ -16,7 +16,7 @@
         }
     },
     "required": [
-        "matchedCount",
+        "matched",
         "modifiedCount"
     ],
     "additionalProperties": false

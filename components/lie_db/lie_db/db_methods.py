@@ -21,7 +21,7 @@ from distutils import spawn
 from autobahn import wamp
 from bson import ObjectId
 
-from lie_componentbase import WampSchema, validate_json_schema
+from lie_corelib import WampSchema, validate_json_schema
 
 logger = Logger(namespace='db')
 
@@ -30,30 +30,34 @@ class MongoDatabaseWrapper:
         self._namespace = namespace
         self._db = db
 
-    def count(self, collection=None, filter=None, skip=0, limit=0, date_fields=None):
+    def count(self, collection=None, filter=None, skip=0, limit=0, fields=None):
         coll = self._get_collection(collection)
-        self._transform_to_datetime({'filter': filter}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'filter': filter}, fields['date'])
 
         return 0 if coll is None else coll.count(filter, skip=skip, limit=limit)
 
-    def delete_one(self, collection=None, filter=None, date_fields=None):
+    def delete_one(self, collection=None, filter=None, fields=None):
         coll = self._get_collection(collection)
-        self._transform_to_datetime({'filter': filter}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'filter': filter}, fields['date'])
 
         return 0 if coll is None else coll.delete_one(filter).deleted_count
 
-    def delete_many(self, collection=None, filter=None, date_fields=None):
+    def delete_many(self, collection=None, filter=None, fields=None):
         coll = self._get_collection(collection)
-        self._transform_to_datetime({'filter': filter}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'filter': filter}, fields['date'])
 
         return 0 if coll is None else coll.delete_many(filter).deleted_count
 
-    def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None, date_fields=None):
+    def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None, fields=None):
         coll = self._get_collection(collection)
-        self._transform_to_datetime({'filter': filter}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'filter': filter}, fields['date'])
 
         if coll is None:
-            return {}
+            return {'result': None}
         else:
             if filter and 'id' in filter:
                 filter['_id'] = ObjectId(filter.pop('id'))
@@ -64,11 +68,12 @@ class MongoDatabaseWrapper:
                 result['id'] = str(result.pop('_id'))
                 self._transform_datetime_to_isostring(result)
 
-            return result
+            return {'result': result}
 
-    def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None, date_fields=None):
+    def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None, fields=None):
         coll = self._get_collection(collection)
-        self._transform_to_datetime({'filter': filter}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'filter': filter}, fields['date'])
 
         if not coll:
             return []
@@ -81,18 +86,20 @@ class MongoDatabaseWrapper:
             self._transform_datetime_to_isostring(doc)
             yield doc
 
-    def insert_one(self, collection=None, insert=None, date_fields=None):
+    def insert_one(self, collection=None, insert=None, fields=None):
         coll = self._get_collection(collection, True)
-        self._transform_to_datetime({'insert': insert}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'insert': insert}, fields['date'])
         
         if isinstance(insert, dict) and 'id' in insert.keys():
             insert['_id'] = ObjectId(insert.pop('id'))
 
         return str(coll.insert_one(insert).inserted_id)
 
-    def insert_many(self, collection=None, insert=None, date_fields=None):
+    def insert_many(self, collection=None, insert=None, fields=None):
         coll = self._get_collection(collection, True)
-        self._transform_to_datetime({'insert': insert}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'insert': insert}, fields['date'])
         
         for doc in insert:
             if isinstance(doc, dict) and 'id' in doc.keys():
@@ -101,9 +108,10 @@ class MongoDatabaseWrapper:
         for id in coll.insert_many(insert).inserted_ids:
             yield str(id)
 
-    def update_one(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
+    def update_one(self, collection=None, filter=None, update=None, upsert=False, fields=None):
         coll = self._get_collection(collection, upsert)
-        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'filter': filter, 'update': update}, fields['date'])
 
         if coll is None:
             return self._update_response(upsert, None)
@@ -112,9 +120,10 @@ class MongoDatabaseWrapper:
 
         return self._update_response(upsert, updateresult)
 
-    def update_many(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
+    def update_many(self, collection=None, filter=None, update=None, upsert=False, fields=None):
         coll = self._get_collection(collection, upsert)
-        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+        if fields and 'date' in fields.keys():
+            self._transform_to_datetime({'filter': filter, 'update': update}, fields['date'])
 
         if coll is None:
             return self._update_response(upsert, None)
@@ -126,12 +135,12 @@ class MongoDatabaseWrapper:
     def _update_response(self, upsert, updateresult=None):
         if updateresult is None:
             return {
-                'matchedCount': 0,
+                'matched': 0,
                 'modifiedCount': 0
             }
 
         response = {
-            'matchedCount': updateresult.matched_count,
+            'matched': updateresult.matched_count,
             'modifiedCount': updateresult.modified_count
         }
 
@@ -154,11 +163,11 @@ class MongoDatabaseWrapper:
 
         return self._db[collection_name]
 
-    def _transform_to_datetime(self, document, date_fields):
-        if date_fields is None:
+    def _transform_to_datetime(self, document, fields):
+        if fields is None:
             return
 
-        for field in date_fields:
+        for field in fields:
             fields = field.split('.')
             self._transform_docfield_to_datetime(document, fields)
 

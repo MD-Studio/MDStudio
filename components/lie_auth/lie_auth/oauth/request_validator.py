@@ -8,7 +8,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from oauthlib import oauth2
 from oauthlib import common
 
-from lie_componentbase import db
+from lie_corelib import db
 
 from .client import OAuthClient
 

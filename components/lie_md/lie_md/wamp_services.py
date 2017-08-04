@@ -16,9 +16,9 @@ from autobahn.twisted.util import sleep
 from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 from autobahn.twisted.util import sleep
 
-from lie_componentbase import BaseApplicationSession
-from lie_componentbase.runner import main
-from lie_componentbase.token_application_session import TokenApplicationSession
+from lie_corelib import BaseApplicationSession
+from lie_corelib.runner import main
+from lie_corelib.token_application_session import TokenApplicationSession
 
 
 class MDWampApi(BaseApplicationSession):

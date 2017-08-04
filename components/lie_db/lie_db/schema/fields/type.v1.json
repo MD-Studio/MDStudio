@@ -1,7 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
     "title": "FieldType",
-    "type": "object",
     "description": "List of keys of fields",
     "oneOf": [
         {
@@ -10,8 +9,11 @@
         },
         {
             "description": "Array of keys that index a field",
-            "type": "string",
-            "pattern": "^[^\\.]*$"
+            "type": "array",
+            "items": {
+                "type": "string",
+                "pattern": "^[^\\.]*$"
+            }
         }
     ]
 }

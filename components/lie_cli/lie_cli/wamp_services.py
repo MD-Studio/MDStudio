@@ -6,8 +6,8 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn.wamp import SubscribeOptions, PublishOptions
 from autobahn import wamp
 
-from lie_componentbase import BaseApplicationSession, register, WampSchema
-from lie_componentbase.config import config_from_dotenv, config_to_dotenv
+from lie_corelib import BaseApplicationSession, register, WampSchema
+from lie_corelib.config import config_from_dotenv, config_to_dotenv
 
 try:
     input = raw_input

@@ -37,11 +37,11 @@ class Authorizer:
         # Build ruleset for communication inside ring0
         self.ring0_rules = [
             PrefixRule('liestudio.{role}.', ['*']),
+            PrefixRule('liestudio.auth.oauth.registerscopes.{role}'),
             RegexRule('liestudio\\.\\w+\\.events\\.\\w+', ['subscribe']),
-            ExactRule('liestudio.auth.namespaces'),
-            ExactRule('liestudio.auth.oauth.registerscopes'),
-            ExactRule('liestudio.auth.oauth.client.getusername'),
             RegexRule('liestudio\\.db\\.\\w+\\.{role}'),
+            ExactRule('liestudio.auth.namespaces'),
+            ExactRule('liestudio.auth.oauth.client.getusername'),
             ExactRule('liestudio.schema.register.{role}'),
             ExactRule('liestudio.schema.get'),
             ExactRule('liestudio.logger.log.{role}', ['publish'])

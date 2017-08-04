@@ -13,7 +13,7 @@ from twisted.logger import LogLevel
 from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn import wamp
 
-from lie_componentbase import BaseApplicationSession, register, WampSchema, validate_input, db
+from lie_corelib import BaseApplicationSession, register, WampSchema, validate_input, db
 
 
 class LoggerWampApi(BaseApplicationSession):

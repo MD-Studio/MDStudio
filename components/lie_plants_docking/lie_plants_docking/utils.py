@@ -3,7 +3,7 @@
 """
 IO and subprocess related utility functions.
 
-TODO: Should eventually make there way into the lie_componentbase module
+TODO: Should eventually make there way into the lie_corelib module
       for general use.
 """
 

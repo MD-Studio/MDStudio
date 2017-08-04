@@ -26,7 +26,7 @@ elementIn () {
   return 0
 }
 
-ring0=(lie_componentbase lie_db lie_schema lie_auth lie_logger)
+ring0=(lie_corelib lie_db lie_schema lie_auth lie_logger)
 # Install LIEStudio components using pip
 for package in $( ls -d ${ROOTDIR}/components/*/ ); do
     if [[ -e ${package}/setup.py ]]; then

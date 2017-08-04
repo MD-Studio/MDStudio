@@ -16,7 +16,7 @@
         }
     },
     "required": [
-        "matchedCount",
+        "matched",
         "modifiedCount"
     ],
     "additionalProperties": false
