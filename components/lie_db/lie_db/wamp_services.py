@@ -43,35 +43,26 @@ class DBWampApi(BaseApplicationSession):
     @register(u'liestudio.db.findmany', WampSchema('db', 'find/find-many-request', 1), WampSchema('db', 'find/find-many-response', 1), details_arg=True, match='prefix', scope='read')
     def db_findmany(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
-        database = self._client.get_namespace(namespace)
-
-        results = [r for r in database.find_many(**request)]
-
-        return {
-            'result': results,
-            'total': database.count(**request),
-            'size': len(results)
-        }
+        
+        return self._client.get_namespace(namespace).find_many(**request)
 
     @register(u'liestudio.db.count', WampSchema('db', 'count/count-request', 1), WampSchema('db', 'count/count-response', 1), details_arg=True, match='prefix', scope='read')
     def db_count(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
-        return {'total': self._client.get_namespace(namespace).count(**request)}
+        return self._client.get_namespace(namespace).count(**request)
 
     @register(u'liestudio.db.insertone', WampSchema('db', 'insert/insert-one-request', 1), WampSchema('db', 'insert/insert-one-response', 1), details_arg=True, match='prefix', scope='write')
     def db_insert(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
-        return {'id': self._client.get_namespace(namespace).insert_one(**request)}
+        return self._client.get_namespace(namespace).insert_one(**request)
 
     @register(u'liestudio.db.insertmany', WampSchema('db', 'insert/insert-many-request', 1), WampSchema('db', 'insert/insert-many-response', 1), details_arg=True, match='prefix', scope='write')
     def db_insertmany(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
-        ids = [id for id in self._client.get_namespace(namespace).insert_many(**request)]
-        
-        return {'ids': ids}
+        return self._client.get_namespace(namespace).insert_many(**request)
 
     @register(u'liestudio.db.updateone', WampSchema('db', 'update/update-one-request', 1), WampSchema('db', 'update/update-one-response', 1), details_arg=True, match='prefix', scope='write')
     def db_update(self, request, details=None):
@@ -89,13 +80,13 @@ class DBWampApi(BaseApplicationSession):
     def db_delete(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
-        return {'count': self._client.get_namespace(namespace).delete_one(**request)}
+        return self._client.get_namespace(namespace).delete_one(**request)
 
     @register(u'liestudio.db.deletemany', WampSchema('db', 'delete/delete-many', 1), WampSchema('db', 'delete/delete-response', 1), details_arg=True, match='prefix', scope='delete')
     def db_deletemany(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
-        return {'count': self._client.get_namespace(namespace).delete_many(**request)}
+        return self._client.get_namespace(namespace).delete_many(**request)
 
     def _extract_namespace(self, uri):
         return re.match('liestudio.db.\\w+\\.(.*)', uri).group(1)        

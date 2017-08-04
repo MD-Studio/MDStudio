@@ -49,8 +49,41 @@ class UpdateOneResponse:
         self.modified_count = response['modifiedCount']
         self.upserted_id = response.get('upsertedId')
 
+class IDatabaseWrapper:
+    def count(self, collection=None, filter=None, skip=0, limit=0):
+        raise NotImplementedError('Subclass should implement this')
 
-class SessionDatabaseWrapper:
+    def delete_one(self, collection=None, filter=None):
+        raise NotImplementedError('Subclass should implement this')
+
+    def delete_many(self, collection=None, filter=None):
+        raise NotImplementedError('Subclass should implement this')
+
+    def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None):
+        raise NotImplementedError('Subclass should implement this')
+
+    def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None):
+        raise NotImplementedError('Subclass should implement this')
+
+    def insert_one(self, collection=None, insert=None, date_fields=None):
+        raise NotImplementedError('Subclass should implement this')
+
+    def insert_many(self, collection=None, insert=None, date_fields=None):
+        raise NotImplementedError('Subclass should implement this')
+
+    def update_one(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
+        raise NotImplementedError('Subclass should implement this')
+
+    def update_many(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
+        raise NotImplementedError('Subclass should implement this')
+        
+    def extract(self, result, property):
+        raise NotImplementedError('Subclass should implement this')
+        
+    def transform(self, result, transformed):
+        raise NotImplementedError('Subclass should implement this')
+
+class SessionDatabaseWrapper(IDatabaseWrapper):
     def __init__(self, session):
         self.session = session
         self.namespace = session.component_info.get('namespace')

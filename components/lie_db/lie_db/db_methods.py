@@ -22,10 +22,11 @@ from autobahn import wamp
 from bson import ObjectId
 
 from lie_corelib import WampSchema, validate_json_schema
+from lie_corelib.db import IDatabaseWrapper
 
 logger = Logger(namespace='db')
 
-class MongoDatabaseWrapper:
+class MongoDatabaseWrapper(IDatabaseWrapper):
     def __init__(self, namespace, db):
         self._namespace = namespace
         self._db = db
@@ -35,21 +36,21 @@ class MongoDatabaseWrapper:
         if fields and 'date' in fields.keys():
             self._transform_to_datetime({'filter': filter}, fields['date'])
 
-        return 0 if coll is None else coll.count(filter, skip=skip, limit=limit)
+        return {'total': 0 if coll is None else coll.count(filter, skip=skip, limit=limit)}
 
     def delete_one(self, collection=None, filter=None, fields=None):
         coll = self._get_collection(collection)
         if fields and 'date' in fields.keys():
             self._transform_to_datetime({'filter': filter}, fields['date'])
 
-        return 0 if coll is None else coll.delete_one(filter).deleted_count
+        return {'count': 0 if coll is None else coll.delete_one(filter).deleted_count}
 
     def delete_many(self, collection=None, filter=None, fields=None):
         coll = self._get_collection(collection)
         if fields and 'date' in fields.keys():
             self._transform_to_datetime({'filter': filter}, fields['date'])
 
-        return 0 if coll is None else coll.delete_many(filter).deleted_count
+        return {'count': 0 if coll is None else coll.delete_many(filter).deleted_count}
 
     def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None, fields=None):
         coll = self._get_collection(collection)
@@ -70,21 +71,33 @@ class MongoDatabaseWrapper:
 
             return {'result': result}
 
-    def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None, fields=None):
+    def find_many(self, collection=None, filter=None, projection=None, skip=0, limit=0, sort=None, fields=None):
         coll = self._get_collection(collection)
         if fields and 'date' in fields.keys():
             self._transform_to_datetime({'filter': filter}, fields['date'])
 
         if not coll:
-            return []
+            return {
+                'result': [],
+                'total': 0,
+                'size': 0
+            }
         
         if filter and 'id' in filter:
             filter['_id'] = ObjectId(filter.pop('id'))
 
+        results = []
+
         for doc in coll.find(filter, projection, skip, sort=sort):
             doc['id'] = str(doc.pop('_id'))
             self._transform_datetime_to_isostring(doc)
-            yield doc
+            results.append(doc)
+
+        return {
+            'result': results,
+            'total': self.count(collection, filter, skip, limit, fields),
+            'size': len(results)
+        }
 
     def insert_one(self, collection=None, insert=None, fields=None):
         coll = self._get_collection(collection, True)
@@ -94,7 +107,7 @@ class MongoDatabaseWrapper:
         if isinstance(insert, dict) and 'id' in insert.keys():
             insert['_id'] = ObjectId(insert.pop('id'))
 
-        return str(coll.insert_one(insert).inserted_id)
+        return {'id': str(coll.insert_one(insert).inserted_id)}
 
     def insert_many(self, collection=None, insert=None, fields=None):
         coll = self._get_collection(collection, True)
@@ -105,8 +118,7 @@ class MongoDatabaseWrapper:
             if isinstance(doc, dict) and 'id' in doc.keys():
                 doc['_id'] = ObjectId(doc.pop('id'))
 
-        for id in coll.insert_many(insert).inserted_ids:
-            yield str(id)
+        return {'ids': [str(id) for id in coll.insert_many(insert).inserted_ids]}
 
     def update_one(self, collection=None, filter=None, update=None, upsert=False, fields=None):
         coll = self._get_collection(collection, upsert)
@@ -211,6 +223,12 @@ class MongoDatabaseWrapper:
                 document[key] = value.isoformat()
             else:
                 self._transform_datetime_to_isostring(value)
+
+    def extract(self, result, property):
+        return result[property]
+
+    def transform(self, result, transformed):
+        return None if result is None else transformed(result)
 
 class MongoClientWrapper:
     def __init__(self, host, port):
