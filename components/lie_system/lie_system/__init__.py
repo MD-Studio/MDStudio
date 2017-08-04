@@ -23,4 +23,4 @@ __all__ = ['ComponentManager', 'LieApplicationSession', 'WAMPTaskMetaData']
 # Component imports
 from .component_manager import ComponentManager
 from .wamp_tools import LieApplicationSession
-from .wamp_taskmeta import WAMPTaskMetaData
+from .wamp_taskmeta import WAMPTaskMetaData, wamp_session_schema

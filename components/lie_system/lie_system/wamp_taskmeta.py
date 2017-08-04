@@ -8,18 +8,33 @@ import os
 import copy
 import time
 import random
+import json
 import jsonpickle
 import jsonschema
 
 from getpass import getuser
-
-from lie_system.wamp_schema import liestudio_task_schema
 
 # LieApplicationSession variables names defined in os.environ
 ENVIRON = {'_LIE_WAMP_REALM': 'realm',
            '_LIE_AUTH_METHOD': 'authmethod',
            '_LIE_AUTH_USERNAME': 'username',
            '_LIE_AUTH_PASSWORD': 'password'}
+
+
+def wamp_session_schema(path=os.path.join(os.path.dirname(__file__), 'wamp_session_schema.json')):
+    """
+    Return the JSON wamp session schema from file
+    
+    :param path: path to json schema file
+    :type path:  :py:str
+    """
+    
+    if os.path.isfile(path):
+        wamp_session_schema = json.load(open(path))
+        return wamp_session_schema
+    else:
+        logging.error('No such file {0}'.forma(path))
+        return {} 
 
 def _schema_to_data(schema, data=None):
 
@@ -42,14 +57,15 @@ class WAMPTaskMetaData(object):
     """
     Class that handles initiation and updating of LIEStudio task metadata.
 
-    The task metadata blueprint is handled by the `liestudio_task_schema`
+    The task metadata blueprint is handled by the `wamp_session_schema`
     JSON schema.
     """
 
     def __init__(self, metadata=None, **kwargs):
 
         # Init default task metadata
-        self._metadata = _schema_to_data(liestudio_task_schema, data=metadata)
+        self._session_schema = wamp_session_schema()
+        self._metadata = _schema_to_data(self._session_schema, data=metadata)
         self.task_id()
         if not metadata:
             self._update_time(time_stamp='itime')
@@ -59,12 +75,15 @@ class WAMPTaskMetaData(object):
         self.update(dict([(ENVIRON[k],os.environ[k]) for k in ENVIRON if k in os.environ]))
 
         # Update defaults
-        self._metadata['system_user'] = getuser()
+        if not 'system_user' in self._metadata:
+            self._metadata['system_user'] = getuser()
+        if not 'itime' in self._metadata:
+            self._metadata['itime'] = int(time.time())
 
         # Validate against schema
         self.validate()
 
-        self._allowed_status_labels = liestudio_task_schema['properties']['status']['enum']
+        self._allowed_status_labels = self._session_schema['properties']['status']['enum']
         self._initialised = True
 
     def __call__(self):
@@ -183,4 +202,4 @@ class WAMPTaskMetaData(object):
 
     def validate(self):
 
-        jsonschema.validate(self._metadata, liestudio_task_schema)
+        jsonschema.validate(self._metadata, self._session_schema)

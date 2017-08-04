@@ -15,8 +15,8 @@ from lie_db import mongodb_connect
 from lie_system.wamp_taskmeta import WAMPTaskMetaData
 
 from wamp_logging import WampLogging
-
-
+   
+    
 def _resolve_package_config(package_config):
     """
     Resolve the package_config as dictionary

@@ -22,7 +22,7 @@ PY3 = sys.version_info.major == 3
 
 from lie_system import *
 from lie_config.config_io import config_from_json
-from lie_system.wamp_schema import liestudio_task_schema
+from lie_system.wamp_tools import wamp_session_schema
 
 class LieWampTaskMetadataTest(unittest.TestCase):
     
@@ -34,7 +34,7 @@ class LieWampTaskMetadataTest(unittest.TestCase):
         """
 
         metadata = WAMPTaskMetaData()
-        required = liestudio_task_schema['required']
+        required = wamp_session_schema()['required']
 
         self.assertItemsEqual(metadata.dict().keys(), required)
         self.assertEqual(metadata.system_user, getpass.getuser())

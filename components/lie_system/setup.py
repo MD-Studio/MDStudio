@@ -36,6 +36,7 @@ setup(
     keywords='LIEStudio system',
     platforms=['Any'],
     packages=find_packages(),
+    package_data={'': ['*.json']},
     py_modules=[distribution_name],
     install_requires=['jsonpickle','jsonschema'],
     test_suite="tests.module_test_suite",
