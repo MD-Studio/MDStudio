@@ -43,7 +43,7 @@ class BaseApplicationSession(ApplicationSession):
       method to use.
     * **onChallenge**: authenticate using any of the Crossbar supported `methods <http://crossbar.io/docs/Authentication/>`_.
     * **onJoin**: register the API methods with the WAMP router and update local
-      API configuration with settings retrieved by calling ``liestudio.config.get``
+      API configuration with settings retrieved by calling ``mdstudio.config.get``
     * **onLeave**: cleanup methods when leaving the realm
     * **onDisconnect**: cleanup methods when disconnecting from the WAMP router
 
@@ -441,7 +441,7 @@ class BaseApplicationSession(ApplicationSession):
 
         # self.require_config.append(self.session_config.get('package_name'))
         # self.require_config.append('lie_logger.global_log_level')
-        # server_config = self.call(u'liestudio.config.get', self.require_config)
+        # server_config = self.call(u'mdstudio.config.get', self.require_config)
         # server_config.addCallback(self.package_config.update)
         # # server_config.addCallback(self._establish_database_connection)
         # server_config.addErrback(handle_retrieve_config_error)
@@ -458,7 +458,7 @@ class BaseApplicationSession(ApplicationSession):
                 self.logger_subscription.unsubscribe()
                 self.logger_subscription = None
             
-            self.logger_subscription = yield self.subscribe(logger_event, u'liestudio.logger.events.online')
+            self.logger_subscription = yield self.subscribe(logger_event, u'mdstudio.logger.events.online')
 
         if self.autoschema:
             self._register_schemas(self.json_schemas)
@@ -468,7 +468,7 @@ class BaseApplicationSession(ApplicationSession):
                 self.schema_subscription.unsubscribe()
                 self.schema_subscription = None
 
-            self.schema_subscription = yield self.subscribe(schema_event, u'liestudio.schema.events.online')
+            self.schema_subscription = yield self.subscribe(schema_event, u'mdstudio.schema.events.online')
 
         self._register_scopes()
         
@@ -580,7 +580,7 @@ class BaseApplicationSession(ApplicationSession):
 
     @inlineCallbacks
     def flush_logs(self, namespace, log_list):
-        res = yield self.publish(u'liestudio.logger.log.{}'.format(namespace), {'logs': log_list}, options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
+        res = yield self.publish(u'mdstudio.logger.log.{}'.format(namespace), {'logs': log_list}, options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
 
         returnValue({})
 
@@ -591,7 +591,7 @@ class BaseApplicationSession(ApplicationSession):
         self._filter_schemas(schemas, schema_list)
 
         if schema_list:
-            yield self.call(u'liestudio.schema.register.{}'.format(self.component_info.get('namespace')), {'schemas': schema_list})
+            yield self.call(u'mdstudio.schema.register.{}'.format(self.component_info.get('namespace')), {'schemas': schema_list})
 
     def _filter_schemas(self, schemas, schema_list):
         subschemas = []
@@ -615,7 +615,7 @@ class BaseApplicationSession(ApplicationSession):
             for k, v in schema_def.items():
                 if k == u"$ref":
                     if v.startswith('wamp://') and not any(s['uri'] == v for s in subschemas):
-                        match = re.match('wamp://liestudio\.schema\.get/([a-z_]+)/(.+)\\.v([0-9]+)(.json)?', v)
+                        match = re.match('wamp://mdstudio\.schema\.get/([a-z_]+)/(.+)\\.v([0-9]+)(.json)?', v)
                         subschemas.append({'uri': v, 'schema': WampSchema(match.group(1), match.group(2), match.group(3))})
                 else:
                     self._collect_subschemas(v, subschemas)
@@ -626,5 +626,5 @@ class BaseApplicationSession(ApplicationSession):
     @inlineCallbacks
     def _register_scopes(self):
         if self.function_scopes:
-            res = yield self.call('liestudio.auth.oauth.registerscopes.{}'.format(self.component_info.get('namespace')), {'scopes': self.function_scopes})
+            res = yield self.call('mdstudio.auth.oauth.registerscopes.{}'.format(self.component_info.get('namespace')), {'scopes': self.function_scopes})
             print(res)

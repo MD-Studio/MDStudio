@@ -17,7 +17,7 @@
         },
         "realm": {
             "type": "string",
-            "default": "liestudio"
+            "default": "mdstudio"
         }
     }
 }

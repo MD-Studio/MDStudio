@@ -4,7 +4,7 @@ import time
 
 from getpass import getuser
 
-liestudio_task_schema = {
+mdstudio_task_schema = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "LIEStudio task",
     "description": "A default LIEStudio microservice task",
@@ -79,7 +79,7 @@ liestudio_task_schema = {
         "app": {
             "type": "string",
             "description": "The WAMP based application name",
-            "default": "liestudio"
+            "default": "mdstudio"
         }
     },
     "required": ["status","itime","system_user","task_id"]

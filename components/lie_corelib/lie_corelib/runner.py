@@ -15,7 +15,7 @@ options = CertificateOptions(caCerts=[cert])
 
 runner = ApplicationRunner(
     u"wss://{}:8080/ws".format(crossbar_host),
-    u"liestudio",
+    u"mdstudio",
     ssl=options
 )
 

@@ -16,7 +16,7 @@ logging = Logger()
 
 class Email(object):
 
-    def __init__(self, email_sender='info@liestudio.vu.nl', email_smtp_server='127.0.01', email_smtp_port=1025,
+    def __init__(self, email_sender='info@mdstudio.vu.nl', email_smtp_server='127.0.01', email_smtp_port=1025,
                  email_smtp_usetls=None, email_smtp_username=None, email_smtp_password=None):
         """
         Email class using Python's buildin SMTP server (smtplib)

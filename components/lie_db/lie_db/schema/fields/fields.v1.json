@@ -7,14 +7,14 @@
             "type": "array",
             "description": "List of keys of date fields to transform",
             "items": {
-                "$ref": "wamp://liestudio.schema.get/db/fields/type.v1.json"
+                "$ref": "wamp://mdstudio.schema.get/db/fields/type.v1.json"
             }
         },
         "protected": {
             "type": "array",
             "description": "List of keys of fields that should be stored encrypted for you",
             "items": {
-                "$ref": "wamp://liestudio.schema.get/db/fields/type.v1.json"
+                "$ref": "wamp://mdstudio.schema.get/db/fields/type.v1.json"
             }
         }
     },

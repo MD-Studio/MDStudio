@@ -3,7 +3,7 @@
     "controller": {
       "id": "lienode01",
       "options": {
-         "title": "liestudio-controller"
+         "title": "mdstudio-controller"
       }
     },
     "workers": [
@@ -11,17 +11,17 @@
             "type": "router",
             "realms": [
                 {
-                    "name": "liestudio",
+                    "name": "mdstudio",
                     "roles": [
                         {
                             "name": "public",
-                            "authorizer": "liestudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize"
                         },
                         {
                             "name": "auth",
                             "permissions": [
                                 {
-                                    "uri": "liestudio.auth",
+                                    "uri": "mdstudio.auth",
                                     "match": "prefix",
                                     "allow": {
                                         "call": false,
@@ -36,7 +36,7 @@
                                     "cache": true
                                 },
                                 {
-                                    "uri": "liestudio",
+                                    "uri": "mdstudio",
                                     "match": "prefix",
                                     "allow": {
                                         "call": true,
@@ -62,38 +62,38 @@
                         },
                         {
                             "name": "db",
-                            "authorizer": "liestudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize"
                         },
                         {
                             "name": "schema",
-                            "authorizer": "liestudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize"
                         },
                         {
                             "name": "admin",
-                            "authorizer": "liestudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize"
                         },
                         {
                             "name": "logger",
-                            "authorizer": "liestudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize"
                         },
                         {
                             "name": "user",
-                            "authorizer": "liestudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize"
                         },
                         {
                             "name": "oauthclient",
-                            "authorizer": "liestudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize"
                         }
                     ],
                     "store": {
                         "type": "memory",
                         "event-history": [
                             {
-                                "uri": "liestudio.db.events.online",
+                                "uri": "mdstudio.db.events.online",
                                 "limit": 1
                             },
                             {
-                                "uri": "liestudio.schema.events.online",
+                                "uri": "mdstudio.schema.events.online",
                                 "limit": 1
                             }
                         ]
@@ -159,11 +159,11 @@
                                 },
                                 "ticket": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.auth.login"
+                                    "authenticator": "mdstudio.auth.login"
                                 },
                                 "wampcra": {
                                     "type": "dynamic",
-                                    "authenticator": "liestudio.auth.login"
+                                    "authenticator": "mdstudio.auth.login"
                                 }
                             }
                         }
@@ -175,28 +175,28 @@
                     "type": "wamplet",
                     "package": "lie_auth",
                     "entrypoint": "wamp_services",
-                    "realm": "liestudio",
+                    "realm": "mdstudio",
                     "role": "auth"
                 },
                 {
                     "type": "wamplet",
                     "package": "lie_db",
                     "entrypoint": "wamp_services",
-                    "realm": "liestudio",
+                    "realm": "mdstudio",
                     "role": "db"
                 },
                 {
                     "type": "wamplet",
                     "package": "lie_schema",
                     "entrypoint": "wamp_services",
-                    "realm": "liestudio",
+                    "realm": "mdstudio",
                     "role": "schema"
                 },
                 {
                     "type": "wamplet",
                     "package": "lie_logger",
                     "entrypoint": "wamp_services",
-                    "realm": "liestudio",
+                    "realm": "mdstudio",
                     "role": "logger"
                 }
             ]   

@@ -4,13 +4,13 @@
     "type": "object",
     "properties": {
         "collection": {
-            "$ref": "wamp://liestudio.schema.get/db/collection/collection.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
         },
         "filter": {
-            "$ref": "wamp://liestudio.schema.get/db/filter/filter.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
         },
         "projection": {
-            "$ref": "wamp://liestudio.schema.get/db/projection/projection.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/projection/projection.v1.json"
         },
         "skip": {
             "type": "integer",
@@ -21,10 +21,10 @@
             "minimum": 0
         },
         "sort": {
-            "$ref": "wamp://liestudio.schema.get/db/sort/sort.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/sort/sort.v1.json"
         },
         "fields": {
-            "$ref": "wamp://liestudio.schema.get/db/fields/fields.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
         }
     },
     "required": [

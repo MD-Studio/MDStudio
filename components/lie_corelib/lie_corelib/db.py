@@ -97,19 +97,19 @@ class SessionDatabaseWrapper(IDatabaseWrapper):
         if limit > 0:
             request['limit'] = limit
 
-        return self.session.call(u'liestudio.db.count.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.count.{}'.format(self.namespace), request)
 
     def delete_one(self, collection=None, filter=None):
         # type: (Union[str, Dict[str, str], Collection], dict) -> Deferred
         request = {'collection': collection, 'filter': filter or {}}
 
-        return self.session.call(u'liestudio.db.deleteone.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.deleteone.{}'.format(self.namespace), request)
 
     def delete_many(self, collection=None, filter=None):
         # type: (Union[str, Dict[str, str], Collection], dict) -> Deferred
         request = {'collection': collection, 'filter': filter or {}}
 
-        return self.session.call(u'liestudio.db.deletemany.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.deletemany.{}'.format(self.namespace), request)
 
     def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None):
         # type: (Union[str, Dict[str, str], Collection], dict, Dict[str, bool], int, Optional[List[Tuple[str, SortMode]]]) -> Deferred
@@ -122,7 +122,7 @@ class SessionDatabaseWrapper(IDatabaseWrapper):
         if sort:
             request['sort'] = sort
 
-        return self.session.call(u'liestudio.db.findone.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.findone.{}'.format(self.namespace), request)
 
     def find_many(self, collection=None, filter=None, projection=None, skip=0, sort=None):
         # type: (Union[str, Dict[str, str], Collection], dict, Dict[str, bool], int, Optional[List[Tuple[str, SortMode]]]) -> Deferred
@@ -135,7 +135,7 @@ class SessionDatabaseWrapper(IDatabaseWrapper):
         if sort:
             request['sort'] = sort
 
-        return self.session.call(u'liestudio.db.findmany.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.findmany.{}'.format(self.namespace), request)
 
     def insert_one(self, collection=None, insert=None, date_fields=None):
         # type: (Union[str, Dict[str, str], Collection], dict, List[Union[str,List[str]]]) -> Deferred
@@ -145,7 +145,7 @@ class SessionDatabaseWrapper(IDatabaseWrapper):
         if date_fields:
             request['fields'] = {'date': date_fields}
 
-        return self.session.call(u'liestudio.db.insertone.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.insertone.{}'.format(self.namespace), request)
 
     def insert_many(self, collection=None, insert=None, date_fields=None):
         # type: (Union[str, Dict[str, str], Collection], dict, List[Union[str,List[str]]]) -> Deferred
@@ -155,7 +155,7 @@ class SessionDatabaseWrapper(IDatabaseWrapper):
         if date_fields:
             request['fields'] = {'date': date_fields}
 
-        return self.session.call(u'liestudio.db.insertmany.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.insertmany.{}'.format(self.namespace), request)
 
     def update_one(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
         # type: (Union[str, Dict[str, str], Collection], dict, dict, bool, List[Union[str,List[str]]]) -> Deferred
@@ -168,7 +168,7 @@ class SessionDatabaseWrapper(IDatabaseWrapper):
         if date_fields:
             request['fields'] = {'date': date_fields}
 
-        return self.session.call(u'liestudio.db.updateone.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.updateone.{}'.format(self.namespace), request)
 
     def update_many(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
         # type: (Union[str, Dict[str, str], Collection], dict, dict, bool, List[Union[str,List[str]]]) -> Deferred
@@ -181,7 +181,7 @@ class SessionDatabaseWrapper(IDatabaseWrapper):
         if date_fields:
             request['fields'] = {'date': date_fields}
 
-        return self.session.call(u'liestudio.db.updatemany.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.updatemany.{}'.format(self.namespace), request)
 
     @inlineCallbacks
     def extract(self, result, property):

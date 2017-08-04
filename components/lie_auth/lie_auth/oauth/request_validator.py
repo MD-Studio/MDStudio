@@ -37,7 +37,7 @@ class OAuthRequestValidator(oauth2.RequestValidator):
     #     return False
 
     # def get_default_redirect_uri(self, client_id, request, *args, **kwargs):
-    #     return u'liestudio.schemas.get'
+    #     return u'mdstudio.schemas.get'
 
     def get_default_scopes(self, client_id, request, *args, **kwargs):
         return oauth2.rfc6749.utils.scope_to_list(request.client.scope)

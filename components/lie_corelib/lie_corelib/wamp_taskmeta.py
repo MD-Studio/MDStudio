@@ -13,13 +13,13 @@ import jsonschema
 
 from getpass import getuser
 
-from lie_corelib.wamp_schema import liestudio_task_schema
+from lie_corelib.wamp_schema import mdstudio_task_schema
 
 class WAMPTaskMetaData(object):
     """
     Class that handles initiation and updating of LIEStudio task metadata.
 
-    The task metadata blueprint is handled by the `liestudio_task_schema`
+    The task metadata blueprint is handled by the `mdstudio_task_schema`
     JSON schema.
     """
 
@@ -37,7 +37,7 @@ class WAMPTaskMetaData(object):
         # Validate against schema
         self.validate()
 
-        self._allowed_status_labels = liestudio_task_schema['properties']['status']['enum']
+        self._allowed_status_labels = mdstudio_task_schema['properties']['status']['enum']
         self._initialised = True
 
     def __call__(self):
@@ -156,4 +156,4 @@ class WAMPTaskMetaData(object):
 
     def validate(self):
 
-        jsonschema.validate(self._metadata, liestudio_task_schema)
+        jsonschema.validate(self._metadata, mdstudio_task_schema)

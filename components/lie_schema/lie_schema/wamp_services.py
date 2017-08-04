@@ -22,9 +22,9 @@ class SchemaWampApi(BaseApplicationSession):
 
     @inlineCallbacks
     def onRun(self, details):
-        yield self.publish(u'liestudio.schema.events.online', True, options=wamp.PublishOptions(acknowledge=True))
+        yield self.publish(u'mdstudio.schema.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
-    @register(u'liestudio.schema.register', WampSchema('schema', 'register/register', 1), {}, details_arg=True, match='prefix')
+    @register(u'mdstudio.schema.register', WampSchema('schema', 'register/register', 1), {}, details_arg=True, match='prefix')
     def schema_register(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
@@ -56,7 +56,7 @@ class SchemaWampApi(BaseApplicationSession):
 
         return res
         
-    @register(u'liestudio.schema.get', WampSchema('schema', 'get/get', 1), {})
+    @register(u'mdstudio.schema.get', WampSchema('schema', 'get/get', 1), {})
     def schema_get(self, request):
         namespace = request['namespace']
         path = request['path']
@@ -81,4 +81,4 @@ class SchemaWampApi(BaseApplicationSession):
         return res
 
     def _extract_namespace(self, uri):
-        return re.match('liestudio.schema.\\w+\\.(.*)', uri).group(1)
+        return re.match('mdstudio.schema.\\w+\\.(.*)', uri).group(1)

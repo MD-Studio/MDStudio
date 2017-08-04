@@ -100,7 +100,7 @@ class WampSchemaHandler:
 
     @inlineCallbacks
     def resolve(self, uri):
-        schema_path_match = re.match('wamp://liestudio\.schema\.get/([a-z_]+)/(.+)', uri)
+        schema_path_match = re.match('wamp://mdstudio\.schema\.get/([a-z_]+)/(.+)', uri)
         if not schema_path_match:
             self.session.log.error("Not a proper wamp uri")
 
@@ -112,7 +112,7 @@ class WampSchemaHandler:
         elif 'lie_{}'.format(schema_namespace) == 'lie_corelib':
             res = self.session.get_schema(schema_path, self.corelib_path)
         else:
-            res = yield self.session.call(u'liestudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
+            res = yield self.session.call(u'mdstudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
 
         if res is None:
             self.session.log.warn('WARNING: could not retrieve a valid schema')
@@ -172,7 +172,7 @@ class WampSchema(ISchema):
         self.path = path
         self.versions = [int(v) for v in versions]
 
-        self.url_format = 'wamp://liestudio.schema.get/{}/{}'
+        self.url_format = 'wamp://mdstudio.schema.get/{}/{}'
 
     def __str__(self):
         return self.url_format.format('{}', '{}.{}') \

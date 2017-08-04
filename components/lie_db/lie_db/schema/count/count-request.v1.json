@@ -4,10 +4,10 @@
     "type": "object",
     "properties": {
         "collection": {
-            "$ref": "wamp://liestudio.schema.get/db/collection/collection.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
         },
         "filter": {
-            "$ref": "wamp://liestudio.schema.get/db/filter/filter.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
         },
         "skip": {
             "type": "integer",
@@ -18,7 +18,7 @@
             "minimum": 0
         },
         "fields": {
-            "$ref": "wamp://liestudio.schema.get/db/fields/fields.v1.json"
+            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
         }
     },
     "required": [

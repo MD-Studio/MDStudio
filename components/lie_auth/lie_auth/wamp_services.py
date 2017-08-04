@@ -166,7 +166,7 @@ class AuthWampApi(BaseApplicationSession):
         :rtype:          bool
         """
 
-    @wamp.register(u'liestudio.auth.sso')
+    @wamp.register(u'mdstudio.auth.sso')
     @inlineCallbacks
     def user_sso(self, auth_token):
         """
@@ -192,7 +192,7 @@ class AuthWampApi(BaseApplicationSession):
         else:
             returnValue(False)
 
-    @wamp.register(u'liestudio.auth.login')
+    @wamp.register(u'mdstudio.auth.login')
     @inlineCallbacks
     def user_login(self, realm, authid, details):
         """
@@ -258,7 +258,7 @@ class AuthWampApi(BaseApplicationSession):
                                    u'http_basic': self._http_basic_authentication(client[u'clientId'], client[u'secret'])}
         
                     headers, body, status = self.oauth_backend_server.create_token_response(
-                                                                        u'liestudio.auth.login',
+                                                                        u'mdstudio.auth.login',
                                                                         headers={u'Authorization': http_basic},
                                                                         grant_type_for_scope=u'client_credentials',
                                                                         credentials=credentials)
@@ -287,14 +287,14 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(auth_ticket)
 
-    @register(u'liestudio.auth.oauth.registerscopes', {}, {}, match='prefix')
+    @register(u'mdstudio.auth.oauth.registerscopes', {}, {}, match='prefix')
     @inlineCallbacks
     def register_scopes(self, request):
         for scope in request['scopes']:
             # update/insert the uri scope
             yield db.Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
             
-    @wamp.register(u'liestudio.auth.authorize')
+    @wamp.register(u'mdstudio.auth.authorize')
     @inlineCallbacks
     def authorize(self, session, uri, action, options):
         role = session.get('authrole')
@@ -389,7 +389,7 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(authorization)
     
-    @wamp.register(u'liestudio.auth.namespaces')
+    @wamp.register(u'mdstudio.auth.namespaces')
     @inlineCallbacks
     def get_namespaces(self, request):
         if 'userId' in request:
@@ -407,7 +407,7 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue([n['namespace'] for n in namespaces['result']])
 
-    @register(u'liestudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request', 1), WampSchema('auth', 'oauth/client/client-response', 1), details_arg=True)
+    @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request', 1), WampSchema('auth', 'oauth/client/client-response', 1), details_arg=True)
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)
@@ -424,7 +424,7 @@ class AuthWampApi(BaseApplicationSession):
             'secret': clientInfo['secret']
         })
 
-    @register(u'liestudio.auth.oauth.client.getusername', {}, {})
+    @register(u'mdstudio.auth.oauth.client.getusername', {}, {})
     @inlineCallbacks
     def get_oauth_client_username(self, request, details=None):
         client = yield self._get_client(request['clientId'])
@@ -436,12 +436,12 @@ class AuthWampApi(BaseApplicationSession):
         else:
             returnValue({})
 
-    @register(u'liestudio.auth.oauth.client.authenticate', {}, {}, details_arg=True)
+    @register(u'mdstudio.auth.oauth.client.authenticate', {}, {}, details_arg=True)
     @inlineCallbacks
     def grant_client_credentials(self, request):
         returnValue(self.oauth_backend_server.create_token_response(request['uri'], body=request['body']))
             
-    @wamp.register(u'liestudio.auth.logout', options=wamp.RegisterOptions(details_arg='details'))
+    @wamp.register(u'mdstudio.auth.logout', options=wamp.RegisterOptions(details_arg='details'))
     @inlineCallbacks
     def user_logout(self, details):
         """
@@ -462,7 +462,7 @@ class AuthWampApi(BaseApplicationSession):
     
         returnValue('Unknown user, unable to logout')
 
-    @wamp.register(u'liestudio.auth.retrieve')
+    @wamp.register(u'mdstudio.auth.retrieve')
     def retrieve_password(self, email):
         """
         Retrieve a forgotten password by email
@@ -670,7 +670,7 @@ class DBWaiter:
     @inlineCallbacks
     def run(self):
         if not self.session.db_initialized:
-            self.sub = yield self.session.subscribe(self._callback_wrapper, u'liestudio.db.events.online')
+            self.sub = yield self.session.subscribe(self._callback_wrapper, u'mdstudio.db.events.online')
 
             reactor.callLater(0.25, self._check_called)
         else:

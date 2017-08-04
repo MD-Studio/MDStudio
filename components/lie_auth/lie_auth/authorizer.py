@@ -36,15 +36,15 @@ class Authorizer:
     def __init__(self):
         # Build ruleset for communication inside ring0
         self.ring0_rules = [
-            PrefixRule('liestudio.{role}.', ['*']),
-            PrefixRule('liestudio.auth.oauth.registerscopes.{role}'),
-            RegexRule('liestudio\\.\\w+\\.events\\.\\w+', ['subscribe']),
-            RegexRule('liestudio\\.db\\.\\w+\\.{role}'),
-            ExactRule('liestudio.auth.namespaces'),
-            ExactRule('liestudio.auth.oauth.client.getusername'),
-            ExactRule('liestudio.schema.register.{role}'),
-            ExactRule('liestudio.schema.get'),
-            ExactRule('liestudio.logger.log.{role}', ['publish'])
+            PrefixRule('mdstudio.{role}.', ['*']),
+            PrefixRule('mdstudio.auth.oauth.registerscopes.{role}'),
+            RegexRule('mdstudio\\.\\w+\\.events\\.\\w+', ['subscribe']),
+            RegexRule('mdstudio\\.db\\.\\w+\\.{role}'),
+            ExactRule('mdstudio.auth.namespaces'),
+            ExactRule('mdstudio.auth.oauth.client.getusername'),
+            ExactRule('mdstudio.schema.register.{role}'),
+            ExactRule('mdstudio.schema.get'),
+            ExactRule('mdstudio.logger.log.{role}', ['publish'])
         ]
     
     def authorize_ring0(self, uri, action, role):

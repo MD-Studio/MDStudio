@@ -52,7 +52,7 @@
         "app": {
             "type": "string",
             "description": "The WAMP based application name",
-            "default": "liestudio"
+            "default": "mdstudio"
         }
     },
     "required": ["status","itime","system_user","task_id"]
