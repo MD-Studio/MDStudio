@@ -63,6 +63,7 @@ class Authorizer:
         vendor = match.group(1)
         ns = match.group(2)
 
+        # Check for scopes that match the exact uri or the entire namespace the uri is registered in
         scopes = itertools.chain(iter_scopes('{uri}:{action}', uri=uri), iter_scopes('ns.{vendor}.{ns}:{action}', ns=ns, vendor=vendor))
 
         # TODO: check custom scope name on uri

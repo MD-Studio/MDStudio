@@ -14,10 +14,6 @@
                     "name": "mdstudio",
                     "roles": [
                         {
-                            "name": "public",
-                            "authorizer": "mdstudio.auth.authorize"
-                        },
-                        {
                             "name": "auth",
                             "permissions": [
                                 {
@@ -41,8 +37,23 @@
                                     "allow": {
                                         "call": true,
                                         "register": false,
-                                        "publish": true,
+                                        "publish": false,
                                         "subscribe": true
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
+                                },
+                                {
+                                    "uri": "mdstudio.logger.log.auth",
+                                    "match": "exact",
+                                    "allow": {
+                                        "call": false,
+                                        "register": false,
+                                        "publish": true,
+                                        "subscribe": false
                                     },
                                     "disclose": {
                                         "caller": false,
@@ -62,42 +73,33 @@
                         },
                         {
                             "name": "db",
-                            "authorizer": "mdstudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize.ring0"
                         },
                         {
                             "name": "schema",
-                            "authorizer": "mdstudio.auth.authorize"
-                        },
-                        {
-                            "name": "admin",
-                            "authorizer": "mdstudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize.ring0"
                         },
                         {
                             "name": "logger",
-                            "authorizer": "mdstudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize.ring0"
+                        },
+                        {
+                            "name": "public",
+                            "authorizer": "mdstudio.auth.authorize.public"
                         },
                         {
                             "name": "user",
-                            "authorizer": "mdstudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize.user"
+                        },
+                        {
+                            "name": "admin",
+                            "authorizer": "mdstudio.auth.authorize.admin"
                         },
                         {
                             "name": "oauthclient",
-                            "authorizer": "mdstudio.auth.authorize"
+                            "authorizer": "mdstudio.auth.authorize.oauth"
                         }
-                    ],
-                    "store": {
-                        "type": "memory",
-                        "event-history": [
-                            {
-                                "uri": "mdstudio.db.events.online",
-                                "limit": 1
-                            },
-                            {
-                                "uri": "mdstudio.schema.events.online",
-                                "limit": 1
-                            }
-                        ]
-                    }
+                    ]
                 }
             ],
             "transports": [

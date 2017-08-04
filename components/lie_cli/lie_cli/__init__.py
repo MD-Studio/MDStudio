@@ -35,7 +35,7 @@ from lie_corelib.runner import main
 
 from .wamp_services import CLIWampApi
 
-session = CLIWampApi(wamp.ComponentConfig(u'liestudio'))
+session = CLIWampApi(wamp.ComponentConfig(u'mdstudio'))
 
 welcome = """
 LIEstudio command line component
@@ -45,7 +45,7 @@ A connected session is available in the "session" variable.
 
 As an example, you can perform calls on a WAMP uri using the following command:
     
-    session.call('liestudio.some.uri')
+    session.call('mdstudio.some.uri')
 """
 
 def connect():

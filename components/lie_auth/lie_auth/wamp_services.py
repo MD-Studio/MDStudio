@@ -251,6 +251,7 @@ class AuthWampApi(BaseApplicationSession):
             if is_valid:
                 auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user)}
             else:
+                # Not a valid user, try  to find a matching client
                 client = yield self._get_client(username)
                 if client:
                     http_basic = self._http_basic_authentication(username, details['ticket'])
@@ -294,36 +295,16 @@ class AuthWampApi(BaseApplicationSession):
             # update/insert the uri scope
             yield db.Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
             
-    @wamp.register(u'mdstudio.auth.authorize')
-    @inlineCallbacks
-    def authorize(self, session, uri, action, options):
+    @wamp.register(u'mdstudio.auth.authorize.admin')
+    def authorize_admin(self, session, uri, action, options):
         role = session.get('authrole')
         
         authorization = False
 
-        if role == u'admin' and action in ('call', 'subscribe', 'publish'):
+        if action in ('call', 'subscribe', 'publish'):
             # Allow admin to call, subscribe and publish on any uri
+            # TODO: possibly restrict this
             authorization = {'allow': True}
-        elif session.get('authprovider') is None and role in ('auth', 'schema', 'db', 'logger'):
-            authid = role
-
-            authorization = self.authorizer.authorize_ring0(uri, action, role)
-        else:
-            authid = session.get('authid')
-
-            if role == 'oauthclient':
-                client = yield self._get_client(authid)
-                session = yield self._get_session(session.get('session'))
-
-                scopes = self.authorizer.oauthclient_scopes(uri, action, authid)
-                
-                headers = {'access_token': session['accessToken']}
-                valid, r = self.oauth_backend_server.verify_request(uri, headers=headers, scopes=[scope for scope in scopes])
-
-                valid = yield valid
-
-                if valid:
-                    authorization = {'allow': True}
 
         if not authorization:
             self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
@@ -331,87 +312,78 @@ class AuthWampApi(BaseApplicationSession):
             if 'disclose' not in authorization:
                 authorization['disclose'] = False
 
-            registration = db.Model(self, 'registration_info')
+            self._store_action(uri, action, options)
 
-            now = datetime.datetime.now(pytz.utc).isoformat()
+        return authorization
+            
+    @wamp.register(u'mdstudio.auth.authorize.ring0')
+    def authorize_ring0(self, session, uri, action, options):
+        role = session.get('authrole')
+        
+        authorization = self.authorizer.authorize_ring0(uri, action, role)        
 
-            if action == 'register':
-                match = options.get('match', 'exact')
+        if not authorization:
+            self.log.warn('WARNING: {} is not authorized for {} on {}'.format(role, action, uri))
+        else:
+            if 'disclose' not in authorization:
+                authorization['disclose'] = False
 
-                @inlineCallbacks
-                def update_registration():
-                    upd = yield registration.update_one(
-                        {
-                            'uri': uri,
-                            'match': match
-                        }, 
-                        {
-                            '$inc': {
-                                'registrationCount': 1
-                            },
-                            '$set': {
-                                'latestRegistration': now
-                            },
-                            '$setOnInsert': {
-                                'uri': uri,
-                                'firstRegistration': now,
-                                'match': match
-                            }
-                        }, 
-                        upsert=True, 
-                        date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
-                    )
-                    
-                yield DBWaiter(self, update_registration).run()
-            elif action == 'call':
-                @inlineCallbacks
-                def update_registration():
-                    id = yield self.call(u'wamp.registration.match', uri)
-                    if id:
-                        reg_info = yield self.call(u'wamp.registration.get', id)
-                        yield registration.update_one(
-                            {
-                                'uri': reg_info['uri'],
-                                'match': reg_info['match']
-                            },
-                            {
-                                '$inc': {
-                                    'callCount': 1
-                                },
-                                '$set': {
-                                    'latestCall': now
-                                }
-                            },
-                            date_fields=['update.$set.latestCall']
-                        )
+            self._store_action(uri, action, options)
 
-                yield DBWaiter(self, update_registration).run()
+        return authorization
+            
+
+    @wamp.register(u'mdstudio.auth.authorize.oauth')
+    @inlineCallbacks
+    def authorize_oauth(self, session, uri, action, options):
+        role = session.get('authrole')
+
+        authid = session.get('authid')
+
+        authorization = False
+
+        client = yield self._get_client(authid)
+        session = yield self._get_session(session.get('session'))
+        scopes = self.authorizer.oauthclient_scopes(uri, action, authid)
+        
+        headers = {'access_token': session['accessToken']}
+        valid, r = self.oauth_backend_server.verify_request(uri, headers=headers, scopes=[scope for scope in scopes])
+
+        valid = yield valid
+
+        if valid:
+            authorization = {'allow': True}
+
+        if not authorization:
+            self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
+        else:
+            if 'disclose' not in authorization:
+                authorization['disclose'] = False
+
+            self._store_action(uri, action, options)
 
         returnValue(authorization)
-    
-    @wamp.register(u'mdstudio.auth.namespaces')
-    @inlineCallbacks
-    def get_namespaces(self, request):
-        if 'userId' in request:
-            user_id = request['userId']
-        else:
-            user = yield self._get_user(request['username'].strip())
             
-            if not user:
-                returnValue([])
+    @wamp.register(u'mdstudio.auth.authorize.public')
+    def authorize_public(self, session, uri, action, options):
+        #  TODO: authorize public to view unprotected resources
+        authorization = False
 
-            user_id = user['id']
+        returnValue(authorization)
+            
+    @wamp.register(u'mdstudio.auth.authorize.user')
+    def authorize_user(self, session, uri, action, options):
+        # TODO: authorize users to view (parts of) the web interface and to create OAuth clients on their group/user
+        authorization = False
 
-
-        namespaces = yield db.Model(self, 'namespaces').find_many({'userId': user_id})
-
-        returnValue([n['namespace'] for n in namespaces['result']])
+        returnValue(authorization)
 
     @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request', 1), WampSchema('auth', 'oauth/client/client-response', 1), details_arg=True)
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)
 
+        # TODO: check if user is permitted to access the requested scopes before creating the client
         clientInfo = copy.deepcopy(request)
         clientInfo['userId'] = user['id']
         clientInfo['clientId'] = generate_secret()
@@ -435,11 +407,6 @@ class AuthWampApi(BaseApplicationSession):
             returnValue({'username': user['username']})
         else:
             returnValue({})
-
-    @register(u'mdstudio.auth.oauth.client.authenticate', {}, {}, details_arg=True)
-    @inlineCallbacks
-    def grant_client_credentials(self, request):
-        returnValue(self.oauth_backend_server.create_token_response(request['uri'], body=request['body']))
             
     @wamp.register(u'mdstudio.auth.logout', options=wamp.RegisterOptions(details_arg='details'))
     @inlineCallbacks
@@ -656,6 +623,65 @@ class AuthWampApi(BaseApplicationSession):
           res = yield db.Model(self, 'users').update_one({'id': user['id']}, {'password': new_password})
 
         returnValue(user)
+
+    def _store_action(self, uri, action, options):
+        registration = db.Model(self, 'registration_info')
+
+        now = datetime.datetime.now(pytz.utc).isoformat()
+
+        if action == 'register':
+            match = options.get('match', 'exact')
+
+            @inlineCallbacks
+            def update_registration():
+                upd = yield registration.update_one(
+                    {
+                        'uri': uri,
+                        'match': match
+                    }, 
+                    {
+                        '$inc': {
+                            'registrationCount': 1
+                        },
+                        '$set': {
+                            'latestRegistration': now
+                        },
+                        '$setOnInsert': {
+                            'uri': uri,
+                            'firstRegistration': now,
+                            'match': match
+                        }
+                    }, 
+                    upsert=True, 
+                    date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
+                )
+                
+            # We cannot be sure the DB is already up, possibly wait
+            yield DBWaiter(self, update_registration).run()
+        elif action == 'call':
+            @inlineCallbacks
+            def update_registration():
+                id = yield self.call(u'wamp.registration.match', uri)
+                if id:
+                    reg_info = yield self.call(u'wamp.registration.get', id)
+                    yield registration.update_one(
+                        {
+                            'uri': reg_info['uri'],
+                            'match': reg_info['match']
+                        },
+                        {
+                            '$inc': {
+                                'callCount': 1
+                            },
+                            '$set': {
+                                'latestCall': now
+                            }
+                        },
+                        date_fields=['update.$set.latestCall']
+                    )
+
+            # We cannot be sure the DB is already up, possibly wait
+            yield DBWaiter(self, update_registration).run()
 
 class DBWaiter:
     def __init__(self, session, callback):
