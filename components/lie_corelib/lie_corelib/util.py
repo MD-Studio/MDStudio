@@ -122,7 +122,7 @@ class WampSchemaHandler:
 
 
 def validate_json_schema(session, schema_def, request):
-    if not isinstance(schema_def, (Schema, WampSchema, InlineSchema)):
+    if not isinstance(schema_def, ISchema):
         schema_def = InlineSchema(schema_def)
 
     valid = False
@@ -144,8 +144,14 @@ def validate_json_schema(session, schema_def, request):
 
     return valid
 
+class ISchema:
+    def __str__(self):
+        raise NotImplementedError('Subclass should implement this')
 
-class Schema:
+    def schemas(self):
+        raise NotImplementedError('Subclass should implement this')
+        
+class Schema(ISchema):
     def __init__(self, url, transport='http'):
         self.schema_uri = '{}://{}'.format(transport, url)
 
@@ -156,7 +162,7 @@ class Schema:
         yield {'$ref': self.schema_uri}
 
 
-class WampSchema:
+class WampSchema(ISchema):
     def __init__(self, namespace, path, versions):
         # type: (str, str, int) -> None
         if not isinstance(versions, list):
@@ -185,7 +191,7 @@ class WampSchema:
             yield {'$ref': uri}
 
 
-class InlineSchema:
+class InlineSchema(ISchema):
     def __init__(self, schema):
         self.schema = schema
 
@@ -197,7 +203,8 @@ class InlineSchema:
 
 
 def validate_output(output_schema):
-    if not isinstance(output_schema, (Schema, WampSchema, InlineSchema)):
+    if not isinstance(output_schema, ISchema):
+        # If the schema is not a subclass of ISchema, try to create an inline schema
         output_schema = InlineSchema(output_schema)
 
     def wrap_f(f):
@@ -215,7 +222,8 @@ def validate_output(output_schema):
 
 
 def validate_input(input_schema, strict=True):
-    if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
+    if not isinstance(input_schema, ISchema):
+        # If the schema is not a subclass of ISchema, try to create an inline schema
         input_schema = InlineSchema(input_schema)
 
     def wrap_f(f):
@@ -236,13 +244,34 @@ def validate_input(input_schema, strict=True):
 
 
 def register(uri, input_schema, output_schema, details_arg=False, match=None, options=None, scope=None):
-    if not isinstance(input_schema, (Schema, WampSchema, InlineSchema)):
-        input_schema = InlineSchema(input_schema)
+    # type: (str, ISchema, ISchema, bool, Optional[str], Optional[wamp.RegisterOptions], Optional[str]) -> function
+    """
+    Decorator for more complete WAMP uri registration
 
-    if not isinstance(output_schema, (Schema, WampSchema, InlineSchema)):
-        output_schema = InlineSchema(output_schema)
+    Besides registering the uri, also wrap the function to validate json schemas on input and output.
+    Store the schema definition and custom scopes in attributes of the function for later processing.
+
+    :param uri:             WAMP uri to register on
+    :type uri:              str
+    :param input_schema:    JSON schema to check the input.
+    :type input_schema:     ISchema
+    :param output_schema:   JSON schema to check the output.
+    :type output_schema:    ISchema
+    :param details_arg:     Boolean indicating whether the wrapped function expects a details argument 
+                            (will be set in the RegisterOptions).
+    :type details_arg:      bool
+    :param match:           Matching approach for the uri. Defaults to 'exact' in crossbar.
+    :type match:            str
+    :param options:         Options for registration. Created if not provided.
+    :type options:          wamp.RegisterOptions
+    :param scope:           Custom scope name within this namespace. If none is provided, only exact uri permission grants access.
+    :type scope:            str
+    :return:                Wrapped function with extra attributes
+    :rtype:                 function
+    """
 
     if options is None and (match or details_arg):
+        # If options is not given but required for match or details, create it
         options = wamp.RegisterOptions()
 
     if details_arg:
