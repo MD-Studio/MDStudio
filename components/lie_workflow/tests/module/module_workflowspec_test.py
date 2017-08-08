@@ -50,7 +50,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         
         self.assertTrue(hasattr(spec.workflow, 'title'))
         self.assertTrue(hasattr(spec.workflow, 'description'))
-    
+        
     def test_load_valid_spec(self):
         """
         Load a predefined and valid workflow specification from JSON file.
@@ -123,13 +123,6 @@ class TestWorkflowSpec(unittest2.TestCase):
         spec = WorkflowSpec()
         spec.load(os.path.join(currpath, '../files/linear-workflow-finished.json'))
         
-        # Query global metadata
-        self.assertFalse(spec.is_running)
-        self.assertTrue(spec.is_completed)
-        self.assertIsNotNone(spec.starttime)
-        self.assertIsNotNone(spec.finishtime)
-        self.assertEqual(spec.runtime(), 7)
-        
         # Query local metadata
         task2 = spec.get_task('task1')
         self.assertEqual(task2.utime, 1493819368)
@@ -152,13 +145,6 @@ class TestWorkflowSpec(unittest2.TestCase):
 
         # Set some metadata
         spec.workflow.title = 'Test project'
-        
-        # Query the metadata
-        self.assertFalse(spec.is_running)
-        self.assertFalse(spec.is_completed)
-        self.assertIsNone(spec.starttime)
-        self.assertIsNone(spec.finishtime)
-        self.assertEqual(spec.runtime(), 0)
                 
     def test_build_branched_spec(self):
         """
@@ -183,13 +169,6 @@ class TestWorkflowSpec(unittest2.TestCase):
 
         # Set some metadata
         spec.workflow.title = 'Map-reduce project'
-        
-        # Query the metadata
-        self.assertFalse(spec.is_running)
-        self.assertFalse(spec.is_completed)
-        self.assertIsNone(spec.starttime)
-        self.assertIsNone(spec.finishtime)
-        self.assertEqual(spec.runtime(), 0)
        
         maptask = [n for n in spec.workflow.nodes if len(spec.workflow.adjacency[n]) > 1 and spec.workflow.nodes[n]['task_type'] == 'Task']
         redtask = [n for n in spec.workflow.nodes if spec.workflow.nodes[n]['task_type'] == 'Collect']

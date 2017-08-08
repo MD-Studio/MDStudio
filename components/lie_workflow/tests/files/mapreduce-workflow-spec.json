@@ -179,7 +179,7 @@
       "status": "ready", 
       "task_type": "Collect", 
       "uri": "liestudio.default.task",
-      "class": "dummy_task_runners.reduce_function",
+      "custom_func": "dummy_task_runners.reduce_function",
       "nid": 9, 
       "retry_count": 0, 
       "configuration": {

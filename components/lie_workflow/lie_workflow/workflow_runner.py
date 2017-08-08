@@ -4,13 +4,17 @@ import os
 import sys
 import time
 import threading
-import logging
 import jsonschema
 import json
 import importlib
 
-from   .common import WorkflowError
-from   .workflow_spec import WorkflowSpec
+from twisted.logger import Logger
+from lie_system import WAMPTaskMetaData
+
+from .common import WorkflowError, _schema_to_data
+from .workflow_spec import WorkflowSpec
+
+logging = Logger()
 
 # Get the task schema definitions from the default task_schema.json file
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
@@ -173,10 +177,6 @@ class WorkflowRunner(_WorkflowQueryMethods):
     :type workflow:    JSON object
     :param schema_url: URL of the JSON schema describing the DAG
     :type schema_url:  :py:str
-    
-    TODO: for branched workflows: if one branch failes, should others be
-          allowed to finish? perhaps only if final result is not affected
-          by failed branch. For now, we simply stop.
     """
     
     def __init__(self):
@@ -237,7 +237,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             self.workflow.nodes[output['nid']].update(output)
             self.workflow.update_time = int(time.time())
         
-        task = self.workflow.getnodes(output['nid'])
+        task = self.workflow.getnodes(int(output['nid']))
         logging.info('Task "{0}" ({1}), status: {2}'.format(task.task_name, task.nid, task.status))
         
         # If the task is completed, go to next
@@ -349,7 +349,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             task.status = 'running'
             
             logging.info('Task "{0}" ({1}), status: {2}'.format(task.task_name, tid, task.status))
-            task.run_task(self.load_task_function(task.get('class', None)),
+            task.run_task(self.load_task_function(task.get('custom_func', None)),
                           callback=self._output_callback,
                           errorback=self._error_callback)
         
@@ -359,7 +359,6 @@ class WorkflowRunner(_WorkflowQueryMethods):
         else:
             self._output_callback(self.workflow.nodes[tid], update=False)
         
-    
     def load_task_function(self, class_name):
         """
         Load function that needs to be run with a specific workflow task type
@@ -367,7 +366,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         Custom Python function can be run on the local machine using a blocking
         or non-blocking task runner.
         These functions are loaded dynamically ar runtime using the URI of the
-        function as stored in the task 'class' attribute. A function URI is 
+        function as stored in the task 'custom_func' attribute. A function URI is 
         defined as a dot-seperated string in wich the last name defines the
         function name and all names in front the absolute or relative path to
         the module containg the function. The module needs to be in the 
@@ -453,14 +452,15 @@ class WorkflowRunner(_WorkflowQueryMethods):
         self.workflow.nodes[tid]['breakpoint'] = False
         logging.info('Remove breakpoint on task {0} ({1})'.format(self.workflow.nodes[tid]['task_name'], tid))
                                     
-    def input(self, **kwargs):
+    def input(self, tid=None, **kwargs):
         """
         Define workflow initial input
         """
         
-        assert self.workflow.nodes[self.workflow.root]['task_type'] == 'Start', 'Workflow has no Start node'
+        if not tid:
+            tid = self.workflow.root
         
-        self.workflow.nodes[self.workflow.root]['input'] = kwargs
+        self.workflow.nodes[tid]['input'] = kwargs
     
     def output(self, tid=None):
         """
@@ -487,6 +487,17 @@ class WorkflowRunner(_WorkflowQueryMethods):
                 output[task.nid] = task.output
                 
         return output
+    
+    def set_wamp_sesion(self, tid=None, session_data={}):
+        """
+        Initiate a WAMP session in the (Start) node
+        """
+        
+        if not tid:
+            tid = self.workflow.root
+        
+        session = WAMPTaskMetaData(metadata=session_data)
+        self.workflow.nodes[tid].update(session.dict())
     
     def run(self, tid=None):
         """

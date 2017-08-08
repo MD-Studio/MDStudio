@@ -21,7 +21,7 @@ def module_test_suite():
     
     print('Running lie_workflow unittests')
     testpath = os.path.join(os.path.dirname(__file__), 'module')
-    suite = loader.discover(testpath, pattern='module_mapreduce_test.py')
+    suite = loader.discover(testpath, pattern='module_*_test.py')
     runner = unittest2.TextTestRunner(verbosity=2)
     runner.run(suite)
 

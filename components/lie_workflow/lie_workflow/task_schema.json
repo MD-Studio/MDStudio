@@ -54,7 +54,7 @@
             "pattern": "^\\w+(\\.\\w+)*$",
             "default": "liestudio.default.task"
         },
-        "class": {
+        "custom_func": {
             "type": "string",
             "description": "Custom Python function to run in a (local) task runner",
             "pattern": "^\\w+(\\.\\w+)*$"
