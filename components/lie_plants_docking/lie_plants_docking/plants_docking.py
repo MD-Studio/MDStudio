@@ -16,11 +16,11 @@ import json
 from twisted.logger import Logger
 from lie_config import configwrapper
 
-from docking_settings import SETTINGS
-from docking_base import DockingBase
-from plants_conf import PLANTS_CONF_FILE_TEMPLATE
-from utils import cmd_runner
-from clustering import coords_from_mol2, ClusterStructures
+from .docking_base import DockingBase
+from .plants_conf import PLANTS_CONF_FILE_TEMPLATE
+from .utils import cmd_runner, settings
+from .clustering import coords_from_mol2, ClusterStructures
+
 
 @configwrapper('lie_plants_docking')        
 class PlantsDocking(DockingBase):
@@ -55,7 +55,7 @@ class PlantsDocking(DockingBase):
     :type kwargs:       dict
     """
 
-    allowed_config_options = SETTINGS
+    allowed_config_options = settings
     logging = Logger()
 
     def __init__(self, user_meta={}, **kwargs):

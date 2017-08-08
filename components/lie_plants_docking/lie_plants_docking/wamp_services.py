@@ -14,7 +14,7 @@ from autobahn import wamp
 from autobahn.wamp.types import RegisterOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from lie_plants_docking.docking_settings import SETTINGS
+from lie_plants_docking import settings
 from lie_plants_docking.plants_docking import PlantsDocking
 from lie_plants_docking.utils import prepaire_work_dir
 from lie_system import LieApplicationSession
@@ -66,7 +66,7 @@ class DockingWampApi(LieApplicationSession):
 
         return session
 
-    def run_docking(self, protein, ligand, session=None, **kwargs):
+    def run_docking(self, protein=None, ligand=None, session=None, **kwargs):
         """
         Perform a PLANTS (Protein-Ligand ANT System) molecular docking.
 
@@ -85,7 +85,7 @@ class DockingWampApi(LieApplicationSession):
         """
 
         # Check status of running calculations
-        if session.get('status', None) not in (None, 'submitted'):
+        if session.get('status', None) not in (None, 'running', 'submitted'):
             return self.check_docking(session)
 
         # Load PLANTS configuration and update
@@ -102,17 +102,17 @@ class DockingWampApi(LieApplicationSession):
         docking = PlantsDocking(user_meta=session, **plants_config)
         success = docking.run(protein, ligand)
         if success:
-            session['status'] = 'DONE'
+            session['status'] = 'completed'
             results = docking.results()
         else:
             # Docking run not successful, cleanup
-            session['status'] = 'FAILED'
+            session['status'] = 'failed'
             self.logger.error('PLANTS docking not successful', **session)
             docking.delete()
 
         self.logger.info('Finished PLANTS docking', **session)
 
-        session['result'] = results
+        session['output'] = results
         return session
 
 
@@ -135,7 +135,7 @@ def make(config):
     """
 
     if config:
-        return DockingWampApi(config, package_config=SETTINGS)
+        return DockingWampApi(config, package_config=settings)
     else:
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'LIEStudio docking management WAMPlet',

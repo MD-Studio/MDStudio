@@ -25,3 +25,5 @@ __rootpath__ = os.path.dirname(__file__)
 __all__ = ['PlantsDocking']
 
 from .plants_docking import PlantsDocking
+from .utils import PLANTS_DOCKING_SCHEMA as plants_docking_schema
+from .utils import settings

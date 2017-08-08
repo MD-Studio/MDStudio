@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Python function for lie_plants_docking module, run as:
+Python runner for lie_plants_docking module unit tests, run as:
 ::
-    test = module_test_suite()
-    runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(test)
+    python tests
 """
 
 import os
@@ -19,8 +17,14 @@ def module_test_suite():
     """
     Run lie_plants_docking module unit tests
     """
-    
-    testpath = os.path.join(os.path.dirname(__file__), 'module')
     loader = unittest2.TestLoader()
+    
+    print('Running lie_plants_docking unittests')
+    testpath = os.path.join(os.path.dirname(__file__), 'module')
     suite = loader.discover(testpath, pattern='module_*_test.py')
-    return suite
+    runner = unittest2.TextTestRunner(verbosity=2)
+    runner.run(suite)
+
+if __name__ == '__main__':
+    
+    module_test_suite()
