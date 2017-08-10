@@ -474,845 +474,758 @@ pair_interactions:
         NL: 2, NR: 2, NZ: 2, NE: 2, F: 2, CL: 2, BR: 2,
         OMet: 2, CL-: 2}
 
-vdwmixed:
+vdw_mixed:
   CChl::CLChl:
-    i: CChl
-    j: CLChl
-    c6: {default: 0.0046754, 1-4: 0.0046754}
-    c12: {default: 7.4813e-06, 1-4: 7.4813e-06}
+    c6: 0.0046754, 
+    c6_1-4: 0.0046754
+    c12: 7.4813e-06
+    c12_1-4: 7.4813e-06
   CChl::HChl:
-    i: CChl
-    j: HChl
-    c6: {default: 0.0003622, 1-4: 0.0003622}
-    c12: {default: 1.745e-07, 1-4: 1.745e-07}
+    c6:  0.0003622 
+    c6_1-4: 0.0003622
+    c12: 1.745e-07
+    c12_1-4: 1.745e-07
   CLChl::HChl:
-    i: CLChl
-    j: HChl
-    c6: {default: 0.0006493, 1-4: 0.0006493}
-    c12: {default: 3.266e-07, 1-4: 3.266e-07}
+    c6: 0.0006493 
+    c6_1-4: 0.0006493
+    c12: 3.266e-07 
+    c12_1-4: 3.266e-07
 
-coultypes:
+coulombic_types:
   backbone-N:
     charge: -0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   backbone-H:
     charge: 0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   backbone-C:
     charge: 0.45
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   backbone-O:
     charge: -0.45
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   ala_val_ile_leu-CH3:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   ala_val_ile_leu-CH2:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   ala_val_ile_leu-CH:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(+)-CD:
     charge: 0.09
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(+)-NE:
     charge: -0.11
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(+)-HE:
     charge: 0.24
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(+)-CZ:
     charge: 0.34
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(+)-NHx:
     charge: -0.26
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(+)-NHxx:
     charge: 0.24
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(n)-NE:
     charge: -0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(n)-HE:
     charge: 0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(n)-CZ:
     charge: 0.266
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(n)-NH1:
     charge: -0.674
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(n)-HH1:
     charge: 0.408
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(n)-NH2:
     charge: -0.88
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   arg(n)-HHxx:
     charge: 0.44
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asn_gln-Cx:
     charge: 0.29
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asn_gln-Ox1:
     charge: -0.45
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asn_gln-Nx:
     charge: -0.72
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asn_gln-Hxx:
     charge: 0.44
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asp_glu(-)-Cx:
     charge: 0.27
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asp_glu(-)-Oxx:
     charge: -0.635
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asp_glu(n)-Cx:
     charge: 0.33
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asp_glu(n)-Ox1:
     charge: -0.45
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asp_glu(n)-Ox2:
     charge: -0.288
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   asp_glu(n)-Hx2:
     charge: 0.408
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   cys(-)-CB:
     charge: -0.1
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   cys(-)-SG:
     charge: -0.4
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   cys(n)-CB:
     charge: 0.15
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   cys(n)-SG:
     charge: -0.37
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   cys(n)-HG:
     charge: 0.22
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-CG:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-ND1:
     charge: -0.05
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-HD1:
     charge: 0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-CD2:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-HD2:
     charge: 0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-CE1:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-HE1:
     charge: 0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(a)-NE2:
     charge: -0.54
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-CG:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-ND1:
     charge: -0.54
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-CD2:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-HD2:
     charge: 0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-CE1:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-HE1:
     charge: 0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-NE2:
     charge: -0.05
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(b)-HE2:
     charge: 0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-CG:
     charge: -0.05
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-ND1:
     charge: 0.38
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-HD1:
     charge: 0.3
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-CD2:
     charge: -0.1
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-HD2:
     charge: 0.1
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-CE1:
     charge: -0.34
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-HE1:
     charge: 0.1
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-NE2:
     charge: 0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   his(+)-HE2:
     charge: 0.3
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   hyp_ser_thr-Cx:
     charge: 0.266
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   hyp_ser_thr-Ox:
     charge: -0.674
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   hyp_ser_thr-Hx:
     charge: 0.408
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   lys(+)-CE:
     charge: 0.127
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   lys(+)-NZ:
     charge: 0.129
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   lys(+)-HZx:
     charge: 0.248
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   lys(n)-CE:
     charge: -0.24
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   lys(n)-NZ:
     charge: -0.64
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   lys(n)-HZx:
     charge: 0.44
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   met-Cx:
     charge: 0.241
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   met-SD:
     charge: -0.482
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   trp-CG:
     charge: -0.21
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   trp-CD1:
     charge: -0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   trp-HD1:
     charge: 0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   trp-CD2:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   trp-NE1:
     charge: -0.1
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   trp-HE1:
     charge: 0.31
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   trp-CE2:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   tyr-CZ:
     charge: 0.203
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   tyr-OH:
     charge: -0.611
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   tyr-HH:
     charge: 0.408
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   phe_tyr_trp-C:
     charge: -0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   phe_tyr_trp-H:
     charge: 0.14
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   phe_tyr-C:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   phe_tyr-CH2:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   SPC-OW:
     charge: -0.82
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
   SPC-HWx:
     charge: 0.41
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
-    polarisability: 0.0
-    gamma: 0.0
+    polarizability: 0.0
 
-bondtypes: 
+bond_types: 
   gb_1: # H - OA 750
     fc-quartic: 15700000.0
     fc-harmonic: 314000.0
-    b0: 0.1
+    bond0: 0.1
   gb_2: # H - N (all) 895
     fc-quartic: 18700000.0
     fc-harmonic: 374000.0
-    b0: 0.1
+    bond0: 0.1
   gb_3: # HC - C 700
     fc-quartic: 12300000.0
     fc-harmonic: 292272.6
-    b0: 0.109
+    bond0: 0.109
   gb_4: # C - O (CO in heme) 2220
     fc-quartic: 37000000.0
     fc-harmonic: 928256.0
-    b0: 0.112
+    bond0: 0.112
   gb_5: # C - O 1200
     fc-quartic: 16600000.0
     fc-harmonic: 502282.8
-    b0: 0.123
+    bond0: 0.123
   gb_6: # C - OM 1000
     fc-quartic: 13400000.0
     fc-harmonic: 418750.0
-    b0: 0.125
+    bond0: 0.125
   gb_7: # CR1 - NR (6-ring) 1000
     fc-quartic: 12000000.0
     fc-harmonic: 418176.0
-    b0: 0.132
+    bond0: 0.132
   gb_8: # H - S 750
     fc-quartic: 8870000.0
     fc-harmonic: 313802.86
-    b0: 0.133
+    bond0: 0.133
   gb_9: # C - NT, NL 900
     fc-quartic: 10600000.0
     fc-harmonic: 375006.8
-    b0: 0.133
+    bond0: 0.133
   gb_10: # C, CR1 - N, NR, CR1, C (peptide, 5-ring) 1000
     fc-quartic: 11800000.0
     fc-harmonic: 417460.4
-    b0: 0.133
+    bond0: 0.133
   gb_11: # C - N, NZ, NE 900
     fc-quartic: 10500000.0
     fc-harmonic: 377076.0
-    b0: 0.134
+    bond0: 0.134
   gb_12: # C - NR (no H) (6-ring) 1000
     fc-quartic: 11700000.0
     fc-harmonic: 420170.4
-    b0: 0.134
+    bond0: 0.134
   gb_13: # C - OA 900
     fc-quartic: 10200000.0
     fc-harmonic: 377318.4
-    b0: 0.136
+    bond0: 0.136
   gb_14: # C - NR (heme) 1000
     fc-quartic: 11000000.0
     fc-harmonic: 418968.0
-    b0: 0.138
+    bond0: 0.138
   gb_15: # CH2 - C, CR1 (6-ring) 800
     fc-quartic: 8660000.0
     fc-harmonic: 334639.72
-    b0: 0.139
+    bond0: 0.139
   gb_16: # C, CR1 - CH2, C, CR1 (6-ring) 1000
     fc-quartic: 10800000.0
     fc-harmonic: 417333.6
-    b0: 0.139
+    bond0: 0.139
   gb_17: # C, CR1, CH2 - NR (6-ring) 800
     fc-quartic: 8540000.0
     fc-harmonic: 334768.0
-    b0: 0.14
+    bond0: 0.14
   gb_18: # CHn - OA 800
     fc-quartic: 8180000.0
     fc-harmonic: 334545.64
-    b0: 0.143
+    bond0: 0.143
   gb_19: # CHn - OM 900
     fc-quartic: 9210000.0
     fc-harmonic: 376670.58
-    b0: 0.143
+    bond0: 0.143
   gb_20: # CHn - OA (sugar) 600
     fc-quartic: 6100000.0
     fc-harmonic: 251225.45
-    b0: 0.1435
+    bond0: 0.1435
   gb_21: # CHn - N, NT, NL, NZ, NE 900
     fc-quartic: 8710000.0
     fc-harmonic: 376428.78
-    b0: 0.147
+    bond0: 0.147
   gb_22: # CHn - NR (5-ring) 600
     fc-quartic: 5730000.0
     fc-harmonic: 251019.84
-    b0: 0.148
+    bond0: 0.148
   gb_23: # CHn - NR (6-ring) 800
     fc-quartic: 7640000.0
     fc-harmonic: 334693.12
-    b0: 0.148
+    bond0: 0.148
   gb_24: # O, OM - P 900
     fc-quartic: 8600000.0
     fc-harmonic: 376748.8
-    b0: 0.148
+    bond0: 0.148
   gb_25: # O - S 900
     fc-quartic: 8370000.0
     fc-harmonic: 376650.0
-    b0: 0.15
+    bond0: 0.15
   gb_26: # CHn - CHn (sugar) 600
     fc-quartic: 5430000.0
     fc-harmonic: 250909.44
-    b0: 0.152
+    bond0: 0.152
   gb_27: # C, CHn - C, CHn 800
     fc-quartic: 7150000.0
     fc-harmonic: 334748.7
-    b0: 0.153
+    bond0: 0.153
   gb_28: # OA - P 600
     fc-quartic: 4840000.0
     fc-harmonic: 250915.28
-    b0: 0.161
+    bond0: 0.161
   gb_29: # OA - SI 600
     fc-quartic: 4720000.0
     fc-harmonic: 250811.36
-    b0: 0.163
+    bond0: 0.163
   gb_30: # FE - C (Heme)
     fc-quartic: 2720000.0
     fc-harmonic: 172360.96
-    b0: 0.178
+    bond0: 0.178
   gb_31: # CH3 - S 900
     fc-quartic: 5940000.0
     fc-harmonic: 376405.92
-    b0: 0.178
+    bond0: 0.178
   gb_32: # CH2 - S 900
     fc-quartic: 5620000.0
     fc-harmonic: 376416.36
-    b0: 0.183
+    bond0: 0.183
   gb_33: # CH1 - SI 600
     fc-quartic: 3590000.0
     fc-harmonic: 251077.42
-    b0: 0.187
+    bond0: 0.187
   gb_34: # NR - FE 120
     fc-quartic: 640000.0
     fc-harmonic: 50181.12
-    b0: 0.198
+    bond0: 0.198
   gb_35: # NR (heme) - FE 120
     fc-quartic: 628000.0
     fc-harmonic: 50240.0
-    b0: 0.2
+    bond0: 0.2
   gb_36: # S - S 1000
     fc-quartic: 5030000.0
     fc-harmonic: 418656.96
-    b0: 0.204
+    bond0: 0.204
   gb_37: # NR - FE 126
     fc-quartic: 540000.0
     fc-harmonic: 52748.28
-    b0: 0.221
+    bond0: 0.221
   gb_38: # HWat - OWat 1110
     fc-quartic: 23200000.0
     fc-harmonic: 464000.0
-    b0: 0.1
+    bond0: 0.1
   gb_39: # HChl - CChl 700
     fc-quartic: 12100000.0
     fc-harmonic: 292820.0
-    b0: 0.11
+    bond0: 0.11
   gb_40: # CChl - CLChl 1200
     fc-quartic: 8120000.0
     fc-harmonic: 501907.59
-    b0: 0.1758
+    bond0: 0.1758
   gb_41: # ODmso - SDmso 900
     fc-quartic: 8040000.0
     fc-harmonic: 376416.72
-    b0: 0.153
+    bond0: 0.153
   gb_42: # SDmso - CDmso 890
     fc-quartic: 4950000.0
     fc-harmonic: 371824.72
-    b0: 0.193799
+    bond0: 0.193799
   gb_43: # CCl4 - CLCl4 1200
     fc-quartic: 8100000.0
     fc-harmonic: 501811.2
-    b0: 0.176
+    bond0: 0.176
   gb_44: # CUrea - OUrea 1000
     fc-quartic: 13100000.0
     fc-harmonic: 419258.95
-    b0: 0.1265
+    bond0: 0.1265
   gb_45: # CUrea - NUrea 900
     fc-quartic: 10300000.0
     fc-harmonic: 375435.0
-    b0: 0.135
+    bond0: 0.135
   gb_46: # HWat - HWat 1110
     fc-quartic: 8710000.0
     fc-harmonic: 464531.53
-    b0: 0.163299
+    bond0: 0.163299
   gb_47: # HChl - CLChl 700
     fc-quartic: 2680000.0
     fc-harmonic: 293088.43
-    b0: 0.233839
+    bond0: 0.233839
   gb_48: # CLChl - CLChl 1200
     fc-quartic: 2980000.0
     fc-harmonic: 502214.75
-    b0: 0.290283
+    bond0: 0.290283
   gb_49: # ODmso - CDmso 890
     fc-quartic: 2390000.0
     fc-harmonic: 373115.59
-    b0: 0.279388
+    bond0: 0.279388
   gb_50: # CDmso - CDmso 890
     fc-quartic: 2190000.0
     fc-harmonic: 371384.73
-    b0: 0.291189
+    bond0: 0.291189
   gb_51: # HMet - CMet 820
     fc-quartic: 3970000.0
     fc-harmonic: 342525.96
-    b0: 0.2077
+    bond0: 0.2077
   gb_52: # CLCl4 - CLCl4 1200
     fc-quartic: 3040000.0
     fc-harmonic: 502224.92
-    b0: 0.287407
+    bond0: 0.287407
 
-angletypes:
+angle_types:
   ga_1: # NR(heme) - FE - C 90
     fc-non-harmonic: 380.0
     fc-harmonic: 0.11550101
@@ -1530,7 +1443,7 @@ angletypes:
     fc-harmonic: 0.1529482
     angle0: 121.4
 
-dihedraltypes:
+dihedral_types:
   gd_1: # CHn-CHn-CHn-OA (sugar) 0.6 (sugar: C4-C5-C6-O6, omega dihedral, specific to residue with syn C4,C5 like Gal, 1-fold term)
     fc: 2.67
     phase-shift: 180.0
@@ -1696,7 +1609,7 @@ dihedraltypes:
     phase-shift: 0.0
     multiplicity: 6
 
-impropertypes:
+improper_types:
   gi_1: # planar groups 40
     fc: 0.051
     angle0: 0.0

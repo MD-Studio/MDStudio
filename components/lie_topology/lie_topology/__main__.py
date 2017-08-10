@@ -13,6 +13,7 @@ from lie_topology.parsers.groParser import ParseGro
 from lie_topology.parsers.sdfParser import ParseSdf
 from lie_topology.parsers.mol2Parser import ParseMol2
 from lie_topology.parsers.mdtopParser import ParseMdtop
+from lie_topology.parsers.mdmtbParser import ParseMDMtb
 
 from lie_topology.utilities.makeTopology import MakeSequence
 
@@ -28,7 +29,9 @@ def main():
 
         forcefield = ParseMdtop( mdtop_ifs )
 
-    
+    with open( "../tests/data/md_top/residues.aatop", 'r') as mdaa_ifs:
+
+        forcefield = ParseMDMtb( mdaa_ifs )
 
 
     # with open( "../tests/data/mtb/54a7.mtb", 'r') as mtb_ifstream,\

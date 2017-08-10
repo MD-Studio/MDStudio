@@ -32,9 +32,15 @@ from lie_topology.common.exception import LieTopologyException
 
 import hashlib
 
-class AtomReference( Serializable ):
+class AbstractReference( Serializable ):
+
+    def ToReference(self, molecule_key=None, group_key=None):
+
+        return deepcopy(self)
+
+class AtomReference( AbstractReference ):
     
-    def __init__( self, group_key=None, molecule_key=None, atom_key=None, external_index=None ):
+    def __init__( self, group_key=None, molecule_key=None, atom_key=None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
@@ -45,15 +51,11 @@ class AtomReference( Serializable ):
 
         self._atom_key = atom_key
 
-        # index of the atm
-        self._external_index = external_index
-    
     def __eq__( self, other ):
 
         return self._atom_key == other.atom_key and\
                self._group_key == other.group_key and\
-               self._molecule_key == other.molecule_key and\
-               self._external_index == other.external_index
+               self._molecule_key == other.molecule_key
 
     @property
     def hash(self):
@@ -67,10 +69,7 @@ class AtomReference( Serializable ):
 
         if self._atom_key is not None:
             input+="a:%s->" % ( self._atom_key )
-        
-        if self._external_index is not None:
-            input+="a:%s->" % ( self._external_index )
-        
+
         return hashlib.sha1(input).hexdigest()
 
     @property   
@@ -84,10 +83,6 @@ class AtomReference( Serializable ):
     @property
     def atom_key(self):
         return self._atom_key
-    
-    @property
-    def external_index(self):
-        return self._external_index
 
     @group_key.setter
     def group_key(self,value):
@@ -100,22 +95,6 @@ class AtomReference( Serializable ):
     @atom_key.setter
     def atom_key(self,value):
         self._atom_key = value
-
-    @external_index.setter
-    def external_index(self,value):
-        self._external_index = value
-
-    def IsIndexedReference( self ):
-        
-        return self._external_index is not None
-
-    def IsNamedReference( self ):
-        
-        return self._atom_key is not None
-
-    def ToReference(self, molecule_key=None, group_key=None):
-
-        return deepcopy(self)
 
     def TryLink( self, root, referencing_molecule ):
         
@@ -159,12 +138,93 @@ class AtomReference( Serializable ):
     
     def Debug(self):
 
-        if self._external_index:
-            return "(%i)" % (self._external_index)
-        
-        else:
-            safe_atom_key= self._atom_key if self._atom_key is not None else "?"
-            safe_group_key = self._group_key if self._group_key is not None else "?" 
-            safe_molecule_key = self._molecule_key if self._molecule_key is not None else "?" 
+        safe_atom_key= self._atom_key if self._atom_key is not None else "?"
+        safe_group_key = self._group_key if self._group_key is not None else "?" 
+        safe_molecule_key = self._molecule_key if self._molecule_key is not None else "?" 
 
-            return "(%s,%s,%s)" % (safe_atom_key,safe_molecule_key,safe_group_key)
+        return "(%s,%s,%s)" % (safe_atom_key,safe_molecule_key,safe_group_key)
+
+
+class ForwardChainReference( AbstractReference ):
+
+    def __init__( self, atom_key=None ):
+        
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+    
+        self._atom_key = atom_key
+    
+    def __eq__( self, other ):
+
+        return  isinstance(other, ForwardChainReference) and self._atom_key == other.atom_key
+
+    @property
+    def atom_key(self):
+        return self._atom_key
+
+    @property
+    def hash(self):
+
+        input="fwa:%s->" % ( self._atom_key )
+
+        return hashlib.sha1(input).hexdigest()
+
+    @atom_key.setter
+    def atom_key(self,value):
+        self._atom_key = value
+
+    
+class ReverseChainReference( AbstractReference ):
+
+    def __init__( self, atom_key=None ):
+        
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+    
+        self._atom_key = atom_key
+    
+    def __eq__( self, other ):
+
+        return  isinstance(other, ReverseChainReference) and self._atom_key == other.atom_key
+
+    @property
+    def atom_key(self):
+        return self._atom_key
+
+    @property
+    def hash(self):
+        input="rva:%s->" % ( self._atom_key )
+
+        return hashlib.sha1(input).hexdigest()
+
+
+    @atom_key.setter
+    def atom_key(self,value):
+        self._atom_key = value
+
+class ExplicitConnectionReference( AbstractReference ):
+
+    def __init__( self, atom_key=None ):
+        
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+    
+        self._atom_key = atom_key
+    
+    def __eq__( self, other ):
+
+        return  isinstance(other, ExplicitConnectionReference) and self._atom_key == other.atom_key
+
+    @property
+    def hash(self):
+        input="exa:%s->" % ( self._atom_key )
+
+        return hashlib.sha1(input).hexdigest()
+
+    @property
+    def atom_key(self):
+        return self._atom_key
+
+    @atom_key.setter
+    def atom_key(self,value):
+        self._atom_key = value

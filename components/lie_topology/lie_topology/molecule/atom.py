@@ -37,7 +37,7 @@ class Atom( Serializable ):
     
     def __init__( self, parent = None, key = None, type_name = None, element = None, identifier = None,\
                   sybyl = None, occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
-                  coulombic_type = None, charge_group = None, virtual_site = None,\
+                  charge = None, coulombic_type = None, charge_group = None, virtual_site = None,\
                   preceding = None, trailing = None ):
         
         # Call the base class constructor with the parameters it needs
@@ -74,8 +74,11 @@ class Atom( Serializable ):
         # Van der waals type, to be combined with a force field input
         self.vdw_type = vdw_type
         
+        # direct charge assignment, other option is coulombic type
+        # if charge is NOT none, it is assumed as an override for the type
+        self.charge = charge
+
         # Coulombic type, to be combined with a force field input
-        # NOTE, cane be either a direct charge OR 
         self.coulombic_type = coulombic_type
         
         # Charge group indiciation
