@@ -42,7 +42,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         """
         Run the workflow from start till finish.
         """
-
+        self.wf.set_wamp_session(session_data={'authid':'dadara'})
         # Run the workflow
         self.wf.run()
 
@@ -53,7 +53,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
         self.assertEqual(self.wf.runtime(), 3)
-
+        
     def test_workflow_simple_linear_fail(self):
         """
         Simulate a nicely failing task.
@@ -61,7 +61,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         """
 
         # Instruct the runner to fail at node 3
-        self.wf.workflow.nodes[3]['configuration']['fail'] = True
+        self.wf.workflow.nodes[3]['input_data']['fail'] = True
 
         # Run the workflow
         self.wf.run()
@@ -84,7 +84,7 @@ class TestLinearWorkflow(unittest2.TestCase):
             self.wf.workflow.nodes[task]['retry_count'] = 3
 
         # Instruct the runner to fail at node 3
-        self.wf.workflow.nodes[3]['configuration']['fail'] = True
+        self.wf.workflow.nodes[3]['input_data']['fail'] = True
 
         # Run the workflow
         self.wf.run()
@@ -105,7 +105,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         """
 
         # Instruct the runner to fail at node 3
-        self.wf.workflow.nodes[3]['configuration']['crash'] = True
+        self.wf.workflow.nodes[3]['input_data']['crash'] = True
 
         # Run the workflow
         self.wf.run()
@@ -159,7 +159,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         """
 
         # Set a breakpoint at node 3
-        self.wf.workflow.nodes[3]['configuration']['sleep'] = 10
+        self.wf.workflow.nodes[3]['input_data']['sleep'] = 10
 
         # Run the workflow
         self.wf.run()
@@ -171,7 +171,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertFalse(self.wf.is_completed)
         self.assertEqual(self.wf.workflow.nodes[3]['status'],'aborted')
-    
+
     def test_json_import_finished(self):
         """
         Read a simple finished linear workflow from file and try to run it
@@ -187,33 +187,33 @@ class TestLinearWorkflow(unittest2.TestCase):
         self.wf.run()
         while self.wf.is_running:
             time.sleep(1)
-        
+
         self.assertTrue(self.wf.is_completed)
         self.assertEqual(self.wf.runtime(), 7)
-        
+
     def test_workflow_simple_linear_unfinished(self):
         """
         Read a simple linear workflow from file that is not yet finished
         and restart it until its finished
         """
-        
+
         workflow = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-unfinished.json'))
         self.wf.load(workflow)
-        
+
         # Workflow is still running, active task is 4
         active = self.wf.active_tasks
         self.assertFalse(self.wf.is_completed)
         self.assertTrue(len(active) == 1)
         self.assertTrue(active[0] == 4)
-        
+
         # Task 4 is completed, set to active to false
         self.wf.workflow.nodes[4]['active'] = False
-        
+
         # Continue the workflow
         self.wf.run()
-        
+
         while self.wf.is_running:
             time.sleep(1)
-        
+
         self.assertTrue(self.wf.is_completed)
 

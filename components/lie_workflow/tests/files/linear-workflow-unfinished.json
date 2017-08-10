@@ -35,121 +35,124 @@
   }, 
   "nodes": {
     "1": {
-      "status": "completed", 
-      "itime": 1493819365, 
-      "system_user": "mvdijk", 
-      "task_id": "1493819367-6252", 
+      "status": "completed",
+      "replace_output": false,
       "task_name": "start", 
-      "uri": "liestudio.default.task", 
       "nid": 1, 
       "retry_count": 0, 
       "breakpoint": false, 
       "active": false, 
-      "output": {
+      "output_data": {
         "dummy": 1
       },
-      "input": {
-        "dummy": 1
-      }, 
+      "session": {
+          "status": "completed", 
+          "utime": 1493819365,
+          "itime": 1493819365, 
+          "system_user": "mvdijk", 
+          "task_id": "1493819367-6252"
+      },
       "_id": 1, 
-      "task_type": "Start",
-      "utime": 1493819365
+      "task_type": "Start"
     }, 
     "2": {
-      "status": "completed", 
-      "configuration": {
+      "status": "completed",
+      "replace_output": false,
+      "input_data": {
+        "dummy": 1,
         "sleep": 1
-      }, 
-      "system_user": "mvdijk", 
-      "task_id": "1493819367-6146", 
-      "output": {
-        "dummy": 2
-      },
-      "input": {
+      },  
+      "output_data": {
         "dummy": 1
-      }, 
+      },
+      "session": {
+          "status": "completed", 
+          "system_user": "mvdijk", 
+          "task_id": "1493819367-6146",
+          "itime": 1493819367,
+          "utime": 1493819368 
+      },
       "task_name": "task1", 
-      "uri": "liestudio.default.task", 
       "nid": 2, 
       "retry_count": 0, 
-      "itime": 1493819367, 
       "breakpoint": false, 
       "active": false, 
       "_id": 2, 
-      "task_type": "Task", 
-      "utime": 1493819368
+      "task_type": "Task"
     }, 
     "3": {
-      "status": "completed", 
-      "configuration": {
+      "status": "completed",
+      "replace_output": false,
+      "input_data": {
+        "dummy": 1,
         "sleep": 1
-      }, 
-      "system_user": "mvdijk", 
-      "task_id": "1493819368-7176", 
-      "output": {
-        "dummy": 4
       },
-      "input": {
-        "dummy": 2
-      }, 
+      "output_data": {
+        "dummy": 1
+      },
+      "session": {
+          "status": "completed",
+          "itime": 1493819368,
+          "utime": 1493819369,
+          "system_user": "mvdijk", 
+          "task_id": "1493819368-7176"
+      },
       "task_name": "task2", 
-      "uri": "liestudio.default.task", 
       "nid": 3, 
       "retry_count": 0, 
-      "itime": 1493819368, 
       "breakpoint": false, 
       "active": false, 
       "_id": 3, 
-      "task_type": "Task", 
-      "utime": 1493819369
+      "task_type": "Task"
     }, 
     "4": {
-      "status": "completed", 
-      "configuration": {
+      "status": "completed",
+      "replace_output": false,
+      "input_data": {
+        "dummy": 1,
         "sleep": 1
-      }, 
-      "system_user": "mvdijk", 
-      "task_id": "1493819369-6710", 
-      "output": {
-        "dummy": 5
       },
-      "input": {
-        "dummy": 4
-      }, 
+      "output_data": {
+        "dummy": 1
+      },
+      "session": {
+          "status": "completed",
+          "system_user": "mvdijk", 
+          "task_id": "1493819369-6710",
+          "itime": 1493819369,
+          "utime": 1493819370
+      },
       "task_name": "task3", 
-      "uri": "liestudio.default.task", 
       "nid": 4, 
-      "retry_count": 0, 
-      "itime": 1493819369, 
+      "retry_count": 0,  
       "breakpoint": false, 
       "active": true, 
       "_id": 4, 
-      "task_type": "Task", 
-      "utime": 1493819370
+      "task_type": "Task"
     }, 
     "5": {
-      "status": "ready", 
-      "configuration": {
+      "status": "ready",
+      "replace_output": false,
+      "input_data": {
         "sleep": 1
       },
       "task_name": "task4", 
-      "uri": "liestudio.default.task", 
       "nid": 5, 
-      "retry_count": 0,
+      "retry_count": 0,  
       "breakpoint": false, 
       "active": false, 
       "_id": 5, 
       "task_type": "Task"
     }, 
     "6": {
-      "status": "ready", 
-      "configuration": {
+      "status": "ready",
+      "replace_output": false,
+      "input_data": {
         "sleep": 1
-      }, 
+      },
       "task_name": "task5", 
-      "uri": "liestudio.default.task", 
       "nid": 6, 
-      "retry_count": 0,
+      "retry_count": 0,  
       "breakpoint": false, 
       "active": false, 
       "_id": 6, 

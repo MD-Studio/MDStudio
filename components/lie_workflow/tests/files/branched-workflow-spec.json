@@ -4,7 +4,7 @@
     "node_data_tag": "task_name", 
     "description": "", 
     "title": "MDstudio workflow", 
-    "init_time": 1501498777, 
+    "create_time": 1501498777, 
     "is_running": false, 
     "is_directed": true, 
     "edge_data_tag": "label", 
@@ -49,11 +49,11 @@
       "task_type": "Start", 
       "system_user": "mvdijk", 
       "task_id": "1501498777-7384", 
-      "uri": "liestudio.default.task", 
       "nid": 1, 
       "retry_count": 0, 
       "itime": 1501498777, 
-      "task_name": "start", 
+      "task_name": "start",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 1
@@ -61,14 +61,14 @@
     "2": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
       "nid": 2, 
       "retry_count": 0, 
-      "configuration": {
+      "input_data": {
         "sleep": 1,
         "add_number": 2
       }, 
-      "task_name": "task1", 
+      "task_name": "task1",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 2
@@ -76,14 +76,14 @@
     "3": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
       "nid": 3, 
       "retry_count": 0, 
-      "configuration": {
+      "input_data": {
         "sleep": 1,
         "add_number": 1
       }, 
-      "task_name": "task2", 
+      "task_name": "task2",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 3
@@ -91,14 +91,14 @@
     "4": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
       "nid": 4, 
       "retry_count": 0, 
-      "configuration": {
+      "input_data": {
         "sleep": 1,
         "add_number": 3
       }, 
-      "task_name": "task3", 
+      "task_name": "task3",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 4
@@ -106,14 +106,14 @@
     "5": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
       "nid": 5, 
       "retry_count": 0, 
-      "configuration": {
+      "input_data": {
         "sleep": 1,
         "add_number": 0
       }, 
-      "task_name": "task4", 
+      "task_name": "task4",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 5
@@ -121,14 +121,14 @@
     "6": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
       "nid": 6, 
       "retry_count": 0, 
-      "configuration": {
+      "input_data": {
         "sleep": 1,
         "add_number": 1
       }, 
-      "task_name": "task5", 
+      "task_name": "task5",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 6
@@ -136,14 +136,14 @@
     "7": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
       "nid": 7, 
       "retry_count": 0, 
-      "configuration": {
+      "input_data": {
         "sleep": 1,
         "add_number": 3
       }, 
-      "task_name": "task6", 
+      "task_name": "task6",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 7
@@ -151,14 +151,14 @@
     "8": {
       "status": "ready", 
       "task_type": "Task", 
-      "uri": "liestudio.default.task", 
       "nid": 8, 
       "retry_count": 0, 
-      "configuration": {
+      "input_data": {
         "sleep": 1,
         "add_number": 2
       }, 
-      "task_name": "task7", 
+      "task_name": "task7",
+      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 8

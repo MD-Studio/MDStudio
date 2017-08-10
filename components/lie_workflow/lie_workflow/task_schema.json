@@ -15,18 +15,23 @@
             "type": "boolean",
             "default": false
         },
-        "configuration": {
-            "description": "Configuration key/value pairs for the task",
+        "custom_func": {
+            "type": "string",
+            "description": "Custom Python function to run in a (local) task runner",
+            "pattern": "^\\w+(\\.\\w+)*$"
+        },
+        "data_mapping": {
+            "description": "Keyword mapping between output/input data attribute names",
+            "type": "object"
+        },
+        "input_data": {
+            "description": "All required input and optional configuration to the service as key/value pairs",
             "type": "object",
             "default": {}
         },
-        "input": {
-            "description": "Input for the task",
-            "type": "object"    
-        },
-        "output": {
-            "description": "Output returned by the task",
-            "type": "object"    
+        "output_data": {
+            "description": "All output returned by the task",
+            "type": "object"
         },
         "replace_output": {
             "description": "Number of times the task should be resubmitted when it failed",
@@ -37,6 +42,10 @@
             "description": "Number of times the task should be resubmitted when it failed",
             "type": "integer",
             "default": 0
+        },
+        "session": {
+            "description": "Session specific data",
+            "type": "object"
         },
         "status": {
             "description": "The status of the current task",
@@ -51,14 +60,8 @@
         "uri": {
             "type": "string",
             "description": "LIEStudio microservice method uri",
-            "pattern": "^\\w+(\\.\\w+)*$",
-            "default": "liestudio.default.task"
-        },
-        "custom_func": {
-            "type": "string",
-            "description": "Custom Python function to run in a (local) task runner",
             "pattern": "^\\w+(\\.\\w+)*$"
         }
     },
-    "required": ["active", "breakpoint", "retry_count", "status", "uri"]
+    "required": ["active", "breakpoint", "replace_output", "retry_count", "status"]
 }

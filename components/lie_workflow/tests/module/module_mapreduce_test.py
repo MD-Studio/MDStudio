@@ -44,10 +44,10 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         """
         Test single map-reduce workflow successful execution
         """
-        
-        self.wf.workflow.nodes[5]['configuration']['sleep'] = 4
-        self.wf.workflow.nodes[7]['configuration']['sleep'] = 2
-        
+
+        self.wf.workflow.nodes[5]['input_data']['sleep'] = 4
+        self.wf.workflow.nodes[7]['input_data']['sleep'] = 2
+
         # Run the workflow
         self.wf.run()
 
@@ -56,26 +56,26 @@ class TestMapReduceWorkflow(unittest2.TestCase):
 
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
-        
+
         runtime = calculate_accumulated_task_runtime(self.wf.workflow)
         self.assertLess(self.wf.runtime(), runtime)
-        self.assertEqual(self.wf.workflow.nodes[10]['output']['dummy'], 21)
-        
+        self.assertEqual(self.wf.workflow.nodes[10]['output_data']['dummy'], 21)
+
     def test_workflow_mapreduce_blocking(self):
         """
         Test map-reduce workflow successful execution using BlockingTasks.
-        With all tasks converted from threaded Task to BlockingTasks objects, 
+        With all tasks converted from threaded Task to BlockingTasks objects,
         the total workflow runtime equals the accumulated task runtime.
         """
-    
+
         # Convert all Task types to BlockingTask
         for n,v in self.wf.workflow.nodes.items():
             if v['task_type'] == 'Task':
                 v['task_type'] = 'BlockingTask'
-            
-        self.wf.workflow.nodes[5]['configuration']['sleep'] = 4
-        self.wf.workflow.nodes[7]['configuration']['sleep'] = 2
-            
+
+        self.wf.workflow.nodes[5]['input_data']['sleep'] = 4
+        self.wf.workflow.nodes[7]['input_data']['sleep'] = 2
+
         # Run the workflow
         self.wf.run()
 
@@ -85,20 +85,20 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
         self.assertListEqual(self.wf.output().keys(), [10])
-    
+
         runtime = calculate_accumulated_task_runtime(self.wf.workflow)
         self.assertEqual(self.wf.runtime(), runtime)
         self.assertEqual(self.wf.runtime(tid=5), 4)
         self.assertEqual(self.wf.runtime(tid=7), 2)
-            
+
     def test_workflow_mapreduce_failed(self):
         """
         Test map-reduce workflow failed at task 6
         """
 
         # Instruct the runner to fail at node 6
-        self.wf.workflow.nodes[6]['configuration']['fail'] = True
-        
+        self.wf.workflow.nodes[6]['input_data']['fail'] = True
+
         # Run the workflow
         self.wf.run()
 
@@ -108,7 +108,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertFalse(self.wf.is_completed)
         self.assertEqual(self.wf.failed_task, 6)
-    
+
     def test_workflow_mapreduce_retrycount(self):
         """
         Test retry of failing nodes
@@ -119,8 +119,8 @@ class TestMapReduceWorkflow(unittest2.TestCase):
             self.wf.workflow.nodes[task]['retry_count'] = 3
 
         # Instruct the runner to fail at node 7
-        self.wf.workflow.nodes[8]['configuration']['fail'] = True
-        self.wf.workflow.nodes[8]['configuration']['sleep'] = 2
+        self.wf.workflow.nodes[8]['input_data']['fail'] = True
+        self.wf.workflow.nodes[8]['input_data']['sleep'] = 2
 
         # Run the workflow
         self.wf.run()
@@ -136,7 +136,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
 
         runtime = calculate_accumulated_task_runtime(self.wf.workflow)
         self.assertLess(runtime, self.wf.runtime())
-    
+
     def test_workflow_mapreduce_crash(self):
         """
         Simulate a failed workflow due to abruptly failed (crashed)
@@ -144,7 +144,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         """
 
         # Instruct the runner to fail at node 8
-        self.wf.workflow.nodes[8]['configuration']['crash'] = True
+        self.wf.workflow.nodes[8]['input_data']['crash'] = True
 
         # Run the workflow
         self.wf.run()
@@ -156,7 +156,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertFalse(self.wf.is_completed)
         self.assertEqual(self.wf.failed_task, 8)
-    
+
     def test_workflow_mapreduce_breakpoint(self):
         """
         Simulate a breakpoint at node 8 and step over
@@ -172,7 +172,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         # Blocking: wait until the workflow hits an active breakpoint
         while self.wf.is_running:
             time.sleep(1)
-
+        
         self.assertFalse(self.wf.is_running)
         self.assertFalse(self.wf.is_completed)
         self.assertEqual(self.wf.active_breakpoint, 7)
@@ -191,16 +191,16 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
         self.assertIsNone(self.wf.active_breakpoint)
-    
+
     def test_workflow_mapreduce_cancel(self):
         """
         Simulate canceling the workflow after 4 seconds.
         That should leave node 5 to be canceled
         """
-        
-        self.wf.workflow.nodes[5]['configuration']['sleep'] = 4
-        self.wf.workflow.nodes[7]['configuration']['sleep'] = 2
-        
+
+        self.wf.workflow.nodes[5]['input_data']['sleep'] = 4
+        self.wf.workflow.nodes[7]['input_data']['sleep'] = 2
+
         # Run the workflow
         self.wf.run()
 

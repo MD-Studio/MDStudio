@@ -125,9 +125,9 @@ class TestWorkflowSpec(unittest2.TestCase):
         
         # Query local metadata
         task2 = spec.get_task('task1')
-        self.assertEqual(task2.utime, 1493819368)
+        self.assertEqual(task2['session']['utime'], 1493819368)
         self.assertEqual(task2.status, 'completed')
-        self.assertEqual(task2.utime - task2.itime, 1)
+        self.assertEqual(task2['session']['utime'] - task2['session']['itime'], 1)
         
     def test_build_linear_spec(self):
         """

@@ -17,6 +17,54 @@ import jsonschema
 from lie_system import WAMPTaskMetaData
 from lie_workflow import task_schema
 
+dummy_task_schema_input = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://liestudio/schemas/dummy_task.json",
+    "title": "Dummy input task",
+    "description": "Dummy task input schema",
+    "type": "object",
+    "properties": {
+        "dummy": {
+            "description": "Output number from the dummy",
+            "type": "integer"
+        },
+        "sleep": {
+            "description": "Let the dummy task sleep for x seconds",
+            "type": "integer",
+            "default": 0
+        },
+        "add_number": {
+            "description": "Add a number to the input integer",
+            "type": "integer",
+            "default": 0
+        },
+        "fail": {
+            "description": "Instruct the dummy task to fail",
+            "type": "boolean",
+            "default": False
+        },
+        "crash": {
+            "description": "Instruct the dummy task to crash",
+            "type": "boolean",
+            "default": False
+        }
+    },
+    "required": ["dummy"]
+}
+
+dummy_task_schema_output = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://liestudio/schemas/dummy_task.json",
+    "title": "Dummy task output",
+    "description": "Dummy task output schema",
+    "type": "object",
+    "properties": {
+        "dummy": {
+            "description": "Output number from the dummy",
+            "type": "integer"
+        }
+    }
+}
 
 def calculate_accumulated_task_runtime(workflow):
     """
@@ -25,54 +73,47 @@ def calculate_accumulated_task_runtime(workflow):
     
     runtime = 0
     for tid,task in workflow.nodes.items():
-        runtime += (task.get('utime',0) - task.get('itime',0))
+        session = task.get('session')
+        if session:
+            runtime += (session.get('utime',0) - session.get('itime',0))
     
     return runtime
     
-def task_runner(task_data):
+def task_runner(session={}, **kwargs):
     """
     Run a task based on the information in the task_data.
-    Task_data is validated accoridng to the JSON task schema
+    Task_data is validated according to the JSON task schema
     """
     
-    jsonschema.validate(task_data, task_schema)
+    # The session is validated by the WAMP framework but the tasks specific
+    # data will have to be validated by the task
+    jsonschema.validate(kwargs, dummy_task_schema_input)
     
     # Retrieve the WAMP session information
-    session = WAMPTaskMetaData(metadata=task_data.get('session'))
-    session._metadata['itime'] = int(time.time())
-    
-    # Prepaire the input to the task
-    inp = task_data.get('input')
-    
-    # Get the task configuration
-    conf = task_data.get('configuration', {})
+    session = WAMPTaskMetaData(metadata=session)
     
     # Simulate running the task
-    time.sleep(conf.get('sleep',0))
+    time.sleep(kwargs.get('sleep',0))
     
     # Perform some calculations to simulate work
     # Add number to input
-    inp = inp.get('dummy')
-    if type(inp) == int:
-        inp += conf.get('add_number',0)
+    output = kwargs['dummy'] + kwargs.get('add_number',0)
     
     # Fail or not
-    if conf.get('fail', False):
+    if kwargs.get('fail', False):
         session.status = 'failed'
     else:
         session.status = 'completed'
     session._update_time(time_stamp='utime')
     
     # Crash?
-    if conf.get('crash', False):
+    if kwargs.get('crash', False):
         raise Exception("Crashed task")
     
     # Prepaire the output
     session._metadata['utime'] = int(time.time())
-    task_data['output'] = {'dummy': inp}
-    task_data.update(session.dict())
     
-    return task_data
+    return {'session': session.dict(), 'dummy': output}
 
 def reduce_function(task_data):
     """

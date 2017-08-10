@@ -13,7 +13,7 @@ import logging
 import time
 import jsonschema
 
-from lie_system import WAMPTaskMetaData
+from twisted.logger import Logger
 from lie_graph import GraphAxis
 from lie_graph.io.io_json_format import read_dict, write_json
 from lie_graph.io.io_helpers import _open_anything
@@ -127,13 +127,10 @@ class WorkflowSpec(object):
         self.workflow = read_dict(workflow_template)
         self.workflow.orm = WORKFLOW_ORM
         
-        # Add start node, add WAMP metadata and make root
+        # Add start node and make root
         nid = self.add_task('start', task_type='Start')
-        task_meta = WAMPTaskMetaData()
-        
         self.workflow.root = nid
-        self.workflow.nodes[self.workflow.root].update(task_meta.dict())
-        self.workflow.init_time = int(time.time())
+        self.workflow.create_time = int(time.time())
         
         logging.info('Init default empty workflow')
     

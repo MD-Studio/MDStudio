@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import logging
 import threading
 import jsonschema
 import json
@@ -13,8 +14,6 @@ from lie_system import WAMPTaskMetaData
 
 from .common import WorkflowError, _schema_to_data
 from .workflow_spec import WorkflowSpec
-
-logging = Logger()
 
 # Get the task schema definitions from the default task_schema.json file
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
@@ -105,7 +104,8 @@ class _WorkflowQueryMethods(object):
         
         if tid:
             task = self.workflow.getnodes(tid)
-            return task.get('utime',0) - task.get('itime',0)
+            session = task.session
+            return session.get('utime',0) - session.get('itime',0)
             
         start = self.starttime or 0
         end = self.finishtime or 0
@@ -145,13 +145,14 @@ class _WorkflowQueryMethods(object):
         
         print('task  tid  links  status  runtime  output')
         for tid,task in self.workflow.nodes.items():
+            session = task.get('session', {})
             print('{0}  {1}  {2}  {3}  {4}  {5}'.format(
                 task['task_name'],
                 tid,
                 self.workflow.adjacency[tid],
                 task['status'],
-                task.get('utime',0) - task.get('itime',0),
-                task.get('output', {})
+                session.get('utime',0) - session.get('itime',0),
+                task.get('output_data', {})
             ))
 
 
@@ -218,26 +219,30 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
         return
         
-    def _output_callback(self, output, update=True):
+    def _output_callback(self, output, tid):
         """
         Process the output of a task and stage the next task to run
         
         :param output: output of the task
-        :type output:  JSON
-        :param update: update the tasks data stored in the workflow
-        :type update:  :py:bool
+        :type output:  :py:dict
         """
         
-        # The data construct returned should be a valid task object
-        # according to the task_schema JSON schema
-        jsonschema.validate(output, task_schema)
+        # Get session information and remove when done
+        session = WAMPTaskMetaData(metadata=output.get('session'))
+        del output['session']
         
-        # Update the task data
-        if update:
-            self.workflow.nodes[output['nid']].update(output)
+        # Update the task output data only not already 'completed'
+        task = self.workflow.getnodes(tid)
+        if task.status != 'completed':
+            if not 'output_data' in self.workflow.nodes[tid]:
+                self.workflow.nodes[tid]['output_data'] = {}
+            self.workflow.nodes[tid]['output_data'].update(output)
+        
+            # Update the task meta data
+            task.status = session.status
+            self.workflow.nodes[tid]['session'] = session.dict()
             self.workflow.update_time = int(time.time())
         
-        task = self.workflow.getnodes(int(output['nid']))
         logging.info('Task "{0}" ({1}), status: {2}'.format(task.task_name, task.nid, task.status))
         
         # If the task is completed, go to next
@@ -246,21 +251,21 @@ class WorkflowRunner(_WorkflowQueryMethods):
             task.active = False
             
             # Get data from just completed task and use as input for new task
-            task_input = task.get('output')
+            task_input = task.get('output_data')
         
             # Get next task(s) to run
             next_tasks = [t for t in task.children() if task.status != 'disabled']
             logging.info('{0} new tasks to run with the output of "{1}" ({2})'.format(len(next_tasks), task.task_name, task.nid))         
             for ntask in next_tasks:
-                if not 'input' in ntask.nodes[ntask.nid]:
-                    ntask.nodes[ntask.nid]['input'] = {}
+                if not 'input_data' in ntask.nodes[ntask.nid]:
+                    ntask.nodes[ntask.nid]['input_data'] = {}
             
                 # Should we replace the input with output of previous task
                 if task_input:
                     if ntask.get('replace_input', False):
-                        ntask.nodes[ntask.nid]['input'] = task_input
+                        ntask.nodes[ntask.nid]['input_data'] = task_input
                     else:
-                        ntask.nodes[ntask.nid]['input'].update(task_input)
+                        ntask.nodes[ntask.nid]['input_data'].update(task_input)
                 
                 next_task_nids.append(ntask.nid)
         
@@ -296,12 +301,12 @@ class WorkflowRunner(_WorkflowQueryMethods):
         for tid in next_task_nids:
             self._run_task(tid)
         
-    def _run_task(self, tid=None):
+    def _run_task(self, tid):
         """
         Run a task by task ID (tid)
         
         Primary function to run a task using the task_runner registered with
-        the class. 
+        the class or a custom Python runner function or class. 
         This function together with the output and error callbacks are run from
         within the task runner thread.
         
@@ -331,15 +336,20 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Run the task if status is 'ready'
         if task.status == 'ready':
             
+            # Update the task session
+            session = WAMPTaskMetaData()
+            if 'authid' in self.workflow.nodes[self.workflow.root]['session']:
+                session.authid = self.workflow.nodes[self.workflow.root]['session']['authid']
+            self.workflow.nodes[tid]['session'] = session.dict()
+            
             # Check if there is 'input' defined
-            if not 'input' in self.workflow.nodes[tid]:
+            if not 'input_data' in task:
                 
                 # Check if previous task has output and use it as input for the current
                 parent = task.parent()
-                if parent and 'output' in self.workflow.nodes[parent.nid]:
+                if parent and 'output_data' in parent:
                     logging.info('Use output of parent task to tid {0} (tid {1})'.format(tid, parent.nid))
-                    self.workflow.nodes[tid]['input'] = {}
-                    self.workflow.nodes[tid]['input'].update(parent.output)
+                    self.input(tid, parent.output_data)
             
             self.is_running = True
             self.workflow.update_time = int(time.time())
@@ -357,7 +367,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # instructing it to not update the data but decide on the followup
         # workflow step to take. 
         else:
-            self._output_callback(self.workflow.nodes[tid], update=False)
+            self._output_callback({'session': task.get('session')}, tid)
         
     def load_task_function(self, class_name):
         """
@@ -454,13 +464,20 @@ class WorkflowRunner(_WorkflowQueryMethods):
                                     
     def input(self, tid=None, **kwargs):
         """
-        Define workflow initial input
+        Define task input and configuration data
         """
         
         if not tid:
             tid = self.workflow.root
+            
+        if not tid in self.workflow.nodes:
+            logging.warn('No task with ID {0} in workflow'.format(tid))
+            return
         
-        self.workflow.nodes[tid]['input'] = kwargs
+        if not 'input_data' in self.workflow.nodes[tid]:
+             self.workflow.nodes[tid]['input_data'] = {}
+        
+        self.workflow.nodes[tid]['input_data'].update(kwargs)
     
     def output(self, tid=None):
         """
@@ -484,11 +501,11 @@ class WorkflowRunner(_WorkflowQueryMethods):
         output = {}
         for task in leaves:
             if task.status == 'completed':
-                output[task.nid] = task.output
+                output[task.nid] = task.output_data
                 
         return output
     
-    def set_wamp_sesion(self, tid=None, session_data={}):
+    def set_wamp_session(self, tid=None, session_data=None):
         """
         Initiate a WAMP session in the (Start) node
         """
@@ -496,8 +513,8 @@ class WorkflowRunner(_WorkflowQueryMethods):
         if not tid:
             tid = self.workflow.root
         
-        session = WAMPTaskMetaData(metadata=session_data)
-        self.workflow.nodes[tid].update(session.dict())
+        task = self.workflow.getnodes(tid)
+        return task.update_session(session_data)
     
     def run(self, tid=None):
         """
@@ -525,6 +542,12 @@ class WorkflowRunner(_WorkflowQueryMethods):
             raise WorkflowError('Task with tid {0} not in workflow'.format(tid))
         
         logging.info('Running workflow: {0}, start task ID: {1}'.format(self.workflow.title, tid))
+        
+        # (WAMP) session should be defined in the Start task
+        start_session = self.workflow.nodes[self.workflow.root].get('session')
+        if not start_session:
+            self.set_wamp_session()
+            logging.info('Initiate session data on Start node')
         
         # Always set is_running to True to allow for immediate interactive use
         # preventing race conditions. If the already running, return

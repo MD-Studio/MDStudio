@@ -45,8 +45,8 @@ class TestBranchedWorkflow(unittest2.TestCase):
         accumulated task runtime.
         """
         
-        self.wf.workflow.nodes[5]['configuration']['sleep'] = 4
-        self.wf.workflow.nodes[7]['configuration']['sleep'] = 2
+        self.wf.workflow.nodes[5]['input_data']['sleep'] = 4
+        self.wf.workflow.nodes[7]['input_data']['sleep'] = 2
         
         # Run the workflow
         self.wf.run()
@@ -66,18 +66,18 @@ class TestBranchedWorkflow(unittest2.TestCase):
     def test_workflow_single_branched_blocking(self):
         """
         Test single branched workflow successful execution using BlockingTasks.
-        With all tasks converted from threaded Task to BlockingTasks objects, 
+        With all tasks converted from threaded Task to BlockingTasks objects,
         the total workflow runtime equals the accumulated task runtime.
         """
-        
+
         # Convert all Task types to BlockingTask
         for n,v in self.wf.workflow.nodes.items():
             if v['task_type'] == 'Task':
                 v['task_type'] = 'BlockingTask'
-                
-        self.wf.workflow.nodes[5]['configuration']['sleep'] = 4
-        self.wf.workflow.nodes[7]['configuration']['sleep'] = 2
-                
+
+        self.wf.workflow.nodes[5]['input_data']['sleep'] = 4
+        self.wf.workflow.nodes[7]['input_data']['sleep'] = 2
+
         # Run the workflow
         self.wf.run()
 
@@ -87,7 +87,7 @@ class TestBranchedWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
         self.assertListEqual(self.wf.output().keys(), [8,6])
-        
+
         runtime = calculate_accumulated_task_runtime(self.wf.workflow)
         self.assertEqual(self.wf.runtime(), runtime)
         self.assertEqual(self.wf.runtime(tid=5), 4)
@@ -99,20 +99,20 @@ class TestBranchedWorkflow(unittest2.TestCase):
         Workflow should finish the other branch
         """
 
-        self.wf.workflow.nodes[7]['configuration']['fail'] = True
+        self.wf.workflow.nodes[7]['input_data']['fail'] = True
 
         # Run the workflow
         self.wf.run()
 
         while self.wf.is_running:
             time.sleep(1)
-        
+
         runtime = calculate_accumulated_task_runtime(self.wf.workflow)
         self.assertFalse(self.wf.is_running)
         self.assertFalse(self.wf.is_completed)
         self.assertEqual(self.wf.failed_task, 7)
         self.assertLess(self.wf.runtime(), runtime)
-        self.assertEqual(self.wf.workflow.nodes[6]['output']['dummy'], 8)
+        self.assertEqual(self.wf.workflow.nodes[6]['output_data']['dummy'], 8)
         self.assertEqual(self.wf.get_task(nid=8).status, 'ready')
 
     def test_workflow_single_branched_retrycount(self):
@@ -125,8 +125,8 @@ class TestBranchedWorkflow(unittest2.TestCase):
             self.wf.workflow.nodes[task]['retry_count'] = 3
 
         # Instruct the runner to fail at node 7
-        self.wf.workflow.nodes[7]['configuration']['fail'] = True
-        self.wf.workflow.nodes[7]['configuration']['sleep'] = 2
+        self.wf.workflow.nodes[7]['input_data']['fail'] = True
+        self.wf.workflow.nodes[7]['input_data']['sleep'] = 2
 
         # Run the workflow
         self.wf.run()
@@ -150,7 +150,7 @@ class TestBranchedWorkflow(unittest2.TestCase):
         """
 
         # Instruct the runner to fail at node 7
-        self.wf.workflow.nodes[7]['configuration']['crash'] = True
+        self.wf.workflow.nodes[7]['input_data']['crash'] = True
 
         # Run the workflow
         self.wf.run()
