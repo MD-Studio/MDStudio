@@ -213,7 +213,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         else:
             failure.getErrorMessage()
         
-        logging.error('Task "{0}" ({1}) crashed with error: {2}'.format(task.task_name, task.nid, failure_message))
+        logging.error('Task {0} ({1}) crashed with error: {2}'.format(task.nid, task.task_name, failure_message))
         self.is_running = False
         self.workflow.update_time = int(time.time())
         
@@ -243,7 +243,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             self.workflow.nodes[tid]['session'] = session.dict()
             self.workflow.update_time = int(time.time())
         
-        logging.info('Task "{0}" ({1}), status: {2}'.format(task.task_name, task.nid, task.status))
+        logging.info('Task {0} ({1}), status: {2}'.format(task.nid, task.task_name, task.status))
         
         # If the task is completed, go to next
         next_task_nids = []
@@ -255,7 +255,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
             # Get next task(s) to run
             next_tasks = [t for t in task.children() if task.status != 'disabled']
-            logging.info('{0} new tasks to run with the output of "{1}" ({2})'.format(len(next_tasks), task.task_name, task.nid))         
+            logging.info('{0} new tasks to run with the output of {1} ({2})'.format(len(next_tasks), task.nid, task.task_name))         
             for ntask in next_tasks:
                 if not 'input_data' in ntask.nodes[ntask.nid]:
                     ntask.nodes[ntask.nid]['input_data'] = {}
@@ -275,19 +275,19 @@ class WorkflowRunner(_WorkflowQueryMethods):
             task.active = False
             task.status = 'ready'
             
-            logging.warn('Task "{0}" ({1}) failed. Retry ({2} times left)'.format(task.task_name, task.nid, task.retry_count))
+            logging.warn('Task {0} ({1}) failed. Retry ({2} times left)'.format(task.nid, task.task_name, task.retry_count))
             next_task_nids.append(task.nid)
         
         # If the active failed an no retry is allowed, stop working.
         if task.status == 'failed' and task.retry_count == 0:
             task.active = False
-            logging.error('Task "{0}" ({1}) failed'.format(task.task_name, task.nid))
+            logging.error('Task {0} ({1}) failed'.format(task.nid, task.task_name))
             self.is_running = False
             return
         
         # If the task is completed but a breakpoint is defined, wait for the breakpoint to be lifted
         if task.breakpoint:
-            logging.info('Task "{0}" ({1}) finished but breakpoint is active'.format(task.task_name, task.nid))
+            logging.info('Task {0} ({1}) finished but breakpoint is active'.format(task.nid, task.task_name))
             self.is_running = False
             return
         
@@ -326,11 +326,11 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Get the task object from the graph. nid is expected to be in graph.
         # Check ifn the task has a 'run_task' method.
         task = self.workflow.getnodes(tid)
-        assert hasattr(task, 'run_task'), logging.error('Task object (tid {0}) requires "run_task" method'.format(task.nid))
+        assert hasattr(task, 'run_task'), logging.error('Task {0} ({1}) requires "run_task" method'.format(task.nid, task.task_name))
         
         # Bailout if the task is active
         if task.active:
-            logging.debug('Task "{0}" ({1}) already active'.format(task.task_name, tid))
+            logging.debug('Task {0} ({1}) already active'.format(task.nid, task.task_name))
             return
         
         # Run the task if status is 'ready'
@@ -348,7 +348,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
                 # Check if previous task has output and use it as input for the current
                 parent = task.parent()
                 if parent and 'output_data' in parent:
-                    logging.info('Use output of parent task to tid {0} (tid {1})'.format(tid, parent.nid))
+                    logging.info('Use output of parent task to tid {0} ({1})'.format(task.nid, parent.nid))
                     self.input(tid, parent.output_data)
             
             self.is_running = True
@@ -358,7 +358,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             task.active = True
             task.status = 'running'
             
-            logging.info('Task "{0}" ({1}), status: {2}'.format(task.task_name, tid, task.status))
+            logging.info('Task {0} ({1}), status: {2}'.format(task.nid, task.task_name, task.status))
             task.run_task(self.load_task_function(task.get('custom_func', None)),
                           callback=self._output_callback,
                           errorback=self._error_callback)
@@ -454,13 +454,15 @@ class WorkflowRunner(_WorkflowQueryMethods):
         if not tid in self.workflow.nodes:
             logging.warn('No task with ID {0} in workflow'.format(tid))
             return
-        if self.workflow.nodes[tid].get('breakpoint') == False:
-            logging.warn('No active breakpoint set on task with tid {0}'.format(tid))
+        
+        task = self.workflow.getnodes(tid)
+        if task.get('breakpoint', False) == False:
+            logging.warn('No active breakpoint set on task {0}'.format(tid))
             return
         
         # Remove the breakpoint
-        self.workflow.nodes[tid]['breakpoint'] = False
-        logging.info('Remove breakpoint on task {0} ({1})'.format(self.workflow.nodes[tid]['task_name'], tid))
+        task.breakpoint = False
+        logging.info('Remove breakpoint on task {0} ({1})'.format(tid, task.task_name))
                                     
     def input(self, tid=None, **kwargs):
         """
@@ -490,8 +492,8 @@ class WorkflowRunner(_WorkflowQueryMethods):
         :type tid:  :py:int
         """
         
-        if tid and not tid in self.workflow.nodes:
-            logging.warn('Unable to return output, no task with ID: {0}'.format(tid))
+        if tid or not tid in self.workflow.nodes:
+            logging.warn('No task with ID {0} in workflow'.format(tid))
         
         if tid:
             leaves = self.workflow.getnodes(tid)

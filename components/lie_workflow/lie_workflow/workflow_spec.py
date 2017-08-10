@@ -63,16 +63,6 @@ class WorkflowSpec(object):
         if init_default:
             self.new()
     
-    def _task_name_to_nid(self, task_name):
-        """
-        Translate node task name to nid
-        """
-        
-        datatag = self.workflow.node_data_tag
-        for nid, node in self.workflow.nodes.items():
-            if node.get(datatag) == task_name:
-                return nid
-    
     def _parse_schema(self, schema):
         """
         Parse a workflow JSON schema from various input sources
@@ -103,8 +93,8 @@ class WorkflowSpec(object):
         """
         Build new (empty) workflow specification based on a JSON schema.
         
-        :para schema: JSON schema
-        :type schema: format supported by the `_parse_schema` method
+        :param schema: JSON schema
+        :type schema:  format supported by the `_parse_schema` method
         
         TODO: _schema_to_data function is a hack, should be replaced by a solid module
         """
@@ -128,7 +118,7 @@ class WorkflowSpec(object):
         self.workflow.orm = WORKFLOW_ORM
         
         # Add start node and make root
-        nid = self.add_task('start', task_type='Start')
+        nid = self.add_task(task_type='Start', task_name='start')
         self.workflow.root = nid
         self.workflow.create_time = int(time.time())
         
@@ -190,7 +180,7 @@ class WorkflowSpec(object):
         
         return json_string
     
-    def add_task(self, name, task_type='Task', **kwargs):
+    def add_task(self, task_name=None, task_type='Task', **kwargs):
         """
         Add a new task to the workflow from the set of supported workflow
         task types defined in the workflow ORM.
@@ -200,10 +190,10 @@ class WorkflowSpec(object):
         the node attributes. Additional keyword arguments to the `add_task`
         method are passed to the init_task method.
         
-        :param name:      Administrative name of the task
-        :type name:       :py:str
         :param task_type: Task type to add
         :type task_type:  :py:str
+        :param task_name: Administrative name of the task
+        :type task_name:  :py:str
         :param kwargs:    additonal keyword arguments passed to the task
                           init_task method.
         :type kwargs:     :py:dict
@@ -214,10 +204,11 @@ class WorkflowSpec(object):
         
         # Task type needs to be supported by ORM
         assert type(task_type) == str, 'Workflow task type needs to be of type string'
-        assert task_type in self.workflow.orm.mapped_node_types.get('task_type',[]), 'Workflow task type "{0}" not supported'.format(task_type)
+        assert task_type in self.workflow.orm.mapped_node_types.get('task_type',[]), 'Workflow task type "{0}" not supported by graph ORM'.format(task_type)
         
         # Add the task as node
-        nid = self.workflow.add_node(name, task_type=task_type)
+        task_name = task_name or task_type.lower()
+        nid = self.workflow.add_node(task_name, task_type=task_type)
         
         # If the task has a `init_task` method, run it.
         # Pass additonal keyword arguments.
@@ -229,41 +220,29 @@ class WorkflowSpec(object):
     
     def connect_task(self, task1, task2):
         """
-        Connect tasks by name
+        Connect tasks by task ID (graph nid)
         
         :param task1: first task of two tasks to connect
-        :type task1:  :py:str
+        :type task1:  :py:int
         :param task2: second task of two tasks to connect
-        :type task3:  :py:str
+        :type task3:  :py:int
         """
         
-        nid1, nid2 = None, None
-        for node in self.workflow.nodes.values():
-            if node['task_name'] == task1:
-                nid1 = node['_id']
-            elif node['task_name'] == task2:
-                nid2 = node['_id']
+        assert task1 in self.workflow.nodes, 'Task {0} not in workflow'.format(task1)
+        assert task2 in self.workflow.nodes, 'Task {0} not in workflow'.format(task2)
         
-        assert nid1, 'Task {0} not in workflow'.format(task1)
-        assert nid2, 'Task {0} not in workflow'.format(task2)
-        
-        self.workflow.add_edge(nid1, nid2)
+        self.workflow.add_edge(task1, task2)
     
-    def get_task(self, task_name=None, nid=None):
+    def get_task(self, nid):
         """
-        Return a task by task name or task nid
+        Return a task by task ID (graph nid)
         
-        :param task_name: name of task to return
-        :type task_name:  :py:str
         :param nid:       nid of task to return
         :type nid:        :py:int
         """
         
-        if task_name:
-            nid = self._task_name_to_nid(task_name)
-        
-        if not nid or not nid in self.workflow.nodes:
-            logging.warn('No workflow task with name: {0} or nid: {1}'.format(task_name, nid))
+        if not nid in self.workflow.nodes:
+            logging.warn('No workflow task with nid: {0}'.format(nid))
             return None
         
         return self.workflow.getnodes(nid)

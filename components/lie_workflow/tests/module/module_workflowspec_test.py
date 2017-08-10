@@ -91,11 +91,11 @@ class TestWorkflowSpec(unittest2.TestCase):
         spec = WorkflowSpec()
 
         for task in range(5):
-            spec.add_task('task{0}'.format(task+1), configuration={'sleep':0})
+            nid = spec.add_task(task_name='task{0}'.format(task+1), input_data={'sleep':0})
             if task == 0:
-                spec.connect_task('start', 'task1')
+                spec.connect_task(1, nid)
             else:
-                spec.connect_task('task{0}'.format(task), 'task{0}'.format(task+1))
+                spec.connect_task(nid-1, nid)
 
         # Set some metadata
         spec.workflow.title = 'Test project'
@@ -124,7 +124,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         spec.load(os.path.join(currpath, '../files/linear-workflow-finished.json'))
         
         # Query local metadata
-        task2 = spec.get_task('task1')
+        task2 = spec.get_task(2)
         self.assertEqual(task2['session']['utime'], 1493819368)
         self.assertEqual(task2.status, 'completed')
         self.assertEqual(task2['session']['utime'] - task2['session']['itime'], 1)
@@ -137,11 +137,11 @@ class TestWorkflowSpec(unittest2.TestCase):
         spec = WorkflowSpec()
         
         for task in range(5):
-            spec.add_task('task{0}'.format(task+1), configuration={'sleep':0})
+            nid = spec.add_task(task_name='task{0}'.format(task+1), input_data={'sleep':0})
             if task == 0:
-                spec.connect_task('start', 'task1')
+                spec.connect_task(1, nid)
             else:
-                spec.connect_task('task{0}'.format(task), 'task{0}'.format(task+1))
+                spec.connect_task(nid-1, nid)
 
         # Set some metadata
         spec.workflow.title = 'Test project'
@@ -156,14 +156,11 @@ class TestWorkflowSpec(unittest2.TestCase):
 
         # Add task nodes
         for task in range(9):
-            spec.add_task('task{0}'.format(task+1), configuration={'sleep':0})
+            nid = spec.add_task('task{0}'.format(task+1), input_data={'sleep':0})
         spec.workflow.nodes[9]['task_type'] = 'Collect'
 
         # Connect tasks
-        connections = (('start','task1'), ('task1','task2'), ('task2','task3'),
-                       ('task3','task4'), ('task3','task6'), ('task4','task5'),
-                       ('task6','task7'), ('task7','task8'), ('task5','task8'),
-                       ('task8','task9'))
+        connections = ((1,2), (2,3), (3,4), (4,5), (4,7), (5,6), (7,8), (8,9), (6,9), (9,10))
         for pair in connections:
             spec.connect_task(*pair)
 

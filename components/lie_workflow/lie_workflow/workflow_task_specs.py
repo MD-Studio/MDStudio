@@ -53,7 +53,7 @@ class _TaskBase(object):
         type specific data to it.
         """
         
-        logging.info('Init task "{0}" (nid {1}). Update attributes'.format(self.task_name, self.nid))
+        logging.info('Init task {0} ({1}). Update attributes'.format(self.nid, self.task_name))
         
         task_data = _schema_to_data(task_schema, data=kwargs)
         jsonschema.validate(task_data, task_schema)
@@ -80,12 +80,12 @@ class _TaskBase(object):
         """
         
         if not self.active:
-            logging.info('Unable to cancel task "{0}" (nid {1}) not active'.format(self.task_name, self.nid))
+            logging.info('Unable to cancel task {0} ({1}) not active'.format(self.nid, self.task_name))
             return
         
         self.status = 'aborted'
         self.active = False
-        logging.info('Canceled task "{0}" (nid {1})'.format(self.task_name, self.nid))
+        logging.info('Canceled task {0} ({1})'.format(self.nid, self.task_name))
 
 
 class Task(_TaskBase):
@@ -118,7 +118,7 @@ class WampTask(_TaskBase):
     def run_task(self, runner, callback=None, errorback=None):
         
         method_url = unicode(self.uri)
-        logging.info('running "{0}" on {1}'.format(self.task_name, method_url))
+        logging.info('Task {0} ({1}) running on {2}'.format(self.nid, self.task_name, method_url))
         
         # Get the task input data
         input_data = self.nodes[self.nid].get('input_data', {})
@@ -164,7 +164,7 @@ class BlockingTask(_TaskBase):
             if errorback:
                 return errorback(e, self.nid)
             else:
-                logging.error('Error in running task "{0}" (nid {1})'.format(self.task_name, self.nid))
+                logging.error('Error in running task {0} ({1})'.format(self.nid, self.task_name))
                 logging.error(e)
                 return
         
@@ -240,7 +240,7 @@ class Collect(_TaskBase):
         
         # Check if the ancestors are al completed
         if all([self._full_graph.nodes[tid]['status'] in ('completed','disabled') for tid in ancestors]):
-            logging.info('{0}: Output of {1} parent tasks available, continue'.format(self.task_name, len(ancestors)))
+            logging.info('Task {0} ({1}): Output of {2} parent tasks available, continue'.format(self.nid, self.task_name, len(ancestors)))
             
             collected_output = [self._full_graph.nodes[tid].get('output_data') for tid in ancestors]
             session.status = 'completed'
@@ -252,7 +252,7 @@ class Collect(_TaskBase):
             
         else:
             # Output collection not complete. Reset task status to ready and evaluate again at next pass
-            logging.info('{0}: Not all output available yet'.format(self.task_name))
+            logging.info('Task {0} ({1}): Not all output available yet'.format(self.nid, self.task_name))
             self.active = False
             self.status = 'ready'
             callback({'session': session.dict()}, self.nid)
