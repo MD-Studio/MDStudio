@@ -36,8 +36,10 @@ setup(
     keywords='LIEStudio AmberTools Amber',
     platforms=['Any'],
     packages=find_packages(),
+    package_data={'': ['*.json']},
     py_modules=[distribution_name],
     include_package_data=True,
+    install_requires=['executor'],
     zip_safe=True,
     entry_points={
         'autobahn.twisted.wamplet': [

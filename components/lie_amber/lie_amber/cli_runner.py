@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import os
+import stat
 import logging
 
-from   executor import ExternalCommand
- 
+from twisted.logger import Logger
+from executor import ExternalCommand
+
+logging = Logger()
+
 class CLIRunner(object):
     
     def __init__(self, **kwargs):
@@ -14,12 +18,17 @@ class CLIRunner(object):
     def _check_executable(self, exe_path):
         
         if not os.path.exists(exe_path):
-            logger.error('{0} executable does not exist at: {1}'.format(exe, exe_path))
+            logging.error('{0} executable does not exist at: {1}'.format(exe, exe_path))
             return False
     
         if not os.access(exe_path, os.X_OK):
-            logger.error('{0} not executable'.format(exe_path))
-            return False
+            
+            try:
+                st = os.stat(exe_path)
+                os.chmod(exe_path, st.st_mode | stat.S_IEXEC)
+            except:
+                logging.error('{0} not executable'.format(exe_path))
+                return False
     
         return True
     

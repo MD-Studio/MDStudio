@@ -30,7 +30,7 @@ __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__  = os.path.dirname(__file__)
 
 from .ambertools import *
-from .settings   import SETTINGS
+from .settings   import AMBER_SCHEMA, SETTINGS
 
 # Define module public API
 settings = SETTINGS

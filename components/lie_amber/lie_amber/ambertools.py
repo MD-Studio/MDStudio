@@ -4,10 +4,15 @@ import os
 import logging
 import copy
 
-from   .cli_runner import CLIRunner
-from   .settings   import SETTINGS
+from twisted.logger import Logger
 
-def amber_acpype(mol, **kwargs):
+from .cli_runner import CLIRunner
+from .settings import SETTINGS
+
+logging = Logger()
+
+
+def amber_acpype(mol, workdir=None, **kwargs):
     """
     Run the ACPYPE program (AnteChamber PYthon Parser interfacE)
     
@@ -45,10 +50,10 @@ def amber_acpype(mol, **kwargs):
     cmd = [acepype_exe_path, '-i', mol] + flags
     
     # Run the CLI command
-    clirunner = CLIRunner(directory=SETTINGS['workdir'])
+    clirunner = CLIRunner(directory=workdir)
     runner = clirunner.run(cmd)
     
-    output_path = os.path.join(SETTINGS['workdir'], '{0}.acpype'.format(workdir_name))
+    output_path = os.path.join(workdir, '{0}.acpype'.format(workdir_name))
     if runner.succeeded and os.path.isdir(output_path):
         return output_path
     else:

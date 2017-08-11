@@ -60,7 +60,7 @@ class TestAPI(unittest2.TestCase):
         """
         
         testfile = os.path.join(self._files_dir, 'sqm.pdb')
-        outdir = amber_acpype(testfile, outtop='gmx')
+        outdir = amber_acpype(testfile, outtop='gmx', workdir=self._files_dir)
         self.files_to_delete.append(outdir)
         
         self.assertTrue(os.path.isdir(outdir))
