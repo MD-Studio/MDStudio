@@ -27,6 +27,8 @@ from .common import _schema_to_data
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
+logging = Logger()
+
 
 class _TaskBase(object):
     
@@ -115,7 +117,7 @@ class Task(_TaskBase):
 class WampTask(_TaskBase):
     
     #@inlineCallbacks
-    def run_task(self, runner, callback=None, errorback=None):
+    def run_task(self, runner, callback, errorback=None):
         
         method_url = unicode(self.uri)
         logging.info('Task {0} ({1}) running on {2}'.format(self.nid, self.task_name, method_url))
@@ -124,24 +126,18 @@ class WampTask(_TaskBase):
         input_data = self.nodes[self.nid].get('input_data', {})
         
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=self.nodes[self.nid])
+        session = WAMPTaskMetaData(metadata=self.nodes[self.nid].get('session',{}))
         
         # Call the service
         deferred = runner(method_url, session=session.dict(), **input_data)
 
         # Attach error callback
         if errorback:
-            deferred.addErrback(errorback)
+            deferred.addErrback(errorback, self.nid)
 
         # Attach callback if needed
-        if callback:
-            deferred.addCallback(callback)
-        else:
-            # Prepaire the output
-            task_data['output_data'] = {session['task_id']: deferred['result']}
-            task_data.update(deferred['session'])
-
-            returnValue(task_data)
+        deferred.addCallback(callback, self.nid)
+        
 
 class BlockingTask(_TaskBase):
     """
@@ -242,7 +238,12 @@ class Collect(_TaskBase):
         if all([self._full_graph.nodes[tid]['status'] in ('completed','disabled') for tid in ancestors]):
             logging.info('Task {0} ({1}): Output of {2} parent tasks available, continue'.format(self.nid, self.task_name, len(ancestors)))
             
-            collected_output = [self._full_graph.nodes[tid].get('output_data') for tid in ancestors]
+            # Collect output of previous tasks and apply data mapper
+            collected_output = []
+            for tid in ancestors:
+                mapper = self._full_graph.edges[(tid, self.nid)].get('data_mapping', {})
+                collected_output.append(dict([(mapper.get(k,k),v) for k,v in self._full_graph.nodes[tid]['output_data'].items()]))
+            
             session.status = 'completed'
             session._metadata['utime'] = int(time.time())
             

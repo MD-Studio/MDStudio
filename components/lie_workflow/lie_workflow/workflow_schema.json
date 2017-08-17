@@ -90,6 +90,21 @@
                 }
             }
         },
+        "edge_attr":{
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "data_mapping": {
+                            "description": "Keyword mapping between output/input data attribute names",
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "nodes": {
             "type": "object",
             "additionalProperties": false,
@@ -111,10 +126,6 @@
                             "type": "string",
                             "description": "Custom Python function to run in a (local) task runner",
                             "pattern": "^\\w+(\\.\\w+)*$"
-                        },
-                        "data_mapping": {
-                            "description": "Keyword mapping between output/input data attribute names",
-                            "type": "object"
                         },
                         "input_data": {
                             "description": "All required input and optional configuration to the service as key/value pairs",

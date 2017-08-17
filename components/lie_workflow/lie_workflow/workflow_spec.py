@@ -24,6 +24,7 @@ from .workflow_task_specs import WORKFLOW_ORM
 # Path to default workflow JSON schema part of the module
 WORKFLOW_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'workflow_schema.json')
 
+logging = Logger()
 
 class WorkflowSpec(object):
     """
@@ -218,21 +219,26 @@ class WorkflowSpec(object):
         
         return nid
     
-    def connect_task(self, task1, task2):
+    def connect_task(self, task1, task2, data_mapping=None):
         """
         Connect tasks by task ID (graph nid)
         
-        :param task1: first task of two tasks to connect
-        :type task1:  :py:int
-        :param task2: second task of two tasks to connect
-        :type task3:  :py:int
+        :param task1:         first task of two tasks to connect
+        :type task1:          :py:int
+        :param task2:         second task of two tasks to connect
+        :type task3:          :py:int
+        :param data_mapping:  output-input data mapping
+        :type data_mapping:   :py:dict
         """
         
         assert task1 in self.workflow.nodes, 'Task {0} not in workflow'.format(task1)
         assert task2 in self.workflow.nodes, 'Task {0} not in workflow'.format(task2)
         
-        self.workflow.add_edge(task1, task2)
-    
+        if data_mapping:
+            self.workflow.add_edge(task1, task2, data_mapping=data_mapping)
+        else:
+            self.workflow.add_edge(task1, task2, data_mapping)
+        
     def get_task(self, nid):
         """
         Return a task by task ID (graph nid)

@@ -19,6 +19,7 @@ from .workflow_spec import WorkflowSpec
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
+logging = Logger()
 
 class _WorkflowQueryMethods(object):
     """
@@ -227,12 +228,19 @@ class WorkflowRunner(_WorkflowQueryMethods):
         :type output:  :py:dict
         """
         
+        # Get the task
+        task = self.workflow.getnodes(tid)
+        
+        # If the task returned no output at all, fail it
+        if not output:
+            logging.error('Task {0} ({1}) returned no output'.format(task.nid, task.task_name))
+            task.status = 'failed'
+        
         # Get session information and remove when done
         session = WAMPTaskMetaData(metadata=output.get('session'))
         del output['session']
         
         # Update the task output data only not already 'completed'
-        task = self.workflow.getnodes(tid)
         if task.status != 'completed':
             if not 'output_data' in self.workflow.nodes[tid]:
                 self.workflow.nodes[tid]['output_data'] = {}
@@ -252,20 +260,25 @@ class WorkflowRunner(_WorkflowQueryMethods):
             
             # Get data from just completed task and use as input for new task
             task_input = task.get('output_data')
-        
+             
             # Get next task(s) to run
             next_tasks = [t for t in task.children() if task.status != 'disabled']
             logging.info('{0} new tasks to run with the output of {1} ({2})'.format(len(next_tasks), task.nid, task.task_name))         
             for ntask in next_tasks:
                 if not 'input_data' in ntask.nodes[ntask.nid]:
                     ntask.nodes[ntask.nid]['input_data'] = {}
-            
+                
+                # Get output/input data mapper
+                mapper = self.workflow.edges[(task.nid,ntask.nid)].get('data_mapping', {})
+                
                 # Should we replace the input with output of previous task
                 if task_input:
                     if ntask.get('replace_input', False):
-                        ntask.nodes[ntask.nid]['input_data'] = task_input
-                    else:
-                        ntask.nodes[ntask.nid]['input_data'].update(task_input)
+                        ntask.nodes[ntask.nid]['input_data'] = {}
+                    
+                    for key, value in task_input.items():
+                        key = mapper.get(key, key)
+                        ntask.nodes[ntask.nid]['input_data'][key] = value
                 
                 next_task_nids.append(ntask.nid)
         
@@ -492,7 +505,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         :type tid:  :py:int
         """
         
-        if tid or not tid in self.workflow.nodes:
+        if not tid in self.workflow.nodes:
             logging.warn('No task with ID {0} in workflow'.format(tid))
         
         if tid:

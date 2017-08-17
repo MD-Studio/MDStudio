@@ -113,7 +113,7 @@ class TestBranchedWorkflow(unittest2.TestCase):
         self.assertEqual(self.wf.failed_task, 7)
         self.assertLess(self.wf.runtime(), runtime)
         self.assertEqual(self.wf.workflow.nodes[6]['output_data']['dummy'], 8)
-        self.assertEqual(self.wf.get_task(nid=8).status, 'ready')
+        self.assertEqual(self.wf.get_task(8).status, 'ready')
 
     def test_workflow_single_branched_retrycount(self):
         """
