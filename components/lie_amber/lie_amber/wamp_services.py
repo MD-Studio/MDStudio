@@ -17,7 +17,7 @@ from autobahn               import wamp
 from twisted.internet.defer import inlineCallbacks
 
 from lie_amber.settings import SETTINGS, AMBER_SCHEMA
-from lie_amber.ambertools import amber_acpype
+from lie_amber.ambertools import amber_acpype, amber_reduce
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 
 amber_schema = json.load(open(AMBER_SCHEMA))
@@ -43,7 +43,7 @@ class AmberWampApi(LieApplicationSession):
         jsonschema.validate(amber_schema, acpype_config)
         
         # Create workdir and save file
-        workdir = os.path.join(kwargs['tmp_dir'], 'acpype')
+        workdir = os.path.join(kwargs['tmp_dir'], 'acpype-{0}'.format(session.get('task_id', '')))
         tmpfile = os.path.join(workdir,'input.mol2')
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
@@ -52,6 +52,35 @@ class AmberWampApi(LieApplicationSession):
         
         # Run ACPYPE
         output = amber_acpype(tmpfile, workdir=workdir, **acpype_config)
+        if not output:
+            session['status'] = 'failed'
+        else:
+            session['status'] = 'completed'
+        
+        return {'session':session, 'path':output}
+    
+    @wamp.register(u'liestudio.amber.reduce')
+    def run_amber_reduce(self, structure=None, session={}, **kwargs):
+        
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+        
+        # Load ACPYPE configuration and update
+        amber_reduce_config = self.package_config.get('amber_reduce').dict()
+        
+        # Validate the configuration
+        jsonschema.validate(amber_schema, amber_reduce_config)
+        
+        # Create workdir and save file
+        workdir = os.path.join(kwargs['tmp_dir'], 'reduce-{0}'.format(session.get('task_id', '')))
+        tmpfile = os.path.join(workdir,'input.mol2')
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        with open(tmpfile, 'w') as inp:
+            inp.write(structure)
+        
+        # Run ACPYPE
+        output = amber_reduce(tmpfile, **amber_reduce_config)
         if not output:
             session['status'] = 'failed'
         else:
