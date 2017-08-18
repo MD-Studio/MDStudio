@@ -270,5 +270,5 @@
             "default": 0
         }
     },
-    "required": ["bindingsite_center"]
+    "required": ["bindingsite_center", "ligand_file", "protein_file"]
 }
