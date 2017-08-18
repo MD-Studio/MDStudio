@@ -34,6 +34,10 @@ def amber_acpype(mol, workdir=None, **kwargs):
     options = copy.deepcopy(SETTINGS['amber_acpype'])
     options.update(dict([(k.lower().strip('-'),v) for k,v in kwargs.items()]))
     
+    # Process sqm/mopac keywords
+    if 'keyword' in options:
+        options['keyword'] = '"{0}"'.format(options['keyword'].strip('"'))
+    
     # Process boolean flags
     flags = ['--{0}'.format(option) for option,flag in options.items() if flag == True]
     
