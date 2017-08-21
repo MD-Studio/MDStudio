@@ -192,6 +192,35 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Define task runner
         self.task_runner = None
         self.workflow_thread = None
+    
+    def _set_workdir(self, workdir, create=True):
+        """
+        Set working directory to store results.
+        
+        :param workdir: Path to working directory
+        :type workdir:  :py:str
+        :param create:  Try to create the workdir directory if it does not 
+                        exist
+        :type create:   :py:bool
+        
+        :return:        Absolute path to working directory
+        :rtype:         :py:str
+        """
+        
+        workdir = os.path.abspath(workdir)
+        if os.path.exists(workdir):
+            if os.access(workdir, os.W_OK):
+                logging.info('Project directory exists and writable: {0}'.format(workdir))
+        else:
+            if create:
+                try:
+                    os.makedirs(workdir, 0755)
+                except:
+                    raise WorkflowError('Unable to create project directory: {0}'.format(workdir))
+            else:
+                raise WorkflowError('Project directory does not exist: {0}'.format(workdir))
+        
+        return workdir
         
     def _error_callback(self, failure, tid):
         """
@@ -227,7 +256,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         :param output: output of the task
         :type output:  :py:dict
         
-        TODO: what to do if output is returned bit without a session object
+        TODO: what to do if output is returned but without a session object
               or session object is unchanged? Set a breakpoint and let the
               user check?
         """
@@ -245,7 +274,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             logging.error('Task {0} ({1}) returned no output'.format(task.nid, task.task_name))
             task.status = 'failed'
         
-        # Update the task output data only not already 'completed'
+        # Update the task output data only if not already 'completed'
         if task.status != 'completed':
             if not 'output_data' in self.workflow.nodes[tid]:
                 self.workflow.nodes[tid]['output_data'] = {}
@@ -276,15 +305,11 @@ class WorkflowRunner(_WorkflowQueryMethods):
                 # Get output/input data mapper
                 mapper = self.workflow.edges[(task.nid,ntask.nid)].get('data_mapping', {})
                 
-                # Should we replace the input with output of previous task
+                # Map output to input by reference
                 if task_input:
-                    if ntask.get('replace_input', False):
-                        ntask.nodes[ntask.nid]['input_data'] = {}
-                    
-                    # Map output to input
-                    for key, value in task_input.items():
-                        key = mapper.get(key, key)
-                        ntask.nodes[ntask.nid]['input_data'][key] = value
+                    for key in task_input:
+                        map_key = mapper.get(key, key)
+                        ntask.nodes[ntask.nid]['input_data'][map_key] = '${0}.{1}'.format(task.nid, key) 
                 
                 next_task_nids.append(ntask.nid)
         
@@ -343,7 +368,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         """
         
         # Get the task object from the graph. nid is expected to be in graph.
-        # Check ifn the task has a 'run_task' method.
+        # Check if the task has a 'run_task' method.
         task = self.workflow.getnodes(tid)
         assert hasattr(task, 'run_task'), logging.error('Task {0} ({1}) requires "run_task" method'.format(task.nid, task.task_name))
         
@@ -368,7 +393,17 @@ class WorkflowRunner(_WorkflowQueryMethods):
                 parent = task.parent()
                 if parent and 'output_data' in parent:
                     logging.info('Use output of parent task to tid {0} ({1})'.format(task.nid, parent.nid))
-                    self.input(tid, parent.output_data)
+                    
+                    # Define reference to output
+                    ref = dict([(key, '${0}.{1}'.format(parent.nid, key)) for key in parent.output_data])
+                    self.input(tid, ref)
+            
+            # Do we need to store data to disk
+            if task.get('store_output', False) and not 'workdir' in task.get('input_data', {}):
+                workdir = self.workflow.nodes[self.workflow.root]['workdir']
+                workdir = os.path.join(workdir, 'task-{0}-{1}'.format(task.nid, session['task_id']))
+                workdir = self._set_workdir(workdir)
+                self.input(task.nid, workdir=workdir)
             
             self.is_running = True
             self.workflow.update_time = int(time.time())
@@ -537,7 +572,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         task = self.workflow.getnodes(tid)
         return task.update_session(session_data)
     
-    def run(self, tid=None):
+    def run(self, tid=None, workdir=None):
         """
         Run the workflow specification or instance thereof untill finished,
         failed or a breakpoint is reached.
@@ -552,6 +587,8 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
         :param tid:      Start the workflow from task ID
         :type tid:       :py:int
+        :param workdir:  Global results storage path
+        :type workdir:   :py:str
         """
         
         # Start from workflow root by default
@@ -561,6 +598,13 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Check if tid exists
         if not tid in self.workflow.nodes:
             raise WorkflowError('Task with tid {0} not in workflow'.format(tid))
+        
+        # Define results storage location
+        workdir = workdir or self.workflow.nodes[self.workflow.root].get('workdir')
+        if not workdir:
+            logging.info('No project directory defined to store results')
+        else:
+            self.workflow.nodes[self.workflow.root]['workdir'] = self._set_workdir(workdir)
         
         logging.info('Running workflow: {0}, start task ID: {1}'.format(self.workflow.title, tid))
         

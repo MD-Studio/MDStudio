@@ -75,6 +75,26 @@ class _TaskBase(object):
         
         self.nodes[self.nid]['session'] = updated_session.dict()
         return self.nodes[self.nid]['session']
+    
+    def get_input(self):
+        """
+        Prepaire the input data
+        """
+        
+        input_dict = {}
+        for key,value in self.nodes[self.nid].get('input_data', {}).items():
+            
+            # Resolve reference
+            if type(value) == str and value.startswith('$'):
+                split = value.strip('$').split('.')
+                ref_nid = int(split[0])
+                ref_key = split[1]
+                
+                input_dict[key] = self._full_graph.nodes[ref_nid]['output_data'].get(ref_key, None)
+            else:
+                input_dict[key] = value
+        
+        return input_dict
         
     def cancel(self):
         """
@@ -105,7 +125,7 @@ class Task(_TaskBase):
         
         d = threads.deferToThread(runner,
                                   session=session.dict(), 
-                                  **self.nodes[self.nid].get('input_data', {}))
+                                  **self.get_input())
         if errorback:
             d.addErrback(errorback, self.nid)
         if callback:
@@ -122,14 +142,11 @@ class WampTask(_TaskBase):
         method_url = unicode(self.uri)
         logging.info('Task {0} ({1}) running on {2}'.format(self.nid, self.task_name, method_url))
         
-        # Get the task input data
-        input_data = self.nodes[self.nid].get('input_data', {})
-        
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=self.nodes[self.nid].get('session',{}))
         
         # Call the service
-        deferred = runner(method_url, session=session.dict(), **input_data)
+        deferred = runner(method_url, session=session.dict(), **self.get_input())
 
         # Attach error callback
         if errorback:
@@ -155,7 +172,7 @@ class BlockingTask(_TaskBase):
         
         try:
             output = runner(session=session.dict(), 
-                            **self.nodes[self.nid].get('input_data', {}))
+                            **self.get_input())
         except Exception as e:
             if errorback:
                 return errorback(e, self.nid)
@@ -179,7 +196,7 @@ class StartTask(_TaskBase):
         
         # Check input
         status = 'completed'
-        self.nodes[self.nid]['output_data'] = copy.deepcopy(self.nodes[self.nid].get('input_data', {}))
+        self.nodes[self.nid]['output_data'] = self.get_input()
         if 'file' in self.nodes[self.nid]['output_data']:
             path = self.nodes[self.nid]['output_data']['file']
             if not os.path.exists(path):

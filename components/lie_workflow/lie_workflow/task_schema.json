@@ -48,6 +48,11 @@
             "default": "ready",
             "enum": ["ready","submitted","running","failed","aborted","completed","deactivated"]
         },
+        "store_output": {
+            "description": "Store the output of the task to disk",
+            "type": "boolean",
+            "default": false
+        },
         "task_id": {
             "type": "string",
             "description": "Unique ID used to identify the task in the system"
