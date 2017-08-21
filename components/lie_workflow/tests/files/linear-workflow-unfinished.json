@@ -36,7 +36,6 @@
   "nodes": {
     "1": {
       "status": "completed",
-      "replace_output": false,
       "task_name": "start", 
       "nid": 1, 
       "retry_count": 0, 
@@ -57,7 +56,6 @@
     }, 
     "2": {
       "status": "completed",
-      "replace_output": false,
       "input_data": {
         "dummy": 1,
         "sleep": 1
@@ -82,7 +80,6 @@
     }, 
     "3": {
       "status": "completed",
-      "replace_output": false,
       "input_data": {
         "dummy": 1,
         "sleep": 1
@@ -107,7 +104,6 @@
     }, 
     "4": {
       "status": "completed",
-      "replace_output": false,
       "input_data": {
         "dummy": 1,
         "sleep": 1
@@ -132,7 +128,6 @@
     }, 
     "5": {
       "status": "ready",
-      "replace_output": false,
       "input_data": {
         "sleep": 1
       },
@@ -146,7 +141,6 @@
     }, 
     "6": {
       "status": "ready",
-      "replace_output": false,
       "input_data": {
         "sleep": 1
       },

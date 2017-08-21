@@ -226,19 +226,24 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
         :param output: output of the task
         :type output:  :py:dict
+        
+        TODO: what to do if output is returned bit without a session object
+              or session object is unchanged? Set a breakpoint and let the
+              user check?
         """
         
         # Get the task
         task = self.workflow.getnodes(tid)
         
         # If the task returned no output at all, fail it
-        if not output:
+        if output:
+            # Get session information and remove when done
+            session = WAMPTaskMetaData(metadata=output.get('session'))
+            del output['session']
+        
+        else:
             logging.error('Task {0} ({1}) returned no output'.format(task.nid, task.task_name))
             task.status = 'failed'
-        
-        # Get session information and remove when done
-        session = WAMPTaskMetaData(metadata=output.get('session'))
-        del output['session']
         
         # Update the task output data only not already 'completed'
         if task.status != 'completed':
@@ -276,6 +281,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
                     if ntask.get('replace_input', False):
                         ntask.nodes[ntask.nid]['input_data'] = {}
                     
+                    # Map output to input
                     for key, value in task_input.items():
                         key = mapper.get(key, key)
                         ntask.nodes[ntask.nid]['input_data'][key] = value

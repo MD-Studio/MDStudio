@@ -33,11 +33,6 @@
             "description": "All output returned by the task",
             "type": "object"
         },
-        "replace_output": {
-            "description": "Number of times the task should be resubmitted when it failed",
-            "type": "boolean",
-            "default": false
-        },
         "retry_count": {
             "description": "Number of times the task should be resubmitted when it failed",
             "type": "integer",
@@ -63,5 +58,5 @@
             "pattern": "^\\w+(\\.\\w+)*$"
         }
     },
-    "required": ["active", "breakpoint", "replace_output", "retry_count", "status"]
+    "required": ["active", "breakpoint", "retry_count", "status"]
 }

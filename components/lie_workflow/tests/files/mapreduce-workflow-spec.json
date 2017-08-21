@@ -62,7 +62,6 @@
       "nid": 1, 
       "retry_count": 0, 
       "task_name": "start",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 1
@@ -77,7 +76,6 @@
         "add_number": 2
       }, 
       "task_name": "task1",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 2
@@ -92,7 +90,6 @@
         "add_number": 1
       }, 
       "task_name": "task2",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 3
@@ -107,7 +104,6 @@
         "add_number": 3
       }, 
       "task_name": "task3",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 4
@@ -122,7 +118,6 @@
         "add_number": 0
       }, 
       "task_name": "task4",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 5
@@ -137,7 +132,6 @@
         "add_number": 1
       }, 
       "task_name": "task5",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 6
@@ -152,7 +146,6 @@
         "add_number": 3
       }, 
       "task_name": "task6",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 7
@@ -167,7 +160,6 @@
         "add_number": 2
       }, 
       "task_name": "task7",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 8
@@ -182,7 +174,6 @@
         "sleep": 0
       }, 
       "task_name": "task8",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 9
@@ -197,7 +188,6 @@
         "add_number": 1
       }, 
       "task_name": "task9",
-      "replace_output": false,
       "breakpoint": false, 
       "active": false, 
       "_id": 10
