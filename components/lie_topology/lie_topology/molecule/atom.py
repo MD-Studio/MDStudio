@@ -33,12 +33,38 @@ from lie_topology.common.contiguousMap import ContiguousMap
 from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.reference import AtomReference
 
+from enum import Enum
+
+class AtomStatus(Enum):
+    default   = 1
+    trailing  = 2
+    preceding = 3
+    replacing = 4
+
+    @staticmethod
+    def StringToEnum( x ):
+        return {
+        'default'   : AtomStatus.default,
+        'trailing'  : AtomStatus.trailing,
+        'preceding' : AtomStatus.preceding,
+        'replacing' : AtomStatus.replacing,
+        }.get(x, None)
+    
+    @staticmethod
+    def EnumToString( x ):
+        return {
+        AtomStatus.default   : 'default',
+        AtomStatus.trailing  : 'trailing',
+        AtomStatus.preceding : 'preceding',
+        AtomStatus.replacing : 'replacing',
+        }.get(x, None)
+
 class Atom( Serializable ):
     
     def __init__( self, parent = None, key = None, type_name = None, element = None, identifier = None,\
                   sybyl = None, occupancy = None, b_factor = None, mass_type = None, vdw_type = None,\
                   charge = None, coulombic_type = None, charge_group = None, virtual_site = None,\
-                  preceding = None, trailing = None ):
+                  status = AtomStatus.default ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__( self, self.__module__, self.__class__.__name__ )
@@ -87,12 +113,9 @@ class Atom( Serializable ):
         # Virtual site treatment
         self.virtual_site = virtual_site
 
-        # Preceding in the building block (for chain topology)
-        self.preceding = preceding
+        # Signal atom status
+        self.status = status
 
-        # Trailing in the building block (for chain topology)
-        self.trailing = trailing
-    
     @property
     def key(self):
 
@@ -137,7 +160,7 @@ class Atom( Serializable ):
                      identifier=self.identifier, sybyl=self.sybyl,\
                      mass_type=mass_type_cpy, vdw_type=vdw_type_cpy,\
                      coulombic_type=coulombic_type_cpy, charge_group=self.charge_group,\
-                     virtual_site=virtual_site_cpy, trailing=self.trailing, preceding=self.preceding )
+                     virtual_site=virtual_site_cpy, status=self.status )
 
 
     def ToReference(self):

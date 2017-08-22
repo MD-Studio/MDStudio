@@ -36,6 +36,7 @@ from lie_topology.molecule.molecule         import Molecule
 from lie_topology.molecule.bond             import Bond
 from lie_topology.molecule.angle            import Angle
 from lie_topology.molecule.dihedral         import Dihedral
+from lie_topology.molecule.improper         import Improper
 from lie_topology.molecule.vsite            import InPlaneSite
 from lie_topology.molecule.reference        import AtomReference
 from lie_topology.forcefield.forcefield     import CoulombicType, BondType
@@ -184,17 +185,17 @@ def _ParseSoluteImpropers( block, solute, it ):
         index_j = int( block[it+1] ) - 1
         index_k = int( block[it+2] ) - 1
         index_l = int( block[it+3] ) - 1
-        dihedral_type = ForceFieldReference( block[it+4] )
+        improper_type = ForceFieldReference( block[it+4] )
 
         atom_i_ref = _GenerateBondedReference( solute, index_i )
         atom_j_ref = _GenerateBondedReference( solute, index_j )
         atom_k_ref = _GenerateBondedReference( solute, index_k )
         atom_l_name = _GenerateBondedReference( solute, index_l )
 
-        dihedral = Dihedral( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
-                             forcefield_type=dihedral_type  ) 
+        improper = Improper( atom_references=[atom_i_ref,atom_j_ref, atom_k_ref, atom_l_name],\
+                             forcefield_type=improper_type  ) 
 
-        solute.AddImproper( dihedral )
+        solute.AddImproper( improper )
         
         it+=5
     

@@ -1,92 +1,154 @@
+variant_blueprints:
+  NH3+:
+    replace:
+      - src-key: N
+        dst-key: N
+        vdw-type: N
+        mass-type: N
+        charge: 0.12900
+        charge-type: null
+        charge-group: 0
+      - src-key: H
+        dst-key: H3
+        vdw-type: H
+        mass-type: H
+        charge: 0.24800
+        charge-type: null
+        charge-group: 0
+      - src-key: CA
+        dst-key: CA
+        vdw-type: CH1
+        mass-type: CH1
+        charge: 0.12700
+        charge-type: null
+        charge-group: 0
+    add:
+      H1: 
+        vdw-type: H
+        mass-type: H
+        charge: 0.24800
+        charge-type: null
+        charge-group: 0
+        status: preceding
+      H2: 
+        vdw-type: H
+        mass-type: H
+        charge: 0.24800
+        charge-type: null
+        charge-group: 0
+        status: preceding
+    bonds:
+      - indices: [ H1, N ]
+        type: gb_2
+      - indices: [ H2, N ]
+        type: gb_2
+    angles: 
+      - indices: [ H1, N, H2 ]
+        type: ga_10
+      - indices: [ H1, N, H3 ]
+        type: ga_10
+      - indices: [ H1, N, CA ]
+        type: ga_11
+      - indices: [ H2, N, H3 ]
+        type: ga_10
+      - indices: [ H2, N, CA ]
+        type: ga_11
+      - indices: [ H3, N, CA ]
+        type: ga_11
+    dihedrals: 
+      - indices: [ H2, N, CA, ~CB ]
+        type: gd_29
+    impropers: null
+
 solute_blueprints:
   ALA:
-      atoms:
-          N:
-            vdw-type: N
-            mass-type: N
-            charge: null
-            charge-type: backbone-N
-            charge-group: 0
-          H:
-            vdw-type: H
-            mass-type: H
-            charge: null
-            charge-type: backbone-H
-            charge-group: 0
-          CA:
-            vdw-type: CH1
-            mass-type: CH1
-            charge: null
-            charge-type: ala_val_ile_leu-CH
-            charge-group: 1
-          CB:
-            vdw-type: CH3
-            mass-type: CH3
-            charge: null
-            charge-type: ala_val_ile_leu-CH3
-            charge-group: 1
-          C:
-            vdw-type: C
-            mass-type: C
-            charge: null
-            charge-type: backbone-C
-            charge-group: 2
-          O:
-            vdw-type: O
-            mass-type: O
-            charge: null
-            charge-type: backbone-O
-            charge-group: 2
-      
-      bonds:
-          - indices: [ N, H ]
-            type: gb_2
-          - indices: [ N, CA ]
-            type: gb_21
-          - indices: [ CA, CB ]
-            type: gb_27
-          - indices: [ CA, C ]
-            type: gb_27
-          - indices: [ ^C, O ]
-            type: gb_5
-          - indices: [ C, +N  ]
-            type: gb_10                             
-                
-      angles:
-          - indices: [ -C, N, H ]
-            type: ga_32
-          - indices: [ -C, N, CA ]
-            type: ga_31          
-          - indices: [ H, N, CA ]
-            type: ga_18                      
-          - indices: [ N, CA, CB ]
-            type: ga_13               
-          - indices: [ N, CA, C ]
-            type: ga_13            
-          - indices: [ CB, CA, C ]
-            type: ga_13               
-          - indices: [ CA, C, O ]
-            type: ga_30                 
-          - indices: [ CA, C, +N ]
-            type: ga_19         
-          - indices: [ O, C, +N ]
-            type: ga_33    
+    variants:
+      NH3+_ALA: NH3+
+      #COO-_ALA: COO-
 
-      impropers:
-          - indices: [ N, -C, CA, H ]
-            type: gi_1
-          - indices: [ CA, N, C, CB ]
-            type: gi_2              
-          - indices: [ C, CA, +N, O ]
-            type: gi_1          
-      
-      dihedrals:
-          - indices: [ -CA, -C, N, CA ]
-            type: gd_14
-          - indices: [ -C, N, CA, C ]
-            type: gd_39
-          - indices: [ N, CA, C, +N ]
-            type: gd_40
+    atoms:
+        N:
+          vdw-type: N
+          mass-type: N
+          charge: null
+          charge-type: backbone-N
+          charge-group: 0
+        H:
+          vdw-type: H
+          mass-type: H
+          charge: null
+          charge-type: backbone-H
+          charge-group: 0
+        CA:
+          vdw-type: CH1
+          mass-type: CH1
+          charge: null
+          charge-type: ala_val_ile_leu-CH
+          charge-group: 1
+        CB:
+          vdw-type: CH3
+          mass-type: CH3
+          charge: null
+          charge-type: ala_val_ile_leu-CH3
+          charge-group: 1
+        C:
+          vdw-type: C
+          mass-type: C
+          charge: null
+          charge-type: backbone-C
+          charge-group: 2
+        O:
+          vdw-type: O
+          mass-type: O
+          charge: null
+          charge-type: backbone-O
+          charge-group: 2
+    bonds:
+      - indices: [ N, H ]
+        type: gb_2
+      - indices: [ N, CA ]
+        type: gb_21
+      - indices: [ CA, CB ]
+        type: gb_27
+      - indices: [ CA, C ]
+        type: gb_27
+      - indices: [ C, O ]
+        type: gb_5
+      - indices: [ C, +N  ]
+        type: gb_10                                   
+    angles:
+      - indices: [ -C, N, H ]
+        type: ga_32
+      - indices: [ -C, N, CA ]
+        type: ga_31          
+      - indices: [ H, N, CA ]
+        type: ga_18                      
+      - indices: [ N, CA, CB ]
+        type: ga_13               
+      - indices: [ N, CA, C ]
+        type: ga_13            
+      - indices: [ CB, CA, C ]
+        type: ga_13               
+      - indices: [ CA, C, O ]
+        type: ga_30                 
+      - indices: [ CA, C, +N ]
+        type: ga_19         
+      - indices: [ O, C, +N ]
+        type: ga_33   
+    impropers:
+      - indices: [ N, -C, CA, H ]
+        type: gi_1
+      - indices: [ CA, N, C, CB ]
+        type: gi_2              
+      - indices: [ C, CA, +N, O ]
+        type: gi_1          
+    dihedrals:
+      - indices: [ -CA, -C, N, CA ]
+        type: gd_14
+      - indices: [ -C, N, CA, C ]
+        type: gd_39
+      - indices: [ N, CA, C, +N ]
+        type: gd_40
 
 
           

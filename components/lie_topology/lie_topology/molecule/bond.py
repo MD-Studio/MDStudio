@@ -203,5 +203,5 @@ class Bond( BondedTerm ):
                 safe_forcefield_type = "%s*" % (self._forcefield_type.key)
 
         # Indicates the bond order of this bond
-        return "bond %-25s %-25s %7s %7s\n" % (safe_ref_1, safe_ref_2, safe_forcefield_type, safe_sybyl)
+        return "bond %-20s %-20s %-7s %-7s\n" % (safe_ref_1, safe_ref_2, safe_forcefield_type, safe_sybyl)
         

@@ -25,14 +25,15 @@ from lie_topology.molecule.crystal import BoxVectorsToLattice, LatticeToBoxVecto
 
 def main():
 
-    with open( "../tests/data/md_top/forcefield.mdtop", 'r') as mdtop_ifs:
+    with open( "../tests/data/md_top/residues.aatop", 'r') as mdaa_ifs,\
+         open( "../tests/data/md_top/forcefield.mdtop", 'r') as mdtop_ifs:
 
         forcefield = ParseMdtop( mdtop_ifs )
+        blueprint = ParseMDMtb( mdaa_ifs )
 
-    with open( "../tests/data/md_top/residues.aatop", 'r') as mdaa_ifs:
+        #topology = MakeSequence( forcefield, blueprint, ["ALA","ALA","ALA"], "SPC", [] )
 
-        forcefield = ParseMDMtb( mdaa_ifs )
-
+        #print (topology.Debug())
 
     # with open( "../tests/data/mtb/54a7.mtb", 'r') as mtb_ifstream,\
     #      open( "../tests/data/ifp/54a7.ifp", 'r') as ifp_ifstream:

@@ -50,7 +50,10 @@ class Blueprint( Serializable ):
         self._molecules = ContiguousMap()
 
         # Blends present in the mtb
-        self._blends = ContiguousMap()
+        self._variants = ContiguousMap()
+
+        # Blends present in the mtb
+        self._variant_templates = ContiguousMap()
 
         # Solvents present in the mtb
         self._solvents = ContiguousMap()
@@ -69,6 +72,11 @@ class Blueprint( Serializable ):
     def physical_constants(self):
 
         return self._physical_constants
+
+    @property
+    def molecules(self):
+
+        return self._molecules
 
     @property
     def solvents(self):
@@ -98,18 +106,26 @@ class Blueprint( Serializable ):
             kwargs["parent"] = self
             self._molecules.insert( kwargs["key"], Molecule(**kwargs) )
     
-    def AddBlend( self, **kwargs ):
+    def UpdateVariantList( self, molecule_key, variant_list ):
+
+        if  molecule_key in self._variants:
+            self._variants[molecule_key].update( variant_list )
+
+        else: 
+            self._variants.insert( molecule_key, variant_list )
+
+    def AddVariantTemplate( self, **kwargs ):
   
         if  "molecule" in kwargs:
             molecule = kwargs["molecule"]
             if not molecule.key:
                 raise LieTopologyException("Blueprint::AddBlend", "key is a required argument" )
 
-            self._blends.insert( molecule.key, molecule )
+            self._variant_templates.insert( molecule.key, molecule )
 
         else:
             kwargs["parent"] = self
-            self._blends.insert( kwargs["key"], Molecule(**kwargs) )
+            self._variant_templates.insert( kwargs["key"], Molecule(**kwargs) )
 
     def AddSolvent( self, **kwargs ):
 
@@ -126,14 +142,24 @@ class Blueprint( Serializable ):
                 raise LieTopologyException("Blueprint::AddSolvent", "key is a required argument" )
             
             self._solvents.insert( kwargs["key"], Molecule( **kwargs ) )
+
+
+    def MoleculeVariants( self, molecule_key ):
     
-    def FindMolecule( self, molecule_name ):
+        output_list={}
+    
+        if molecule_key in self._variants:
+            output_list = self._variants[molecule_key]
 
-        return self._molecules.find( molecule_name )
+        return output_list
 
-    def FindBlend( self, blend_name ):
+    def FindMolecule( self, molecule_key ):
 
-        return self._blends.find( blend_name )
+        return self._molecules.find( molecule_key )
+
+    def FindVariant( self, blend_name ):
+
+        return self._variant_templates.find( blend_name )
 
     def OnSerialize( self, logger = None ):   
 

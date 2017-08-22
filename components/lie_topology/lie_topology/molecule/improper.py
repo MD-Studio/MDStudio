@@ -34,10 +34,10 @@ from lie_topology.common.exception import LieTopologyException
 from lie_topology.molecule.atom import Atom
 from lie_topology.molecule.bondedTerm import BondedTerm
 from lie_topology.molecule.reference import AtomReference
-from lie_topology.forcefield.forcefield import DihedralType
+from lie_topology.forcefield.forcefield import ImproperType
 from lie_topology.forcefield.reference import ForceFieldReference
 
-class Dihedral( BondedTerm ):
+class Improper( BondedTerm ):
     
     def __init__( self, atom_references = None, forcefield_type = None, united = None ):
         
@@ -49,72 +49,11 @@ class Dihedral( BondedTerm ):
         forcefield_type = deepcopy( self._forcefield_type )
 
         # if force field object just store the key for now
-        if isinstance(forcefield_type,DihedralType):
+        if isinstance(forcefield_type,ImproperType):
             forcefield_type = ForceFieldReference( key=forcefield_type.key )
 
-        return Dihedral( atom_references=self._SafeCopyReferences(molecule_key, group_key), forcefield_type=forcefield_type )
+        return Improper( atom_references=self._SafeCopyReferences(molecule_key, group_key), forcefield_type=forcefield_type )
 
-    def OnSerialize( self, logger = None ):   
-
-        result = {}
-        
-        if not (self._atom_references is None):
-
-            ser_values = []
-            for item in self._atom_references:
-
-                if isinstance(item, Atom):
-                    item = item.ToReference()
-
-                ser_values.append( item.OnSerialize(logger) )
-
-            result["atom_references"] = ser_values
-        
-        if self._forcefield_type:
-
-            type_str = None
-            if isinstance(self._forcefield_type, ForceFieldReference):
-                type_str = self._forcefield_type.key
-
-            elif isinstance(self._forcefield_type, DihedralType):
-                type_str = self._forcefield_type.OnSerialize(logger)
-                
-            else:
-                print(self._forcefield_type)
-                raise LieTopologyException("Dihedral::OnSerialize","Unknown dihedral type") 
-        
-            result["forcefield_type"] = type_str    
-
-        return result
-
-    def OnDeserialize( self, data, logger = None ):
-
-        if "atom_references" in data:
-            self._atom_references = []
-
-            for reference in data["atom_references"]:
-
-                if not isinstance(reference, dict):
-                    raise LieTopologyException("Dihedral::OnDeserialize","Unknown dihedral reference") 
-                    
-                ref_obj = AtomReference()
-                ref_obj.OnDeserialize(reference, logger)
-                
-                self._atom_references.append(ref_obj)
-                
-        if "forcefield_type" in data:
-            localData = data["forcefield_type"]
-
-            if isinstance(localData, str):
-                self._forcefield_type = ForceFieldReference( name=localData )
-
-            elif isinstance(localData, dict):
-                self._forcefield_type = DihedralType()
-                self._forcefield_type.OnDeserialize(localData, logger)
-                
-            else:
-                 raise LieTopologyException("Dihedral::OnSerialize","Unknown dihedral type") 
-    
     def Debug(self):
 
         safe_ref_1 = "?"
@@ -130,11 +69,11 @@ class Dihedral( BondedTerm ):
             safe_ref_4 = self._DebugRef( self._atom_references[3] )
 
         if self._forcefield_type:
-            if isinstance(self._forcefield_type, DihedralType):
+            if isinstance(self._forcefield_type, ImproperType):
                 safe_forcefield_type = "%s" % (self._forcefield_type.key)
             else:
                 safe_forcefield_type = "%s*" % (self._forcefield_type.key)
 
         # Indicates the bond order of this bond
-        return "dihedral %-25s %-25s %-25s %-25s %7s\n" % (safe_ref_1, safe_ref_2, safe_ref_3, safe_ref_4, 
-                                                           safe_forcefield_type)
+        return "improper %-25s %-25s %-25s %-25s %7s\n" % (safe_ref_1, safe_ref_2, safe_ref_3, safe_ref_4, 
+                                                                    safe_forcefield_type)

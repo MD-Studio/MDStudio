@@ -33,6 +33,7 @@ from lie_topology.molecule.atom        import Atom
 from lie_topology.molecule.bond        import Bond
 from lie_topology.molecule.angle       import Angle
 from lie_topology.molecule.dihedral    import Dihedral
+from lie_topology.molecule.improper    import Improper
 from lie_topology.molecule.reference   import AtomReference
 
 class Molecule( Serializable ):
@@ -387,7 +388,7 @@ class Molecule( Serializable ):
         DeserializeFlatTypes( ["key", "identifier"], data, self.__dict__, '_' )
         DeserializeContiguousMapsTypes( ["atoms"], [Atom], data, self.__dict__, logger, '_', self  )
         DeserializeObjArrays( ["bonds", "angles", "impropers", "dihedrals"],\
-                              [ Bond, Angle, Dihedral, Dihedral ],\
+                              [ Bond, Angle, Improper, Dihedral ],\
                               data, self.__dict__, logger, '_')
     
 

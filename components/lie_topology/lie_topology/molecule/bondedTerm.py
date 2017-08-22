@@ -131,8 +131,9 @@ class BondedTerm( Serializable ):
 
         if isinstance(atom_ref, Atom):
             response = atom_ref.ToReference().Debug()
+            
         else:
             # mark as not yet resolved
-            response = "%s*" % (  atom_ref. Debug() )
+            response = "%s*" % (  atom_ref.Debug() )
         
         return response

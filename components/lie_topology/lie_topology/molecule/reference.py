@@ -142,9 +142,43 @@ class AtomReference( AbstractReference ):
         safe_group_key = self._group_key if self._group_key is not None else "?" 
         safe_molecule_key = self._molecule_key if self._molecule_key is not None else "?" 
 
-        return "(%s,%s,%s)" % (safe_atom_key,safe_molecule_key,safe_group_key)
+        return "AR(%s,%s,%s)" % (safe_atom_key,safe_molecule_key,safe_group_key)
 
+# Used in merge topologies, where atoms might be renamed, therefore we deffer the assignment
+class VariantTopologyReference( AbstractReference ):
 
+    def __init__( self, atom_key=None ):
+        
+        # Call the base class constructor with the parameters it needs
+        Serializable.__init__( self, self.__module__, self.__class__.__name__ )
+    
+        self._atom_key = atom_key
+    
+    def __eq__( self, other ):
+
+        return  isinstance(other, ForwardChainReference) and self._atom_key == other.atom_key
+
+    @property
+    def atom_key(self):
+        return self._atom_key
+
+    @property
+    def hash(self):
+
+        input="fwa:%s->" % ( self._atom_key )
+
+        return hashlib.sha1(input).hexdigest()
+
+    @atom_key.setter
+    def atom_key(self,value):
+        self._atom_key = value
+
+    def Debug(self):
+
+        safe_atom_key= self._atom_key if self._atom_key is not None else "?"
+        return "VTR(%s)" % (safe_atom_key)
+
+# Used to link to residue n+1
 class ForwardChainReference( AbstractReference ):
 
     def __init__( self, atom_key=None ):
@@ -173,7 +207,12 @@ class ForwardChainReference( AbstractReference ):
     def atom_key(self,value):
         self._atom_key = value
 
-    
+    def Debug(self):
+
+        safe_atom_key= self._atom_key if self._atom_key is not None else "?"
+        return "FCR(%s)" % (safe_atom_key)
+
+# Used to link to residue n-1
 class ReverseChainReference( AbstractReference ):
 
     def __init__( self, atom_key=None ):
@@ -197,11 +236,16 @@ class ReverseChainReference( AbstractReference ):
 
         return hashlib.sha1(input).hexdigest()
 
-
     @atom_key.setter
     def atom_key(self,value):
         self._atom_key = value
 
+    def Debug(self):
+
+        safe_atom_key= self._atom_key if self._atom_key is not None else "?"
+        return "RCR(%s)" % (safe_atom_key)
+
+# Used to connect two arbi residues (e.g. CYS & HEME)
 class ExplicitConnectionReference( AbstractReference ):
 
     def __init__( self, atom_key=None ):
@@ -228,3 +272,8 @@ class ExplicitConnectionReference( AbstractReference ):
     @atom_key.setter
     def atom_key(self,value):
         self._atom_key = value
+
+    def Debug(self):
+
+        safe_atom_key= self._atom_key if self._atom_key is not None else "?"
+        return "ECR(%s)" % (safe_atom_key)
