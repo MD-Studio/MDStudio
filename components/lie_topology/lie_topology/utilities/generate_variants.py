@@ -24,6 +24,10 @@
 # @endcond
 #
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import sys
 import os
 
@@ -125,11 +129,19 @@ def MergeVariantBonds( variant_name, variant_template, molecule, variant_molecul
         bond_index = variant_molecule.IndexOfBond(bond_cpy)
 
         if bond_index >= 0:
-            # we know that the atom_indices are the same! now switch the FF type
-            variant_molecule.bonds[bond_index].forcefield_type = bond_cpy.forcefield_type
+
+            #now if the force_field type is None in the change we know this is deleted
+            if bond_cpy.forcefield_type is None:
+                variant_molecule.DeleteBondByIndex(bond_index)
+
+            else:
+                # we know that the atom_indices are the same! now switch the FF type
+                variant_molecule.bonds[bond_index].forcefield_type = bond_cpy.forcefield_type
         
         else:
-            variant_molecule.AddBond(bond_cpy)
+
+            if bond_cpy.forcefield_type is not None: 
+                variant_molecule.AddBond(bond_cpy)
 
 def MergeVariantAngles( variant_name, variant_template, molecule, variant_molecule, replace_set ):
 
@@ -148,8 +160,14 @@ def MergeVariantAngles( variant_name, variant_template, molecule, variant_molecu
         angle_index = variant_molecule.IndexOfAngle(angle_cpy)
         
         if angle_index >= 0:
-            # we know that the atom_indices are the same! now switch the FF type
-            variant_molecule.angles[angle_index].forcefield_type = angle_cpy.forcefield_type
+
+            #now if the force_field type is None in the change we know this is deleted
+            if angle_cpy.forcefield_type is None:
+                variant_molecule.DeleteAngleByIndex(angle_index)
+            
+            else: 
+                # we know that the atom_indices are the same! now switch the FF type
+                variant_molecule.angles[angle_index].forcefield_type = angle_cpy.forcefield_type
         
         else:
             variant_molecule.AddAngle(angle_cpy)
@@ -171,8 +189,14 @@ def MergeVariantImpropers( variant_name, variant_template, molecule, variant_mol
         improper_index = variant_molecule.IndexOfImproper(improper_cpy)
         
         if improper_index >= 0:
-            # we know that the atom_indices are the same! now switch the FF type
-            variant_molecule.impropers[improper_index].forcefield_type = improper_cpy.forcefield_type
+
+            #now if the force_field type is None in the change we know this is deleted
+            if improper_cpy.forcefield_type is None:
+                variant_molecule.DeleteImproperByIndex(improper_index)
+            
+            else:
+                # we know that the atom_indices are the same! now switch the FF type
+                variant_molecule.impropers[improper_index].forcefield_type = improper_cpy.forcefield_type
         
         else:
             variant_molecule.AddImproper(improper_cpy)
@@ -188,11 +212,21 @@ def MergeVariantDihedrals( variant_name, variant_template, molecule, variant_mol
         variant_molecule.AddDihedral(dihedral_cpy)
 
     for dihedral in variant_template.dihedrals:
-
+        
         dihedral_cpy = dihedral.SafeCopy()
         dihedral_cpy.atom_references = CleanBondedAtomReferences( variant_name, dihedral_cpy.atom_references, replace_set )
         
-        variant_molecule.AddDihedral(dihedral_cpy)
+        if dihedral_cpy.forcefield_type is None:
+
+            #loop as multiple dihedrals are allowed
+            index=variant_molecule.IndexOfDihedral(dihedral_cpy)
+            while index >= 0:
+
+                variant_molecule.DeleteDihedralByIndex(index)
+                index=variant_molecule.IndexOfDihedral(dihedral_cpy)
+        
+        else:
+            variant_molecule.AddDihedral(dihedral_cpy)
 
 
 # Maybe this should be moved?

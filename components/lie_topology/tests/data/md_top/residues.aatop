@@ -55,16 +55,81 @@ variant_blueprints:
         type: ga_11
       - indices: [ H3, N, CA ]
         type: ga_11
+      #delete
+      - indices: [ -C, N, H3 ]
+        type: null
+      - indices: [ -C, N, CA ]
+        type: null
     dihedrals: 
       - indices: [ H2, N, CA, ~CB ]
         type: gd_29
-    impropers: null
+      #delete
+      - indices: [ -CA, -C, N, CA ]
+        type: null
+      - indices: [ -C, N, CA, ~C ]
+        type: null
+    impropers:
+      #delete
+      - indices: [ N, -C, CA, H3 ]
+        type: null
+  COO-:
+    replace:
+      - src-key: C
+        dst-key: C
+        vdw-type: C
+        mass-type: C
+        charge: 0.27000
+        charge-type: null
+        charge-group: 2
+      - src-key: O
+        dst-key: O1
+        vdw-type: O
+        mass-type: O
+        charge: -0.63500
+        charge-type: null
+        charge-group: 2
+    add:
+      O2:
+        vdw-type: O
+        mass-type: O
+        charge: -0.63500
+        charge-type: null
+        charge-group: 2
+        status: trailing
+    bonds:
+      - indices: [ C, O1 ]
+        type: gb_6  
+      - indices: [ C, O2 ]
+        type: gb_6 
+      # delete
+      - indices: [ C, +N  ]
+        type: null
+    angles: 
+      - indices: [ ~CA, C, O1 ]
+        type: ga_22
+      - indices: [ ~CA, C, O2 ]
+        type: ga_22
+      - indices: [ O1, C, O2 ]
+        type: ga_38
+      # delete
+      - indices: [ ~CA, C, +N ]
+        type: null         
+      - indices: [ O1, C, +N ]
+        type: null  
+    dihedrals:
+      # delete
+      - indices: [ ~N, ~CA, C, +N ]
+        type: null
+    impropers:
+      # delete
+      - indices: [ C, ~CA, +N, O1 ]
+        type: null 
 
 solute_blueprints:
   ALA:
     variants:
       NH3+_ALA: NH3+
-      #COO-_ALA: COO-
+      COO-_ALA: COO-
 
     atoms:
         N:

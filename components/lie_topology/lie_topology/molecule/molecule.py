@@ -127,13 +127,13 @@ class Molecule( Serializable ):
 
         return self._IndexOfBonded( self.angles, angle )
 
-    def IndexOfDihedral(self, dihedral ):
-
-        return self._IndexOfBonded( self.dihedrals, dihedral )
-
     def IndexOfImproper(self, improper ):
 
         return self._IndexOfBonded( self.impropers, improper )
+    
+    def IndexOfDihedral(self, dihedral ):
+
+        return self._IndexOfBonded( self.dihedrals, dihedral )
 
     def AddBond( self, bond ):
 
@@ -149,7 +149,11 @@ class Molecule( Serializable ):
 
         index = self.IndexOfBond(bond)
 
-        if index >= 0:
+        self.DeleteBondByIndex(index)
+
+    def DeleteBondByIndex(self, index):
+
+        if index >= 0 and index < len(self._bonds):
             del self._bonds[index]
 
     def AddAngle( self, angle ):
@@ -164,7 +168,11 @@ class Molecule( Serializable ):
 
         index = self.IndexOfAngle(angle)
 
-        if index >= 0:
+        self.DeleteAngleByIndex(index)
+
+    def DeleteAngleByIndex(self, index):
+
+        if index >= 0 and index < len(self._angles):
             del self._angles[index]
 
     def AddImproper( self, improper ):
@@ -179,7 +187,11 @@ class Molecule( Serializable ):
 
         index = self.IndexOfImproper(improper)
 
-        if index >= 0:
+        self.DeleteImproperByIndex(index)
+
+    def DeleteImproperByIndex(self, index):
+
+        if index >= 0 and index < len(self._impropers):
             del self._impropers[index]
 
     def AddDihedral( self, dihedral ):
@@ -194,7 +206,11 @@ class Molecule( Serializable ):
 
         index = self.IndexOfDihedral(dihedral)
 
-        if index >= 0:
+        self.DeleteDihedralByIndex(index)
+
+    def DeleteDihedralByIndex(self, index):
+
+        if index >= 0 and index < len(self._dihedrals):
             del self._dihedrals[index]
 
     def IndexOfAtom( self, atom_key ):
@@ -304,7 +320,6 @@ class Molecule( Serializable ):
 
         self._impropers = value
 
-    
 
     # these are standard named reference that result from
     # a serialization

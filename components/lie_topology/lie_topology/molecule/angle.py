@@ -131,4 +131,4 @@ class Angle( BondedTerm ):
                 safe_forcefield_type = "%s*" % (self._forcefield_type.key)
 
         # Indicates the bond order of this bond
-        return "angle %-25s %-25s %-25s %7s\n" % (safe_ref_1, safe_ref_2, safe_ref_3, safe_forcefield_type)
+        return "angl %-25s %-25s %-25s %7s\n" % (safe_ref_1, safe_ref_2, safe_ref_3, safe_forcefield_type)

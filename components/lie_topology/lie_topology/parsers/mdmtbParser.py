@@ -162,13 +162,6 @@ def ReadReplacingSection( replacing_section, solute ):
         atom.charge = charge
         atom.charge_group = charge_group
 
-# def ReadDeleteSection( delete_section, solute ):
-
-#     for atom_key in delete_section:
-
-#         # signal with new type_name as a delete
-#         solute.AddAtom( key=src_key, type_name=None, status=AtomStatus.deleting )
-
 def ReadBondSection( bond_section, solute ):
 
     for bond_data in bond_section:
@@ -182,7 +175,12 @@ def ReadBondSection( bond_section, solute ):
         bond_type = bond_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 2 )
-        bond = Bond( atom_references=atom_references, forcefield_type=ForceFieldReference( key=bond_type ) )   
+        forcefield_type = None
+
+        if bond_type is not None:
+            forcefield_type = ForceFieldReference( key=bond_type )
+
+        bond = Bond( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddBond( bond )
 
 def ReadAngleSection( angle_section, solute ):
@@ -198,7 +196,12 @@ def ReadAngleSection( angle_section, solute ):
         angle_type = angle_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 3 )
-        angle = Angle( atom_references=atom_references, forcefield_type=ForceFieldReference( key=angle_type ) )   
+        forcefield_type = None
+
+        if angle_type is not None:
+            forcefield_type = ForceFieldReference( key=angle_type )
+
+        angle = Angle( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddAngle( angle )
 
 def ReadDihedralSection( dihedral_section, solute ):
@@ -214,7 +217,12 @@ def ReadDihedralSection( dihedral_section, solute ):
         dihedral_type = dihedral_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 4 )
-        dihedral = Dihedral( atom_references=atom_references, forcefield_type=ForceFieldReference( key=dihedral_type ) )   
+        forcefield_type = None
+
+        if dihedral_type is not None:
+            forcefield_type = ForceFieldReference( key=dihedral_type )
+
+        dihedral = Dihedral( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddDihedral( dihedral )
 
 def ReadImproperSection( improper_section, solute ):
@@ -230,7 +238,12 @@ def ReadImproperSection( improper_section, solute ):
         improper_type = improper_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 4 )
-        improper = Improper( atom_references=atom_references, forcefield_type=ForceFieldReference( key=improper_type ) )   
+        forcefield_type = None
+
+        if improper_type is not None:
+            forcefield_type = ForceFieldReference( key=improper_type )
+            
+        improper = Improper( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddImproper( improper )
 
 def ReadSoluteBlueprints( stream, blueprint ):
@@ -293,7 +306,6 @@ def ReadVariantBlueprints( stream, blueprint ):
 
         add_section      = blueprint_data["add"]
         replace_section  = blueprint_data["replace"]
-        # delete_section   = blueprint_data["delete"]
         bond_section     = blueprint_data["bonds"]
         angle_section    = blueprint_data["angles"]
         improper_section = blueprint_data["impropers"]
@@ -304,9 +316,6 @@ def ReadVariantBlueprints( stream, blueprint ):
         
         if replace_section is not None:
             ReadReplacingSection( replace_section, solute )
-
-        # if delete_section is not None:
-        #     ReadDeleteSection( replace_section, solute )
 
         if bond_section is not None:
             ReadBondSection( bond_section, solute )
