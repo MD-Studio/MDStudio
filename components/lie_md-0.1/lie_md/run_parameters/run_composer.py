@@ -29,26 +29,26 @@ import yaml
 
 from copy import deepcopy
 from collections import OrderedDict
-from lie_md.shared.exception import LieMdException
+from common.exception import LieMdException
 
-class ImdConditional(object):
+class MDStudioConditional(object):
     
     def __init__( self, definition ):
         
         if not "type" in definition:
             
-            raise LieMdException( "ImdConditional::__init__", "Conditional requires a type section" )
+            raise LieMdException( "MDStudioConditional::__init__", "Conditional requires a type section" )
         
         if not "value" in definition:
             
-            raise LieMdException( "ImdConditional::__init__", "Conditional requires a value section" )
+            raise LieMdException( "MDStudioConditional::__init__", "Conditional requires a value section" )
         
         self.type = definition["type"]
         self.value = definition["value"]
         
         if hasattr(self.value, "__len__"):
             
-            raise LieMdException( "ImdConditional::__init__", "Conditional value should be a scalar" )
+            raise LieMdException( "MDStudioConditional::__init__", "Conditional value should be a scalar" )
 
         self.actionList = dict()
         self.actionList[">="] = self._GreaterEqual
@@ -60,7 +60,7 @@ class ImdConditional(object):
         
         if not self.type in self.actionList:
             
-            raise LieMdException( "ImdConditional::__init__", "Conditional has an unknown type %s" % ( self.type ) )
+            raise LieMdException( "MDStudioConditional::__init__", "Conditional has an unknown type %s" % ( self.type ) )
         
     def _Greater( self, query ):
         
@@ -90,32 +90,32 @@ class ImdConditional(object):
         
         return self.actionList[self.type]( query )
 
-class ImdActivator(object):
+class MDStudioActivator(object):
     
     def __init__( self, definition ):
         
         if not "key" in definition:
             
-            raise LieMdException( "ImdActivator::__init__", "Activator requires a key section" )
+            raise LieMdException( "MDStudioActivator::__init__", "Activator requires a key section" )
         
         if not "value" in definition:
             
-            raise LieMdException( "ImdActivator::__init__", "Activator requires a value section" )
+            raise LieMdException( "MDStudioActivator::__init__", "Activator requires a value section" )
         
         self.key = definition["key"]
         self.value = definition["value"]
         
-class ImdProperty(object):
+class MDStudioProperty(object):
     
     def __init__( self, definition ):
         
         if not "key" in definition:
             
-            raise LieMdException( "ImdProperty::__init__", "Property requires a key section" )
+            raise LieMdException( "MDStudioProperty::__init__", "Property requires a key section" )
             
         if not "format" in definition:
             
-            raise LieMdException( "ImdProperty::__init__", "Property %s requires a format section" % (definition["key"]) )
+            raise LieMdException( "MDStudioProperty::__init__", "Property %s requires a format section" % (definition["key"]) )
 
         self.key = definition["key"]
         self.vformat = definition["format"]
@@ -148,7 +148,7 @@ class ImdProperty(object):
         
         for item in definition:
             
-            imdConditional = ImdConditional(item)
+            imdConditional = MDStudioConditional(item)
             conditionals.append( imdConditional )
          
         return conditionals   
@@ -159,7 +159,7 @@ class ImdProperty(object):
             
             return None
             
-        return ImdActivator( definition )
+        return MDStudioActivator( definition )
     
     def _CheckType( self, nval ):
         
@@ -167,24 +167,24 @@ class ImdProperty(object):
             
             if not isinstance( nval, int ):
 
-                raise LieMdException( "ImdProperty::CheckType", "Value for property %s should be of type %s, current value {%s}" % ( self.key, self.vformat, str(nval) ) )
+                raise LieMdException( "MDStudioProperty::CheckType", "Value for property %s should be of type %s, current value {%s}" % ( self.key, self.vformat, str(nval) ) )
             
         elif self.vformat == "float":
             
             # still allow int types here, the reverse def not!
             if not isinstance( nval, (float,int) ):
                 
-                raise LieMdException( "ImdProperty::CheckType", "Value for property %s should be of type %s, current value {%s}" % ( self.key, self.vformat, str(nval) ) )
+                raise LieMdException( "MDStudioProperty::CheckType", "Value for property %s should be of type %s, current value {%s}" % ( self.key, self.vformat, str(nval) ) )
         
         elif self.vformat == "txt":     
             
             if not isinstance( nval, str ):
                 
-                raise LieMdException( "ImdProperty::CheckType", "Value for property %s should be of type %s, current value {%s}" % ( self.key, self.vformat, str(nval) ) )
+                raise LieMdException( "MDStudioProperty::CheckType", "Value for property %s should be of type %s, current value {%s}" % ( self.key, self.vformat, str(nval) ) )
                
         else:
             
-            raise LieMdException( "ImdProperty::CheckType", "Unknown type %s" % ( self.vformat ) )
+            raise LieMdException( "MDStudioProperty::CheckType", "Unknown type %s" % ( self.vformat ) )
     
     def Validate(self):
         
@@ -192,7 +192,7 @@ class ImdProperty(object):
             
             if not cond.Evaluate( self.value ):
                 
-                raise LieMdException( "ImdProperty::Validate", "Violated conditional in %s with value %s" % ( self.key, str(self.value) ) )
+                raise LieMdException( "MDStudioProperty::Validate", "Violated conditional in %s with value %s" % ( self.key, str(self.value) ) )
     
     
     def SetValue( self, nval ):
@@ -219,11 +219,11 @@ class ImdProperty(object):
         
         return self.activator
 
-class ImdRepeat(object):
+class MDStudioRepeat(object):
     
     def __init__(self):
         
-        self.template = ImdBlock(None)
+        self.template = MDStudioBlock(None)
         self.sets = []
         
     def AddTemplateProperty( self, prop ):
@@ -247,11 +247,11 @@ class ImdRepeat(object):
     def __getitem__( self,  index ):
     
         if index >= len( self.sets ):
-            raise LieMdException(  "ImdRepeat::__getitem__", "Index overflow in ImdRepeat::GetItem()"  )
+            raise LieMdException(  "MDStudioRepeat::__getitem__", "Index overflow in MDStudioRepeat::GetItem()"  )
 
         return self.sets[index]
  
-class ImdBlock(object):
+class MDStudioBlock(object):
     
     def __init__(self, definition):
         
@@ -259,11 +259,11 @@ class ImdBlock(object):
             
             if not "key" in definition:
                 
-                raise LieMdException( "ImdBlock::__init__", "Block requires a key section" )
+                raise LieMdException( "MDStudioBlock::__init__", "Block requires a key section" )
     
             if not "properties" in definition:
                 
-                raise LieMdException( "ImdBlock::__init__", "Block requires a properties section" )
+                raise LieMdException( "MDStudioBlock::__init__", "Block requires a properties section" )
     
             self.key = definition["key"]
             #self.repeatRegions = OrderedDict()
@@ -281,14 +281,14 @@ class ImdBlock(object):
         
         for itemdef in definition:
             
-            imdProperty = ImdProperty( itemdef )
+            imdProperty = MDStudioProperty( itemdef )
             repeat = imdProperty.GetRepeat()
             
             if repeat:
                 
                 if not repeat in properties:
                     
-                    properties[repeat] = ImdRepeat()
+                    properties[repeat] = MDStudioRepeat()
                 
                 properties[repeat].AddTemplateProperty( imdProperty )
                 
@@ -308,7 +308,7 @@ class ImdBlock(object):
                 
                 fetch = self.properties[key]
                 
-                if not isinstance( fetch, ImdRepeat ):
+                if not isinstance( fetch, MDStudioRepeat ):
                     
                     activator = fetch.GetActivator()
     
@@ -318,11 +318,11 @@ class ImdBlock(object):
                         
                         if not activatorFetch:
                             
-                            raise LieMdException( "ImdBlock::_FetchProperty", "Unknown property key %s" % ( activator.key ) )
+                            raise LieMdException( "MDStudioBlock::_FetchProperty", "Unknown property key %s" % ( activator.key ) )
                         
                         if activatorFetch.value != activator.value:
                             
-                            raise LieMdException( "ImdBlock::_FetchProperty", "Tried to fetch a disabled property key %s" % ( key ) )
+                            raise LieMdException( "MDStudioBlock::_FetchProperty", "Tried to fetch a disabled property key %s" % ( key ) )
 
         return fetch
 
@@ -336,15 +336,15 @@ class ImdBlock(object):
         
         if fetch:
             
-            if isinstance(fetch, ImdRepeat):
+            if isinstance(fetch, MDStudioRepeat):
                 
-                raise LieMdException( "ImdBlock::__setitem__", "Cannot set on a repeat region %s" % (key) )
+                raise LieMdException( "MDStudioBlock::__setitem__", "Cannot set on a repeat region %s" % (key) )
             
             fetch.SetValue( value )
        
         else:
             
-            raise LieMdException( "ImdBlock::__setitem__", "Unknown key %s" % (key) )
+            raise LieMdException( "MDStudioBlock::__setitem__", "Unknown key %s" % (key) )
 
     def __getattr__( self, key ):
         
@@ -364,9 +364,9 @@ class ImdBlock(object):
 
         if fetch:
             
-            if isinstance(fetch,ImdRepeat):
+            if isinstance(fetch,MDStudioRepeat):
                 
-                raise LieMdException( "ImdBlock::__setattr__", "Cannot set on a repeat region %s" % (key) )
+                raise LieMdException( "MDStudioBlock::__setattr__", "Cannot set on a repeat region %s" % (key) )
             
             fetch.SetValue( value )
        
@@ -440,18 +440,18 @@ class RunInput(object):
         
        self._blockDefinitions = self._ParseDefinitions( ifile )
        
-    def _ParseDefinitions( self, ifile ):
-    
-        tree = yaml.load(ifile)
-        blocks = OrderedDict()
+    def _ParseDefinitions( self, ifstream ):
         
+        tree = yaml.load(ifstream)
+        blocks = OrderedDict()
+
         if not "BlockDefinitions" in tree:
             
-            raise LieMdException( "RunInput::_ParseDefinitions", "BlockDefinitions not contrained within the input file stream" )
+            raise LieMdException( "RunInput::_ParseDefinitions", "BlockDefinitions not within the input file stream" )
             
         for blockdef in tree["BlockDefinitions"]:
             
-            imdblock = ImdBlock( blockdef )
+            imdblock = MDStudioBlock( blockdef )
             
             if imdblock.GetKey() in blocks:
                 
@@ -474,4 +474,4 @@ class RunInput(object):
             
             result[component] = deepcopy( self._blockDefinitions[ component ] )
 
-        return RunInputFIle( result )
+        return RunInputFile( result )

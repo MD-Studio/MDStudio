@@ -5,9 +5,7 @@ import yaml
 from lie_topology.molecule.molecule import Molecule
 from lie_topology.molecule.blueprint import Blueprint
 from lie_topology.molecule.structure import Structure
-from lie_topology.parsers.mtbParser import ParseMtb
 from lie_topology.parsers.cnfParser import ParseCnf
-from lie_topology.parsers.ifpParser import ParseIfp
 from lie_topology.parsers.pdbParser import ParsePdb
 from lie_topology.parsers.groParser import ParseGro
 from lie_topology.parsers.sdfParser import ParseSdf
@@ -15,7 +13,7 @@ from lie_topology.parsers.mol2Parser import ParseMol2
 from lie_topology.parsers.mdtopParser import ParseMdtop
 from lie_topology.parsers.mdmtbParser import ParseMDMtb
 
-from lie_topology.utilities.makeTopology import MakeSequence
+from lie_topology.utilities.make_topology import MakeSequence
 
 from lie_topology.writers.cnfWriter import WriteCnf
 from lie_topology.writers.gromosTopologyWriter import WriteGromosTopology
@@ -31,9 +29,12 @@ def main():
         forcefield = ParseMdtop( mdtop_ifs )
         blueprint = ParseMDMtb( mdaa_ifs )
 
-        #topology = MakeSequence( forcefield, blueprint, ["ALA","ALA","ALA"], "SPC", [] )
+        topology = MakeSequence( forcefield, blueprint, ["NH3+_ALA", "CYS1", "ALA", "CYS2", "ALA_COO-"], [[1,3]] )
 
-        #print (topology.Debug())
+        print (topology.Debug())
+
+        with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
+            WriteGromosTopology( top_ofstream, topology, forcefield )
 
     # with open( "../tests/data/mtb/54a7.mtb", 'r') as mtb_ifstream,\
     #      open( "../tests/data/ifp/54a7.ifp", 'r') as ifp_ifstream:
@@ -51,7 +52,7 @@ def main():
 
 
         #  topology = MakeSequence( forcefield, blueprint,\
-        #        ["NH3+","ILE","VAL","GLY","GLY","GLN","GLU","CYS1","LYS","ASP","GLY",\
+        #        ["NH3+_ILE","VAL","GLY","GLY","GLN","GLU","CYS1","LYS","ASP","GLY",\
         #         "GLU","CYS2","PRO","TRP","GLN","ALA","LEU","LEU","ILE","ASN",\
         #         "GLU","GLU","ASN","GLU","GLY","PHE","CYS1","GLY","GLY","THR",\
         #         "ILE","LEU","SER","GLU","PHE","TYR","ILE","LEU","THR","ALA",\
@@ -74,7 +75,7 @@ def main():
         #         "GLY","ILE","VAL","SER","TRP","GLY","GLU","GLY","CYS2","ALA",\
         #         "ARG","LYS","GLY","LYS","TYR","GLY","ILE","TYR","THR","LYS",\
         #         "VAL","THR","ALA","PHE","LEU","LYS","TRP","ILE","ASP","ARG",\
-        #         "SER","MET","LYS","THR","COO-"], "SPC", []  )
+        #         "SER","MET","LYS","THR_COO-"], [] )
 
         
 

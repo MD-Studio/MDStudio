@@ -83,6 +83,7 @@ def MergeVariantAtoms( variant_template, molecule, variant_molecule, replace_set
         if atom_key in replace_set:
 
             atom_cpy = replace_set[atom_key]
+            atom_cpy.type_name = atom_cpy.key
             variant_molecule.AddAtom( atom=atom_cpy )
         
         else:
@@ -254,4 +255,4 @@ def GenerateVariants( blueprint ):
             MergeVariantImpropers( variant_name, variant_template, molecule, variant_molecule, replace_set )
             MergeVariantDihedrals( variant_name, variant_template, molecule, variant_molecule, replace_set )
 
-            print(variant_molecule.Debug())
+            blueprint.AddMolecule( molecule=variant_molecule )

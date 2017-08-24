@@ -48,6 +48,14 @@ from lie_topology.utilities.generate_variants import GenerateVariants
 from lie_topology.forcefield.forcefield       import CoulombicType, BondType
 from lie_topology.forcefield.reference        import ForceFieldReference
 
+def _GenerateForceFieldReference( key ):
+
+    if key is None:
+        return None
+
+    else: 
+        return ForceFieldReference( key=key )
+
 def GenerateBondedReferences( solute, entries, expected_entries ):
 
     references = None
@@ -110,9 +118,9 @@ def ReadAtomSection( atom_section, solute ):
         
         # These parameters are externally defined
         # Therefore we can only reference to them at this point
-        atom.mass_type = ForceFieldReference( key=mass_group )
-        atom.vdw_type  = ForceFieldReference( key=vdw_group )
-        atom.coulombic_type = ForceFieldReference( key=charge_type )
+        atom.mass_type = _GenerateForceFieldReference( key=mass_group )
+        atom.vdw_type  = _GenerateForceFieldReference( key=vdw_group )
+        atom.coulombic_type = _GenerateForceFieldReference( key=charge_type )
         
         atom.charge = charge
         atom.charge_group = charge_group
@@ -155,9 +163,9 @@ def ReadReplacingSection( replacing_section, solute ):
         
         # These parameters are externally defined
         # Therefore we can only reference to them at this point
-        atom.mass_type = ForceFieldReference( key=mass_group )
-        atom.vdw_type  = ForceFieldReference( key=vdw_group )
-        atom.coulombic_type = ForceFieldReference( key=charge_type )
+        atom.mass_type = _GenerateForceFieldReference( key=mass_group )
+        atom.vdw_type  = _GenerateForceFieldReference( key=vdw_group )
+        atom.coulombic_type = _GenerateForceFieldReference( key=charge_type )
         
         atom.charge = charge
         atom.charge_group = charge_group
@@ -175,11 +183,7 @@ def ReadBondSection( bond_section, solute ):
         bond_type = bond_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 2 )
-        forcefield_type = None
-
-        if bond_type is not None:
-            forcefield_type = ForceFieldReference( key=bond_type )
-
+        forcefield_type = _GenerateForceFieldReference( key=bond_type )
         bond = Bond( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddBond( bond )
 
@@ -196,11 +200,7 @@ def ReadAngleSection( angle_section, solute ):
         angle_type = angle_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 3 )
-        forcefield_type = None
-
-        if angle_type is not None:
-            forcefield_type = ForceFieldReference( key=angle_type )
-
+        forcefield_type = _GenerateForceFieldReference( key=angle_type )
         angle = Angle( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddAngle( angle )
 
@@ -217,11 +217,7 @@ def ReadDihedralSection( dihedral_section, solute ):
         dihedral_type = dihedral_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 4 )
-        forcefield_type = None
-
-        if dihedral_type is not None:
-            forcefield_type = ForceFieldReference( key=dihedral_type )
-
+        forcefield_type = _GenerateForceFieldReference( key=dihedral_type )
         dihedral = Dihedral( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddDihedral( dihedral )
 
@@ -238,11 +234,7 @@ def ReadImproperSection( improper_section, solute ):
         improper_type = improper_data["type"]
 
         atom_references = GenerateBondedReferences( solute, indices, 4 )
-        forcefield_type = None
-
-        if improper_type is not None:
-            forcefield_type = ForceFieldReference( key=improper_type )
-            
+        forcefield_type = _GenerateForceFieldReference( key=improper_type )
         improper = Improper( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddImproper( improper )
 

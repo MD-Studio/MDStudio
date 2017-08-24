@@ -198,24 +198,38 @@ def _WriteSoluteAtoms( solute_group, forcefield ):
             if (atom.type_name is None or
                 atom.vdw_type is None or
                 atom.mass_type is None or
-                atom.coulombic_type is None or
                 atom.charge_group is None): 
 
                raise LieTopologyException("WriteGromosTopology", "Writing atom %s->%s requires at least\
-                                           type_name, mass_type, vdw_type, coulombic_type and charge_group entries"\
+                                           type_name, mass_type, vdw_type and charge_group entries"\
                                            % ( molecule.key, atom.key ) ) 
 
             # all of the force field types could be references
             if (not isinstance(atom.vdw_type, VdwType) or
-                not isinstance(atom.mass_type, MassType) or
-                not isinstance(atom.coulombic_type, CoulombicType)):
+                not isinstance(atom.mass_type, MassType)):
 
                 raise LieTopologyException("WriteGromosTopology", "Force field references for %s->%s should be pre-resolved"\
                                            % ( molecule.key, atom.key ) ) 
 
+            charge = None
+
+            # special handle for charges
+            if atom.coulombic_type is not None:
+                if not isinstance(atom.coulombic_type, CoulombicType):
+                    raise LieTopologyException("WriteGromosTopology", "Force field references for %s->%s should be pre-resolved"\
+                                           % ( molecule.key, atom.key ) ) 
+                
+                charge = atom.coulombic_type.charge
+
+            # charge override
+            if atom.charge is not None:
+                charge = atom.charge
             
+            if charge is None:
+                raise LieTopologyException("WriteGromosTopology", "No charge assignment for %s->%s"\
+                                           % ( molecule.key, atom.key ) )
+                
             mass = atom.mass_type.mass
-            charge = atom.coulombic_type.charge
             vdw_index = forcefield.vdwtypes.indexOf(atom.vdw_type.key) + 1 # +1 as gromos starts from 1
 
             # negative numbers indicate not found

@@ -29,6 +29,7 @@ import os
 import yaml
 import numpy as np
 
+from lie_topology.common.util             import ordered_load
 from lie_topology.common.exception        import LieTopologyException
 from lie_topology.forcefield.forcefield   import *
 
@@ -274,7 +275,7 @@ def ParseMdtop( ifstream ):
 
     forcefield = ForceField()
 
-    stream = yaml.load(ifstream)
+    stream = ordered_load( ifstream )
     ParseHeader( forcefield, stream )
     ParseMassTypes( forcefield, stream )
     ParseAtomTypes( forcefield, stream )

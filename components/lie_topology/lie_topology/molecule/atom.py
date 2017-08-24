@@ -159,7 +159,7 @@ class Atom( Serializable ):
         return Atom( key=key, type_name=self.type_name, element=self.element,\
                      identifier=self.identifier, sybyl=self.sybyl,\
                      mass_type=mass_type_cpy, vdw_type=vdw_type_cpy,\
-                     coulombic_type=coulombic_type_cpy, charge_group=self.charge_group,\
+                     coulombic_type=coulombic_type_cpy, charge=self.charge, charge_group=self.charge_group,\
                      virtual_site=virtual_site_cpy, status=self.status )
 
 

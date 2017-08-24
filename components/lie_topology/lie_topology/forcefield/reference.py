@@ -34,5 +34,8 @@ class ForceFieldReference( Serializable ):
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
 
+        if key is None:
+            raise LieTopologyException( "ForceFieldReference", "Key of type None not allowed, instead use a None reference" )
+
         # key to refer to a force field type
         self.key = key

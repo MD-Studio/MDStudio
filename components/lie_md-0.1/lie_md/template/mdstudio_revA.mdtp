@@ -1,0 +1,15 @@
+BlockDefinitions:
+    - key: 'system'
+      properties:
+        - key: npm
+          format: int
+          conditions: 
+            - type: '>='
+              value: 0
+            - type: '<='
+              value: 1
+        - key: nsm
+          format: int
+          conditions: 
+            - type: '>='
+              value: 0

@@ -1,6 +1,6 @@
 meta:
     version: V1.0
-    forcefield: GROMOS_53A6
+    forcefield: GROMOS_54A7
 
 linkexclusions: 2
 
@@ -288,17 +288,17 @@ atom_types:
 
     NA+: # 37 NA+ sodium (charge 1+)
         atom_number:  11
-        c6_sqrt:      0.008489         
-        c12_sqrt:    [0.000145, 0.000145, 0.0]
-        c6_1-4_sqrt:  0.008489
-        c12_1-4_sqrt: 0.000145        
+        c6_sqrt:      0.0088792         
+        c12_sqrt:    [0.2700E-3, 0.2700E-3, 0.0]
+        c6_1-4_sqrt:  0.0088792
+        c12_1-4_sqrt: 0.2700E-3      
 
     CL-: # 38 CL\u2212 chloride (charge 1\u2212)
         atom_number:  17
-        c6_sqrt:      0.1175         
-        c12_sqrt:    [0.01034, 0.01034, 0.01034]
-        c6_1-4_sqrt:  0.1175
-        c12_1-4_sqrt: 0.01034  
+        c6_sqrt:      0.11318         
+        c12_sqrt:    [7.776E-3, 7.776E-3, 7.776E-3]
+        c6_1-4_sqrt:  0.11318
+        c12_1-4_sqrt: 7.776E-3  
 
     CChl: # 39 CChl carbon in chloroform (solvent)
         atom_number:  6
@@ -405,8 +405,15 @@ atom_types:
         c6_1-4_sqrt:  0.057903
         c12_1-4_sqrt: 0.0019877 
 
+    CH3p: # 54
+        atom_number:  7
+        c6_sqrt:      0.09805        
+        c12_sqrt:    [5.162E-3, 0.0, 0.0]
+        c6_1-4_sqrt:  0.08278
+        c12_1-4_sqrt: 2.455782E-3 
+
 pair_interactions:
-    O: { OA: 2, OW: 2, N: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
+    O: { OA: 2, OW: 2, NT: 2, NL: 2, NR: 2, NZ: 2,
          NE: 2, CU1+: 2, CU2+: 2, FE: 2, ZN2+: 2, MG2+: 2,
          CA2+: 2, 'P,SI': 2, OMet: 2, NA+: 2}
     OM: {OA: 2, OW: 2, N: 2, NT: 2, NR: 2, OMet: 2,
@@ -516,19 +523,19 @@ coulombic_types:
     damping-level: 0.0
     damping-power: 0.0
     polarizability: 0.0
-  ala_val_ile_leu-CH3:
+  hydrocarbon-CH3:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
     polarizability: 0.0
-  ala_val_ile_leu-CH2:
+  hydrocarbon-CH2:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
     polarizability: 0.0
-  ala_val_ile_leu-CH:
+  hydrocarbon-CH:
     charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
@@ -564,7 +571,7 @@ coulombic_types:
     damping-level: 0.0
     damping-power: 0.0
     polarizability: 0.0
-  arg(+)-NHxx:
+  arg(+)-HHxx:
     charge: 0.24
     cos-charge: -8.0
     damping-level: 0.0
@@ -668,6 +675,18 @@ coulombic_types:
     polarizability: 0.0
   asp_glu(n)-Hx2:
     charge: 0.408
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarizability: 0.0
+  cys(b)-CB:
+    charge: 0.0
+    cos-charge: -8.0
+    damping-level: 0.0
+    damping-power: 0.0
+    polarizability: 0.0
+  cys(b)-SG:
+    charge: 0.0
     cos-charge: -8.0
     damping-level: 0.0
     damping-power: 0.0
@@ -1608,6 +1627,22 @@ dihedral_types:
     fc: 3.77
     phase-shift: 0.0
     multiplicity: 6
+  gd_42: # -CHn-C- 0.84
+    fc: 3.50
+    phase-shift: 180.0
+    multiplicity: 2
+  gd_43: # -CHn-N- 0.67
+    fc: 2.80
+    phase-shift: 0.0
+    multiplicity: 3
+  gd_44: # -CHn-N- 0.17
+    fc: 0.70
+    phase-shift: 180.0
+    multiplicity: 6
+  gd_45: # -CHn-C- 0.10
+    fc: 0.40
+    phase-shift: 0.0
+    multiplicity: 6
 
 improper_types:
   gi_1: # planar groups 40
@@ -1619,3 +1654,9 @@ improper_types:
   gi_3: # heme iron 160
     fc: 0.204
     angle0: 0.0
+  gi_4: # planar groups 40
+    fc: 0.0510 
+    angle0: 180.0
+  gi_5: # tetrahedral centres   80
+    fc: 0.102 
+    angle0: -35.26439
