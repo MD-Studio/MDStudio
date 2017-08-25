@@ -191,7 +191,7 @@ class NodeTools(_NodeEdgeBase):
             return key in self.nodes[self.nid]
         return False
 
-    def get(self, key=None, defaultattr=None, default=None, **kwargs):
+    def get(self, key=None, default=None, defaultattr=None, **kwargs):
         """
         Return node value
 

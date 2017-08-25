@@ -448,7 +448,7 @@ class Graph(object):
 
         return edges_added
 
-    def add_node(self, node, deepcopy=True, **kwargs):
+    def add_node(self, node, **kwargs):
         """
         Add a node to the graph
 
@@ -465,9 +465,6 @@ class Graph(object):
 
         :param node:     object representing the node
         :type node:      any hashable object
-        :param deepcopy: make a deepcopy of the node before adding it to
-                         the graph.
-        :type deepcopy:  bool
         :param kwargs:   any additional keyword arguments to be added as
                          node metadata.
         :return:         node ID
@@ -492,12 +489,16 @@ class Graph(object):
 
         # Prepaire node data dictionary
         node_data = {'nid': nid, '_id': self._nodeid}
-        if deepcopy:
-            node_data[self.node_data_tag] = copy.deepcopy(node)
-            node_data.update(kwargs)
-        else:
-            node_data[self.node_data_tag] = node
-            node_data.update(copy.deepcopy(kwargs))
+        node_data[self.node_data_tag] = node
+        
+        # Update node data dictionary with attributes but exclude '_id' keyword and
+        # 'nid' if auto_nid equals True
+        exclude = ['_id']
+        if self.auto_nid:
+            exclude.append('nid')
+        for k,v in copy.deepcopy(kwargs).items():
+            if not k in exclude:
+                node_data[k] = v
 
         self.adjacency[nid] = []
         self.nodes[nid] = node_data
@@ -527,24 +528,36 @@ class Graph(object):
 
         return node_collection
 
-    def attr(self, key):
+    def attr(self, key, copy_attr=False):
         """
         Provides direct access to a node or edge attribute by ID.
+        
+        It returns a reference to the original data source unless the copy_attr
+        attribute equals True in case it will return a deepcopy of the
+        dictionary.
 
-        :return: Node or edge attribute.
-        :rtype:  Node ID as integer or edge ID as tuple of 2 node ID's.
+        :param copy_attr: Return a deep copy of the data dictionary
+        :type copy_attr:  boolean
+        
+        :return:          Node or edge attribute.
+        :rtype:           Node ID as integer or edge ID as tuple of 2 node ID's
         """
-
+        
+        data_dict = None
         if type(key) in (tuple, list):
             key = tuple(key)
             if self.is_masked:
-                return self.edges.get(key)
-            return self._full_graph.edges.get(key)
+                data_dict = self.edges.get(key)
+            data_dict = self._full_graph.edges.get(key)
 
         if self.is_masked:
-            return self.nodes.get(key)
-        return self._full_graph.nodes.get(key)
-
+            data_dict = self.nodes.get(key)
+        data_dict = self._full_graph.nodes.get(key)
+        
+        if copy_attr:
+            return copy.deepcopy(data_dict)
+        return data_dict
+        
     def clear(self):
         """
         Clear nodes and edges in the graph.
