@@ -27,7 +27,7 @@ from .common import _schema_to_data
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
-logging = Logger()
+#logging = Logger()
 
 
 class _TaskBase(object):
@@ -136,7 +136,6 @@ class Task(_TaskBase):
 
 class WampTask(_TaskBase):
     
-    #@inlineCallbacks
     def run_task(self, runner, callback, errorback=None):
         
         method_url = unicode(self.uri)
@@ -227,6 +226,45 @@ class Choice(_TaskBase):
         self.status = 'failed'
 
 
+class Mapper(_TaskBase):
+    """
+    Mapper class
+    """
+    
+    def run_task(self, runner, callback, errorback=None):
+        
+        mapped = self.get_input().get('mapper', [])
+        if len(mapped):
+           logging.info('Task {0} ({1}), {2} items to map'.format(self.nid, self.task_name, len(mapped)))
+           
+           # Get task session
+           session = WAMPTaskMetaData(metadata=self.nodes[self.nid].get('session', {}))
+           
+           # Make a copy of the child tasks for every data item that needs to
+           # be mapped.
+           next_tasks = [t for t in self.children() if t.status == 'ready']
+           nxt = next_tasks[0].nid
+           attr = self._full_graph.attr(nxt, copy_attr=True)
+           for task in range(len(mapped)-1):
+               cp = self._full_graph.add_node(attr['task_name'], **attr)
+               self._full_graph.add_edge(self.nid, cp)
+           
+           for i,child in enumerate([t for t in self.children() if t.status == 'ready']):
+               
+               # Define input for the copied task
+               if not 'input_data' in child:
+                   self._full_graph.nodes[child.nid]['input_data'] = {}
+               
+               # TODO: Define data mapper here
+               child['input_data'].update(mapped[i])
+           
+           session.status = 'completed'
+           callback({'session': session.dict()}, self.nid)
+          
+        else:
+           return errorback('Task {0} ({1}), no items to map'.format(self.nid, self.task_name), self.nid)
+
+           
 class Collect(_TaskBase):
     """
     Reducer class
@@ -283,3 +321,4 @@ WORKFLOW_ORM.map_node(Choice, {'task_type':'Choice'})
 WORKFLOW_ORM.map_node(Collect, {'task_type':'Collect'})
 WORKFLOW_ORM.map_node(BlockingTask, {'task_type': 'BlockingTask'})
 WORKFLOW_ORM.map_node(WampTask, {'task_type': 'WampTask'})
+WORKFLOW_ORM.map_node(Mapper, {'task_type': 'Mapper'})

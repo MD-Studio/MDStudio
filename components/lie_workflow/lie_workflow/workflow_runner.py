@@ -19,7 +19,7 @@ from .workflow_spec import WorkflowSpec
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
-logging = Logger()
+#logging = Logger()
 
 class _WorkflowQueryMethods(object):
     """
@@ -65,7 +65,7 @@ class _WorkflowQueryMethods(object):
         True if there are no more active tasks and at least one task has failed or was aborted
         """
         
-        if not len(self.active_tasks) and len([task['status'] in ('failed','aborted') for task in self.workflow.nodes.values()]):
+        if not len(self.active_tasks) and all([task['status'] in ('failed','aborted') for task in self.workflow.nodes.values()]):
             return True
         return False
     
@@ -264,6 +264,10 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Get the task
         task = self.workflow.getnodes(tid)
         
+        # Output callback called means task is not active.
+        # TODO: this will change when returns status == 'running'
+        task.active = False
+        
         # If the task returned no output at all, fail it
         if output:
             # Get session information and remove when done
@@ -290,13 +294,12 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # If the task is completed, go to next
         next_task_nids = []
         if task.status == 'completed':
-            task.active = False
             
             # Get data from just completed task and use as input for new task
             task_input = task.get('output_data')
              
             # Get next task(s) to run
-            next_tasks = [t for t in task.children() if task.status != 'disabled']
+            next_tasks = [t for t in task.children() if t.status != 'disabled']
             logging.info('{0} new tasks to run with the output of {1} ({2})'.format(len(next_tasks), task.nid, task.task_name))         
             for ntask in next_tasks:
                 if not 'input_data' in ntask.nodes[ntask.nid]:
@@ -316,7 +319,6 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # If the task failed, retry if allowed and reset status to "ready"
         if task.status == 'failed' and task.retry_count > 0:
             task.retry_count = task.retry_count - 1
-            task.active = False
             task.status = 'ready'
             
             logging.warn('Task {0} ({1}) failed. Retry ({2} times left)'.format(task.nid, task.task_name, task.retry_count))
@@ -324,7 +326,6 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
         # If the active failed an no retry is allowed, stop working.
         if task.status == 'failed' and task.retry_count == 0:
-            task.active = False
             logging.error('Task {0} ({1}) failed'.format(task.nid, task.task_name))
             self.is_running = False
             return
@@ -332,15 +333,27 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # If the task is completed but a breakpoint is defined, wait for the breakpoint to be lifted
         if task.breakpoint:
             logging.info('Task {0} ({1}) finished but breakpoint is active'.format(task.nid, task.task_name))
-            self.is_running = False
+            self.workflow.is_running = False
             return
         
-        # Finish of if there are no more tasks to run and all are completed
-        if not next_task_nids and (self.is_completed or self.has_failed):
-            logging.info('finished workflow')
-            self.is_running = False
-            return
-            
+        # Not more new tasks
+        if not next_task_nids:
+        
+            # Not finsihed but no active tasks anymore/breakpoint
+            if not self.active_tasks and not self.is_completed:
+                logging.info('The workflow is not finsihed but there are no more active tasks')
+                breakpoint = self.active_breakpoint
+                if breakpoint:
+                    logging.info('Active breakpoint on task {0}'.format(breakpoint))
+                self.is_running = False
+                return
+        
+            # Finish of if there are no more tasks to run and all are completed
+            if self.is_completed or self.has_failed:
+                logging.info('finished workflow')
+                self.is_running = False
+                return
+        
         # Launch new tasks
         for tid in next_task_nids:
             self._run_task(tid)
