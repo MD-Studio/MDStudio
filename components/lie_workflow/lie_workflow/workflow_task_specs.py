@@ -189,10 +189,8 @@ class StartTask(_TaskBase):
     
     Responsible for handling intitial workflow input and pre-processing
     """
-        
-    def run_task(self, runner, callback, errorback=None):
-        
-        session = WAMPTaskMetaData(metadata=self.nodes[self.nid].get('session', {}))
+    
+    def _start(self, session=None, **kwargs):
         
         # Check input
         status = 'completed'
@@ -209,8 +207,27 @@ class StartTask(_TaskBase):
         session.status = status
         session._metadata['utime'] = int(time.time())
         
-        callback({'session': session.dict()}, self.nid)
-
+        return {'session': session.dict()}
+    
+    def run_task(self, runner, callback, errorback=None):
+        """
+        Start tasks are always run as Twisted deferToThread to 
+        start a Twisted reactor to be used by other tasks.
+        """
+        
+        session = WAMPTaskMetaData(metadata=self.nodes[self.nid].get('session', {}))
+                
+        d = threads.deferToThread(self._start,
+                                  session=session, 
+                                  **self.get_input())
+        if errorback:
+            d.addErrback(errorback, self.nid)
+        if callback:
+            d.addCallback(callback, self.nid)
+        
+        if not reactor.running:
+            reactor.run(installSignalHandlers=0)
+        
 
 class Choice(_TaskBase):
     
@@ -310,7 +327,6 @@ class Collect(_TaskBase):
         else:
             # Output collection not complete. Reset task status to ready and evaluate again at next pass
             logging.info('Task {0} ({1}): Not all output available yet'.format(self.nid, self.task_name))
-            self.active = False
             self.status = 'ready'
             callback({'session': session.dict()}, self.nid)
 
