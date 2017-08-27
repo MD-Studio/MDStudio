@@ -134,6 +134,7 @@ class Task(_TaskBase):
         if not reactor.running:
             reactor.run(installSignalHandlers=0)
 
+
 class WampTask(_TaskBase):
     
     def run_task(self, runner, callback, errorback=None):

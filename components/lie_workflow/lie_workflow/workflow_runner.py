@@ -341,7 +341,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         
             # Not finsihed but no active tasks anymore/breakpoint
             if not self.active_tasks and not self.is_completed:
-                logging.info('The workflow is not finsihed but there are no more active tasks')
+                logging.info('The workflow is not finished but there are no more active tasks')
                 breakpoint = self.active_breakpoint
                 if breakpoint:
                     logging.info('Active breakpoint on task {0}'.format(breakpoint))
@@ -502,9 +502,9 @@ class WorkflowRunner(_WorkflowQueryMethods):
         active_tasks = [task['nid'] for task in self.workflow.nodes.values() if task['active']]
         logging.info('Canceling {0} active tasks in the workflow: {1}'.format(len(active_tasks), active_tasks))
         
-        for task in active_tasks:
-            self.workflow.nodes[task]['status'] = 'aborted'
-            self.workflow.nodes[task]['active'] = False
+        for tid in active_tasks:
+            task = self.workflow.getnodes(tid)
+            task.cancel()
         
         self.is_running = False
         self.workflow.update_time = int(time.time())
