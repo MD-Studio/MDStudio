@@ -92,7 +92,8 @@ class LIEWorkflow(LieApplicationSession):
             yield sleep(1)
 
         # Save the workflow to file
-        wf.save(path=os.path.join(workdir, 'workflow.json'))
+        project_dir = wf.get_task(1)['workdir']
+        wf.save(path=os.path.join(project_dir, 'workflow.json'))
 
         self.leave()
         self.disconnect()

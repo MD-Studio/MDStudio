@@ -9,6 +9,7 @@ Graph node task classes
 import random
 import logging
 import jsonschema
+import itertools
 import json
 import time
 import os
@@ -19,6 +20,8 @@ from twisted.internet.defer import inlineCallbacks
 from twisted.logger import Logger
 
 from lie_graph.graph_orm import GraphORM
+from lie_graph.graph_algorithms import dfs_paths
+from lie_graph.graph_helpers import renumber_id
 from lie_system import WAMPTaskMetaData
 
 from .common import _schema_to_data
@@ -216,7 +219,10 @@ class StartTask(_TaskBase):
         """
         
         session = WAMPTaskMetaData(metadata=self.nodes[self.nid].get('session', {}))
-                
+        
+        #callback(self._start(session=session, **self.get_input()), self.nid)
+        #return
+        
         d = threads.deferToThread(self._start,
                                   session=session, 
                                   **self.get_input())
@@ -247,25 +253,72 @@ class Choice(_TaskBase):
 class Mapper(_TaskBase):
     """
     Mapper class
+    
+    Task that parallelises input from an array to all descending tasks or 
+    upto a Collect task that is assigned to collect the output the task
+    lineage created by this mapper class.
+    
+    Tasks lineages are duplicated dynamically. The mapping procedure may be
+    customized by providing a specialised runner function to the run_task
+    method
     """
     
-    def run_task(self, runner, callback, errorback=None):
+    def run_task(self, runner=None, callback=None, errorback=None):
+        """
+        :param runner:    custom mapper function
+        :type runner:     function
+        :param callback:  workflow runner callback function to pass results to
+        :type callback:   function
+        :param errorback: workflow runner errorback function to call upon
+                          function error
+        :type errorback:  function
+        """
         
         mapped = self.get_input().get('mapper', [])
         if len(mapped):
+           
+           # Pre-process data array
+           # if runner:
+           #     mapped = runner(mapped)
+            
            logging.info('Task {0} ({1}), {2} items to map'.format(self.nid, self.task_name, len(mapped)))
            
            # Get task session
            session = WAMPTaskMetaData(metadata=self.nodes[self.nid].get('session', {}))
            
-           # Make a copy of the child tasks for every data item that needs to
+           # Get the full descendant lineage from this Mapper taks to the Collect
+           # task assigned to the mapper
+           collector_task = self._full_graph.query_nodes({'to_mapper':self.nid})
+           if collector_task:
+               maptid = list(itertools.chain.from_iterable(dfs_paths(self._full_graph, self.nid, collector_task.nid)))
+               maptid = sorted(set(maptid))
+               maptid.remove(self.nid)
+               maptid.remove(collector_task.nid)
+           else:
+               maptid = self.descendants(return_nids=True)
+           
+           # Create subgraph of the mapper tasks lineage.
+           # Call errorback if no task lineage
+           if maptid:
+               subgraph = self._full_graph.getnodes(maptid).copy()
+           else:
+               errorback('Task {0} ({1}), no tasks connected to Mapper task'.format(self.nid, self.task_name), self.nid)
+               return
+           
+           # Make a copy of the task lineage subgraph for every data item to
            # be mapped.
-           next_tasks = [t for t in self.children() if t.status == 'ready']
-           nxt = next_tasks[0].nid
-           attr = self._full_graph.attr(nxt, copy_attr=True)
+           first_task = maptid[0]
+           last_task = maptid[-1]
            for task in range(len(mapped)-1):
-               cp = self._full_graph.add_node(attr['task_name'], **attr)
-               self._full_graph.add_edge(self.nid, cp)
+               
+               g,tidmap = renumber_id(subgraph, self._full_graph._nodeid)
+               self._full_graph += g
+               self._full_graph.add_edge(self.nid, tidmap[first_task])
+               
+               if collector_task:
+                   self._full_graph.add_edge(tidmap[last_task], collector_task.nid)
+               first_task = tidmap[first_task]
+               last_task = tidmap[last_task]
            
            for i,child in enumerate([t for t in self.children() if t.status == 'ready']):
                
@@ -280,7 +333,7 @@ class Mapper(_TaskBase):
            callback({'session': session.dict()}, self.nid)
           
         else:
-           return errorback('Task {0} ({1}), no items to map'.format(self.nid, self.task_name), self.nid)
+           errorback('Task {0} ({1}), no items to map'.format(self.nid, self.task_name), self.nid)
 
            
 class Collect(_TaskBase):
@@ -321,6 +374,7 @@ class Collect(_TaskBase):
             session._metadata['utime'] = int(time.time())
             
             output = {'session': session.dict()}
+            print(collected_output)
             output.update(runner(collected_output))
             callback(output, self.nid)
             

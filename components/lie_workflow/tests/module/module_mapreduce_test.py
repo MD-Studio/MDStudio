@@ -18,6 +18,50 @@ from   dummy_task_runners          import task_runner, calculate_accumulated_tas
 currpath = os.path.dirname(__file__)
 
 
+class TestArrayMapper(unittest2.TestCase):
+    """
+    Run a Map-Reduce style workflow using the Mapper task that
+    maps data items from an array on parallelised copies of the
+    descendant tasks
+    """
+
+    def setUp(self):
+        """
+        Load a simple map-reduce workflow from a JSON specification
+        """
+
+        # Construct the workflow specification
+        self.wf = Workflow()
+        self.wf.task_runner = task_runner
+
+    def test_array_mapper(self):
+
+        # Set some workflow metadata in the start node
+        self.wf.input(mapper=[{'dummy':1}, {'dummy':2}, {'dummy': 3}])
+
+        # Connect mapper to start
+        t1 = self.wf.add_task('Map input', task_type='Mapper')
+        self.wf.connect_task(1, t1)
+
+        # Connect a worker
+        t2 = self.wf.add_task('Worker')
+        self.wf.input(t2, sleep=1)
+        self.wf.connect_task(t1,t2)
+
+        # Connect a collector
+        t3 = self.wf.add_task('Collect', task_type='Collect', to_mapper=t1, custom_func='dummy_task_runners.reduce_function')
+        self.wf.connect_task(t2,t3)
+
+        # Run the workflow
+        self.wf.run()
+
+        while self.wf.is_running:
+            time.sleep(1)
+
+        self.assertFalse(self.wf.is_running)
+        self.assertTrue(self.wf.is_completed)
+
+
 class TestMapReduceWorkflow(unittest2.TestCase):
     """
     Run a Map-Reduce style workflow testing default mapping function of
@@ -53,7 +97,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
 
         while self.wf.is_running:
             time.sleep(1)
-
+        
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
 
@@ -172,7 +216,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
         # Blocking: wait until the workflow hits an active breakpoint
         while self.wf.is_running:
             time.sleep(1)
-        
+
         self.assertFalse(self.wf.is_running)
         self.assertFalse(self.wf.is_completed)
         self.assertEqual(self.wf.active_breakpoint, 7)
