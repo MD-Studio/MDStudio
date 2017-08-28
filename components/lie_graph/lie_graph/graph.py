@@ -571,7 +571,7 @@ class Graph(object):
         self.adjacency.clear()
         self._nodeid = 0
 
-    def copy(self, deep=True, copy_view=True):
+    def copy(self, deep=True, copy_view=True, clean=True):
         """
         Return a (deep) copy of the graph
 
@@ -581,6 +581,10 @@ class Graph(object):
 
         If 'deep' equals true, a deepcopy of the class and its attributes is
         made. The new graph has _full_graph referenced to itself.
+        A deep copy of graph returns a new graph that should be self
+        consistent. If a subgraph is copied this way it may contain edges 
+        between nodes that are not in the subgraph. These are removed by
+        default (clean attribute)
 
         :param deep:        return a deep copy of the Graph object
         :type deep:         bool
@@ -589,6 +593,8 @@ class Graph(object):
                             Otherwise, only make a deep copy of the 'view'
                             state.
         :type copy_view:    bool
+        :param clean:       Remove non-existing edges
+        :type clean:        :py:bool
 
         :return:            copy of the graph
         :rtype:             Graph object
@@ -600,21 +606,31 @@ class Graph(object):
         # Make a deep copy
         if deep:
             class_copy = base_cls()
-
-            class_copy.edges.update(copy.deepcopy(self.edges.dict(return_full=True)))
-            if copy_view:
-                class_copy.edges._view = copy.deepcopy(self.edges._view)
-
+            
             class_copy.nodes.update(copy.deepcopy(self.nodes.dict(return_full=True)))
             if copy_view:
                 class_copy.nodes._view = copy.deepcopy(self.nodes._view)
-
-            class_copy.adjacency.update(copy.deepcopy(self.adjacency.dict(return_full=True)))
+                
+            class_copy.edges.update(copy.deepcopy(self.edges.dict(return_full=True)))
             if copy_view:
-                class_copy.adjacency._view = copy.deepcopy(self.adjacency._view)
-
+                class_copy.edges._view = copy.deepcopy(self.edges._view)
+            
+            if clean:
+                nids = set(class_copy.nodes.keys())
+                for edge in [e for e in class_copy.edges.keys()]:
+                    if not set(edge).issubset(nids):
+                        del class_copy.edges[edge]
+                    
+            # If clean, rebuild adjacency
+            if clean:
+                class_copy._set_adjacency()
+            else:
+                class_copy.adjacency.update(copy.deepcopy(self.adjacency.dict(return_full=True)))
+                if copy_view:
+                    class_copy.adjacency._view = copy.deepcopy(self.adjacency._view)
+            
             class_copy.orm = copy.deepcopy(self.orm)
-
+            
         # Make a shallow copy
         else:
             class_copy = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
