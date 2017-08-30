@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Cursor",
+    "type": "object",
+    "properties": {
+        "results": {
+            "type": "array",
+            "items": {
+                "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
+            },
+            "additionalItems": false
+        },
+        "size": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "cursorId": {
+            "type": "string"
+        },
+        "alive": {
+            "type": "boolean"
+        }
+    },
+    "required": [
+        "result",
+        "size",
+        "alive"
+    ],
+    "additionalProperties": false
+}

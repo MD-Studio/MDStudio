@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "AggregateRequest",
+    "type": "object",
+    "properties": {
+        "collection": {
+            "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
+        },
+        "pipeline": {
+            "type": "array",
+            "items": {
+                "$ref": "wamp://mdstudio.schema.get/db/aggregate/aggregate-pipeline-operator.v1.json"
+            },
+            "additionalItems": false
+        }
+    },
+    "required": [
+        "collection",
+        "pipeline"
+    ],
+    "additionalProperties": false
+}

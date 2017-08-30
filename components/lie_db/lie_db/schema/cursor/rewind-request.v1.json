@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "RewindRequest",
+    "type": "object",
+    "properties": {
+        "cursorId": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "cursorId"
+    ],
+    "additionalProperties": false
+}

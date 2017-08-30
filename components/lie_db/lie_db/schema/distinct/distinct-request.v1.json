@@ -1,28 +1,21 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "UpdateManyResponse",
+    "title": "DistinctRequest",
     "type": "object",
     "properties": {
         "collection": {
             "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
         },
-        "update": {
-            "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
+        "field": {
+            "type": "string"
         },
         "filter": {
             "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
-        },
-        "upsert": {
-            "type": "boolean",
-            "default": false
-        },
-        "fields": {
-            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
         }
     },
     "required": [
         "collection",
-        "update"
+        "field"
     ],
     "additionalProperties": false
 }

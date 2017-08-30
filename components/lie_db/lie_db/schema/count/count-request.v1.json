@@ -1,29 +1,50 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
     "title": "CountRequest",
-    "type": "object",
-    "properties": {
-        "collection": {
-            "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
+    "oneOf": [
+        {
+            "type": "object",
+            "properties": {
+                "collection": {
+                    "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
+                },
+                "filter": {
+                    "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
+                },
+                "skip": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "limit": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "fields": {
+                    "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
+                }
+            },
+            "required": [
+                "collection",
+                "filter"
+            ],
+            "additionalProperties": false
         },
-        "filter": {
-            "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
-        },
-        "skip": {
-            "type": "integer",
-            "minimum": 0
-        },
-        "limit": {
-            "type": "integer",
-            "minimum": 0
-        },
-        "fields": {
-            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
+        {
+            "type": "object",
+            "properties": {
+                "cursorId": {
+                    "type": "string"
+                },
+                "withLimitAndSkip": {
+                    "type": "bool",
+                    "default": false
+                }
+            },
+            "required": [
+                "cursorId",
+                "withLimitAndSkip"
+            ],
+            "additionalProperties": false
         }
-    },
-    "required": [
-        "collection",
-        "filter"
-    ],
-    "additionalProperties": false
+    ]
 }

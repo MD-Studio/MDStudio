@@ -3,161 +3,308 @@
 """
 file: db_methods.py
 """
-
+import hashlib
 import os
-import copy
 import pytz
 import getpass
-import logging
 import datetime
-import itertools
 import subprocess
 
+import sys
+
+import random
 from dateutil.parser import parse as parsedate
 from pymongo.errors import ConnectionFailure
 from twisted.logger import Logger
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
 from distutils import spawn
 from autobahn import wamp
 from bson import ObjectId
+from expiringdict import ExpiringDict
 
-from lie_corelib import WampSchema, validate_json_schema
-from lie_corelib.db import IDatabaseWrapper
+from lie_corelib.lie_corelib.db.database import *
 
 logger = Logger(namespace='db')
 
-class MongoDatabaseWrapper(IDatabaseWrapper):
+
+class MongoDatabaseWrapper(IDatabase):
+    _namespace = None
+    _db = None
+
+    # type: ExpiringDict
+    _cursors = None
+
     def __init__(self, namespace, db):
         self._namespace = namespace
         self._db = db
 
-    def count(self, collection=None, filter=None, skip=0, limit=0, fields=None):
-        coll = self._get_collection(collection)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'filter': filter}, fields['date'])
+        # store the cursors for 10 minutes as described here
+        # https://docs.mongodb.com/v3.0/core/cursors/
+        # @TODO:  this method is really insecure since we can ask arbitrary cursors,
+        #         and should be fixed ASAP
+        self._cursors = ExpiringDict(max_len=sys.maxsize, max_age_seconds=10 * 60)
 
-        return {'total': 0 if coll is None else coll.count(filter, skip=skip, limit=limit)}
+    def more(self, cursor_id):
+        # type: (str) -> Dict[str, Any]
+        cursor = self._cursors[cursor_id].next()
 
-    def delete_one(self, collection=None, filter=None, fields=None):
-        coll = self._get_collection(collection)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'filter': filter}, fields['date'])
+        # refresh cursor keep alive time
+        self._cursors[cursor_id] = cursor
 
-        return {'count': 0 if coll is None else coll.delete_one(filter).deleted_count}
+        return self._get_cursor(cursor)
 
-    def delete_many(self, collection=None, filter=None, fields=None):
-        coll = self._get_collection(collection)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'filter': filter}, fields['date'])
+    def rewind(self, cursor_id):
+        # type: (str) -> Dict[str, Any]
+        self._cursors[cursor_id].rewind()
 
-        return {'count': 0 if coll is None else coll.delete_many(filter).deleted_count}
+        return self.more(cursor_id)
 
-    def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None, fields=None):
-        coll = self._get_collection(collection)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'filter': filter}, fields['date'])
+    def insert_one(self, collection, insert, date_fields=None):
+        # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection, True)
 
-        if coll is None:
-            return {'result': None}
+        self._transform_to_datetime({'insert': insert}, date_fields)
+
+        return {
+            'id': str(db_collection.insert_one(insert).inserted_id)
+        }
+
+    def insert_many(self, collection, insert, date_fields=None):
+        # type: (CollectionType, List[DocumentType], DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection, True)
+
+        self._transform_to_datetime({'insert': insert}, date_fields)
+
+        return {
+            'ids': [str(oid) for oid in db_collection.insert_many(insert).inserted_ids]
+        }
+
+    def replace_one(self, collection, filter, replacement, upsert=False, date_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection, upsert)
+
+        if not db_collection:
+            return self._update_response(upsert)
+
+        self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields)
+
+        replace_result = db_collection.replace_one(filter, replacement, upsert)
+
+        return self._update_response(upsert, replace_result=replace_result)
+
+    def count(self, collection=None, filter=None, skip=0, limit=None, date_fields=None, *, cursor_id=None,
+              with_limit_and_skip=False):
+        # type: (CollectionType, Optional[DocumentType], int, DateFieldsType, str, bool) -> Dict[str, Any]
+        total = 0
+        if cursor_id:
+            total = self._cursors[cursor_id].count(with_limit_and_skip)
         else:
-            if filter and 'id' in filter:
-                filter['_id'] = ObjectId(filter.pop('id'))
+            db_collection = self._get_collection(collection)
 
-            result = coll.find_one(filter, projection, skip, sort=sort)
+            if db_collection:
+                self._transform_to_datetime({'filter': filter}, date_fields)
 
-            if result:
-                result['id'] = str(result.pop('_id'))
-                self._transform_datetime_to_isostring(result)
+                total = db_collection.count(filter, skip=skip, limit=limit)
 
-            return {'result': result}
+        return {
+            'total': total
+        }
 
-    def find_many(self, collection=None, filter=None, projection=None, skip=0, limit=0, sort=None, fields=None):
-        coll = self._get_collection(collection)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'filter': filter}, fields['date'])
+    def update_one(self, collection, filter, update, upsert=False, date_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection, upsert)
 
-        if not coll:
+        if not db_collection:
+            return self._update_response(upsert)
+
+        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+
+        replace_result = db_collection.update_one(filter, update, upsert)
+
+        return self._update_response(upsert, replace_result=replace_result)
+
+    def update_many(self, collection, filter, update, upsert=False, date_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection, upsert)
+
+        if not db_collection:
+            return self._update_response(upsert)
+
+        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+
+        replace_result = db_collection.update_many(filter, update, upsert)
+
+        return self._update_response(upsert, replace_result=replace_result)
+
+    def find_one(self, collection, filter, projection=None, skip=0, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, int, SortOperators, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection)
+
+        result = None
+        if db_collection:
+            self._transform_to_datetime({'filter': filter}, date_fields)
+            result = db_collection.find_one(filter, projection, skip, sort=sort)
+
+            self._prepare_for_json(result)
+
+        return {
+            'result': result
+        }
+
+    def find_many(self, collection, filter, projection=None, skip=0, limit=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection)
+
+        if not db_collection:
             return {
                 'result': [],
-                'total': 0,
                 'size': 0
             }
-        
-        if filter and 'id' in filter:
-            filter['_id'] = ObjectId(filter.pop('id'))
+
+        self._transform_to_datetime({'filter': filter}, date_fields)
+
+        cursor = db_collection.find(filter, projection, skip, sort=sort)
+
+        return self._get_cursor(cursor)
+
+    def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
+                            return_updated=False, date_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection)
+
+        result = None
+        if db_collection:
+            self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+
+            result = db_collection.find_one_and_update(filter, update, projection, sort=sort, upsert=upsert,
+                                                       return_document=ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER)
+            self._prepare_for_json(result)
+
+        return {
+            'result': result
+        }
+
+    def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
+                             return_updated=False, date_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
+        db_collection = self._get_collection(collection)
+
+        result = None
+        if db_collection:
+            self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields)
+
+            result = db_collection.find_one_and_replace(filter, replacement, projection, sort=sort, upsert=upsert,
+                                                        return_document=ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER)
+            self._prepare_for_json(result)
+
+        return {
+            'result': result
+        }
+
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool) -> Dict[str, Any]
+        db_collection = self._get_collection(collection)
+
+        result = None
+        if db_collection:
+            result = db_collection.find_one_and_delete(filter, projection, sort=sort)
+            self._prepare_for_json(result)
+
+        return {
+            'result': result
+        }
+
+    def distinct(self, collection, field, filter=None):
+        # type: (CollectionType, str, Optional[DocumentType]) -> Dict[str, Any]
+        db_collection = self._get_collection(collection)
 
         results = []
+        if db_collection:
+            results = db_collection.distinct(field, filter)
+            for result in results:
+                self._prepare_for_json(result)
 
-        for doc in coll.find(filter, projection, skip, sort=sort):
-            doc['id'] = str(doc.pop('_id'))
+        return {
+            'results': results
+        }
+
+    def aggregate(self, collection, pipeline):
+        # type: (CollectionType, List[AggregationOperator]) -> Dict[str, Any]
+        db_collection = self._get_collection(collection)
+
+        if not db_collection:
+            return {
+                'result': [],
+                'size': 0
+            }
+
+        cursor = db_collection.aggregate(pipeline)
+
+        return self._get_cursor(cursor)
+
+    def delete_one(self, collection=None, filter=None, date_fields=None):
+        db_collection = self._get_collection(collection)
+
+        count = 0
+        if db_collection:
+            self._transform_to_datetime({'filter': filter}, date_fields)
+            count = db_collection.delete_one(filter).deleted_count
+        return {
+            'count': count
+        }
+
+    def delete_many(self, collection=None, filter=None, date_fields=None):
+        db_collection = self._get_collection(collection)
+
+        count = 0
+        if db_collection:
+            self._transform_to_datetime({'filter': filter}, date_fields)
+            count = db_collection.delete_many(filter).deleted_count
+        return {
+            'count': count
+        }
+
+    def _prepare_for_json(self, doc):
+        if doc:
+            if '_id' in doc:
+                doc['_id'] = str(doc.pop('_id'))
             self._transform_datetime_to_isostring(doc)
+
+    def _get_cursor(self, cursor):
+        size = len(cursor.__Cursor__data)
+        results = []
+        for _ in range(size):
+            doc = cursor.next()
+            self._prepare_for_json(doc)
             results.append(doc)
+
+        # cache the cursor for later use
+        # by default it will be available for 10 minutes we also
+        # hash the cursor id to make random guessing a lot harder
+        cursor_hash = hashlib.sha256(cursor.cursor_id + random.randint(1, 999999)).hexdigest()
+        self._cursors[cursor_hash] = cursor
 
         return {
             'result': results,
-            'total': self.count(collection, filter, skip, limit, fields),
-            'size': len(results)
+            'size': size,
+            'cursorId': cursor_hash,
+            'alive': cursor.alive
         }
 
-    def insert_one(self, collection=None, insert=None, fields=None):
-        coll = self._get_collection(collection, True)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'insert': insert}, fields['date'])
-        
-        if isinstance(insert, dict) and 'id' in insert.keys():
-            insert['_id'] = ObjectId(insert.pop('id'))
-
-        return {'id': str(coll.insert_one(insert).inserted_id)}
-
-    def insert_many(self, collection=None, insert=None, fields=None):
-        coll = self._get_collection(collection, True)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'insert': insert}, fields['date'])
-        
-        for doc in insert:
-            if isinstance(doc, dict) and 'id' in doc.keys():
-                doc['_id'] = ObjectId(doc.pop('id'))
-
-        return {'ids': [str(id) for id in coll.insert_many(insert).inserted_ids]}
-
-    def update_one(self, collection=None, filter=None, update=None, upsert=False, fields=None):
-        coll = self._get_collection(collection, upsert)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'filter': filter, 'update': update}, fields['date'])
-
-        if coll is None:
-            return self._update_response(upsert, None)
-
-        updateresult = coll.update_one(filter, update, upsert)
-
-        return self._update_response(upsert, updateresult)
-
-    def update_many(self, collection=None, filter=None, update=None, upsert=False, fields=None):
-        coll = self._get_collection(collection, upsert)
-        if fields and 'date' in fields.keys():
-            self._transform_to_datetime({'filter': filter, 'update': update}, fields['date'])
-
-        if coll is None:
-            return self._update_response(upsert, None)
-
-        updateresult = coll.update_many(filter, update, upsert)
-
-        return self._update_response(upsert, updateresult)
-
-    def _update_response(self, upsert, updateresult=None):
-        if updateresult is None:
+    def _update_response(self, upsert, *, replace_result=None):
+        if replace_result is None:
             return {
                 'matched': 0,
-                'modifiedCount': 0
+                'modified': 0
             }
 
         response = {
-            'matched': updateresult.matched_count,
-            'modifiedCount': updateresult.modified_count
+            'matched': replace_result.matched_count,
+            'modified': replace_result.modified_count
         }
 
-        if upsert and updateresult.upserted_id:
-            response['upsertedId'] = str(updateresult.upserted_id)
+        if upsert and replace_result.upserted_id:
+            response['upsertedId'] = str(replace_result.upserted_id)
 
         return response
 
@@ -169,7 +316,8 @@ class MongoDatabaseWrapper(IDatabaseWrapper):
 
         if collection_name not in self._db.collection_names():
             if create:
-                logger.info('Creating collection {collection} in {namespace}', collection=collection_name, namespace=self._namespace)
+                logger.info('Creating collection {collection} in {namespace}', collection=collection_name,
+                            namespace=self._namespace)
             else:
                 return None
 
@@ -186,7 +334,6 @@ class MongoDatabaseWrapper(IDatabaseWrapper):
     def _transform_docfield_to_datetime(self, doc, field):
         subdoc = doc
 
-        l = 0
         for level in field[:-1]:
             if isinstance(subdoc, dict) and level in subdoc:
                 subdoc = subdoc[level]
@@ -196,8 +343,6 @@ class MongoDatabaseWrapper(IDatabaseWrapper):
                         self._transform_docfield_to_datetime(d, field[l:])
                 subdoc = None
                 break
-
-            l = l + 1
 
         if subdoc is None:
             return
@@ -209,7 +354,7 @@ class MongoDatabaseWrapper(IDatabaseWrapper):
                 d[key] = parsedate(d[key]).astimezone(pytz.utc)
         else:
             subdoc[key] = parsedate(subdoc[key]).astimezone(pytz.utc)
-    
+
     def _transform_datetime_to_isostring(self, document):
         if isinstance(document, dict):
             iter = document.items()
@@ -224,11 +369,6 @@ class MongoDatabaseWrapper(IDatabaseWrapper):
             else:
                 self._transform_datetime_to_isostring(value)
 
-    def extract(self, result, property):
-        return result[property]
-
-    def transform(self, result, transformed):
-        return None if result is None else transformed(result)
 
 class MongoClientWrapper:
     def __init__(self, host, port):
@@ -241,7 +381,7 @@ class MongoClientWrapper:
         if namespace not in self._namespaces.keys():
             if namespace not in self._client.database_names():
                 logger.info('Creating database for {namespace}', namespace=namespace)
-            
+
             db = MongoDatabaseWrapper(namespace, self._client[namespace])
             self._namespaces[namespace] = db
         else:

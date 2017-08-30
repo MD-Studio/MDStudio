@@ -1,6 +1,8 @@
 import inspect
 import json
 import sys
+from typing import *
+
 import os
 import re
 
@@ -163,8 +165,10 @@ class Schema(ISchema):
 
 
 class WampSchema(ISchema):
-    def __init__(self, namespace, path, versions):
-        # type: (str, str, int) -> None
+    def __init__(self, namespace, path, *, versions=None):
+        # type: (str, str, Optional[Union[List[int],Set[int]]]) -> None
+        if versions is None:
+            versions = [1]
         if not isinstance(versions, list):
             versions = [versions]
 

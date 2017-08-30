@@ -13,7 +13,8 @@
             "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
         },
         "upsert": {
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
         },
         "fields": {
             "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"

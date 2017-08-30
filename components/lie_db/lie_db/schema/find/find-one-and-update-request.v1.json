@@ -1,20 +1,30 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "UpdateManyResponse",
+    "title": "FindOneAndUpdateRequest",
     "type": "object",
     "properties": {
         "collection": {
             "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
         },
+        "filter": {
+            "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
+        },
         "update": {
             "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
         },
-        "filter": {
-            "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
+        "projection": {
+            "$ref": "wamp://mdstudio.schema.get/db/projection/projection.v1.json"
+        },
+        "return_updated": {
+            "type": "boolean",
+            "default": false
         },
         "upsert": {
             "type": "boolean",
             "default": false
+        },
+        "sort": {
+            "$ref": "wamp://mdstudio.schema.get/db/sort/sort.v1.json"
         },
         "fields": {
             "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
@@ -22,6 +32,7 @@
     },
     "required": [
         "collection",
+        "filter",
         "update"
     ],
     "additionalProperties": false

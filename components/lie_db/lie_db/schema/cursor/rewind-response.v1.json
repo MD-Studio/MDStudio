@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "FindManyResponse",
+    "title": "RewindResponse",
     "type": "object",
     "$ref": "wamp://mdstudio.schema.get/db/cursor/cursor.v1.json"
 }

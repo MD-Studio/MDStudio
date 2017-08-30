@@ -1,28 +1,29 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "UpdateManyResponse",
+    "title": "ReplaceOneRequest",
     "type": "object",
     "properties": {
         "collection": {
             "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
         },
-        "update": {
+        "filter": {
             "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
         },
-        "filter": {
-            "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
+        "replacement": {
+            "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
+        },
+        "fields": {
+            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
         },
         "upsert": {
             "type": "boolean",
             "default": false
-        },
-        "fields": {
-            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
         }
     },
     "required": [
         "collection",
-        "update"
+        "filter",
+        "replacement"
     ],
     "additionalProperties": false
 }
