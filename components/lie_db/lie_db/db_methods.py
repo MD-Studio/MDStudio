@@ -20,8 +20,9 @@ from pymongo import MongoClient, ReturnDocument
 from distutils import spawn
 from autobahn import wamp
 from bson import ObjectId
-from expiringdict import ExpiringDict
-from lie_corelib.db import IDatabase
+from mdstudio.db import IDatabase
+
+from cache_dict import CacheDict
 
 logger = Logger(namespace='db')
 
@@ -30,7 +31,7 @@ class MongoDatabaseWrapper(IDatabase):
     _namespace = None
     _db = None
 
-    # type: ExpiringDict
+    # type: CacheDict
     _cursors = None
 
     def __init__(self, namespace, db):
@@ -41,7 +42,7 @@ class MongoDatabaseWrapper(IDatabase):
         # https://docs.mongodb.com/v3.0/core/cursors/
         # @TODO:  this method is really insecure since we can ask arbitrary cursors,
         #         and should be fixed ASAP
-        self._cursors = ExpiringDict(max_len=sys.maxsize, max_age_seconds=10 * 60)
+        self._cursors = CacheDict(max_age_seconds=10 * 60)
 
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
