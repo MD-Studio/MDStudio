@@ -4,7 +4,7 @@ from twisted.internet.defer import DeferredLock
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from lie_corelib import BaseApplicationSession, register, WampSchema
+from mdstudio import BaseApplicationSession, register, WampSchema
 
 class SchemaWampApi(BaseApplicationSession):
     """

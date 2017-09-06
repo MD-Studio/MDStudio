@@ -28,8 +28,8 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from lie_corelib import BaseApplicationSession, WampSchema, register
-from lie_corelib import db
+from mdstudio import BaseApplicationSession, WampSchema, register
+from mdstudio import db
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 from .oauth.request_validator import OAuthRequestValidator

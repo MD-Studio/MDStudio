@@ -14,17 +14,17 @@ pipInstall="pip install"
 anyPackage=0
 
 # Install LIEStudio components using pip
-for package in $( ls -d ${ROOTDIR}/components/lie_corelib/ ); do
-    if [[ -e ${package}/setup.py ]] && [[ -z "$(pip show $(basename $package))" ]]; then
-        echo "INFO: Install LIEStudio Python component ${package}"
-        pipInstall="$pipInstall -e ${package}"
-        anyPackage=1
-    fi
-done
+package="${ROOTDIR}/mdstudio"
+
+if [[ -e ${package}/setup.py ]] && [[ -z "$(pip show $(basename $package))" ]]; then
+    echo "INFO: Install LIEStudio Python component ${package}"
+    pipInstall="$pipInstall -e ${package}"
+    anyPackage=1
+fi
 
 # Install LIEStudio components using pip
 for package in $( ls -d ${ROOTDIR}/components/*/ ); do
-    if [[ -e ${package}/setup.py ]] && [[ -z "$(pip show $(basename $package))" ]] && [[ "$(basename $package)" != "lie_corelib" ]]; then
+    if [[ -e ${package}/setup.py ]] && [[ -z "$(pip show $(basename $package))" ]]; then
         echo "INFO: Install LIEStudio Python component ${package}"
         pipInstall="$pipInstall -e ${package}"
         anyPackage=1

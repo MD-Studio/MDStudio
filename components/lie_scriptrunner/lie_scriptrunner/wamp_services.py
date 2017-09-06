@@ -9,7 +9,7 @@ WAMP service methods the module exposes.
 from   autobahn               import wamp
 from   twisted.internet.defer import inlineCallbacks
 
-from   lie_corelib             import BaseApplicationSession
+from   mdstudio             import BaseApplicationSession
 
 class ScriptRunnerWampApi(BaseApplicationSession):
     """

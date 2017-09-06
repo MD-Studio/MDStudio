@@ -13,7 +13,7 @@ import jsonschema
 
 from getpass import getuser
 
-from lie_corelib.wamp_schema import mdstudio_task_schema
+from mdstudio.wamp_schema import mdstudio_task_schema
 
 class WAMPTaskMetaData(object):
     """

@@ -26,7 +26,17 @@ elementIn () {
   return 0
 }
 
-ring0=(lie_corelib lie_db lie_schema lie_auth lie_logger)
+ring0=(lie_db lie_schema lie_auth lie_logger)
+
+# Install LIEStudio components using pip
+package="${ROOTDIR}/mdstudio"
+
+if [[ -e ${package}/setup.py ]] && [[ -z "$(pip show $(basename $package))" ]]; then
+    echo "INFO: Install LIEStudio Python component ${package}"
+    pipInstall="$pipInstall -e ${package}"
+    anyPackage=1
+fi
+
 # Install LIEStudio components using pip
 for package in $( ls -d ${ROOTDIR}/components/*/ ); do
     if [[ -e ${package}/setup.py ]]; then

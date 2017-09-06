@@ -2,7 +2,7 @@ from typing import *
 
 import abc
 
-from lie_corelib.db import SortMode
+from mdstudio.db import SortMode
 
 CollectionType = Union[str, Dict[str, str], Collection]
 DateFieldsType = List[Union[str, List[str]]]

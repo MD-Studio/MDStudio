@@ -1,10 +1,10 @@
 from autobahn.twisted import ApplicationSession
 from twisted.internet.defer import Deferred
 
-from lie_corelib.lie_corelib.db.cursor import Cursor
-from lie_corelib.lie_corelib.db.database import *
-from lie_corelib.lie_corelib.db.response import *
-from lie_corelib.lie_corelib.db.session_database import SessionDatabaseWrapper
+from mdstudio.mdstudio.db.cursor import Cursor
+from mdstudio.mdstudio.db.database import *
+from mdstudio.mdstudio.db.response import *
+from mdstudio.mdstudio.db.session_database import SessionDatabaseWrapper
 
 
 class Model:

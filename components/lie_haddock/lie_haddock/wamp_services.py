@@ -14,7 +14,7 @@ from   autobahn                            import wamp
 from   autobahn.wamp.types                 import RegisterOptions
 from   twisted.internet.defer              import inlineCallbacks
 
-from   lie_corelib                          import BaseApplicationSession
+from   mdstudio                          import BaseApplicationSession
 
 class HaddockWampApi(BaseApplicationSession):
     """

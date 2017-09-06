@@ -62,4 +62,4 @@ except BaseException:
     from funcsigs import signature
 
 # Component imports
-from lie_corelib.config import ConfigHandler, config_to_json, configurations, get_config, configwrapper
+from mdstudio.config import ConfigHandler, config_to_json, configurations, get_config, configwrapper

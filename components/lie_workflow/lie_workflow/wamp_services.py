@@ -15,7 +15,7 @@ from   autobahn.wamp.types                 import RegisterOptions
 from   twisted.internet.defer              import inlineCallbacks
 
 from   lie_workflow                        import Workflow
-from   lie_corelib                          import BaseApplicationSession
+from   mdstudio                          import BaseApplicationSession
 
 
 class WorkflowWampApi(BaseApplicationSession):

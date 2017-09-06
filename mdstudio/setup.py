@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# package: lie_corelib
+# package: mdstudio
 # file: setup.py
 #
-# Part of ‘lie_corelib’, a package providing MongoDB access for the LIEStudio
+# Part of ‘mdstudio’, a package providing MongoDB access for the LIEStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -23,7 +23,7 @@
 
 from setuptools import setup, find_packages
 
-distribution_name = 'lie_corelib'
+distribution_name = 'mdstudio'
 
 
 setup(

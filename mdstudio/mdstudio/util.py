@@ -111,7 +111,7 @@ class WampSchemaHandler:
 
         if 'lie_{}'.format(schema_namespace) == self.package_name:
             res = self.session.get_schema(schema_path)
-        elif 'lie_{}'.format(schema_namespace) == 'lie_corelib':
+        elif 'lie_{}'.format(schema_namespace) == 'mdstudio':
             res = self.session.get_schema(schema_path, self.corelib_path)
         else:
             res = yield self.session.call(u'mdstudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})

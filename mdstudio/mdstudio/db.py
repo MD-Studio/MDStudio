@@ -1,3 +1,3 @@
-from lie_corelib.lie_corelib.db.model import Model
+from mdstudio.mdstudio.db.model import Model
 
 __all__ = [Model]
