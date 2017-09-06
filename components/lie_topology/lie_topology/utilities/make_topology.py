@@ -135,8 +135,6 @@ def _ResolveExplicitReferences( atom_references, to_molecule ):
             
             atom_key = atom_ref.atom_key
 
-            print(atom_key)
-
             if not atom_key in to_molecule.atoms:
                 raise LieTopologyException("_ResolveExplicitReferences", "Atom %s does not exist in linked molecule %s" % (atom_key, to_molecule.key) ) 
             

@@ -88,7 +88,7 @@ def HandleCenterOfMass1( run_input_file, gromacs_target, ofstream ):
     gromacs_comm_mode = comm_mapping[ run_input_file.center_of_mass.mode.value ]
     gromacs_comm_freq = run_input_file.center_of_mass.frequency.value
     gromacs_comm_grps = "System"
-
+    
     print( "\n; center_of_mass" )
     WriteMdpString( "comm_mode", gromacs_comm_mode, ofstream )
     WriteMdpInt( "nstcomm", gromacs_comm_freq, ofstream)

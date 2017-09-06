@@ -80,7 +80,6 @@ class Dihedral( BondedTerm ):
                 type_str = self._forcefield_type.OnSerialize(logger)
                 
             else:
-                print(self._forcefield_type)
                 raise LieTopologyException("Dihedral::OnSerialize","Unknown dihedral type") 
         
             result["forcefield_type"] = type_str    

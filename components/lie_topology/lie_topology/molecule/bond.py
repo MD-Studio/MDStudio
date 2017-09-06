@@ -144,7 +144,6 @@ class Bond( BondedTerm ):
                 type_str = self._forcefield_type.OnSerialize(logger)
                 
             else:
-                print(self._forcefield_type)
                 raise LieTopologyException("Bond::OnSerialize","Unknown bond type") 
         
             result["forcefield_type"] = type_str    

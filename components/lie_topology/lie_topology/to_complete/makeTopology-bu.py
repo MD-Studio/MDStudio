@@ -183,8 +183,6 @@ def _ReplaceNegativeReferences( molecule, prev_molecule, atom_references, neares
                     
                     if len(bond_options) > 0:
                         if not allow_multi_bond and len(bond_options) != 1: 
-                            print( atom_keys )       
-                            print( bond_options )
                             raise LieTopologyException("Molecule::_AssertBonded", "Ambigous bonded assignment" )
                     
                         selection=bond_options[-1]
@@ -373,8 +371,6 @@ def _HandleEndCapping( solute_group, capping_molecule, prev_molecule, template_a
         old_atom_key = merged_molecule.atoms.keyAt(fetch_index)
         new_atom_key = capping_molecule_cpy.atoms.keyAt(i)
         
-        print( "RENAME ", old_atom_key, " to ", new_atom_key )
-
         remove_list.append(old_atom_key)
 
         # while the atom is deleted for now (will be replaced later on),  we must make sure that
