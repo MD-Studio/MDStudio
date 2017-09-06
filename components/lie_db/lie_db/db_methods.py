@@ -63,6 +63,7 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
+        self._prepare_for_mongo(insert)
         self._transform_to_datetime({'insert': insert}, date_fields)
 
         return {
@@ -72,6 +73,9 @@ class MongoDatabaseWrapper(IDatabase):
     def insert_many(self, collection, insert, date_fields=None):
         # type: (CollectionType, List[DocumentType], DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
+
+        for doc in insert:
+            self._prepare_for_mongo(doc)
 
         self._transform_to_datetime({'insert': insert}, date_fields)
 
@@ -86,6 +90,8 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return self._update_response(upsert)
 
+        self._prepare_for_mongo(filter)
+        self._prepare_for_mongo(replacement)
         self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields)
 
         replace_result = db_collection.replace_one(filter, replacement, upsert)
@@ -102,6 +108,7 @@ class MongoDatabaseWrapper(IDatabase):
             db_collection = self._get_collection(collection)
 
             if db_collection:
+                self._prepare_for_mongo(filter)
                 self._transform_to_datetime({'filter': filter}, date_fields)
 
                 total = db_collection.count(filter, skip=skip, limit=limit)
@@ -117,6 +124,8 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return self._update_response(upsert)
 
+        self._prepare_for_mongo(filter)
+        self._prepare_for_mongo(update)
         self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
 
         replace_result = db_collection.update_one(filter, update, upsert)
@@ -130,6 +139,8 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return self._update_response(upsert)
 
+        self._prepare_for_mongo(filter)
+        self._prepare_for_mongo(update)
         self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
 
         replace_result = db_collection.update_many(filter, update, upsert)
@@ -142,6 +153,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
+            self._prepare_for_mongo(filter)
             self._transform_to_datetime({'filter': filter}, date_fields)
             result = db_collection.find_one(filter, projection, skip, sort=sort)
 
@@ -161,6 +173,7 @@ class MongoDatabaseWrapper(IDatabase):
                 'size': 0
             }
 
+        self._prepare_for_mongo(filter)
         self._transform_to_datetime({'filter': filter}, date_fields)
 
         cursor = db_collection.find(filter, projection, skip, sort=sort)
@@ -174,6 +187,8 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
+            self._prepare_for_mongo(filter)
+            self._prepare_for_mongo(update)
             self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
 
             result = db_collection.find_one_and_update(filter, update, projection, sort=sort, upsert=upsert,
@@ -191,6 +206,8 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
+            self._prepare_for_mongo(filter)
+            self._prepare_for_mongo(replacement)
             self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields)
 
             result = db_collection.find_one_and_replace(filter, replacement, projection, sort=sort, upsert=upsert,
@@ -201,12 +218,14 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool) -> Dict[str, Any]
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         result = None
         if db_collection:
+            self._prepare_for_mongo(filter)
+            self._transform_to_datetime({'filter': filter}, date_fields)
             result = db_collection.find_one_and_delete(filter, projection, sort=sort)
             self._prepare_for_json(result)
 
@@ -214,12 +233,14 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
-    def distinct(self, collection, field, filter=None):
-        # type: (CollectionType, str, Optional[DocumentType]) -> Dict[str, Any]
+    def distinct(self, collection, field, filter=None, date_fields=None):
+        # type: (CollectionType, str, Optional[DocumentType], DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         results = []
         if db_collection:
+            self._prepare_for_mongo(filter)
+            self._transform_to_datetime({'filter': filter}, date_fields)
             results = db_collection.distinct(field, filter)
             for result in results:
                 self._prepare_for_json(result)
@@ -248,6 +269,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         count = 0
         if db_collection:
+            self._prepare_for_mongo(filter)
             self._transform_to_datetime({'filter': filter}, date_fields)
             count = db_collection.delete_one(filter).deleted_count
         return {
@@ -260,6 +282,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         count = 0
         if db_collection:
+            self._prepare_for_mongo(filter)
             self._transform_to_datetime({'filter': filter}, date_fields)
             count = db_collection.delete_many(filter).deleted_count
         return {
@@ -268,9 +291,26 @@ class MongoDatabaseWrapper(IDatabase):
 
     def _prepare_for_json(self, doc):
         if doc:
+            # convert _id from ObjectId to str representation
             if '_id' in doc:
                 doc['_id'] = str(doc.pop('_id'))
+
+            # convert all datetime fields to str representation
             self._transform_datetime_to_isostring(doc)
+
+    def _prepare_for_mongo(self, doc):
+        if doc:
+            # convert json _id from str to ObjectId
+            if '_id' in doc:
+                if isinstance(doc['_id'], str):
+                    doc['_id'] = ObjectId(doc['_id'])
+                if isinstance(doc['_id'], dict):
+                    for k, v in doc['_id'].items():
+                        # Assume it is a shallow dict containing either str or List[str]. This corresponds to mongo query operators
+                        if isinstance(v, str):
+                            doc['_id'][k] = ObjectId(v)
+                        else:
+                            doc['_id'][k] = [ObjectId(oid) for oid in v]
 
     def _get_cursor(self, cursor):
         size = len(cursor.__Cursor__data)

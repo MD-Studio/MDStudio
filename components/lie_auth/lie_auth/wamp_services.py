@@ -404,7 +404,7 @@ class AuthWampApi(BaseApplicationSession):
         client = yield self._get_client(request['clientId'])
 
         if client:
-            user = yield self._get_user({'id': client['userId']})
+            user = yield self._get_user({'_id': client['userId']})
 
             returnValue({'username': user['username']})
         else:
@@ -622,7 +622,7 @@ class AuthWampApi(BaseApplicationSession):
             self._password_retrieval_message_template.format(password=new_password, user=user['username']),
             'Password retrieval request for LIEStudio'
           )
-          res = yield Model(self, 'users').update_one({'id': user['_id']}, {'password': new_password})
+          res = yield Model(self, 'users').update_one({'_id': user['_id']}, {'password': new_password})
 
         returnValue(user)
 
