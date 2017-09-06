@@ -22,7 +22,7 @@ from autobahn import wamp
 from bson import ObjectId
 from mdstudio.db import IDatabase
 
-from mdstudio.containers.cache_dict import CacheDict
+from cache_dict import CacheDict
 
 logger = Logger(namespace='db')
 
