@@ -44,7 +44,7 @@ class Authorizer:
             ExactRule('mdstudio.auth.oauth.client.getusername'),
             ExactRule('mdstudio.schema.register.{role}'),
             ExactRule('mdstudio.schema.get'),
-            ExactRule('mdstudio.logger.log.{role}', ['publish'])
+            ExactRule('mdstudio.logger.log.mdstudio.{role}', ['publish'])
         ]
     
     def authorize_ring0(self, uri, action, role):

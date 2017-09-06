@@ -13,7 +13,7 @@ import json
 import re
 
 from   autobahn               import wamp
-from mdstudio import BaseApplicationSession
+from mdstudio.application_session import BaseApplicationSession
 from   twisted.internet.defer import inlineCallbacks
 
 from   lie_amber              import *

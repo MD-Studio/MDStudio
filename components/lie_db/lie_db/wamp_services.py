@@ -7,7 +7,8 @@ from autobahn import wamp
 from autobahn.wamp import SubscribeOptions, PublishOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from mdstudio import BaseApplicationSession, register, WampSchema
+from mdstudio.application_session import BaseApplicationSession
+from mdstudio.util import register, WampSchema
 
 from .db_methods import MongoClientWrapper, MongoDatabaseWrapper
 
@@ -39,7 +40,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.more',
               WampSchema('db', 'cursor/more-request', versions={1}),
-              WampSchema('db', 'cursor/more-response', versions={1}), details_arg=True, match='prefix', scope='write')
+              WampSchema('db', 'cursor/more-response', versions={1}), match='prefix', scope='write')
     def more(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
@@ -47,7 +48,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.rewind',
               WampSchema('db', 'cursor/rewind-request', versions={1}),
-              WampSchema('db', 'cursor/rewind-response', versions={1}), details_arg=True, match='prefix', scope='write')
+              WampSchema('db', 'cursor/rewind-response', versions={1}), match='prefix', scope='write')
     def rewind(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
@@ -55,7 +56,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.insert_one',
               WampSchema('db', 'insert/insert-one-request', versions={1}),
-              WampSchema('db', 'insert/insert-one-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'insert/insert-one-response', versions={1}), match='prefix',
               scope='write')
     def insert_one(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -67,7 +68,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.insert_many',
               WampSchema('db', 'insert/insert-many-request', versions={1}),
-              WampSchema('db', 'insert/insert-many-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'insert/insert-many-response', versions={1}), match='prefix',
               scope='write')
     def insert_many(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -79,7 +80,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.replace_one',
               WampSchema('db', 'replace/replace-one-request', versions={1}),
-              WampSchema('db', 'replace/replace-one-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'replace/replace-one-response', versions={1}), match='prefix',
               scope='write')
     def replace_one(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -94,7 +95,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.count',
               WampSchema('db', 'count/count-request', versions={1}),
-              WampSchema('db', 'count/count-response', versions={1}), details_arg=True, match='prefix', scope='read')
+              WampSchema('db', 'count/count-response', versions={1}), match='prefix', scope='read')
     def count(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
@@ -120,7 +121,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.update_one',
               WampSchema('db', 'update/update-one-request', versions={1}),
-              WampSchema('db', 'update/update-one-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'update/update-one-response', versions={1}), match='prefix',
               scope='write')
     def update_one(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -136,7 +137,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.update_many',
               WampSchema('db', 'update/update-many-request', versions={1}),
-              WampSchema('db', 'update/update-many-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'update/update-many-response', versions={1}), match='prefix',
               scope='write')
     def update_many(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -152,7 +153,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.find_one',
               WampSchema('db', 'find/find-one-request', versions={1}),
-              WampSchema('db', 'find/find-one-response', versions={1}), details_arg=True, match='prefix', scope='read')
+              WampSchema('db', 'find/find-one-response', versions={1}), match='prefix', scope='read')
     def find_one(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
@@ -170,7 +171,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.find_many',
               WampSchema('db', 'find/find-many-request', versions={1}),
-              WampSchema('db', 'find/find-many-response', versions={1}), details_arg=True, match='prefix', scope='read')
+              WampSchema('db', 'find/find-many-response', versions={1}), match='prefix', scope='read')
     def find_many(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
@@ -190,7 +191,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.find_one_and_update',
               WampSchema('db', 'find/find-one-and-update-request', versions={1}),
-              WampSchema('db', 'find/find-one-and-update-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'find/find-one-and-update-response', versions={1}), match='prefix',
               scope='read')
     def find_one_and_update(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -212,7 +213,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.find_one_and_replace',
               WampSchema('db', 'find/find-one-and-replace-request', versions={1}),
-              WampSchema('db', 'find/find-one-and-replace-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'find/find-one-and-replace-response', versions={1}), match='prefix',
               scope='read')
     def find_one_and_replace(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -234,7 +235,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.find_one_and_delete',
               WampSchema('db', 'find/find-one-and-delete-request', versions={1}),
-              WampSchema('db', 'find/find-one-and-delete-response', versions={1}), details_arg=True,
+              WampSchema('db', 'find/find-one-and-delete-response', versions={1}),
               match='prefix',
               scope='read')
     def find_one_and_delete(self, request, details=None):
@@ -248,7 +249,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.aggregate',
               WampSchema('db', 'aggregate/aggregate-request', versions={1}),
-              WampSchema('db', 'aggregate/aggregate-response', versions={1}), details_arg=True,
+              WampSchema('db', 'aggregate/aggregate-response', versions={1}),
               match='prefix',
               scope='read')
     def aggregate(self, request, details=None):
@@ -258,7 +259,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.delete_one',
               WampSchema('db', 'delete/delete-one', versions={1}),
-              WampSchema('db', 'delete/delete-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'delete/delete-response', versions={1}), match='prefix',
               scope='delete')
     def delete(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
@@ -271,7 +272,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.delete_many',
               WampSchema('db', 'delete/delete-many', versions={1}),
-              WampSchema('db', 'delete/delete-response', versions={1}), details_arg=True, match='prefix',
+              WampSchema('db', 'delete/delete-response', versions={1}), match='prefix',
               scope='delete')
     def delete_many(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)

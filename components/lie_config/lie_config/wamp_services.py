@@ -13,7 +13,7 @@ import json
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks
 
-from mdstudio import BaseApplicationSession
+from mdstudio.application_session import BaseApplicationSession
 from mdstudio.config import config_to_json
 
 

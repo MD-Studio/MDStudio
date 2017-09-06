@@ -6,7 +6,9 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn.wamp import SubscribeOptions, PublishOptions
 from autobahn import wamp
 
-from mdstudio import BaseApplicationSession, register, WampSchema
+from mdstudio.application_session import BaseApplicationSession
+from mdstudio.util import register, WampSchema
+
 from mdstudio.config import config_from_dotenv, config_to_dotenv
 
 try:

@@ -16,7 +16,7 @@ from autobahn.twisted.util import sleep
 from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 from autobahn.twisted.util import sleep
 
-from mdstudio import BaseApplicationSession
+from mdstudio.application_session import BaseApplicationSession
 from mdstudio.runner import main
 from mdstudio.token_application_session import TokenApplicationSession
 
@@ -28,12 +28,12 @@ class MDWampApi(BaseApplicationSession):
     """
     jobid = 0
 
-    @wamp.register(u'liestudio.md.status', options=RegisterOptions(invoke=u'roundrobin'))
+    @wamp.register(u'liegroup.md.status', options=RegisterOptions(invoke=u'roundrobin'))
     def md_status(self):
         
         return 'running job: {0}'.format(self.jobid)
 
-    @wamp.register(u'liestudio.md.run', options=RegisterOptions(invoke=u'roundrobin'))
+    @wamp.register(u'liegroup.md.run', options=RegisterOptions(invoke=u'roundrobin'))
     @inlineCallbacks
     def md_run(self, structure):
 

@@ -234,7 +234,7 @@ def validate_input(input_schema, strict=True):
     return wrap_f
 
 
-def register(uri, input_schema, output_schema, details_arg=False, match=None, options=None, scope=None):
+def register(uri, input_schema, output_schema, match=None, options=None, scope=None):
     # type: (str, ISchema, ISchema, bool, Optional[str], Optional[wamp.RegisterOptions], Optional[str]) -> function
     """
     Decorator for more complete WAMP uri registration
@@ -261,11 +261,11 @@ def register(uri, input_schema, output_schema, details_arg=False, match=None, op
     :rtype:                 function
     """
 
-    if options is None and (match or details_arg):
+    if options is None:
         # If options is not given but required for match or details, create it
         options = wamp.RegisterOptions()
 
-    if details_arg:
+    if not options.details_arg:
         options.details_arg = 'details'
 
     if match:

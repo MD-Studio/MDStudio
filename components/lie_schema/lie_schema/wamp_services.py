@@ -4,7 +4,8 @@ from twisted.internet.defer import DeferredLock
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from mdstudio import BaseApplicationSession, register, WampSchema
+from mdstudio.application_session import BaseApplicationSession
+from mdstudio.util import register, WampSchema
 
 class SchemaWampApi(BaseApplicationSession):
     """
@@ -24,7 +25,7 @@ class SchemaWampApi(BaseApplicationSession):
     def onRun(self, details):
         yield self.publish(u'mdstudio.schema.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
-    @register(u'mdstudio.schema.register', WampSchema('schema', 'register/register'), {}, details_arg=True, match='prefix')
+    @register(u'mdstudio.schema.register', WampSchema('schema', 'register/register'), {}, match='prefix')
     def schema_register(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 

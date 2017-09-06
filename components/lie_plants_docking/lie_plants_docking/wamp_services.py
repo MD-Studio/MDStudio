@@ -17,7 +17,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from lie_plants_docking.docking_settings import SETTINGS
 from lie_plants_docking.plants_docking import PlantsDocking
 from lie_plants_docking.utils import prepaire_work_dir
-from mdstudio import BaseApplicationSession
+from mdstudio.application_session import BaseApplicationSession
 
 
 class DockingWampApi(BaseApplicationSession):
