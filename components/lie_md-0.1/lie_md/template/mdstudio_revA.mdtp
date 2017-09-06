@@ -1,15 +1,282 @@
+Version: 1.0.0
 BlockDefinitions:
-    - key: 'system'
+    - key: 'run_properties'
       properties:
-        - key: npm
+        - key: integrator
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "leap-frog", "velocity-verlet", "stochastic-dynamics", "steepest-descent", "conjugate-gradient" ]
+        - key: start_time
+          format: float
+          conditions: 
+            - type: '>='
+              value: 0.0 
+        - key: delta_time
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0 
+        - key: steps
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+        - key: seed
+          format: int
+          conditions: 
+            - type: '>='
+              value: 0       
+
+    - key: 'center_of_mass'
+      properties:
+        - key: mode
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "linear", "angular", "none" ]
+        - key: frequency
           format: int
           conditions: 
             - type: '>='
               value: 0
-            - type: '<='
-              value: 1
-        - key: nsm
+
+    - key: 'minimization'
+      properties:
+        - key: tolerance
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+        - key: step_size
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+        - key: steps
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+
+    - key: 'output'
+      properties:
+        - key: position_frequency
           format: int
           conditions: 
             - type: '>='
               value: 0
+        - key: velocity_frequency
+          format: int
+          conditions: 
+            - type: '>='
+              value: 0
+        - key: force_frequency
+          format: int
+          conditions: 
+            - type: '>='
+              value: 0
+        - key: log_frequency
+          format: int
+          conditions: 
+            - type: '>='
+              value: 0
+        - key: energy_frequency
+          format: int
+          conditions: 
+            - type: '>='
+              value: 0
+        - key: atom_indices
+          format: int_list
+          conditions: 
+            - type: '>='
+              value: 0
+          repeatGroup: energy_groups
+              
+    - key: 'neighbour_searching'
+      properties:
+        - key: 'algorithm'
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "simple", "grid" ]
+        - key: frequency
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+        - key: pbc
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "xyz", "none" ]
+        - key: short_cutoff
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+        - key: long_cutoff
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+
+    - key: 'nonbonded'
+      properties:
+        - key: 'electrostatics'
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "reaction-field", "PME" ]
+        - key: 'epsilon_rf'
+          format: float
+          conditions: 
+            - type: '>='
+              value: 0.0
+        - key: 'fourier_spacing'
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+        - key: 'fourier_nx'
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+        - key: 'fourier_ny'
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+        - key: 'fourier_nz'
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+        - key: 'pme_order'
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+
+    - key: 'temperature_coupling'
+      properties:
+        - key: algorithm
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "berendsen", "nose-hoover", "v-rescale" ]
+        - key: num_chains
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+          activator: 
+              key: algorithm
+              value: "nose-hoover"
+        - key: temp0
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+          repeatGroup: baths
+        - key: tau
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+          repeatGroup: baths
+        - key: atom_indices
+          format: int_list
+          conditions: 
+            - type: '>='
+              value: 0
+          repeatGroup: baths
+
+    - key: 'pressure_coupling'
+      properties:
+        - key: algorithm
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "berendsen" ]
+        - key: couple_type
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "isotropic", "semiisotropic", "anisotropic" ]
+        - key: tau
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+        - key: compressibility
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+        - key: reference_pressure
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+        - key: refcoord_scaling
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "none", "all", "com" ]
+  
+    - key: 'initialize'
+      properties:
+        - key: generate_velocities
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "yes", "no" ]
+        - key: temperature
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+
+    - key: 'constraints'
+      properties:
+        - key: mode
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "none", "h-bonds", "all-bonds" ]
+        - key: algorithm
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "LINCS", "SHAKE" ]
+        - key: continuation
+          format: str
+          conditions: 
+            - type: 'str_list'
+              value: [ "no", "yes" ]
+        - key: shake_tolerance
+          format: float
+          conditions: 
+            - type: '>'
+              value: 0.0
+          activator: 
+              key: algorithm
+              value: "SHAKE"
+        - key: lincs_order
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+          activator: 
+              key: algorithm
+              value: "LINCS"
+        - key: lincs_iterations
+          format: int
+          conditions: 
+            - type: '>'
+              value: 0
+          activator: 
+              key: algorithm
+              value: "LINCS"
