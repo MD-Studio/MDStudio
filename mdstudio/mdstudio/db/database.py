@@ -1,8 +1,9 @@
 from typing import *
+from pymongo.collection import Collection
 
 import abc
 
-from mdstudio.db import SortMode
+from mdstudio.db.sort_mode import SortMode
 
 CollectionType = Union[str, Dict[str, str], Collection]
 DateFieldsType = List[Union[str, List[str]]]

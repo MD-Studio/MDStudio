@@ -20,9 +20,9 @@ from pymongo import MongoClient, ReturnDocument
 from distutils import spawn
 from autobahn import wamp
 from bson import ObjectId
-from mdstudio.db import IDatabase
+from mdstudio.db.database import IDatabase
 
-from cache_dict import CacheDict
+from .cache_dict import CacheDict
 
 logger = Logger(namespace='db')
 

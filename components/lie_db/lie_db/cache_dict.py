@@ -23,7 +23,7 @@ class CacheDict(OrderedDict):
     lock = Lock()
 
     def __init__(self, max_age_seconds):
-        super(CacheDict).__init__(self)
+        super(CacheDict, self).__init__(self)
 
         self.max_age = max_age_seconds
         assert max_age_seconds >= 0

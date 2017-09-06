@@ -1,6 +1,6 @@
 from twisted.internet.defer import inlineCallbacks
 
-from mdstudio.mdstudio.db.database import IDatabase
+from mdstudio.db.database import IDatabase
 from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 
 class SessionDatabaseWrapper(IDatabase):

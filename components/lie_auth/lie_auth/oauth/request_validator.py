@@ -1,5 +1,4 @@
 import datetime
-import tzlocal
 import copy
 import pytz
 import re
@@ -8,7 +7,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from oauthlib import oauth2
 from oauthlib import common
 
-from mdstudio import db
+from mdstudio.db.model import Model
 
 from .client import OAuthClient
 
@@ -69,7 +68,7 @@ class OAuthRequestValidator(oauth2.RequestValidator):
             token['accessToken'] = token.pop('access_token')
             token['expirationTime'] = (datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=token.pop('expires_in'))).isoformat()
 
-            db.Model(self.session, 'tokens').insert_one(copy.deepcopy(token), date_fields=['insert.expirationTime'])
+            Model(self.session, 'tokens').insert_one(copy.deepcopy(token), date_fields=['insert.expirationTime'])
         else:
             raise NotImplementedError('Subclasses has not implemented this path.')
 
@@ -78,7 +77,7 @@ class OAuthRequestValidator(oauth2.RequestValidator):
         if not token:
             returnValue(False)
 
-        bearer = yield db.Model(self.session, 'tokens').find_one({'accessToken': token})
+        bearer = yield Model(self.session, 'tokens').find_one({'accessToken': token})
 
         if not bearer or not bearer['result']:
             returnValue(False)

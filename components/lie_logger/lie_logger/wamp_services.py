@@ -13,7 +13,8 @@ from twisted.logger import LogLevel
 from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn import wamp
 
-from mdstudio import BaseApplicationSession, register, WampSchema, validate_input, db
+from mdstudio import BaseApplicationSession, register, WampSchema, validate_input
+from mdstudio.db.model import Model
 
 
 class LoggerWampApi(BaseApplicationSession):
@@ -43,7 +44,7 @@ class LoggerWampApi(BaseApplicationSession):
         """
         namespace = re.match('^mdstudio\\.logger\\.log\\.((namespace-)?\\w+)$', details.topic).group(1)
 
-        res = yield db.Model(self, namespace).insert_many(request['logs'], date_fields=['insert.time'])
+        res = yield Model(self, namespace).insert_many(request['logs'], date_fields=['insert.time'])
 
     @register(u'mdstudio.logger.get', {}, {})
     def get_log_events(self, user):
