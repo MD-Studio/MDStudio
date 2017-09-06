@@ -133,8 +133,8 @@ class BaseApplicationSession(ApplicationSession):
             'loggernamespace':  '_LIE_LOGGER_NAMESPACE'
         }
 
-        self.package_config_template = WampSchema('corelib', 'settings/settings', 1)
-        self.session_config_template = WampSchema('corelib', 'session_config/session_config', 1)
+        self.package_config_template = WampSchema('mdstudio', 'settings/settings')
+        self.session_config_template = WampSchema('mdstudio', 'session_config/session_config')
 
         self.json_schemas = []
         self.function_scopes = []
@@ -456,6 +456,7 @@ class BaseApplicationSession(ApplicationSession):
                 self.logger_subscription.unsubscribe()
                 self.logger_subscription = None
             
+            self.log.info('Delayed logging for {package}', package=self.component_info['package_name'])
             self.logger_subscription = yield self.subscribe(logger_event, u'mdstudio.logger.events.online')
 
         if self.autoschema:
@@ -466,6 +467,7 @@ class BaseApplicationSession(ApplicationSession):
                 self.schema_subscription.unsubscribe()
                 self.schema_subscription = None
 
+            self.log.info('Delayed schema registration for {package}', package=self.component_info['package_name'])
             self.schema_subscription = yield self.subscribe(schema_event, u'mdstudio.schema.events.online')
 
         self._register_scopes()
@@ -591,6 +593,8 @@ class BaseApplicationSession(ApplicationSession):
         if schema_list:
             yield self.call(u'mdstudio.schema.register.{}'.format(self.component_info.get('namespace')), {'schemas': schema_list})
 
+        self.log.info('Registered schemas for {package}', package=self.component_info['package_name'])
+
     def _filter_schemas(self, schemas, schema_list):
         subschemas = []
 
@@ -625,4 +629,5 @@ class BaseApplicationSession(ApplicationSession):
     def _register_scopes(self):
         if self.function_scopes:
             res = yield self.call('mdstudio.auth.oauth.registerscopes.{}'.format(self.component_info.get('namespace')), {'scopes': self.function_scopes})
-            print(res)
+
+            self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes), package=self.component_info['package_name'])

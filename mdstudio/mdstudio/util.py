@@ -100,7 +100,7 @@ class WampSchemaHandler:
 
         if 'lie_{}'.format(schema_namespace) == self.package_name:
             res = self.session.get_schema(schema_path)
-        elif 'lie_{}'.format(schema_namespace) == 'lie_corelib':
+        elif schema_namespace == 'mdstudio':
             res = self.session.get_schema(schema_path, self.corelib_path)
         else:
             res = yield self.session.call(u'mdstudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
@@ -158,8 +158,6 @@ class WampSchema(ISchema):
         # type: (str, str, Optional[Union[List[int],Set[int]]]) -> None
         if versions is None:
             versions = [1]
-        if not isinstance(versions, list):
-            versions = [versions]
 
         self.namespace = namespace
         self.path = path

@@ -7,7 +7,7 @@ The LIE config package streamlines the access to both application wide
 as well as module or user specific settings within the Python runtime,
 between processes or machines over a network.
 
-The design of the lie_corelib.config module mimics that of Pythons well known
+The design of the mdstudio.config module mimics that of Pythons well known
 logging module in that an instance of a configuration class
 (ConfigHandler class) initiated somewhere early on in the program life
 cycle is accessible by any module in the active Python runtime.
@@ -20,9 +20,9 @@ stored as JSON file
 .. code-block:: python
 
     import json
-    import lie_corelib.config
+    import mdstudio.config
 
-    config = lie_corelib.config.get_config()
+    config = mdstudio.config.get_config()
     config.load(json.load(open('config.json')))
 
 A ConfigHandler class is a Python dictionary class on steroids.
@@ -42,7 +42,7 @@ extends it with functions to:
 
 import os
 
-__module__ = 'lie_corelib.config'
+__module__ = 'mdstudio.config'
 __docformat__ = 'restructuredtext'
 __version__ = '{major:d}.{minor:d}'.format(major=0, minor=1)
 __author__ = 'Marc van Dijk'

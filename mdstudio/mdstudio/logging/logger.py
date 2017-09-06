@@ -135,6 +135,7 @@ class WampLogObserver(object):
             self.log_queue.put(logstruct)
 
     def start_flushing(self):
+        self.session.log.info('Started flushing logs for {package}', package=self.session.component_info['package_name'])
         reactor.callLater(0.1, self._flush)
 
     def stop_flushing(self):

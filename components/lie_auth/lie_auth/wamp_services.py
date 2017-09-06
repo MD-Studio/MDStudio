@@ -28,8 +28,8 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from lie_corelib import BaseApplicationSession, WampSchema, register
-from lie_corelib import db
+from mdstudio import BaseApplicationSession, WampSchema, register
+from mdstudio.db.model import Model
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 from .oauth.request_validator import OAuthRequestValidator
@@ -43,8 +43,8 @@ class AuthWampApi(BaseApplicationSession):
     log = Logger()
 
     def preInit(self, **kwargs):
-        self.session_config_template = WampSchema('auth', 'session_config/session_config', 1)
-        self.package_config_template = WampSchema('auth', 'settings/settings', 1)
+        self.session_config_template = WampSchema('auth', 'session_config/session_config')
+        self.package_config_template = WampSchema('auth', 'settings/settings')
         
         self.session_config_environment_variables.update({
             'admin_username': '_LIE_AUTH_USERNAME',
@@ -123,7 +123,7 @@ class AuthWampApi(BaseApplicationSession):
                                 'password': hash_password(self.session_config.get('admin_password', None)),
                                 'role': 'admin'}
 
-                    admin = yield db.Model(self, 'users').insert_one(userdata)
+                    admin = yield Model(self, 'users').insert_one(userdata)
                     
                     if not admin:
                         self.log.error('Unable to create default admin account')
@@ -131,7 +131,7 @@ class AuthWampApi(BaseApplicationSession):
 
                     adminId = admin
 
-                    namespaces = yield db.Model(self, 'namespaces').insert_many([
+                    namespaces = yield Model(self, 'namespaces').insert_many([
                         {'userId': adminId, 'namespace': 'md'},
                         {'userId': adminId, 'namespace': 'atb'},
                         {'userId': adminId, 'namespace': 'docking'},
@@ -141,12 +141,12 @@ class AuthWampApi(BaseApplicationSession):
 
                 # Cleanup previous run
                 # Count number of active user sessions
-                active_session_count = yield db.Model(self, 'sessions').count()
+                active_session_count = yield Model(self, 'sessions').count()
                 self.log.info('{0} active user sessions'.format(active_session_count))
 
                 # Terminate active sessions
                 if active_session_count:
-                    deleted = yield db.Model(self, 'sessions').delete_many()
+                    deleted = yield Model(self, 'sessions').delete_many()
                     self.log.info('Terminate {0} active user sessions'.format(deleted))
 
                 # Mark the database as initialized and unsubscribe
@@ -253,11 +253,12 @@ class AuthWampApi(BaseApplicationSession):
             else:
                 # Not a valid user, try  to find a matching client
                 client = yield self._get_client(username)
+                client['scope'] = ' '.join(client.pop('scopes'))
                 if client:
                     http_basic = self._http_basic_authentication(username, details['ticket'])
                     credentials = {u'client': client, 
                                    u'http_basic': self._http_basic_authentication(client[u'clientId'], client[u'secret'])}
-        
+
                     headers, body, status = self.oauth_backend_server.create_token_response(
                                                                         u'mdstudio.auth.login',
                                                                         headers={u'Authorization': http_basic},
@@ -265,8 +266,10 @@ class AuthWampApi(BaseApplicationSession):
                                                                         credentials=credentials)
 
                     if status == 200:
-                        user = {u'id': client[u'id']}
+                        user = {u'_id': client[u'_id']}
                         auth_ticket = {u'realm': realm, u'role': 'oauthclient', u'extra': {u'access_token': json.loads(body).get('accessToken')}}
+                    else:
+                        raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
                 else:
                     raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
 
@@ -281,7 +284,7 @@ class AuthWampApi(BaseApplicationSession):
         else:
             raise ApplicationError("No such authentication method known: {0}".format(authmethod))
 
-        yield self._start_session(user[u'id'], details.get(u'session', 0), auth_ticket[u'extra'].get('access_token'))
+        yield self._start_session(user[u'_id'], details.get(u'session', 0), auth_ticket[u'extra'].get('access_token'))
         
         # Log authorization
         self.log.info('Access granted. user: {user}', user=authid)
@@ -293,7 +296,9 @@ class AuthWampApi(BaseApplicationSession):
     def register_scopes(self, request):
         for scope in request['scopes']:
             # update/insert the uri scope
-            yield db.Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
+            yield Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
+
+        returnValue(None)
             
     @wamp.register(u'mdstudio.auth.authorize.admin')
     def authorize_admin(self, session, uri, action, options):
@@ -311,6 +316,9 @@ class AuthWampApi(BaseApplicationSession):
         else:
             if 'disclose' not in authorization:
                 authorization['disclose'] = False
+
+            if uri.startswith('mdstudio.auth.oauth'):
+                authorization['disclose'] = True
 
             self._store_action(uri, action, options)
 
@@ -378,18 +386,18 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(authorization)
 
-    @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request', 1), WampSchema('auth', 'oauth/client/client-response', 1), details_arg=True)
+    @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request'), WampSchema('auth', 'oauth/client/client-response'), details_arg=True)
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)
 
         # TODO: check if user is permitted to access the requested scopes before creating the client
         clientInfo = copy.deepcopy(request)
-        clientInfo['userId'] = user['id']
+        clientInfo['userId'] = user['_id']
         clientInfo['clientId'] = generate_secret()
         clientInfo['secret'] = generate_secret()
 
-        res = yield db.Model(self, 'clients').insert_one(clientInfo)
+        res = yield Model(self, 'clients').insert_one(clientInfo)
 
         returnValue({
             'id': clientInfo['clientId'],
@@ -402,7 +410,7 @@ class AuthWampApi(BaseApplicationSession):
         client = yield self._get_client(request['clientId'])
 
         if client:
-            user = yield self._get_user({'id': client['userId']})
+            user = yield self._get_user({'_id': client['userId']})
 
             returnValue({'username': user['username']})
         else:
@@ -421,7 +429,7 @@ class AuthWampApi(BaseApplicationSession):
 
         user = yield self._get_user(details.get('authid'))
         if user:
-            self.log.info('Logout user: {0}, id: {1}'.format(user['username'], user['id']))
+            self.log.info('Logout user: {0}, id: {1}'.format(user['username'], user['_id']))
 
             ended = yield self._end_session(user['uid'], details.get('session'))
             if ended:
@@ -479,7 +487,7 @@ class AuthWampApi(BaseApplicationSession):
             returnValue({})
 
         # Add the new user to the database
-        result = yield db.Model(self, 'users').insert_one(user_template)
+        result = yield Model(self, 'users').insert_one(user_template)
         if result:
             self.log.debug('Added new user. user: {username}, id: {id}', id=result, **user_template)
         else:
@@ -537,13 +545,13 @@ class AuthWampApi(BaseApplicationSession):
         if type(filter) is not dict:
             filter = {'username': filter}
 
-        res = yield db.Model(self, 'users').find_one(filter)
+        res = yield Model(self, 'users').find_one(filter)
 
         returnValue(res)
 
     @inlineCallbacks
     def _get_client(self, client_id):
-        client = yield db.Model(self, 'clients').find_one({'clientId': client_id})
+        client = yield Model(self, 'clients').find_one({'clientId': client_id})
 
         if client:
             returnValue(client)
@@ -564,17 +572,17 @@ class AuthWampApi(BaseApplicationSession):
     @inlineCallbacks
     def _start_session(self, user_id, session_id, access_token):
         self.log.debug('Open session: {0} for user {1}'.format(session_id, user_id))
-        res = yield db.Model(self, 'sessions').insert_one({'userId': user_id, 'sessionId': session_id, 'accessToken': access_token})
+        res = yield Model(self, 'sessions').insert_one({'userId': user_id, 'sessionId': session_id, 'accessToken': access_token})
         returnValue(res)
 
     @inlineCallbacks
     def _get_session(self, session_id):
-        res = yield db.Model(self, 'sessions').find_one({'sessionId': session_id})
+        res = yield Model(self, 'sessions').find_one({'sessionId': session_id})
         returnValue(res)
 
     @inlineCallbacks
     def _end_session(self, user_id, session_id):
-        res = yield db.Model(self, 'sessions').delete_one({'userId': user_id, 'sessionId': session_id})
+        res = yield Model(self, 'sessions').delete_one({'userId': user_id, 'sessionId': session_id})
         returnValue(res > 0)
 
     def _strip_unsafe_properties(self, _user):
@@ -620,12 +628,12 @@ class AuthWampApi(BaseApplicationSession):
             self._password_retrieval_message_template.format(password=new_password, user=user['username']),
             'Password retrieval request for LIEStudio'
           )
-          res = yield db.Model(self, 'users').update_one({'id': user['id']}, {'password': new_password})
+          res = yield Model(self, 'users').update_one({'_id': user['_id']}, {'password': new_password})
 
         returnValue(user)
 
     def _store_action(self, uri, action, options):
-        registration = db.Model(self, 'registration_info')
+        registration = Model(self, 'registration_info')
 
         now = datetime.datetime.now(pytz.utc).isoformat()
 

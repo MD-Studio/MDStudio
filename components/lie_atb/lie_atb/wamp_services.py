@@ -15,7 +15,7 @@ import re
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks
 
-from lie_corelib import BaseApplicationSession, PY3
+from mdstudio import BaseApplicationSession, PY3
 from .settings import *
 
 if PY3:

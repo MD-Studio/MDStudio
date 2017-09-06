@@ -31,7 +31,7 @@ from twisted.internet import reactor
 from autobahn import wamp
 from queue import Queue, Empty
 
-from lie_corelib.runner import main
+from mdstudio.runner import main
 
 from .wamp_services import CLIWampApi
 

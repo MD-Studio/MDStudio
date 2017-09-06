@@ -19,7 +19,7 @@ class DBWampApi(BaseApplicationSession):
 
     def preInit(self, **kwargs):
         self.session_config_template = {}
-        self.package_config_template = WampSchema('db', 'settings/settings', 1)
+        self.package_config_template = WampSchema('db', 'settings/settings')
         self.session_config['loggernamespace'] = 'db'
 
     def onInit(self, **kwargs):

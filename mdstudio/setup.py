@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# package: lie_corelib
+# package: mdstudio
 # file: setup.py
 #
-# Part of ‘lie_corelib’, a package providing MongoDB access for the LIEStudio
+# Part of ‘mdstudio’, a package providing MongoDB access for the LIEStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -23,7 +23,7 @@
 
 from setuptools import setup, find_packages
 
-distribution_name = 'lie_corelib'
+distribution_name = 'mdstudio'
 
 
 setup(
@@ -38,7 +38,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['jsonpickle', 'funcsigs','twisted','autobahn', 'pyyaml', 'pynacl', 'jsonschema', 'pyopenssl', 'service_identity', 'oauthlib', 'pytz', 'python-dateutil'],
+    install_requires=['jsonpickle', 'funcsigs','twisted','autobahn', 'pyyaml', 'pynacl', 'jsonschema', 'pyopenssl', 'service_identity', 'oauthlib', 'pytz', 'python-dateutil', 'asq'],
     test_suite="tests.module_test_suite",
     include_package_data=True,
     zip_safe=True,

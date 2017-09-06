@@ -20,7 +20,7 @@ class Cursor:
     def __init__(self, wrapper, response):
         self.wrapper = wrapper
         self.current = 0
-        self._id = response['id']
+        self._id = response['_id']
         self._alive = response['alive']
         self._data = deque(response['result'])
 

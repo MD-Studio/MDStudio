@@ -1,5 +1,6 @@
 # coding=utf-8
 from typing import *
+from pymongo.collection import Collection
 
 import abc
 
