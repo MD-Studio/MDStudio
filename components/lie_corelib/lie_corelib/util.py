@@ -165,7 +165,7 @@ class Schema(ISchema):
 
 
 class WampSchema(ISchema):
-    def __init__(self, namespace, path, *, versions=None):
+    def __init__(self, namespace, path, versions=None):
         # type: (str, str, Optional[Union[List[int],Set[int]]]) -> None
         if versions is None:
             versions = [1]

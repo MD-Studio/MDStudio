@@ -21,8 +21,7 @@ from distutils import spawn
 from autobahn import wamp
 from bson import ObjectId
 from expiringdict import ExpiringDict
-
-from lie_corelib.lie_corelib.db.database import *
+from lie_corelib.db import IDatabase
 
 logger = Logger(namespace='db')
 
@@ -92,7 +91,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
-    def count(self, collection=None, filter=None, skip=0, limit=None, date_fields=None, *, cursor_id=None,
+    def count(self, collection=None, filter=None, skip=0, limit=None, date_fields=None, cursor_id=None,
               with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], int, DateFieldsType, str, bool) -> Dict[str, Any]
         total = 0
@@ -242,7 +241,8 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._get_cursor(cursor)
 
-    def delete_one(self, collection=None, filter=None, date_fields=None):
+    def delete_one(self, collection, filter, date_fields=None):
+        # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
@@ -254,6 +254,7 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     def delete_many(self, collection=None, filter=None, date_fields=None):
+        # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
@@ -291,7 +292,7 @@ class MongoDatabaseWrapper(IDatabase):
             'alive': cursor.alive
         }
 
-    def _update_response(self, upsert, *, replace_result=None):
+    def _update_response(self, upsert, replace_result=None):
         if replace_result is None:
             return {
                 'matched': 0,

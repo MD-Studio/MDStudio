@@ -1,6 +1,9 @@
 from collections import deque
 from typing import *
 
+from asq.initiators import query
+from asq.queryables import Queryable
+
 
 class Cursor:
 
@@ -36,6 +39,10 @@ class Cursor:
         # type: (Callable[[Dict[str,Any]], None]) -> None
         for o in self:
             func(o)
+
+    def query(self):
+        # type: () -> Queryable
+        return query(self)
 
     def rewind(self):
         # type: () -> Cursor

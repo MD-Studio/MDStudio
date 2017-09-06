@@ -2,7 +2,7 @@ from typing import *
 
 import abc
 
-from lie_corelib.lie_corelib.db.sort_mode import SortMode
+from lie_corelib.db import SortMode
 
 CollectionType = Union[str, Dict[str, str], Collection]
 DateFieldsType = List[Union[str, List[str]]]
@@ -41,7 +41,7 @@ class IDatabase:
         pass
 
     @abc.abstractmethod
-    def count(self, collection, filter=None, skip=0, limit=None, *, cursor_id=None, with_limit_and_skip=False):
+    def count(self, collection, filter=None, skip=0, limit=None, cursor_id=None, with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], int, Optional[int], str, bool) -> Any
         pass
 
