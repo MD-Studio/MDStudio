@@ -6,36 +6,13 @@ lie\_logger package
     :undoc-members:
     :show-inheritance:
 
-Subpackages
------------
-
-.. toctree::
-
-    lie_logger.tests
-
 Submodules
 ----------
 
-lie\_logger\.log\_serializer module
------------------------------------
+lie\_logger\.\_\_main\_\_ module
+--------------------------------
 
-.. automodule:: lie_logger.log_serializer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-lie\_logger\.settings module
-----------------------------
-
-.. automodule:: lie_logger.settings
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-lie\_logger\.system\_logger module
-----------------------------------
-
-.. automodule:: lie_logger.system_logger
+.. automodule:: lie_logger.__main__
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,26 +1,14 @@
 # -*- coding: utf-8 -*-
 
-"""
-file: db_methods.py
-"""
-import hashlib
-import os
-import pytz
-import getpass
 import datetime
-import subprocess
 
-import sys
-
+import hashlib
+import pytz
 import random
 from dateutil.parser import parse as parsedate
-from pymongo.errors import ConnectionFailure
-from twisted.logger import Logger
-from pymongo import MongoClient, ReturnDocument
-from distutils import spawn
-from autobahn import wamp
-from bson import ObjectId
 from mdstudio.db import IDatabase
+from pymongo import MongoClient, ReturnDocument
+from twisted.logger import Logger
 
 from cache_dict import CacheDict
 
@@ -342,7 +330,7 @@ class MongoDatabaseWrapper(IDatabase):
             else:
                 if isinstance(subdoc, list):
                     for d in subdoc:
-                        self._transform_docfield_to_datetime(d, field[l:])
+                        self._transform_docfield_to_datetime(d, field[1:])
                 subdoc = None
                 break
 

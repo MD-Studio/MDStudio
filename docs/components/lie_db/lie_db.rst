@@ -16,6 +16,14 @@ Subpackages
 Submodules
 ----------
 
+lie\_db\.cache\_dict module
+---------------------------
+
+.. automodule:: lie_db.cache_dict
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 lie\_db\.db\_methods module
 ---------------------------
 

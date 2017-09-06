@@ -1,30 +1,28 @@
 # -*- coding: utf-8 -*-
 
-import jsonschema
-import itertools
 import inspect
+import itertools
 import json
-import time
-import sys
+
 import os
 import re
-
-from autobahn.wamp import auth, cryptosign
-from autobahn.twisted.wamp import ApplicationSession
-from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock
-from twisted.internet import reactor
-from twisted.logger import Logger
 import twisted
 from autobahn import wamp
+from autobahn.twisted.wamp import ApplicationSession
+from autobahn.wamp import auth, cryptosign
+from twisted.internet import reactor
+from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.logger import Logger
 from twisted.python.failure import Failure
-from pprint import pprint
 
-from .logging import WampLogObserver, PrintingObserver
-from .util import resolve_config, block_on, WampSchema, WampSchemaHandler, validate_json_schema
-from .config import PY3, config_from_dotenv, ConfigHandler
+from mdstudio import is_python3
+from mdstudio.config.io import config_from_dotenv
+from mdstudio.config import ConfigHandler
+from mdstudio.logging import WampLogObserver, PrintingObserver
+from mdstudio.util import resolve_config, WampSchema, WampSchemaHandler, validate_json_schema
 
-if PY3:
-    from .util import unicode      
+if is_python3:
+    pass
 
 class BaseApplicationSession(ApplicationSession):
     """

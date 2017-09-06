@@ -1,3 +1,6 @@
+# coding=utf-8
+
+
 class Collection(dict):
     # type: str
     name = None

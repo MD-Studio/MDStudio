@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from twisted.logger import Logger
-
-logging = Logger()
-
 
 class ConfigOrmHandler(object):
+    def __init__(self, base_class, mapping=None):
 
-    def __init__(self, baseclass, mapping={}):
+        if mapping is None:
+            mapping = {}
 
         self._mapping = mapping
-        self._baseclass = baseclass
+        self._base_class = base_class
 
     def add(self, key, mapped_class):
 
@@ -19,8 +17,8 @@ class ConfigOrmHandler(object):
     def get(self, key):
 
         if key and key in self._mapping:
-            ORMClass = type(self._baseclass.__name__, (self._mapping[key], self._baseclass), {})
+            ORMClass = type(self._base_class.__name__, (self._mapping[key], self._base_class), {})
         else:
-            ORMClass = self._baseclass
+            ORMClass = self._base_class
 
         return ORMClass

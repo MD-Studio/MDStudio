@@ -1,6 +1,9 @@
-#!/usr/bin/env python
+# coding=utf-8
 
 from string import Formatter
+
+# import the placeholder if needed
+from mdstudio.config.io import *
 
 
 class ConfigFormatter(Formatter):

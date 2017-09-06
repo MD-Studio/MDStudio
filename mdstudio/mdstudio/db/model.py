@@ -1,10 +1,10 @@
+# coding=utf-8
 from autobahn.twisted import ApplicationSession
 from twisted.internet.defer import Deferred
 
-from lie_corelib.lie_corelib.db.cursor import Cursor
-from lie_corelib.lie_corelib.db.database import *
-from lie_corelib.lie_corelib.db.response import *
-from lie_corelib.lie_corelib.db.session_database import SessionDatabaseWrapper
+from mdstudio.db.cursor import Cursor
+from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
+from mdstudio.db.session_database import SessionDatabaseWrapper
 
 
 class Model:
@@ -31,12 +31,12 @@ class Model:
 
     def replace_one(self, filter, replacement, upsert=False, date_fields=None):
         # type: (DocumentType, DateFieldsType) -> Dict[ReplaceOneResponse, Any]
-        replace_one = self.wrapper.replace_one(self.collection, filter, replacement, upsert)
+        replace_one = self.wrapper.replace_one(self.collection, filter, replacement, upsert, date_fields)
         return self.wrapper.transform(replace_one, ReplaceOneResponse)
 
-    def count(self, filter=None, skip=0, limit=None, *, cursor_id=None, with_limit_and_skip=False):
+    def count(self, filter=None, skip=0, limit=None, cursor_id=None, with_limit_and_skip=False):
         # type: (Optional[DocumentType], int, Optional[int], str, bool) -> Union[int, Deferred]
-        count = self.wrapper.count(self.collection, filter, skip, limit)
+        count = self.wrapper.count(self.collection, filter, skip, limit, cursor_id=cursor_id,  with_limit_and_skip=with_limit_and_skip)
         return self.wrapper.extract(count, 'total')
 
     def update_one(self, filter, update, upsert=False, date_fields=None):

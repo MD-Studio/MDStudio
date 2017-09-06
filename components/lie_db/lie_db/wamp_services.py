@@ -7,7 +7,7 @@ from autobahn import wamp
 from autobahn.wamp import SubscribeOptions, PublishOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from lie_corelib import BaseApplicationSession, register, WampSchema
+from mdstudio import BaseApplicationSession, register, WampSchema
 
 from .db_methods import MongoClientWrapper, MongoDatabaseWrapper
 

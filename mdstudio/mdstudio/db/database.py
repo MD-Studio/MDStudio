@@ -1,8 +1,10 @@
+# coding=utf-8
 from typing import *
 
 import abc
 
-from lie_corelib.db import SortMode
+from mdstudio.db.sort_mode import SortMode
+from mdstudio.db.collection import Collection
 
 CollectionType = Union[str, Dict[str, str], Collection]
 DateFieldsType = List[Union[str, List[str]]]

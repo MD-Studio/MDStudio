@@ -2,17 +2,15 @@
 
 from __future__ import unicode_literals
 
-import re
 import copy
-import logging
+import re
 import weakref
-
 from fnmatch import fnmatch
 from twisted.logger import Logger
 
-from .config_format import ConfigFormatter
-from .config_orm_handler import ConfigOrmHandler
-from .config_io import _flatten_nested_dict
+from .format import ConfigFormatter
+from .io import flatten_nested_dict
+from .orm_handler import ConfigOrmHandler
 
 
 class DictWrapper(dict):
@@ -123,7 +121,7 @@ class ConfigHandler(object):
 
         return self._leveled_dict_copy()
 
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self, memo=None):
         """
         Deepcopy directives for this class
 
@@ -132,12 +130,14 @@ class ConfigHandler(object):
         reflect the (sub)dictionary of the class instance.
         """
 
+        if memo is None:
+            memo = {}
         new = ConfigHandler.__new__(ConfigHandler)
         memo[id(self)] = new
 
         for n, v in self.__dict__.items():
             if not n == '_config':
-                new.__dict__[n] = copy.deepcopy(v, memo)
+                new.__dict__[n] = copy.deepcopy(v, memo=memo)
 
         new.__dict__['_config'] = None
         new._weakref_config(dict([(v, self._config[v]) for k, v in self._keys.items()]))
@@ -704,7 +704,7 @@ class ConfigHandler(object):
             self._config.clear()
         self._keys.clear()
 
-        self._config.update(_flatten_nested_dict(config, sep=self._sep))
+        self._config.update(flatten_nested_dict(config, sep=self._sep))
         self._resolve_config_level(self._reskeys)
 
     def parent(self, key=None):
@@ -974,7 +974,7 @@ class ConfigHandler(object):
 
         # If value is dictionary, flatten and update self._config.
         if isinstance(value, dict):
-            flattened = _flatten_nested_dict(value, parent_key=newkey, sep=self._sep)
+            flattened = flatten_nested_dict(value, parent_key=newkey, sep=self._sep)
             self._config.update(flattened)
 
             # If flattened dictionary represents new keys, update self._keys
@@ -1014,7 +1014,7 @@ class ConfigHandler(object):
                     self._config[v] = other._config[v]
 
         elif isinstance(other, dict):
-            other = _flatten_nested_dict(other, sep=self._sep)
+            other = flatten_nested_dict(other, sep=self._sep)
             self._config.update(other)
             self._resolve_config_level()
         else:

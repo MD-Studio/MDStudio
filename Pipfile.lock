@@ -1,8 +1,9 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3dbb9a8f6427751f16db1b4619b736da09a9e169b4586b4c20190a955f942993"
+            "sha256": "d67f2bc015ce6a5dcc44cc2e565e1fe4e7a4be60ff32f305ae7cfe5fe1638da0"
         },
+        "pipfile-spec": 1,
         "requires": {},
         "sources": [
             {
@@ -24,11 +25,14 @@
         "asn1crypto": {
             "version": "==0.22.0"
         },
+        "asq": {
+            "version": "==1.2.1"
+        },
         "attrs": {
             "version": "==17.2.0"
         },
         "autobahn": {
-            "version": "==17.6.2"
+            "version": "==17.9.1"
         },
         "automat": {
             "version": "==0.6.0"
@@ -37,7 +41,7 @@
             "version": "==1.3.2"
         },
         "babel": {
-            "version": "==2.4.0"
+            "version": "==2.5.0"
         },
         "backports-abc": {
             "version": "==0.5"
@@ -55,7 +59,7 @@
             "version": "==1.0.0"
         },
         "certifi": {
-            "version": "==2017.4.17"
+            "version": "==2017.7.27.1"
         },
         "cffi": {
             "version": "==1.10.0"
@@ -66,11 +70,14 @@
         "click": {
             "version": "==6.7"
         },
+        "cmd2": {
+            "version": "==0.7.7"
+        },
         "colorama": {
             "version": "==0.3.9"
         },
         "coloredlogs": {
-            "version": "==7.0"
+            "version": "==7.3"
         },
         "configparser": {
             "version": "==3.5.0"
@@ -82,13 +89,13 @@
             "version": "==4.4.1"
         },
         "crossbar": {
-            "version": "==17.6.1.post3"
+            "version": "==17.9.1"
         },
         "cryptography": {
-            "version": "==1.9"
+            "version": "==2.0.3"
         },
         "docutils": {
-            "version": "==0.13.1"
+            "version": "==0.14"
         },
         "enum34": {
             "version": "==1.1.6"
@@ -96,11 +103,14 @@
         "executor": {
             "version": "==18.0"
         },
+        "expiringdict": {
+            "version": "==1.1.3"
+        },
         "fasteners": {
             "version": "==0.14.1"
         },
         "flake8": {
-            "version": "==3.3.0"
+            "version": "==3.4.1"
         },
         "flake8-docstrings": {
             "version": "==1.1.0"
@@ -111,7 +121,9 @@
         "funcsigs": {
             "version": "==1.0.2"
         },
-        "functools32": "==3.2.3-2",
+        "functools32": {
+            "version": "==3.2.3-2"
+        },
         "future": {
             "version": "==0.16.0"
         },
@@ -122,22 +134,22 @@
             "version": "==2.1.5"
         },
         "green": {
-            "version": "==2.10.0"
+            "version": "==2.11.0"
         },
         "h2": {
-            "version": "==2.6.2"
+            "version": "==3.0.1"
         },
         "hpack": {
             "version": "==3.0.0"
         },
         "humanfriendly": {
-            "version": "==4.3"
+            "version": "==4.4.1"
         },
         "hyperframe": {
             "version": "==5.1.0"
         },
         "hyperlink": {
-            "version": "==17.2.1"
+            "version": "==17.3.1"
         },
         "idna": {
             "version": "==2.5"
@@ -154,6 +166,9 @@
         "jinja2": {
             "version": "==2.9.6"
         },
+        "jsonpickle": {
+            "version": "==0.9.5"
+        },
         "jsonschema": {
             "version": "==2.6.0"
         },
@@ -164,7 +179,7 @@
             "version": "==2.5.1"
         },
         "lmdb": {
-            "version": "==0.92"
+            "version": "==0.93"
         },
         "markupsafe": {
             "version": "==1.0"
@@ -206,16 +221,16 @@
             "version": "==2.2"
         },
         "psutil": {
-            "version": "==5.2.2"
+            "version": "==5.3.0"
         },
         "py-ubjson": {
             "version": "==0.9.0"
         },
         "pyasn1": {
-            "version": "==0.2.3"
+            "version": "==0.3.3"
         },
         "pyasn1-modules": {
-            "version": "==0.0.9"
+            "version": "==0.1.1"
         },
         "pycodestyle": {
             "version": "==2.3.1"
@@ -233,16 +248,25 @@
             "version": "==2.2.0"
         },
         "pymongo": {
-            "version": "==3.4.0"
+            "version": "==3.5.1"
         },
         "pynacl": {
             "version": "==1.1.2"
         },
         "pyopenssl": {
-            "version": "==17.1.0"
+            "version": "==17.2.0"
+        },
+        "pyparsing": {
+            "version": "==2.2.0"
+        },
+        "pyperclip": {
+            "version": "==1.5.27"
         },
         "pyqrcode": {
             "version": "==1.2.1"
+        },
+        "python-dateutil": {
+            "version": "==2.6.1"
         },
         "python-termstyle": {
             "version": "==0.1.10"
@@ -257,19 +281,19 @@
             "version": "==3.12"
         },
         "requests": {
-            "version": "==2.18.1"
+            "version": "==2.18.4"
+        },
+        "scipy": {
+            "version": "==0.19.1"
         },
         "sdnotify": {
-            "version": "==0.3.1"
+            "version": "==0.3.2"
         },
         "service-identity": {
             "version": "==17.0.0"
         },
         "setproctitle": {
             "version": "==1.1.10"
-        },
-        "setuptools": {
-            "version": "==36.0.1"
         },
         "shutilwhich": {
             "version": "==1.1.0"
@@ -302,40 +326,43 @@
             "version": "==1.0.1"
         },
         "stevedore": {
-            "version": "==1.24.0"
+            "version": "==1.26.0"
         },
         "tornado": {
-            "version": "==4.5.1"
+            "version": "==4.5.2"
         },
         "traceback2": {
             "version": "==1.4.0"
         },
         "treq": {
-            "version": "==17.3.1"
+            "version": "==17.8.0"
         },
         "twisted": {
             "version": "==17.5.0"
         },
         "txaio": {
-            "version": "==2.8.0"
+            "version": "==2.8.2"
+        },
+        "txtorcon": {
+            "version": "==0.19.3"
         },
         "typing": {
-            "version": "==3.6.1"
+            "version": "==3.6.2"
         },
         "u-msgpack-python": {
             "version": "==2.4.1"
         },
         "unidecode": {
-            "version": "==0.04.21"
+            "version": "==0.4.21"
         },
         "unittest2": {
             "version": "==1.1.0"
         },
         "urllib3": {
-            "version": "==1.21.1"
+            "version": "==1.22"
         },
         "verboselogs": {
-            "version": "==1.6"
+            "version": "==1.7"
         },
         "watchdog": {
             "version": "==0.8.3"

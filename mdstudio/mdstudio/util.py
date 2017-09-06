@@ -1,25 +1,14 @@
-import inspect
 import json
-import sys
 from typing import *
 
+import jsonschema
 import os
 import re
-
-from twisted.internet.defer import TimeoutError, inlineCallbacks, returnValue
-from twisted.logger import LogLevel
-from twisted.python.failure import Failure
 from autobahn import wamp
-import jsonschema
+from twisted.internet.defer import inlineCallbacks, returnValue
 
-from .config.config_handler import ConfigHandler
-from .config import PY3
+from .config.handler import ConfigHandler
 from .logging import block_on
-
-if PY3:
-    from queue import Queue, Empty
-else:
-    from Queue import Queue, Empty
 
 # add unicode placeholder for PY3
 try:

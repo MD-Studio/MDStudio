@@ -17,9 +17,9 @@ from twisted.python.failure import Failure
 from twisted.logger import (ILogObserver, ILogFilterPredicate, PredicateResult, LogLevel,
                             globalLogPublisher, Logger, FilteringLogObserver, LogLevelFilterPredicate)
 
-from ..config import PY3
+from mdstudio import is_python3
 
-if PY3:
+if is_python3:
     from queue import Queue, Empty
 else:
     from Queue import Queue, Empty

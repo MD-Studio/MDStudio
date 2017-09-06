@@ -10,8 +10,9 @@ import json
 
 from twisted.logger import Logger
 
-PY3 = sys.version_info.major == 3
-if PY3:
+from mdstudio import is_python3
+
+if is_python3:
     import configparser
     from io import StringIO
 else:
@@ -29,6 +30,38 @@ except NameError as e:
 
 logging = Logger()
 
+
+def flatten_nested_dict(config, parent_key='', sep='.'):
+    """
+    Flatten a nested dictionary by concatenating all
+    nested keys.
+    Keys are converted to a string representation if
+    needed.
+
+    :param config:     dictionary to flatten
+    :type config:      :py:class:`dict`
+    :param parent_key: leading string in concatenated keys
+    :type parent_key:  str
+    :param sep:        concatenation seperator
+    :type sep:         str
+    :return:           flattened dictionary
+    :rtype:            :py:class:`dict`
+    """
+
+    items = []
+    for key, value in config.items():
+
+        # parse key to string if needed
+        if not isinstance(key, (str, unicode)):
+            key = str(key)
+
+        new_key = str(parent_key + sep + key if parent_key else key)
+        if isinstance(value, collections.MutableMapping):
+            items.extend(flatten_nested_dict(value, new_key, sep=sep).items())
+        else:
+            items.append((new_key, value))
+
+    return dict(items)
 
 def _open_anything(source, mode='r'):
     """
@@ -78,39 +111,6 @@ def _open_anything(source, mode='r'):
         except BaseException:
             logging.debug("Unable to access as file, try to parse as string")
             return StringIO.StringIO(str(source))
-
-
-def _flatten_nested_dict(config, parent_key='', sep='.'):
-    """
-    Flatten a nested dictionary by concatenating all
-    nested keys.
-    Keys are converted to a string representation if
-    needed.
-
-    :param config:     dictionary to flatten
-    :type config:      :py:class:`dict`
-    :param parent_key: leading string in concatenated keys
-    :type parent_key:  str
-    :param sep:        concatenation seperator
-    :type sep:         str
-    :return:           flattened dictionary
-    :rtype:            :py:class:`dict`
-    """
-
-    items = []
-    for key, value in config.items():
-
-        # parse key to string if needed
-        if not isinstance(key, (str, unicode)):
-            key = str(key)
-
-        new_key = str(parent_key + sep + key if parent_key else key)#.encode('utf-8')
-        if isinstance(value, collections.MutableMapping):
-            items.extend(_flatten_nested_dict(value, new_key, sep=sep).items())
-        else:
-            items.append((new_key, value))
-
-    return dict(items)
 
 
 def _nest_flattened_dict(config, sep='.'):
@@ -203,7 +203,7 @@ def config_to_ini(config, tofile):
     :param tofile: path of .ini or .cfg file to export to.
     :type tofile:  string
     """
-    if not PY3:
+    if not is_python3:
         raise IOError('Configuration export to INI style configuration file only supported in Python version >= 3.2')
 
     nested_dict = _nest_flattened_dict(config())

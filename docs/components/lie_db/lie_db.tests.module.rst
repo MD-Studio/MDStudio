@@ -17,4 +17,12 @@ lie\_db\.tests\.module\.db\_test module
     :undoc-members:
     :show-inheritance:
 
+lie\_db\.tests\.module\.test\_db\_methods module
+------------------------------------------------
+
+.. automodule:: lie_db.tests.module.test_db_methods
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 

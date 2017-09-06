@@ -7,7 +7,9 @@ Components
 
    components/lie_amber/modules.rst
    components/lie_atb/modules.rst
+   components/lie_auth/modules.rst
    components/lie_authorizer/modules.rst
+   components/lie_cli/modules.rst
    components/lie_componentbase/modules.rst
    components/lie_config/modules.rst
    components/lie_db/modules.rst
