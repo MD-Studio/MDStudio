@@ -29,7 +29,7 @@ class LoggerWampApi(BaseApplicationSession):
         yield self.publish(u'mdstudio.logger.events.online', True, options=wamp.PublishOptions(acknowledge=True))
         returnValue({})
 
-    @validate_input(WampSchema('logger', 'log/log', 1))
+    @validate_input(WampSchema('logger', 'log/log'))
     @inlineCallbacks
     def log_event(self, request, details=None):
         """

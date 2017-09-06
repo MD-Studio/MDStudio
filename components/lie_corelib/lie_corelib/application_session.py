@@ -135,8 +135,8 @@ class BaseApplicationSession(ApplicationSession):
             'loggernamespace':  '_LIE_LOGGER_NAMESPACE'
         }
 
-        self.package_config_template = WampSchema('corelib', 'settings/settings', 1)
-        self.session_config_template = WampSchema('corelib', 'session_config/session_config', 1)
+        self.package_config_template = WampSchema('corelib', 'settings/settings')
+        self.session_config_template = WampSchema('corelib', 'session_config/session_config')
 
         self.json_schemas = []
         self.function_scopes = []

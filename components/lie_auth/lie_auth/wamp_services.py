@@ -43,8 +43,8 @@ class AuthWampApi(BaseApplicationSession):
     log = Logger()
 
     def preInit(self, **kwargs):
-        self.session_config_template = WampSchema('auth', 'session_config/session_config', 1)
-        self.package_config_template = WampSchema('auth', 'settings/settings', 1)
+        self.session_config_template = WampSchema('auth', 'session_config/session_config')
+        self.package_config_template = WampSchema('auth', 'settings/settings')
         
         self.session_config_environment_variables.update({
             'admin_username': '_LIE_AUTH_USERNAME',
@@ -378,7 +378,7 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(authorization)
 
-    @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request', 1), WampSchema('auth', 'oauth/client/client-response', 1), details_arg=True)
+    @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request'), WampSchema('auth', 'oauth/client/client-response'), details_arg=True)
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)
