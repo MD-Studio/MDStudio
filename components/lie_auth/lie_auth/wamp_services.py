@@ -253,11 +253,12 @@ class AuthWampApi(BaseApplicationSession):
             else:
                 # Not a valid user, try  to find a matching client
                 client = yield self._get_client(username)
+                client['scope'] = ' '.join(client.pop('scopes'))
                 if client:
                     http_basic = self._http_basic_authentication(username, details['ticket'])
                     credentials = {u'client': client, 
                                    u'http_basic': self._http_basic_authentication(client[u'clientId'], client[u'secret'])}
-        
+
                     headers, body, status = self.oauth_backend_server.create_token_response(
                                                                         u'mdstudio.auth.login',
                                                                         headers={u'Authorization': http_basic},
@@ -265,8 +266,10 @@ class AuthWampApi(BaseApplicationSession):
                                                                         credentials=credentials)
 
                     if status == 200:
-                        user = {u'id': client[u'_id']}
+                        user = {u'_id': client[u'_id']}
                         auth_ticket = {u'realm': realm, u'role': 'oauthclient', u'extra': {u'access_token': json.loads(body).get('accessToken')}}
+                    else:
+                        raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
                 else:
                     raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
 
@@ -313,6 +316,9 @@ class AuthWampApi(BaseApplicationSession):
         else:
             if 'disclose' not in authorization:
                 authorization['disclose'] = False
+
+            if uri.startswith('mdstudio.auth.oauth'):
+                authorization['disclose'] = True
 
             self._store_action(uri, action, options)
 

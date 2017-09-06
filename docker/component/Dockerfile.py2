@@ -7,5 +7,7 @@ WORKDIR /app
 
 STOPSIGNAL SIGTERM
 
+RUN pip install typing
+
 ENTRYPOINT ["bash", "/docker-entrypoint.sh"]
 CMD python -m $COMPONENT
