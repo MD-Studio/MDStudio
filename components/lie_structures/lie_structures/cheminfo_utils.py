@@ -24,7 +24,7 @@ for package in packages:
         logging.debug('Unable to import cheminformatics package {0} using cinfony'.format(package))
 
 
-def mol_read(mol, mol_format=None, from_file=False, toolkit='pybel', fallback='webel'):
+def mol_read(mol, mol_format=None, from_file=False, toolkit='pybel', fallback='webel', default_mol_name='ligand'):
     """
     Import molecular structure file in cheminformatics toolkit molecular object
     """
@@ -47,6 +47,10 @@ def mol_read(mol, mol_format=None, from_file=False, toolkit='pybel', fallback='w
     else:
         molobject = toolkit_driver.readstring(mol_format, mol)
     
+    # Set the molecular title to something meaningfull
+    if not molobject.title or not all([i.isalnum() for i in molobject.title]):
+        molobject.title = default_mol_name
+    
     # Register import file format and toolkit in molobject
     molobject.mol_format = mol_format
     molobject.toolkit = toolkit
@@ -63,12 +67,10 @@ def mol_write(molobject, mol_format=None, file_path=None, fallback='webel'):
     output = molobject.write(mol_format, file_path, overwrite=True)
     return output
     
-def mol_attributes(mol, mol_format='sdf', toolkit='pybel', fallback='webel'):
+def mol_attributes(molobject):
     """
     Common and toolkit specific molecular attributes
     """
-    
-    molobject = read(mol, mol_format=mol_format, toolkit=toolkit, fallback=fallback)
     
     attributes = {}
     attributes.update(molobject.data)
@@ -109,7 +111,7 @@ def mol_make3D(molobject, forcefield='mmff94', localopt=True, steps=50):
         
         coord_sum = [0,0,0]
         for atom in molobject.atoms:
-            coord_sum = [a+abs(b) for a,b in zip(coord_sum, atom)]
+            coord_sum = [a+abs(b) for a,b in zip(coord_sum, atom.coords)]
         
         # If truely 3D, the sum of all dimensions should be larger than 0
         if all([dim > 0 for dim in coord_sum]):

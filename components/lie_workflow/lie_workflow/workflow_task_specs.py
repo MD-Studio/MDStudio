@@ -30,7 +30,7 @@ from .common import _schema_to_data
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
-#logging = Logger()
+logging = Logger()
 
 
 class _TaskBase(object):
@@ -274,7 +274,12 @@ class Mapper(_TaskBase):
         :type errorback:  function
         """
         
-        mapped = self.get_input().get('mapper', [])
+        map_argument = self.get('mapper_arg', 'mapper')
+        task_input = self.get_input()
+        if not map_argument in task_input:
+            errorback('Task {0} ({1}), mapper argument {2} not in input'.format(self.nid, self.task_name, map_argument), self.nid)
+        
+        mapped = task_input[map_argument]
         if len(mapped):
            
            # Pre-process data array
@@ -326,8 +331,18 @@ class Mapper(_TaskBase):
                if not 'input_data' in child:
                    self._full_graph.nodes[child.nid]['input_data'] = {}
                
+               # List item to dict if needed
+               tomap = mapped[i]
+               if not type(tomap) == dict:
+                   tomap = {map_argument: tomap}
+               
                # TODO: Define data mapper here
-               child['input_data'].update(mapped[i])
+               child['input_data'].update(tomap)
+               
+               # Add all other input arguments to
+               for key,value in task_input.items():
+                   if not key == map_argument:
+                       child['input_data'][key] = value
            
            session.status = 'completed'
            callback({'session': session.dict()}, self.nid)
@@ -374,7 +389,6 @@ class Collect(_TaskBase):
             session._metadata['utime'] = int(time.time())
             
             output = {'session': session.dict()}
-            print(collected_output)
             output.update(runner(collected_output))
             callback(output, self.nid)
             

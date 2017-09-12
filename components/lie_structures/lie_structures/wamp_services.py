@@ -37,7 +37,7 @@ class StructuresWampApi(LieApplicationSession):
     #     self.log.info("StructuresWampApi: get_structure() registered!")
     
     @wamp.register(u'liestudio.structures.get_structure')
-    def get_structure(self, structure=None, session={}):
+    def get_structure(self, structure=None, session={}, **kwargs):
         
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session)
@@ -164,7 +164,32 @@ class StructuresWampApi(LieApplicationSession):
         session['status'] = 'completed'
         
         return {'mol': output, 'session': session}
+    
+    @wamp.register(u'liestudio.structure.info')
+    def structure_attributes(self, session={}, **kwargs):
+        """
+        Return common structure attributes
+        """
         
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+        
+        # Load configuration and update
+        config = self.package_config.lie_structures.dict()
+        config.update(kwargs)
+        
+        # Validate against JSON schema
+        jsonschema.validate(config, STRUCTURES_SCHEMA)
+        
+        molobject = mol_read(config['mol'], mol_format=config.get('input_format'))
+        attributes = mol_attributes(molobject) or {}
+        
+        # Update session
+        session['status'] = 'completed'
+        attributes['session'] = session
+        
+        return attributes
+    
 
 def make(config):
     """

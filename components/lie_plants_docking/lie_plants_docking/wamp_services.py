@@ -94,9 +94,10 @@ class DockingWampApi(LieApplicationSession):
         #self.logger.info('Initiate PLANTS docking', **session)
 
         # Prepaire docking directory
-        plants_config['workdir'] = prepaire_work_dir(plants_config.get('workdir', None), 
-                                                     user=session.get('authid', None),
-                                                     create=True)
+        if not 'workdir' in plants_config:
+            plants_config['workdir'] = prepaire_work_dir(plants_config.get('workdir', None), 
+                                                         user=session.get('authid', None),
+                                                         create=True)
         
         # Run docking
         docking = PlantsDocking(user_meta=session, **plants_config)  

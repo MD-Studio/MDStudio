@@ -201,5 +201,5 @@ class WAMPTaskMetaData(object):
         return self._metadata
 
     def validate(self):
-
+        
         jsonschema.validate(self._metadata, self._session_schema)

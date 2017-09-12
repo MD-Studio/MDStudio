@@ -18,3 +18,8 @@ __licence__ = 'Apache Software License 2.0'
 __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
+
+from .settings   import GROMACS_LIE_SCHEMA, SETTINGS
+
+# Define module public API
+settings = SETTINGS

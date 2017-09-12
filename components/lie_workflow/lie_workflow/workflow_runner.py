@@ -19,7 +19,7 @@ from .workflow_spec import WorkflowSpec
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
-#logging = Logger()
+logging = Logger()
 
 class _WorkflowQueryMethods(object):
     """
@@ -238,7 +238,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         task.status = 'failed'
         
         failure_message = ""
-        if isinstance(failure, Exception):
+        if isinstance(failure, Exception) or isinstance(failure, str):
             failure_message = str(failure)
         else:
             failure.getErrorMessage()
