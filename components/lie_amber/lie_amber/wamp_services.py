@@ -12,6 +12,7 @@ import time
 import json
 import jsonschema
 import re
+import tempfile
 
 from autobahn               import wamp
 from twisted.internet.defer import inlineCallbacks
@@ -43,7 +44,7 @@ class AmberWampApi(LieApplicationSession):
         jsonschema.validate(amber_schema, acpype_config)
         
         # Create workdir and save file
-        workdir = os.path.join(kwargs['tmp_dir'], 'acpype-{0}'.format(session.get('task_id', '')))
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
         tmpfile = os.path.join(workdir,'input.mol2')
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
@@ -72,7 +73,7 @@ class AmberWampApi(LieApplicationSession):
         jsonschema.validate(amber_schema, amber_reduce_config)
         
         # Create workdir and save file
-        workdir = os.path.join(kwargs['tmp_dir'], 'reduce-{0}'.format(session.get('task_id', '')))
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
         tmpfile = os.path.join(workdir,'input.mol2')
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
