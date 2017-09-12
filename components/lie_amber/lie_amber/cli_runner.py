@@ -38,7 +38,7 @@ class CLIRunner(object):
         if not self._check_executable(cmd[0]):
             return
         
-        runner = ExternalCommand(' '.join(cmd), capture=True, **self._executor_commands)
+        runner = ExternalCommand(' '.join(cmd), capture=True, check=False, **self._executor_commands)
         output = runner.start()
         
         return runner
