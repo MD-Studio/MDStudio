@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/MD-Studio/MDStudio.svg?branch=master)](https://travis-ci.org/MD-Studio/MDStudio)
+
 # LIEStudio
 
 LIEStudio is a stand-alone application featuring a web based graphical user interface.
