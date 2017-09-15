@@ -2430,6 +2430,13 @@ solute_blueprints:
         type: gd_42
       - indices: [ CA, CB, CG, ND1 ]
         type: gd_40
+    exclusions:
+      CB: [ HD1, HD2, CE1, NE2 ]
+      CG: [ HE1 ]
+      ND1: [ HD2 ]
+      HD1: [ CD2, HE1, NE2 ]
+      CD2: [ HE1 ]
+      HD2: [ CE1 ]
   HISB:
     variants:
       NH3+_HISB: NH3+
@@ -2637,6 +2644,14 @@ solute_blueprints:
         type: gd_42
       - indices: [ CA, CB, CG, ND1 ]
         type: gd_40
+    exclusions:
+      CB: [ HD2, CE1, NE2 ]
+      CG: [ HE1, HE2 ]
+      ND1: [ HD2, HE2]
+      CD2: [ HE1 ]
+      HD2: [ CE1, HE2 ] 
+      HE1: [ HE2 ]
+         
   HISH:
     variants:
       NH3+_HISH: NH3+
@@ -2858,6 +2873,13 @@ solute_blueprints:
         type: gd_42
       - indices: [ CA, CB, CG, ND1 ]
         type: gd_40
+    exclusions:
+      CB: [ HD1, HD2, CE1, NE2 ]
+      CG: [ HE1, HE2 ]     
+      ND1: [ HD2, HE2, CD2, HE1, NE2 ]
+      CD2: [ HE1 ]
+      HD2: [ CE1, HE2 ]
+      HE1: [ HE2 ]
   HIS1:
     variants:
       NH3+_HIS1: NH3+
@@ -3081,6 +3103,12 @@ solute_blueprints:
         type: gd_42
       - indices: [ CA, CB, CG, ND1 ]
         type: gd_40
+    exclusions:
+      CB: [ HD1, HD2, CE1, NE2 ]
+      CG: [ HE1 ]
+      ND1: [ HD2, CD2, HE1, NE2 ]
+      CD2: [ HE1 ]
+      HD2: [ CE1 ]
   HIS2:
     variants:
       NH3+_HIS2: NH3+
@@ -3304,6 +3332,12 @@ solute_blueprints:
         type: gd_42
       - indices: [ CA, CB, CG, ND1 ]
         type: gd_40
+    exclusions:
+      CB: [ HD1, HD2, CE1, NE2 ]
+      CG: [ HE1 ]   
+      ND1: [ HD2, CD2, HE1, NE2 ]
+      CD2: [ HE1 ]
+      HD2: [ CE1 ]
   HYP:
     variants: {}
     atoms:
@@ -4415,6 +4449,16 @@ solute_blueprints:
         type: gd_42
       - indices: [ CA, CB, CG, CD1 ]
         type: gd_40
+    exclusions:
+      CB: [ HD1, HD2, CE1, CE2 ]
+      CG: [ HE1, HE2, CZ ]
+      CD1: [ HD2, CE2, HZ ]
+      HD1: [ CD2, HE1, CZ ]
+      CD2: [ CE1, HZ ]
+      HD2: [ HE2, CZ ]
+      CE1: [ HE2 ] 
+      HE1: [ CE2, HZ ] 
+      HE2: [ HZ ]
   PRO:
     variants:
       PRO_COO-: COO-
@@ -5088,6 +5132,19 @@ solute_blueprints:
         type: gd_42
       - indices: [ CA, CB, CG, CD2 ]
         type: gd_40
+    exclusions:
+      CB: [ HD1, NE1, CE2, CE3 ]
+      CG: [ HE1, HE3, CZ2, CZ3 ]
+      CD1: [ CE3, CZ2 ]
+      HD1: [ CD2, HE1, CE2 ]
+      CD2: [ HE1, HZ2, HZ3, CH2 ]
+      NE1: [ CE3, HZ2, CH2, CZ2 ]
+      CE2: [ HE3, CZ3, HH2 ]
+      CE3: [ CZ2, HH2 ]
+      HE3: [ HZ3, CH2 ]   
+      CZ2: [ HZ3 ]
+      HZ2: [ CZ3, HH2 ]  
+      HZ3: [ HH2 ]
   TYR:
     variants:
       NH3+_TYR: NH3+
@@ -5347,6 +5404,16 @@ solute_blueprints:
         type: gd_40
       - indices: [ CE1, CZ, OH, HH ]
         type: gd_11
+    exclusions:
+      CB: [ HD1, HD2, CE1, CE2 ]
+      CG: [ HE1, HE2, CZ ]
+      CD1: [ HD2, CE2, OH ] 
+      HD1: [ CD2, HE1, CZ ]
+      CD2: [ CE1, OH ]
+      HD2: [ HE2, CZ ]
+      CE1: [ HE2 ]
+      HE1: [ CE2, OH ]
+      HE2: [ OH ]
   VAL:
     variants:
       NH3+_VAL: NH3+
@@ -6660,6 +6727,19 @@ solute_blueprints:
         type: gd_17
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ N3, C5, N7, H8 ]
+      N9: [ C2, C6 ]    
+      C4: [ H2, N1, N6, H8 ]
+      N3: [ C6, N7, C8 ]   
+      C2: [ N6, C5 ]
+      H2: [ C6 ] 
+      N1: [ N7 ]
+      C6: [ C8 ]
+      N6: [ N7 ]
+      H61: [ N7 ]
+      H62: [ N7 ]
+      C5: [ H8 ]
   DGUA:
     variants: {}
     atoms:
@@ -7063,6 +7143,18 @@ solute_blueprints:
         type: gd_17
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ N3, C5, N7, H8 ]
+      N9: [ C2, C6 ]    
+      C4: [ N2, N1, O6, H8 ]
+      N3: [ H1, C6, N7, C8 ]
+      C2: [ O6, C5 ]
+      N2: [ H1, C6 ]
+      N1: [ N7 ]
+      H1: [ O6, C5 ]
+      C6: [ C8 ]
+      O6: [ N7 ]
+      C5: [ H8 ]
   DCYT:
     variants: {}
     atoms:
@@ -7412,6 +7504,15 @@ solute_blueprints:
         type: gd_17
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ H6, O2, N3, C5 ]
+      N1: [ C4, H5 ]
+      C6: [ O2, N3, N4 ]
+      H6: [ C2, C4, H5 ]    
+      C2: [ N4, C5 ]  
+      O2: [ C4 ]
+      N3: [ H5 ]
+      N4: [ H5 ]
   DTHY:
     variants: {}
     atoms:
@@ -7749,6 +7850,16 @@ solute_blueprints:
         type: gd_17
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ H6, O2, N3, C5 ]
+      N1: [ H3, C4, C5M ]
+      C6: [ O2, N3, O4 ]
+      H6: [ C2, C4, C5M ]  
+      C2: [ O4, C5 ]
+      O2: [ H3, C4 ]
+      N3: [ C5M ]
+      H3: [ O4, C5 ]
+      O4: [ C5M ]
   ADE:
     variants: {}
     atoms:
@@ -8172,6 +8283,19 @@ solute_blueprints:
         type: gd_18
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ N3, C5, N7, H8 ]
+      N9: [ C2, C6 ]
+      C4: [ H2, N1, N6, H8 ]  
+      N3: [ C6, N7, C8 ]
+      C2: [ N6, C5 ]
+      H2: [ C6 ]
+      N1: [ N7 ]
+      C6: [ C8 ]
+      N6: [ N7 ]
+      H61: [ N7 ]
+      H62: [ N7 ]
+      C5: [ H8 ]
   GUA:
     variants: {}
     atoms:
@@ -8609,6 +8733,18 @@ solute_blueprints:
         type: gd_18
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ N3, C5, N7, H8 ]
+      N9: [ C2, C6 ]
+      C4: [ N2, N1, O6, H8 ]
+      N3: [ H1, C6, N7, C8 ]
+      C2: [ O6, C5 ]
+      N2: [ H1, C6 ]   
+      N1: [ N7 ]
+      H1: [ O6, C5 ]
+      C6: [ C8 ]
+      O6: [ N7 ]
+      C5: [ H8 ]  
   CYT:
     variants: {}
     atoms:
@@ -8992,6 +9128,15 @@ solute_blueprints:
         type: gd_18
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ H6, O2, N3, C5 ]
+      N1: [ C4, H5 ]
+      C6: [ O2, N3, N4 ]
+      H6: [ C2, C4, H5 ]
+      C2: [ N4, C5 ]
+      O2: [ C4 ]
+      N3: [ H5 ]
+      N4: [ H5 ]
   URA:
     variants: {}
     atoms:
@@ -9363,6 +9508,18 @@ solute_blueprints:
         type: gd_18
       - indices: [ C4*, C3*, O3*, +P ]
         type: gd_29
+    exclusions:
+      C1*: [ H6, O2, N3, C5 ]
+      N1: [ H3, C4, H5 ]
+      C6: [ O2, N3, O4 ] 
+      H6: [ C2, C4, H5 ]
+      C2: [ O4, C5 ]
+      O2: [ H3, C4 ]
+      N3: [ H5 ]
+      H3: [ O4, C5 ]
+      O4: [ H5 ]
+      H5: [ -O3* ] 
+      O2*: [ O3* ]
   DPPC:
     variants: {}
     atoms:
