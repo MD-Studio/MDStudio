@@ -170,7 +170,10 @@ def _ExplicitLinking( solute_group, explicit_links ):
 
         for improper in molecule_1.impropers:
             improper.atom_references = _ResolveExplicitReferences( improper.atom_references, molecule_2 )
-        
+
+        for exclu in molecule_1.exclusions:
+            exclu.atom_references = _ResolveExplicitReferences( exclu.atom_references, molecule_2 )
+            
         # molecule_2 -> molecule_1
         for bond in molecule_2.bonds:
             bond.atom_references = _ResolveExplicitReferences( bond.atom_references, molecule_1 )
@@ -184,6 +187,8 @@ def _ExplicitLinking( solute_group, explicit_links ):
         for improper in molecule_2.impropers:
             improper.atom_references = _ResolveExplicitReferences( improper.atom_references, molecule_1 )
 
+        for exclu in molecule_2.exclusions:
+            exclu.atom_references = _ResolveExplicitReferences( exclu.atom_references, molecule_1 )
 
 def _FinalizeLinking( solute_group ):
 
@@ -213,6 +218,9 @@ def _FinalizeLinking( solute_group ):
         for improper in molecule.impropers:
             improper.atom_references = _ResolveChainReferences( improper.atom_references, molecule, prev_molecule, next_molecule )
 
+        for exclu in molecule.exclusions:
+            exclu.atom_references = _ResolveChainReferences( exclu.atom_references, molecule, prev_molecule, next_molecule )
+
 def MakeSequence( forcefield, blueprint, sequence, explicit_links ):
 
     """ Generate a sequence from small blueprint molecules
@@ -232,7 +240,7 @@ def MakeSequence( forcefield, blueprint, sequence, explicit_links ):
         raise LieTopologyException("MakeTopology", "sequence argument should be of type list")
     
     if not isinstance(explicit_links, list):
-        raise LieTopologyException("MakeTopology", "disulfides argument should be of type list")
+        raise LieTopologyException("MakeTopology", "explicit_links argument should be of type list")
 
     for seq_instance in sequence:
         if not isinstance(seq_instance, str):

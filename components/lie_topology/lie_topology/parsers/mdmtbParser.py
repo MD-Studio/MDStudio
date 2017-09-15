@@ -41,6 +41,7 @@ from lie_topology.molecule.bond               import Bond
 from lie_topology.molecule.angle              import Angle
 from lie_topology.molecule.dihedral           import Dihedral
 from lie_topology.molecule.improper           import Improper
+from lie_topology.molecule.exclusion          import Exclusion
 from lie_topology.molecule.vsite              import InPlaneSite
 from lie_topology.molecule.reference          import AtomReference, ForwardChainReference, ReverseChainReference,\
                                                      ExplicitConnectionReference, VariantTopologyReference
@@ -238,6 +239,20 @@ def ReadImproperSection( improper_section, solute ):
         improper = Improper( atom_references=atom_references, forcefield_type=forcefield_type )   
         solute.AddImproper( improper )
 
+def ReadExclusionSection( exclusion_section, solute ):
+
+    for exclusion_key, exclusion_data in exclusion_section.items():
+
+        if not isinstance( exclusion_data, list ):
+            raise LieTopologyException("ReadExclusionSection", "Solute blueprints exclusions have a list as argument")
+
+        for target_key in exclusion_data:
+            
+            atom_references = GenerateBondedReferences( solute, [exclusion_key, target_key], 2 )
+            
+            exclusion = Exclusion( atom_references=atom_references)   
+            solute.AddExclusion( exclusion )
+
 def ReadSoluteBlueprints( stream, blueprint ):
 
     for blueprint_key, blueprint_data in stream.items():
@@ -260,6 +275,10 @@ def ReadSoluteBlueprints( stream, blueprint ):
         angle_section = blueprint_data["angles"]
         improper_section = blueprint_data["impropers"]
         dihedral_section = blueprint_data["dihedrals"]
+        exclusion_section =  None
+
+        if "exclusions" in blueprint_data:
+            exclusion_section = blueprint_data["exclusions"]
 
         if variant_section is not None:
             blueprint.UpdateVariantList( blueprint_key, variant_section )
@@ -279,6 +298,9 @@ def ReadSoluteBlueprints( stream, blueprint ):
         if improper_section is not None:
             ReadImproperSection( improper_section, solute )
         
+        if exclusion_section is not None:
+            ReadExclusionSection( exclusion_section, solute )
+
         blueprint.AddMolecule( molecule=solute )
         
 def ReadVariantBlueprints( stream, blueprint ):

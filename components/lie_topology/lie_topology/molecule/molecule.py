@@ -39,7 +39,7 @@ from lie_topology.molecule.reference   import AtomReference
 class Molecule( Serializable ):
     
     def __init__( self, parent = None, key = None, type_name = None, identifier = None, \
-                  bonds = None, angles = None, dihedrals = None, impropers = None, replacing = None ):
+                  bonds = None, angles = None, dihedrals = None, impropers = None, exclusions = None ):
         
         # Call the base class constructor with the parameters it needs
         Serializable.__init__(self, self.__module__, self.__class__.__name__ )
@@ -70,6 +70,9 @@ class Molecule( Serializable ):
         
         # Impropers of this solute
         self._impropers = impropers if impropers is not None else []
+
+        # Nonbonded interaction exclusions of this solute
+        self._exclusions = exclusions if exclusions is not None else []
 
     def AddAtom(self, prepend=False, **kwargs  ):
         
@@ -134,6 +137,19 @@ class Molecule( Serializable ):
     def IndexOfDihedral(self, dihedral ):
 
         return self._IndexOfBonded( self.dihedrals, dihedral )
+
+    def IndexOfExclusion(self, exclusion ):
+
+        return self._IndexOfBonded( self.exclusions, exclusion )
+
+    def AddExclusion( self, exclu ):
+
+        #perform a sanity check if this bond is not already processed
+        if len(exclu.atom_references) != 2:
+            raise LieTopologyException("Molecule::AddExclusion", "Can only add exclusions that have 2 atom references" )
+        
+        # if not present yet
+        self._exclusions.append( exclu )   
 
     def AddBond( self, bond ):
 
@@ -230,94 +246,67 @@ class Molecule( Serializable ):
         return self._atoms.size()
 
     @property
-    def preceding_count(self):
-        num=0
-        for atom in self._atoms.values():
-            if atom.preceding is True:
-                num+=1
-        return num
-
-    @property
-    def trailing_count(self):
-        num=0
-        for atom in self._atoms.values():
-            if atom.trailing is True:
-                num+=1
-        return num
-
-    @property
     def molecule_index(self):
-
         return self.group.molecules.indexOf(self.key)
 
     @property
     def group(self):
-
         return self._group
 
     @property
     def key(self):
-
         return self._key
     
     @property
     def type_name(self):
-
         return self._type_name
         
     @property
     def identifier(self):
-
         return self._identifier
 
     @property
     def atoms(self):
-
         return self._atoms
 
     @property
     def bonds(self):
-
         return self._bonds
     
     @property
     def angles(self):
-
         return self._angles
 
     @property
     def dihedrals(self):
-
         return self._dihedrals
 
     @property
     def impropers(self):
-
         return self._impropers
+
+    @property
+    def exclusions(self):
+        return self._exclusions
 
     @group.setter
     def group(self, value):
-
         self._group = value
 
     @bonds.setter
     def bonds(self, value):
-
         self._bonds = value
     
     @angles.setter
     def angles(self, value):
-
         self._angles = value
 
     @dihedrals.setter
     def dihedrals(self, value):
-
         self._dihedrals = value
 
     @impropers.setter
     def impropers(self, value):
-
         self._impropers = value
 
 
@@ -326,7 +315,7 @@ class Molecule( Serializable ):
     def ResolveReferences( self, root_obj ):
 
         # next thing we want to do is attach bonded connections
-        for cat in["_bonds", "_angles", "_impropers", "_dihedrals"]:
+        for cat in["_bonds", "_angles", "_impropers", "_dihedrals", "_exclusions"]:
             category = self.__dict__[cat]
 
             if not category is None:
@@ -367,6 +356,11 @@ class Molecule( Serializable ):
         for improper in self._impropers:
             dest_molecule.AddImproper( improper.SafeCopy(molecule_key, group_key) )
 
+    def _SafeCopyExclusions(self, dest_molecule, molecule_key, group_key):
+        
+        for exclu in self._exclusions:
+            dest_molecule.AddExclusion( exclu.SafeCopy(molecule_key, group_key) )
+
     def SafeCopy(self, molecule_key=None, group_key=None):
 
         if molecule_key is None:
@@ -378,6 +372,7 @@ class Molecule( Serializable ):
         # next replace all direct obj references with indirect ones
         self._SafeCopyAtoms(molecule_cpy)
         self._SafeCopyBonded(molecule_cpy, molecule_key, group_key)
+        self._SafeCopyExclusions(molecule_cpy, molecule_key, group_key)
 
         return molecule_cpy
 
