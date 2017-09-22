@@ -17,7 +17,7 @@
                             "name": "auth",
                             "permissions": [
                                 {
-                                    "uri": "mdstudio.auth",
+                                    "uri": "mdstudio.auth.endpoint",
                                     "match": "prefix",
                                     "allow": {
                                         "call": false,
@@ -47,7 +47,7 @@
                                     "cache": true
                                 },
                                 {
-                                    "uri": "mdstudio.logger.log.auth",
+                                    "uri": "mdstudio.logger.endpoint.log.auth",
                                     "match": "exact",
                                     "allow": {
                                         "call": false,
@@ -73,31 +73,31 @@
                         },
                         {
                             "name": "db",
-                            "authorizer": "mdstudio.auth.authorize.ring0"
+                            "authorizer": "mdstudio.auth.endpoint.authorize.ring0"
                         },
                         {
                             "name": "schema",
-                            "authorizer": "mdstudio.auth.authorize.ring0"
+                            "authorizer": "mdstudio.auth.endpoint.authorize.ring0"
                         },
                         {
                             "name": "logger",
-                            "authorizer": "mdstudio.auth.authorize.ring0"
+                            "authorizer": "mdstudio.auth.endpoint.authorize.ring0"
                         },
                         {
                             "name": "public",
-                            "authorizer": "mdstudio.auth.authorize.public"
+                            "authorizer": "mdstudio.auth.endpoint.authorize.public"
                         },
                         {
                             "name": "user",
-                            "authorizer": "mdstudio.auth.authorize.user"
+                            "authorizer": "mdstudio.auth.endpoint.authorize.user"
                         },
                         {
                             "name": "admin",
-                            "authorizer": "mdstudio.auth.authorize.admin"
+                            "authorizer": "mdstudio.auth.endpoint.authorize.admin"
                         },
                         {
                             "name": "oauthclient",
-                            "authorizer": "mdstudio.auth.authorize.oauth"
+                            "authorizer": "mdstudio.auth.endpoint.authorize.oauth"
                         }
                     ]
                 }
@@ -161,11 +161,11 @@
                                 },
                                 "ticket": {
                                     "type": "dynamic",
-                                    "authenticator": "mdstudio.auth.login"
+                                    "authenticator": "mdstudio.auth.endpoint.login"
                                 },
                                 "wampcra": {
                                     "type": "dynamic",
-                                    "authenticator": "mdstudio.auth.login"
+                                    "authenticator": "mdstudio.auth.endpoint.login"
                                 }
                             }
                         }

@@ -319,8 +319,9 @@ def config_from_dotenv(dotenvfile):
             if len(value) > 0:
                 escaped = value[0] == value[-1] and value[0] in ('"', "'")
 
+
                 if escaped:
-                    value = codecs.unicode_escape_decode(value[1:-1])
+                    value = codecs.unicode_escape_decode(value[1:-1])[0]
 
             config[key] = value
 

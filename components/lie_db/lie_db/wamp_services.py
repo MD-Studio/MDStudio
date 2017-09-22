@@ -32,13 +32,13 @@ class DBWampApi(BaseApplicationSession):
 
     @inlineCallbacks
     def onRun(self, details):
-        yield self.publish(u'mdstudio.db.events.online', True, options=PublishOptions(acknowledge=True))
+        yield self.publish(u'mdstudio.db.endpoint.events.online', True, options=PublishOptions(acknowledge=True))
 
-    @wamp.register(u'mdstudio.db.status')
+    @wamp.register(u'mdstudio.db.endpoint.status')
     def status(self):
         return True
 
-    @register(u'mdstudio.db.more',
+    @register(u'mdstudio.db.endpoint.more',
               WampSchema('db', 'cursor/more-request', versions={1}),
               WampSchema('db', 'cursor/more-response', versions={1}), match='prefix', scope='write')
     def more(self, request, details=None):
@@ -46,7 +46,7 @@ class DBWampApi(BaseApplicationSession):
 
         return self._client.get_namespace(namespace).more(request['cursorId'])
 
-    @register(u'mdstudio.db.rewind',
+    @register(u'mdstudio.db.endpoint.rewind',
               WampSchema('db', 'cursor/rewind-request', versions={1}),
               WampSchema('db', 'cursor/rewind-response', versions={1}), match='prefix', scope='write')
     def rewind(self, request, details=None):
@@ -54,7 +54,7 @@ class DBWampApi(BaseApplicationSession):
 
         return self._client.get_namespace(namespace).rewind(request['cursorId'])
 
-    @register(u'mdstudio.db.insert_one',
+    @register(u'mdstudio.db.endpoint.insert_one',
               WampSchema('db', 'insert/insert-one-request', versions={1}),
               WampSchema('db', 'insert/insert-one-response', versions={1}), match='prefix',
               scope='write')
@@ -66,7 +66,7 @@ class DBWampApi(BaseApplicationSession):
 
         return self._client.get_namespace(namespace).insert_one(request['collection'], request['insert'], **kwargs)
 
-    @register(u'mdstudio.db.insert_many',
+    @register(u'mdstudio.db.endpoint.insert_many',
               WampSchema('db', 'insert/insert-many-request', versions={1}),
               WampSchema('db', 'insert/insert-many-response', versions={1}), match='prefix',
               scope='write')
@@ -78,7 +78,7 @@ class DBWampApi(BaseApplicationSession):
 
         return self._client.get_namespace(namespace).insert_many(request['collection'], request['insert'], **kwargs)
 
-    @register(u'mdstudio.db.replace_one',
+    @register(u'mdstudio.db.endpoint.replace_one',
               WampSchema('db', 'replace/replace-one-request', versions={1}),
               WampSchema('db', 'replace/replace-one-response', versions={1}), match='prefix',
               scope='write')
@@ -90,10 +90,10 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).insert_many(request['collection'], request['filter'],
+        return self._client.get_namespace(namespace).insert_many(request['collection'], request.get('filter', {}),
                                                                  request['replacement'], **kwargs)
 
-    @register(u'mdstudio.db.count',
+    @register(u'mdstudio.db.endpoint.count',
               WampSchema('db', 'count/count-request', versions={1}),
               WampSchema('db', 'count/count-response', versions={1}), match='prefix', scope='read')
     def count(self, request, details=None):
@@ -108,7 +108,7 @@ class DBWampApi(BaseApplicationSession):
         else:
             kwargs = {
                 'collection': request['collection'],
-                'filter': request['filter']
+                'filter': request.get('filter', {})
             }
             if 'skip' in request:
                 kwargs['skip'] = request['skip']
@@ -119,7 +119,7 @@ class DBWampApi(BaseApplicationSession):
 
         return self._client.get_namespace(namespace).count(**kwargs)
 
-    @register(u'mdstudio.db.update_one',
+    @register(u'mdstudio.db.endpoint.update_one',
               WampSchema('db', 'update/update-one-request', versions={1}),
               WampSchema('db', 'update/update-one-response', versions={1}), match='prefix',
               scope='write')
@@ -132,10 +132,10 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).update_one(request['collection'], request['filter'],
+        return self._client.get_namespace(namespace).update_one(request['collection'], request.get('filter', {}),
                                                                 request['update'], **kwargs)
 
-    @register(u'mdstudio.db.update_many',
+    @register(u'mdstudio.db.endpoint.update_many',
               WampSchema('db', 'update/update-many-request', versions={1}),
               WampSchema('db', 'update/update-many-response', versions={1}), match='prefix',
               scope='write')
@@ -148,10 +148,10 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).update_many(request['collection'], request['filter'],
+        return self._client.get_namespace(namespace).update_many(request['collection'], request.get('filter', {}),
                                                                  request['update'], **kwargs)
 
-    @register(u'mdstudio.db.find_one',
+    @register(u'mdstudio.db.endpoint.find_one',
               WampSchema('db', 'find/find-one-request', versions={1}),
               WampSchema('db', 'find/find-one-response', versions={1}), match='prefix', scope='read')
     def find_one(self, request, details=None):
@@ -167,9 +167,9 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).find_one(request['collection'], request['filter'], **kwargs)
+        return self._client.get_namespace(namespace).find_one(request['collection'], request.get('filter', {}), **kwargs)
 
-    @register(u'mdstudio.db.find_many',
+    @register(u'mdstudio.db.endpoint.find_many',
               WampSchema('db', 'find/find-many-request', versions={1}),
               WampSchema('db', 'find/find-many-response', versions={1}), match='prefix', scope='read')
     def find_many(self, request, details=None):
@@ -187,9 +187,9 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).find_many(request['collection'], request['filter'], **kwargs)
+        return self._client.get_namespace(namespace).find_many(request['collection'], request.get('filter', {}), **kwargs)
 
-    @register(u'mdstudio.db.find_one_and_update',
+    @register(u'mdstudio.db.endpoint.find_one_and_update',
               WampSchema('db', 'find/find-one-and-update-request', versions={1}),
               WampSchema('db', 'find/find-one-and-update-response', versions={1}), match='prefix',
               scope='read')
@@ -208,10 +208,10 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).find_one(request['collection'], request['filter'],
+        return self._client.get_namespace(namespace).find_one(request['collection'], request.get('filter', {}),
                                                               request['update'], **kwargs)
 
-    @register(u'mdstudio.db.find_one_and_replace',
+    @register(u'mdstudio.db.endpoint.find_one_and_replace',
               WampSchema('db', 'find/find-one-and-replace-request', versions={1}),
               WampSchema('db', 'find/find-one-and-replace-response', versions={1}), match='prefix',
               scope='read')
@@ -230,10 +230,10 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).find_one(request['collection'], request['filter'],
+        return self._client.get_namespace(namespace).find_one(request['collection'], request.get('filter', {}),
                                                               request['replacement'], **kwargs)
 
-    @register(u'mdstudio.db.find_one_and_delete',
+    @register(u'mdstudio.db.endpoint.find_one_and_delete',
               WampSchema('db', 'find/find-one-and-delete-request', versions={1}),
               WampSchema('db', 'find/find-one-and-delete-response', versions={1}),
               match='prefix',
@@ -245,9 +245,9 @@ class DBWampApi(BaseApplicationSession):
         if 'sort' in request:
             kwargs['sort'] = request['sort']
 
-        return self._client.get_namespace(namespace).find_one(request['collection'], request['filter'], **kwargs)
+        return self._client.get_namespace(namespace).find_one(request['collection'], request.get('filter', {}), **kwargs)
 
-    @register(u'mdstudio.db.aggregate',
+    @register(u'mdstudio.db.endpoint.aggregate',
               WampSchema('db', 'aggregate/aggregate-request', versions={1}),
               WampSchema('db', 'aggregate/aggregate-response', versions={1}),
               match='prefix',
@@ -257,7 +257,7 @@ class DBWampApi(BaseApplicationSession):
         return self._client.get_namespace(namespace).aggregate(request['collection'], request['pipeline'])
 
 
-    @register(u'mdstudio.db.delete_one',
+    @register(u'mdstudio.db.endpoint.delete_one',
               WampSchema('db', 'delete/delete-one', versions={1}),
               WampSchema('db', 'delete/delete-response', versions={1}), match='prefix',
               scope='delete')
@@ -268,9 +268,9 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).delete_one(request['collection'], request['filter'], **kwargs)
+        return self._client.get_namespace(namespace).delete_one(request['collection'], request.get('filter', {}), **kwargs)
 
-    @register(u'mdstudio.db.delete_many',
+    @register(u'mdstudio.db.endpoint.delete_many',
               WampSchema('db', 'delete/delete-many', versions={1}),
               WampSchema('db', 'delete/delete-response', versions={1}), match='prefix',
               scope='delete')
@@ -281,7 +281,7 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'date' in request['fields']:
             kwargs['date_fields'] = request['fields']['date']
 
-        return self._client.get_namespace(namespace).delete_many(request['collection'], request['filter'], **kwargs)
+        return self._client.get_namespace(namespace).delete_many(request['collection'], request.get('filter', {}), **kwargs)
 
     def _extract_namespace(self, uri):
-        return re.match('mdstudio.db.\\w+\\.(.*)', uri).group(1)
+        return re.match('mdstudio.db.endpoint.\\w+\\.(.*)', uri).group(1)

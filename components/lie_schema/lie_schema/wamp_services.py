@@ -23,9 +23,9 @@ class SchemaWampApi(BaseApplicationSession):
 
     @inlineCallbacks
     def onRun(self, details):
-        yield self.publish(u'mdstudio.schema.events.online', True, options=wamp.PublishOptions(acknowledge=True))
+        yield self.publish(u'mdstudio.schema.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
-    @register(u'mdstudio.schema.register', WampSchema('schema', 'register/register'), {}, match='prefix')
+    @register(u'mdstudio.schema.endpoint.register', WampSchema('schema', 'register/register'), {}, match='prefix')
     def schema_register(self, request, details=None):
         namespace = self._extract_namespace(details.procedure)
 
@@ -57,7 +57,7 @@ class SchemaWampApi(BaseApplicationSession):
 
         return res
         
-    @register(u'mdstudio.schema.get', WampSchema('schema', 'get/get'), {})
+    @register(u'mdstudio.schema.endpoint.get', WampSchema('schema', 'get/get'), {})
     def schema_get(self, request):
         namespace = request['namespace']
         path = request['path']
@@ -82,4 +82,4 @@ class SchemaWampApi(BaseApplicationSession):
         return res
 
     def _extract_namespace(self, uri):
-        return re.match('mdstudio.schema.\\w+\\.(.*)', uri).group(1)
+        return re.match('mdstudio.schema.endpoint.\\w+\\.(.*)', uri).group(1)

@@ -1,13 +1,19 @@
 # coding=utf-8
 from typing import *
-from pymongo.collection import Collection
 
 import abc
 
+from mdstudio.db.cursor import Cursor
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.db.collection import Collection
 
-CollectionType = Union[str, Dict[str, str], Collection]
+try:
+    from pymongo.collection import Collection
+
+    CollectionType = Union[str, Dict[str, str], Collection]
+except ImportError:
+    CollectionType = Union[str, Dict[str, str]]
+
 DateFieldsType = List[Union[str, List[str]]]
 DocumentType = Dict
 AggregationOperator = Dict
@@ -111,3 +117,6 @@ class IDatabase:
 
     def extract(self, result, name):
         return result[name]
+
+    def make_cursor(self, results):
+        return Cursor(self, results)

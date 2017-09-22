@@ -8,6 +8,7 @@ import random
 from dateutil.parser import parse as parsedate
 from mdstudio.db.database import IDatabase
 from pymongo import MongoClient, ReturnDocument
+from bson import ObjectId
 from twisted.logger import Logger
 
 from .cache_dict import CacheDict
@@ -86,7 +87,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
-    def count(self, collection=None, filter=None, skip=0, limit=None, date_fields=None, cursor_id=None,
+    def count(self, collection=None, filter=None, skip=0, limit=0, date_fields=None, cursor_id=None,
               with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], int, DateFieldsType, str, bool) -> Dict[str, Any]
         total = 0
@@ -151,13 +152,14 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
-    def find_many(self, collection, filter, projection=None, skip=0, limit=None, sort=None, date_fields=None):
+    def find_many(self, collection, filter, projection=None, skip=0, limit=0, sort=None, date_fields=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         if not db_collection:
             return {
-                'result': [],
+                'results': [],
+                'alive': False,
                 'size': 0
             }
 
@@ -244,6 +246,7 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return {
                 'result': [],
+                'alive': False,
                 'size': 0
             }
 
@@ -301,7 +304,7 @@ class MongoDatabaseWrapper(IDatabase):
                             doc['_id'][k] = [ObjectId(oid) for oid in v]
 
     def _get_cursor(self, cursor):
-        size = len(cursor.__Cursor__data)
+        size = len(cursor._Cursor__data)
         results = []
         for _ in range(size):
             doc = cursor.next()
