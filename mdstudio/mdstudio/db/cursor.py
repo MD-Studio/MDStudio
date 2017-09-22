@@ -50,7 +50,7 @@ class Cursor:
 
     def rewind(self):
         # type: () -> Cursor
-        return Cursor(self.wrapper, self.wrapper.rewind())
+        return self._create_cursor(self.wrapper, self.wrapper.rewind())
 
     def count(self, with_limit_and_skip=False):
         # type: (bool) -> int
@@ -60,6 +60,9 @@ class Cursor:
     def alive(self):
         # type: () -> bool
         return self._alive
+
+    def _create_cursor(self, wrapper, rewind):
+        return Cursor(wrapper, rewind)
 
     def _refresh(self):
         if self.alive:

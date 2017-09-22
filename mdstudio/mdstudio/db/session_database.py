@@ -73,13 +73,13 @@ class SessionDatabaseWrapper(IDatabase):
         }
         # either we use the cursor_id or we start a new query
         if cursor_id:
-            request['cursor_id'] = cursor_id
+            request['cursorId'] = cursor_id
             if with_limit_and_skip:
-                request['with_limit_and_skip'] = with_limit_and_skip
+                request['withLimitAndSkip'] = with_limit_and_skip
         else:
             if filter:
                 request['filter'] = filter
-            if skip:
+            if skip > 0:
                 request['skip'] = skip
             if limit:
                 request['limit'] = limit
@@ -100,11 +100,13 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self.session.call(u'mdstudio.db.update_one.{}'.format(self.namespace), request)
 
-    def update_many(self, collection=None, filter=None, update=None, upsert=False, date_fields=None):
-        request = {'collection': collection, 'filter': filter or {}}
-
-        if update:
-            request['update'] = update
+    def update_many(self, collection, filter, update, upsert=False, date_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
+        request = {
+            'collection': collection,
+            'filter': filter,
+            'update': update
+        }
         if upsert:
             request['upsert'] = upsert
         if date_fields:
@@ -112,8 +114,12 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self.session.call(u'mdstudio.db.update_many.{}'.format(self.namespace), request)
 
-    def find_one(self, collection=None, filter=None, projection=None, skip=0, sort=None):
-        request = {'collection': collection, 'filter': filter or {}}
+    def find_one(self, collection, filter, projection=None, skip=0, sort=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, int, SortOperators, DateFieldsType) -> Dict[str, Any]
+        request = {
+            'collection': collection,
+            'filter': filter
+        }
 
         if projection:
             request['projection'] = projection
@@ -150,7 +156,7 @@ class SessionDatabaseWrapper(IDatabase):
             'filter': filter,
             'update': update,
             'upsert': upsert,
-            'return_updated': return_updated
+            'returnUpdated': return_updated
         }
 
         if projection:
@@ -170,7 +176,7 @@ class SessionDatabaseWrapper(IDatabase):
             'filter': filter,
             'replacement': replacement,
             'upsert': upsert,
-            'return_updated': return_updated
+            'returnUpdated': return_updated
         }
 
         if projection:

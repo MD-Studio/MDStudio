@@ -13,11 +13,12 @@ class CursorTests(unittest.TestCase):
             {'test': 5},
             {'test2': 2}
         ]
-        self.cursor = Cursor(self.wrapper, {
+        self.result = {
             '_id': 1234,
             'alive': True,
             'result': self.values
-        })
+        }
+        self.cursor = Cursor(self.wrapper, self.result)
 
     def test_construction(self):
 
@@ -86,12 +87,6 @@ class CursorTests(unittest.TestCase):
 
     def test_query(self):
 
-        hist = {'test': 0, 'test2': 0}
-
-        def test(o):
-            for k, v in o.items():
-                hist[k] += v
-
         self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'result': []})
         results = self.cursor.query().select(lambda x: True if 'test' in x else False).to_list()
 
@@ -109,3 +104,30 @@ class CursorTests(unittest.TestCase):
         self.wrapper.count = mock.MagicMock(return_value=2)
         self.assertEqual(self.cursor.count(True), 2)
         self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
+
+    def test_len(self):
+
+        self.wrapper.count = mock.MagicMock(return_value=2)
+        self.assertEqual(len(self.cursor), 2)
+        self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
+
+    def test_rewind(self):
+
+        self.wrapper.rewind = mock.MagicMock(return_value={'rewound': True})
+        self.cursor._create_cursor = mock.MagicMock(return_value=1456)
+        self.assertEqual(self.cursor.rewind(), 1456)
+        self.cursor._create_cursor.assert_called_with(self.wrapper, {'rewound': True})
+
+    def test_rewind2(self):
+
+        self.wrapper.rewind = mock.MagicMock(return_value=self.result)
+
+        nxt = lambda: next(self.cursor)
+        self.assertEqual(nxt(), {'test': 5})
+        self.assertEqual(nxt(), {'test2': 2})
+
+        self.cursor = self.cursor.rewind()
+
+        nxt = lambda: next(self.cursor)
+        self.assertEqual(nxt(), {'test': 5})
+        self.assertEqual(nxt(), {'test2': 2})

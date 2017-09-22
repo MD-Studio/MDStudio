@@ -15,7 +15,7 @@
         "projection": {
             "$ref": "wamp://mdstudio.schema.get/db/projection/projection.v1.json"
         },
-        "return_updated": {
+        "returnUpdated": {
             "type": "boolean",
             "default": false
         },
