@@ -23,7 +23,3 @@ __rootpath__ = os.path.dirname(__file__)
 __all__ = ['ComponentManager', 'BaseApplicationSession']
 
 is_python3 = (sys.version_info > (3, 0)) and (sys.version_info < (4, 0))
-
-# Component imports
-from .component_manager import ComponentManager
-from .util import register, WampSchema, Schema, InlineSchema, validate_json_schema, validate_input, validate_output

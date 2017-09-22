@@ -15,10 +15,11 @@ import re
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks
 
-from mdstudio import BaseApplicationSession, PY3
+from mdstudio.application_session import BaseApplicationSession
+from mdstudio import is_python3
 from .settings import *
 
-if PY3:
+if is_python3:
     from urllib.error import HTTPError, URLError
     from .atb_api_py3 import API as ATBServerApi, ATB_Mol
 else:

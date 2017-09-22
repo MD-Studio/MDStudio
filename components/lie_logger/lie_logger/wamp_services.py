@@ -13,7 +13,8 @@ from twisted.logger import LogLevel
 from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn import wamp
 
-from mdstudio import BaseApplicationSession, register, WampSchema, validate_input
+from mdstudio.application_session import BaseApplicationSession
+from mdstudio.util import register, WampSchema, validate_input
 from mdstudio.db.model import Model
 
 

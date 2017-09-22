@@ -28,7 +28,8 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from mdstudio import BaseApplicationSession, WampSchema, register
+from mdstudio.application_session import BaseApplicationSession
+from mdstudio.util import register, WampSchema
 from mdstudio.db.model import Model
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
@@ -386,7 +387,7 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(authorization)
 
-    @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request'), WampSchema('auth', 'oauth/client/client-response'), details_arg=True)
+    @register(u'mdstudio.auth.oauth.client.create', WampSchema('auth', 'oauth/client/client-request'), WampSchema('auth', 'oauth/client/client-response'))
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)
@@ -406,7 +407,7 @@ class AuthWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.auth.oauth.client.getusername', {}, {})
     @inlineCallbacks
-    def get_oauth_client_username(self, request, details=None):
+    def get_oauth_client_username(self, request):
         client = yield self._get_client(request['clientId'])
 
         if client:

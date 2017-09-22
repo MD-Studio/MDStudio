@@ -3,6 +3,7 @@ import copy
 import pytz
 import re
 
+from dateutil.parser import parse as parsedate
 from twisted.internet.defer import inlineCallbacks, returnValue
 from oauthlib import oauth2
 from oauthlib import common
@@ -79,12 +80,11 @@ class OAuthRequestValidator(oauth2.RequestValidator):
 
         bearer = yield Model(self.session, 'tokens').find_one({'accessToken': token})
 
-        if not bearer or not bearer['result']:
+        if not bearer:
             returnValue(False)
 
-        bearer = bearer['result']
 
-        if datetime.datetime.now(pytz.utc).timestamp() > bearer['expirationTime']:
+        if datetime.datetime.now(pytz.utc) > datetime.datetime.fromtimestamp(parsedate(bearer['expirationTime']).timestamp(), tz=pytz.utc):
             returnValue(False)
 
         for scope in oauth2.rfc6749.utils.scope_to_list(bearer['scope']):

@@ -14,7 +14,7 @@ from autobahn import wamp
 from autobahn.wamp.types import RegisterOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from mdstudio import BaseApplicationSession
+from mdstudio.application_session import BaseApplicationSession
 
 class StructuresWampApi(BaseApplicationSession):
     """
