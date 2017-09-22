@@ -59,7 +59,7 @@ class Model:
         results = self.wrapper.find_many(self.collection, filter, projection, skip, limit, sort)
         results = self.wrapper.extract(results, 'results')
 
-        return Cursor(self.wrapper, results)
+        return self.wrapper.make_cursor(results)
 
     def find_one_and_update(self, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, date_fields=None):
@@ -86,7 +86,7 @@ class Model:
     def aggregate(self, pipeline):
         # type: (List[AggregationOperator]) -> Cursor
         results = self.wrapper.aggregate(self.collection, pipeline)
-        return Cursor(self.wrapper, results)
+        return self.wrapper.make_cursor(results)
 
     def delete_one(self, filter):
         # type: (DocumentType) -> Union[int, Deferred]

@@ -3,8 +3,10 @@ from typing import Dict, Any, List, Optional
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, ProjectionOperators, \
     SortOperators, AggregationOperator
+
 
 
 class SessionDatabaseWrapper(IDatabase):
@@ -128,7 +130,7 @@ class SessionDatabaseWrapper(IDatabase):
         # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'filter': filter
+            'filter': filter or {}
         }
 
         if projection:
@@ -239,6 +241,11 @@ class SessionDatabaseWrapper(IDatabase):
     def extract(self, result, property):
         res = yield result
         returnValue(res[property])
+
+    @inlineCallbacks
+    def make_cursor(self, results):
+        res = yield results
+        returnValue(Cursor(self, res))
 
     @inlineCallbacks
     def transform(self, result, transformed):

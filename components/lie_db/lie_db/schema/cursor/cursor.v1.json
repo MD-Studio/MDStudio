@@ -22,7 +22,7 @@
         }
     },
     "required": [
-        "result",
+        "results",
         "size",
         "alive"
     ],

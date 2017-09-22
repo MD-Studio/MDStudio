@@ -8,6 +8,7 @@ import random
 from dateutil.parser import parse as parsedate
 from mdstudio.db.database import IDatabase
 from pymongo import MongoClient, ReturnDocument
+from bson import ObjectId
 from twisted.logger import Logger
 
 from .cache_dict import CacheDict
@@ -157,7 +158,8 @@ class MongoDatabaseWrapper(IDatabase):
 
         if not db_collection:
             return {
-                'result': [],
+                'results': [],
+                'alive': False,
                 'size': 0
             }
 
@@ -244,6 +246,7 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return {
                 'result': [],
+                'alive': False,
                 'size': 0
             }
 
@@ -301,7 +304,7 @@ class MongoDatabaseWrapper(IDatabase):
                             doc['_id'][k] = [ObjectId(oid) for oid in v]
 
     def _get_cursor(self, cursor):
-        size = len(cursor.__Cursor__data)
+        size = len(cursor._Cursor__data)
         results = []
         for _ in range(size):
             doc = cursor.next()
