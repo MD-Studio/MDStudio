@@ -8,7 +8,7 @@ import weakref
 from fnmatch import fnmatch
 from twisted.logger import Logger
 
-from .format import ConfigFormatter
+from .formatter import ConfigFormatter
 from .io import flatten_nested_dict
 from .orm_handler import ConfigOrmHandler
 

@@ -70,17 +70,6 @@ class ConfigHandlerIOTests(unittest.TestCase):
 
         self.assertEqual(self.reference_config, config)
 
-    def test_import_json(self):
-        """
-        Test import of configuration from JSON file
-        """
-
-        jsondata = config_from_json('{0}.json'.format(self._settings_json))
-        config = ConfigHandler()
-        config.load(jsondata)
-
-        self.assertEqual(self.reference_config, config)
-
     def test_export_json(self):
         """
         Test export of configuration to JSON file

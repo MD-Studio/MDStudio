@@ -93,6 +93,18 @@ class ConfigDecoratorTests(unittest2.TestCase):
 
         self.assertEqual(decorator_method_resolutionorder(2), (20, 6))
 
+    def test_single_function_decorator_resolutionorder2(self):
+        """
+        Test the decorator on a single function with a predefined
+        ConfigHandler instance.
+        The decorator is configured to resolve the function arguments
+        in predefined overload order.
+        """
+
+        from .decorator_class import decorator_method_resolutionorder2
+
+        self.assertEqual(decorator_method_resolutionorder2(2), (20, 6))
+
     def test_class_decorator(self):
         """
         Test the decorator on a class with a predefined ConfigHandler

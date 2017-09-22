@@ -52,6 +52,18 @@ def decorator_method_resolutionorder(value, lv=1, gv=2):
 
     return value * lv, value * gv
 
+@configwrapper('system')
+def decorator_method_resolutionorder2(value, lv=1, gv=2):
+    """
+    configwrapper decorated function that has keyword
+    arguments defined in the global configuration.
+
+    the keyword arguments to the function are dynamically
+    overloaded with settings from the global configuration.
+    """
+
+    return value * lv, value * gv
+
 
 def change_value_elsewhere(key, value):
     """

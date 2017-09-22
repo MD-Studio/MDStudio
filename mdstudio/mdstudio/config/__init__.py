@@ -41,6 +41,7 @@ extends it with functions to:
 """
 
 import os
+from functools import wraps
 
 __module__ = 'mdstudio.config'
 __docformat__ = 'restructuredtext'
@@ -124,7 +125,6 @@ class configwrapper(object):
         self.confighandler = confighandler
 
     def __call__(self, func):
-
         # If the instance names to fetch are not defined, use function or class name
         if not self.instance:
             self.instance = [func.__name__]
@@ -142,6 +142,8 @@ class configwrapper(object):
             level = min(levels)
         settings = settings.flatten(resolve_order=self.instance, level=level + 1)
 
+        # make sure we have the correct metadata
+        @wraps(func)
         def wrapped_f(*args, **kwargs):
 
             fsig = signature(func)
