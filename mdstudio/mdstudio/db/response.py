@@ -1,5 +1,6 @@
 # coding=utf-8
 
+
 class UpdateManyResponse:
     # type: int
     matched_count = 0
