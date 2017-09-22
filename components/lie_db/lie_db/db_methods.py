@@ -86,7 +86,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
-    def count(self, collection=None, filter=None, skip=0, limit=None, date_fields=None, cursor_id=None,
+    def count(self, collection=None, filter=None, skip=0, limit=0, date_fields=None, cursor_id=None,
               with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], int, DateFieldsType, str, bool) -> Dict[str, Any]
         total = 0
@@ -151,7 +151,7 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
-    def find_many(self, collection, filter, projection=None, skip=0, limit=None, sort=None, date_fields=None):
+    def find_many(self, collection, filter, projection=None, skip=0, limit=0, sort=None, date_fields=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 

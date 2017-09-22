@@ -27,8 +27,8 @@ class LoggerWampApi(BaseApplicationSession):
 
     @inlineCallbacks
     def onRun(self, details):
-        self.log_event_subscription = yield self.subscribe(self.log_event, u'mdstudio.logger.log', wamp.SubscribeOptions(match='prefix', details_arg='details'))
-        yield self.publish(u'mdstudio.logger.events.online', True, options=wamp.PublishOptions(acknowledge=True))
+        self.log_event_subscription = yield self.subscribe(self.log_event, u'mdstudio.logger.endpoint.log', wamp.SubscribeOptions(match='prefix', details_arg='details'))
+        yield self.publish(u'mdstudio.logger.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
         returnValue({})
 
     @validate_input(WampSchema('logger', 'log/log'))
@@ -43,11 +43,11 @@ class LoggerWampApi(BaseApplicationSession):
         :return:      standard return
         :rtype:       :py:class:`dict` to JSON
         """
-        namespace = re.match('^mdstudio\\.logger\\.log\\.((namespace-)?\\w+)$', details.topic).group(1)
+        namespace = re.match('^mdstudio\\.logger\\.endpoint\\.log\\.((namespace-)?\\w+)$', details.topic).group(1)
 
         res = yield Model(self, namespace).insert_many(request['logs'], date_fields=['insert.time'])
 
-    @register(u'mdstudio.logger.get', {}, {})
+    @register(u'mdstudio.logger.endpoint.get', {}, {})
     def get_log_events(self, user):
         """
         Retrieve structured log events from the database

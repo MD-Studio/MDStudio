@@ -24,8 +24,7 @@
                 }
             },
             "required": [
-                "collection",
-                "filter"
+                "collection"
             ],
             "additionalProperties": false
         },
@@ -36,7 +35,7 @@
                     "type": "string"
                 },
                 "withLimitAndSkip": {
-                    "type": "bool",
+                    "type": "boolean",
                     "default": false
                 }
             },

@@ -37,14 +37,14 @@ class Authorizer:
         # Build ruleset for communication inside ring0
         self.ring0_rules = [
             PrefixRule('mdstudio.{role}.', ['*']),
-            PrefixRule('mdstudio.auth.oauth.registerscopes.{role}'),
-            RegexRule('mdstudio\\.\\w+\\.events\\.\\w+', ['subscribe']),
-            RegexRule('mdstudio\\.db\\.\\w+\\.{role}'),
-            ExactRule('mdstudio.auth.namespaces'),
-            ExactRule('mdstudio.auth.oauth.client.getusername'),
-            ExactRule('mdstudio.schema.register.{role}'),
-            ExactRule('mdstudio.schema.get'),
-            ExactRule('mdstudio.logger.log.{role}', ['publish'])
+            PrefixRule('mdstudio.auth.endpoint.oauth.registerscopes.{role}'),
+            RegexRule('mdstudio\\.\\w+\\.endpoint\\.events\\.\\w+', ['subscribe']),
+            RegexRule('mdstudio\\.db\\.endpoint\\.\\w+\\.{role}'),
+            # ExactRule('mdstudio.auth.endpoint.namespaces'),
+            ExactRule('mdstudio.auth.endpoint.oauth.client.getusername'),
+            ExactRule('mdstudio.schema.endpoint.register.{role}'),
+            ExactRule('mdstudio.schema.endpoint.get'),
+            ExactRule('mdstudio.logger.endpoint.log.{role}', ['publish'])
         ]
     
     def authorize_ring0(self, uri, action, role):

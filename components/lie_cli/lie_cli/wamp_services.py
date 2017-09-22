@@ -9,7 +9,7 @@ from autobahn import wamp
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.util import register, WampSchema
 
-from mdstudio.config import config_from_dotenv, config_to_dotenv
+from mdstudio.config.io import config_from_dotenv, config_to_dotenv
 
 try:
     input = raw_input

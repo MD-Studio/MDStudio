@@ -103,7 +103,7 @@ class WampSchemaHandler:
         elif schema_namespace == 'mdstudio':
             res = self.session.get_schema(schema_path, self.corelib_path)
         else:
-            res = yield self.session.call(u'mdstudio.schema.get', {'namespace': schema_namespace, 'path': schema_path})
+            res = yield self.session.call(u'mdstudio.schema.endpoint.get', {'namespace': schema_namespace, 'path': schema_path})
 
         if res is None:
             self.session.log.warn('WARNING: could not retrieve a valid schema')
