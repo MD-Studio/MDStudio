@@ -36,6 +36,9 @@ class Cursor:
     # python 3 compatibility
     __next__ = next
 
+    def __len__(self):
+        return self.count(True)
+
     def for_each(self, func):
         # type: (Callable[[Dict[str,Any]], None]) -> None
         for o in self:
@@ -56,12 +59,13 @@ class Cursor:
     @property
     def alive(self):
         # type: () -> bool
-        return self.alive
+        return self._alive
 
     def _refresh(self):
         if self.alive:
             more = self.wrapper.more(cursor_id=self._id)
+            self._id = more['_id']
             self._alive = more['alive']
-            self._data = deque(more['alive'])
+            self._data = deque(more['result'])
 
-        return self._alive
+        return self._alive or len(self._data)
