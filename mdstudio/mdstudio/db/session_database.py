@@ -136,7 +136,7 @@ class SessionDatabaseWrapper(IDatabase):
         # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'filter': filter or {}
+            'filter': filter
         }
 
         if projection:

@@ -25,7 +25,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.more('123456')
 
-        self.session.call.assert_called_once_with('mdstudio.db.more.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.more.namespace', {
             'cursorId': '123456'
         })
 
@@ -34,7 +34,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.rewind('123456')
 
-        self.session.call.assert_called_once_with('mdstudio.db.rewind.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.rewind.namespace', {
             'cursorId': '123456'
         })
 
@@ -43,7 +43,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.insert_one('col', {'test': 8})
 
-        self.session.call.assert_called_once_with('mdstudio.db.insert_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.insert_one.namespace', {
             'collection': 'col',
             'insert': {'test': 8}
         })
@@ -53,7 +53,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.insert_one('col', {'test': 8}, ['field1', 'field2'])
 
-        self.session.call.assert_called_once_with('mdstudio.db.insert_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.insert_one.namespace', {
             'collection': 'col',
             'insert': {'test': 8},
             'fields': {
@@ -66,7 +66,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.insert_many('col', [{'test': 8}, {'test4': 4}])
 
-        self.session.call.assert_called_once_with('mdstudio.db.insert_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.insert_many.namespace', {
             'collection': 'col',
             'insert': [{'test': 8}, {'test4': 4}]
         })
@@ -76,7 +76,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.insert_many('col', [{'test': 8}, {'test4': 4}], ['field1', 'field2'])
 
-        self.session.call.assert_called_once_with('mdstudio.db.insert_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.insert_many.namespace', {
             'collection': 'col',
             'insert': [{'test': 8}, {'test4': 4}],
             'fields': {
@@ -89,7 +89,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.replace_one('col', {'_id': 5}, {'test': 8})
 
-        self.session.call.assert_called_once_with('mdstudio.db.replace_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.replace_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 5},
             'replacement': {'test': 8},
@@ -101,7 +101,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.replace_one('col', {'_id': 5}, {'test': 8}, upsert=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.replace_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.replace_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 5},
             'replacement': {'test': 8},
@@ -113,7 +113,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.replace_one('col', {'_id': 5}, {'test': 8}, date_fields=['field1', 'field2'])
 
-        self.session.call.assert_called_once_with('mdstudio.db.replace_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.replace_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 5},
             'replacement': {'test': 8},
@@ -128,7 +128,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.count('col')
 
-        self.session.call.assert_called_once_with('mdstudio.db.count.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col'
         })
 
@@ -137,7 +137,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.count('col', cursor_id='1234')
 
-        self.session.call.assert_called_once_with('mdstudio.db.count.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col',
             'cursorId': '1234'
         })
@@ -147,7 +147,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.count('col', cursor_id='1234', with_limit_and_skip=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.count.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col',
             'cursorId': '1234',
             'withLimitAndSkip': True
@@ -158,7 +158,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.count('col', with_limit_and_skip=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.count.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col'
         })
 
@@ -167,7 +167,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.count('col', filter={'_id': 5})
 
-        self.session.call.assert_called_once_with('mdstudio.db.count.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col',
             'filter': {'_id': 5}
         })
@@ -177,7 +177,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.count('col', skip=10)
 
-        self.session.call.assert_called_once_with('mdstudio.db.count.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col',
             'skip': 10
         })
@@ -187,7 +187,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.count('col', limit=10)
 
-        self.session.call.assert_called_once_with('mdstudio.db.count.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col',
             'limit': 10
         })
@@ -197,7 +197,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.update_one('col', {'_id': 50}, {'test': 11})
 
-        self.session.call.assert_called_once_with('mdstudio.db.update_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 11}
@@ -208,7 +208,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.update_one('col', {'_id': 50}, {'test': 11}, upsert=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.update_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 11},
@@ -220,7 +220,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.update_one('col', {'_id': 50}, {'test': 11}, date_fields=['field1', 'field2'])
 
-        self.session.call.assert_called_once_with('mdstudio.db.update_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 11},
@@ -234,7 +234,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.update_many('col', {'_id': 50}, {'test': 11})
 
-        self.session.call.assert_called_once_with('mdstudio.db.update_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 11}
@@ -245,7 +245,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.update_many('col', {'_id': 50}, {'test': 11}, upsert=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.update_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 11},
@@ -257,7 +257,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.update_many('col', {'_id': 50}, {'test': 11}, date_fields=['field1', 'field2'])
 
-        self.session.call.assert_called_once_with('mdstudio.db.update_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 11},
@@ -271,7 +271,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one('col', {'_id': 50})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 50}
         })
@@ -281,7 +281,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one('col', {'_id': 50}, projection={'projection': 'yes'})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'projection': {'projection': 'yes'}
@@ -292,7 +292,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one('col', {'_id': 50}, skip=10)
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'skip': 10
@@ -303,7 +303,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one('col', {'_id': 50}, sort=[('_id', SortMode.Asc)])
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'sort': [('_id', SortMode.Asc)]
@@ -314,7 +314,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_many('col', {'_id': 50})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50}
         })
@@ -324,7 +324,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_many('col', {'_id': 50}, projection={'projection': 'yes'})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'projection': {'projection': 'yes'}
@@ -335,7 +335,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_many('col', {'_id': 50}, skip=10)
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'skip': 10
@@ -346,7 +346,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_many('col', {'_id': 50}, limit=10)
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'limit': 10
@@ -357,7 +357,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_many('col', {'_id': 50}, sort=[('_id', SortMode.Asc)])
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_many.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'sort': [('_id', SortMode.Asc)]
@@ -367,7 +367,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_update.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_update.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
@@ -379,7 +379,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80}, upsert=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_update.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_update.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
@@ -391,7 +391,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80}, return_updated=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_update.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_update.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
@@ -403,7 +403,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80}, date_fields=['field1', 'field2'])
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_update.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_update.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
@@ -418,7 +418,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80}, projection={'projection': 'yes'})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_update.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_update.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
@@ -431,7 +431,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80}, sort=[('_id', SortMode.Asc)])
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_update.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_update.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
@@ -444,7 +444,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_replace.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_replace.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
@@ -456,7 +456,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80}, upsert=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_replace.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_replace.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
@@ -468,7 +468,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80}, return_updated=True)
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_replace.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_replace.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
@@ -480,7 +480,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80}, date_fields=['field1', 'field2'])
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_replace.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_replace.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
@@ -495,7 +495,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80}, projection={'projection': 'yes'})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_replace.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_replace.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
@@ -508,7 +508,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80}, sort=[('_id', SortMode.Asc)])
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_replace.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_replace.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
@@ -521,7 +521,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_delete('col', {'_id': 50})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_delete.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_delete.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
         })
@@ -530,7 +530,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_delete('col', {'_id': 50}, projection={'projection': 'yes'})
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_delete.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_delete.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'projection': {'projection': 'yes'},
@@ -540,7 +540,7 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
         self.session.call = mock.MagicMock(return_value='namespace')
         self.wrapper.find_one_and_delete('col', {'_id': 50}, sort=[('_id', SortMode.Asc)])
 
-        self.session.call.assert_called_once_with('mdstudio.db.find_one_and_delete.namespace', {
+        self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_delete.namespace', {
             'collection': 'col',
             'filter': {'_id': 50},
             'sort': [('_id', SortMode.Asc)],
