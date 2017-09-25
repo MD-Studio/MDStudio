@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import os
 import copy
-import StringIO
 import logging as logger
 
 from .graph_dict import GraphDict
 
-def _adjacency_to_edges(nodes, adjacency, node_source):
+
+def adjacency_to_edges(nodes, adjacency, node_source):
     """
     Construct edges for nodes based on adjacency.
 

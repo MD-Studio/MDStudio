@@ -9,11 +9,8 @@ node.
 TODO: Some of the axis methods don't work for directed graphs
 """
 
-from itertools import combinations
-
 from .graph import Graph
 from .graph_helpers import GraphException
-from .graph_algorithms import dijkstra_shortest_path
 from .graph_axis_methods import *
 
 
