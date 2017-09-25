@@ -5,7 +5,6 @@ file: wamp_message_format.py
 """
 
 import os
-import copy
 import time
 import random
 import json
@@ -21,20 +20,22 @@ ENVIRON = {'_LIE_WAMP_REALM': 'realm',
            '_LIE_AUTH_PASSWORD': 'password'}
 
 
-def wamp_session_schema(path=os.path.join(os.path.dirname(__file__), 'wamp_session_schema.json')):
+def wamp_session_schema(
+        path=os.path.join(os.path.dirname(__file__), 'wamp_session_schema.json')):
     """
     Return the JSON wamp session schema from file
-    
+
     :param path: path to json schema file
     :type path:  :py:str
     """
-    
+
     if os.path.isfile(path):
         wamp_session_schema = json.load(open(path))
         return wamp_session_schema
     else:
         logging.error('No such file {0}'.forma(path))
-        return {} 
+        return {}
+
 
 def _schema_to_data(schema, data=None):
 

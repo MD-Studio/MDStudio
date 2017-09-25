@@ -2,21 +2,19 @@
 
 import json
 import os
-import time
 
 from autobahn.wamp import auth, cryptosign
 from autobahn.twisted.wamp import ApplicationSession
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet import reactor
-from pymongo import MongoClient
 
 from lie_config import ConfigHandler
 from lie_db import mongodb_connect
 from lie_system.wamp_taskmeta import WAMPTaskMetaData
 
 from wamp_logging import WampLogging
-   
-    
+
+
 def _resolve_package_config(package_config):
     """
     Resolve the package_config as dictionary
