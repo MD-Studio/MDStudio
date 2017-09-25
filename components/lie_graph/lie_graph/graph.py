@@ -22,8 +22,7 @@ from .graph_orm import GraphORM
 from .graph_algorithms import nodes_are_interconnected
 from .graph_math_operations import graph_union, graph_update
 from .graph_helpers import (
-    GraphException, _adjacency_to_edges, _edge_list_to_adjacency,
-    _edge_list_to_nodes, _make_edges)
+    GraphException, _edge_list_to_adjacency, _edge_list_to_nodes, _make_edges)
 
 
 class Graph(object):
