@@ -6,7 +6,7 @@ setup(
     description='',
     license='Apache-2.0',
     url='https://github.com/MD-Studio/MDStudio',
-    author=['Marc van dijk', 'Paul Visscher',  'Felipe Zapata'],
+    author=['Marc van dijk', 'Paul Visscher', 'Felipe Zapata'],
     author_email='m4.van.dijkatvu.nl',
     keywords='biochemistry docking molecular-dynamics toxicology',
     packages=[],
@@ -17,7 +17,7 @@ setup(
         'programming language :: python',
         'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
-    install_requires=[],
+    install_requires=['crossbar'],
     extras_require={'test': ['nose', 'coverage']},
     scripts=[]
 )
