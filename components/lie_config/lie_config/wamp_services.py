@@ -7,12 +7,8 @@ WAMP service methods the module exposes.
 """
 
 import os
-import time
-import json
 
 from autobahn import wamp
-from twisted.internet.defer import inlineCallbacks
-
 from lie_system import LieApplicationSession
 from lie_config.config_io import config_to_json
 

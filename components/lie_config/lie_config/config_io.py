@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+from twisted.logger import Logger
 import sys
 import os
 import collections
@@ -14,8 +15,7 @@ if PY3:
 else:
     import ConfigParser as configparser
 
-from twisted.logger import Logger
-
+# Twisted logger
 logging = Logger()
 
 
