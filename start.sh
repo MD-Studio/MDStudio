@@ -24,5 +24,6 @@ rm docker/.USERDONE
 if [ $OSTYPE == 'msys' ]; then
     winpty docker exec -it liestudio_workspace_1 bash -l
 else
-    docker exec -it liestudio_workspace_1 bash -l
+    # docker exec -it liestudio_workspace_1 bash -l
+    docker exec -it mdstudio_workspace_1 bash -l
 fi

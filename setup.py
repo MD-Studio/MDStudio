@@ -17,7 +17,7 @@ setup(
         'programming language :: python',
         'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
-    install_requires=['crossbar'],
+    install_requires=['service_identity'],
     extras_require={'test': ['nose', 'coverage']},
     scripts=[]
 )
