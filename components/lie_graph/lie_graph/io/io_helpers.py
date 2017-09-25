@@ -3,11 +3,11 @@
 import sys
 import os
 import collections
-import json
 import StringIO
 import logging
 
-from   .. import __version__
+from .. import __version__
+
 
 def _coarse_type(n):
 
