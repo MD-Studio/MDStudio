@@ -74,12 +74,13 @@ def _make_edges(nodes, directed=True):
 
     return edges
 
+
 def renumber_id(graph, start):
     """
     Renumber all node ID's in the graph from a new start ID and adjust edges
     accordingly. Usefull when duplicating a graph substructure.
     If the graph uses auto_nid, the node nid is also changed.
-    
+
     :param graph:   Graph object to renumber
     :type graph:    Graph object
     :param start:   New start number to renumber from
@@ -87,24 +88,24 @@ def renumber_id(graph, start):
     :return:        Renumber graph and mapping of old to new ID
     :rtype:         Graph object, :py:dict
     """
-    
+
     start = copy.copy(start)
     mapper = {}
-    for nid,value in sorted(graph.nodes.items()):
+    for nid, value in sorted(graph.nodes.items()):
         mapper[value['_id']] = start
-        
+
         # Renumber
         value['_id'] = start
         if graph.auto_nid:
             value['nid'] = start
-        
+
         start += 1
-    
+
     # Update nid if auto_nid
     if graph.auto_nid:
-        newnodes = dict([(v, graph.nodes[k]) for k,v in mapper.items()])
+        newnodes = {v: graph.nodes[k] for k, v in mapper.items()}
         graph.nodes = GraphDict(newnodes)
-    
+
     # Update edges. Both edge nids must be present in the mapper
     newedges = {}
     for eid, edge in graph.edges.items():
@@ -114,13 +115,13 @@ def renumber_id(graph, start):
             logger.debug('Unable to renumber edge "{0}". Not all node IDs in edge are renumbered'.format(eid))
             newedges[eid] = edge
     graph.edges = GraphDict(newedges)
-    
+
     # Set new auto_nid counter and update adjacency
     graph._nodeid = start
     graph._set_adjacency()
-    
+
     return graph, mapper
-    
+
 
 class GraphException(Exception):
     """

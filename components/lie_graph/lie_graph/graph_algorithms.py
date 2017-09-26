@@ -69,7 +69,8 @@ def dfs(graph, root, method='dfs', max_depth=10000):
 
         if node not in visited:
             visited.append(node)
-            stack.extend([x for x in node_neighbors(graph, node) if x not in visited])
+            stack.extend(
+                [x for x in node_neighbors(graph, node) if x not in visited])
             depth += 1
 
     return visited
@@ -352,12 +353,14 @@ def degree(graph, nodes, weight=None):
 
     not_in_graph = [nid for nid in nodes if nid not in graph.nodes]
     if not_in_graph:
-        logging.error('Nodes {0} not in graph'.format(not_in_graph))
+        logging.error(
+            'Nodes {0} not in graph'.format(not_in_graph))
 
     if weight:
         for node in nodes:
             if node in graph.nodes:
-                yield (node, sum([graph.nodes[n].get(weight, 1) for n in graph.adjacency[node]]))
+                yield (node, sum(graph.nodes[n].get(weight, 1) for n
+                                 in graph.adjacency[node]))
     else:
         for node in nodes:
             if node in graph.nodes:

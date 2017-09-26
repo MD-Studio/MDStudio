@@ -352,7 +352,8 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Implement class __len__
 
-        Returns the number of items in the _storage or the selective view on it.
+        Returns the number of items in the _storage or the selective
+        view on it.
         """
 
         if self.is_view:
@@ -402,8 +403,10 @@ class GraphDict(colabc.MutableMapping, dict):
 
         Returns a string representation of the object meta-data
         """
+        msg = '<{0} object {1}: {2} items, is_view: {3}>'
 
-        return '<{0} object {1}: {2} items, is_view: {3}>'.format(self.__class__.__name__, id(self), len(self), self.is_view)
+        return msg.format(
+            self.__class__.__name__, id(self), len(self), self.is_view)
 
     def __setitem__(self, key, value):
         """
@@ -465,7 +468,8 @@ class GraphDict(colabc.MutableMapping, dict):
 
         return_dict = self._storage
         if self.is_view and not return_full:
-            return_dict = dict([(k, v) for k, v in return_dict.items() if k in self._view])
+            return_dict = {
+                k: v for k, v in return_dict.items() if k in self._view}
 
         return return_dict
 
@@ -579,8 +583,8 @@ class GraphDict(colabc.MutableMapping, dict):
 
     def items(self):
         """
-        Implement Python 3 dictionary like 'items' method that returns a DictView
-        class.
+        Implement Python 3 dictionary like 'items' method that returns a
+        DictView class.
 
         :return: dictionary items as tuple of key/value pairs
         :rtype:  DictView instance

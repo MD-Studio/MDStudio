@@ -30,8 +30,8 @@ def _flatten_nested_dict(graph_dict, parent_key='', sep='.'):
 
         # parse key to string if needed
         if not(isinstance(key, str) or isinstance(key, unicode)):
-        if type(key) not in (str, unicode):
-            logging.debug('Dictionary key {0} of type {1}. Parse to unicode'.format(key, type(key)))
+            msg = 'Dictionary key {0} of type {1}. Parse to unicode'
+            logging.debug(msg.format(key, type(key))
             key = unicode(key)
 
         new_key = unicode(parent_key + sep + key if parent_key else key)
@@ -201,7 +201,9 @@ class ConfigHandler(Graph, GraphAxisMethods):
         """
         __getitem__ overload.
 
-        Get values using dictionary style access, fallback to default __getitem__
+        Get values using dictionary style access, fallback to
+        default __getitem__.
+
         Returns subdictionaries from root to leafs for nested dictionaries
         similar to the default dict behaviour.
 
@@ -341,7 +343,7 @@ class ConfigHandler(Graph, GraphAxisMethods):
             value = graph_dict[key]
 
             # Encode strings to UTF-8
-            if type(value) in (str, unicode):
+            if isinstance(value, str) or isinstance(value, unicode):
                 value = value.strip()
 
             overview.append('{0}: {1}\n'.format(key, value))
@@ -369,8 +371,8 @@ class ConfigHandler(Graph, GraphAxisMethods):
         Convert graph representation of the dictionary tree into a dictionary
         using a nested or flattened representation of the dictionary hierarchy.
 
-        In a flattened representation, the keys are concatinated using the `sep`
-        seperator.
+        In a flattened representation, the keys are concatinated using
+        the `sep` seperator.
         Dictionary keys and values are obtained from the node attributes using
         `keystring` and `valuestring` that are set to 'key' and 'value' by
         default.
@@ -414,7 +416,8 @@ class ConfigHandler(Graph, GraphAxisMethods):
 
             for leave in leaves:
                 path = path_method(self._full_graph, nid, leave)
-                flattened = sep.join([str(self._full_graph.nodes[p][keystring]) for p in path])
+                flattened = sep.join(
+                    [str(self._full_graph.nodes[p][keystring]) for p in path])
                 graph_dict[flattened] = self._full_graph.nodes[leave].get(valuestring, default)
 
         if nested:
@@ -443,7 +446,9 @@ class ConfigHandler(Graph, GraphAxisMethods):
 
         return default
 
-    def items(self, keystring='key', valuestring='value', defaultstring=None, default=None):
+    def items(
+            self, keystring='key', valuestring='value', defaultstring=None,
+            default=None):
         """
         Emulates Pythons dictionary items method.
 
@@ -456,8 +461,8 @@ class ConfigHandler(Graph, GraphAxisMethods):
         :param valuestring:   key used to identify dictionary 'value' in node
                               attributes
         :type valuestring:    str
-        :param defaultstring: key to identify dictionary 'value' used as default
-                              when valuestring is not in the dictionary
+        :param defaultstring: key to identify dictionary 'value' used as
+                              default when valuestring is not in the dictionary
         :type defaultstring:  str
         :param default:       default value to return when `valuestring` and/or
                               `defaultstring` did not return results.
@@ -498,8 +503,10 @@ class ConfigHandler(Graph, GraphAxisMethods):
         :param config: configuration
         :type config:  :py:class:dict
         """
+        pred = isinstance(config, dict)
+        msg = "Default configuration needs to be a dictionary type, got: {0}"
+        assert pred, TypeError(msg.format(type(config)))
 
-        assert isinstance(config, dict), TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(config)))
         config = _nest_flattened_dict(config, sep='.')
 
         # Clear current config
@@ -547,9 +554,13 @@ class ConfigHandler(Graph, GraphAxisMethods):
 
         childnodes = self.children(root)
         if self.is_masked:
-            return (self.nodes[nid][keystring] for nid in childnodes if keystring in self.nodes[nid])
+            return (
+                self.nodes[nid][keystring] for nid in childnodes
+                if keystring in self.nodes[nid])
         else:
-            return (self._full_graph.nodes[nid][keystring] for nid in childnodes if keystring in self._full_graph.nodes[nid])
+            return (
+                self._full_graph.nodes[nid][keystring] for nid in childnodes
+                if keystring in self._full_graph.nodes[nid])
 
     def find(self, key):
 
@@ -594,8 +605,9 @@ class ConfigHandler(Graph, GraphAxisMethods):
         :param valuestring:   key used to identify dictionary 'value' in node
                               attributes
         :type valuestring:    str
-        :param defaultstring: key to identify dictionary 'value' used as default
-                              when valuestring is not in the dictionary
+        :param defaultstring: key to identify dictionary 'value' used
+                              as default when valuestring is not in the
+                              dictionary
         :type defaultstring:  str
         :param default:       default value to return when `valuestring` and/or
                               `defaultstring` did not return results.

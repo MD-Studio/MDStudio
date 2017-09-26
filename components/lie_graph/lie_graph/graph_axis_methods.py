@@ -175,8 +175,11 @@ def node_siblings(graph, nid, root):
     siblings = []
     if parent is not None:
         if graph.is_masked:
-            siblings = [n for n in node_children(graph._full_graph, parent, graph.root) if not n == nid and n in graph.nodes]
+            siblings = [
+                n for n in node_children(graph._full_graph, parent, graph.root)
+                if not n == nid and n in graph.nodes]
         else:
-            siblings = [n for n in node_children(graph._full_graph, parent, graph.root) if not n == nid]
+            siblings = [n for n in node_children(
+                graph._full_graph, parent, graph.root) if not n == nid]
 
     return siblings
