@@ -4,18 +4,16 @@
 Unit tests for the config component WAMP API
 """
 
-import os
-import sys
-import shutil
-
-# Add modules in package to path so we can import them
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from autobahn.twisted.util import sleep
 from autobahn.twisted import wamp
 from twisted.trial import unittest
 from twisted.internet import defer
 from twisted.application import service
+
+import os
+import sys
+
+# Add modules in package to path so we can import them
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 class WAMPUnitTestBase(wamp.ApplicationSession):

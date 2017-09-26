@@ -6,6 +6,9 @@ file: test.py
 Unit tests for the lie_config component
 """
 
+from lie_system import *
+from lie_system.wamp_tools import wamp_session_schema
+
 import os
 import sys
 import unittest
@@ -20,9 +23,6 @@ sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 # Python 2.x and 3.x
 PY3 = sys.version_info.major == 3
 
-from lie_system import *
-from lie_config.config_io import config_from_json
-from lie_system.wamp_tools import wamp_session_schema
 
 class LieWampTaskMetadataTest(unittest.TestCase):
     

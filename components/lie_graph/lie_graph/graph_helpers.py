@@ -6,7 +6,7 @@ import logging as logger
 from .graph_dict import GraphDict
 
 
-def adjacency_to_edges(nodes, adjacency, node_source):
+def _adjacency_to_edges(nodes, adjacency, node_source):
     """
     Construct edges for nodes based on adjacency.
 
