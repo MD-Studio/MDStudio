@@ -29,6 +29,7 @@ def _flatten_nested_dict(graph_dict, parent_key='', sep='.'):
     for key, value in graph_dict.items():
 
         # parse key to string if needed
+        if not(isinstance(key, str) or isinstance(key, unicode)):
         if type(key) not in (str, unicode):
             logging.debug('Dictionary key {0} of type {1}. Parse to unicode'.format(key, type(key)))
             key = unicode(key)

@@ -200,7 +200,7 @@ class LieApplicationSession(ApplicationSession):
 
         # Call onInit hook
         self.onInit(**kwargs)
-    
+
     def _load_public_key(self, key):
         """
         Load a clients public key signed using Ed25519 from a file into a
