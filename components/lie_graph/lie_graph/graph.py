@@ -19,11 +19,11 @@ import weakref
 from .graph_dict import GraphDict
 from .graph_mixin import NodeTools, EdgeTools
 from .graph_orm import GraphORM
-from .graph_axis_methods import node_neighbors
 from .graph_algorithms import nodes_are_interconnected
 from .graph_math_operations import graph_union, graph_update
-from .graph_helpers import (GraphException, _adjacency_to_edges,
-                            _edge_list_to_adjacency, _edge_list_to_nodes, _make_edges)
+from .graph_helpers import (
+    GraphException, _adjacency_to_edges,  _edge_list_to_adjacency,
+    _edge_list_to_nodes, _make_edges)
 
 
 class Graph(object):
@@ -90,7 +90,7 @@ class Graph(object):
         # Adjacency is optional and can be constructed from edges.
         if not adjacency and edges:
             self._set_adjacency()
-        
+
         # Graph attributes, set directly
         self.is_directed = False
         self.is_masked = False
@@ -119,7 +119,9 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+            GraphException(
+                "Object {0} not instance of Graph base class".format(
+                    type(other).__name__))
             return
 
         newgraph = self.copy()
@@ -139,7 +141,9 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            logger.error("Object {0} not instance of Graph base class".format(type(other).__name__))
+            logger.error(
+                "Object {0} not instance of Graph base class".format(
+                    type(other).__name__))
             return False
 
         other_nodes_keys = set(other.nodes.keys())
@@ -147,7 +151,9 @@ class Graph(object):
         other_edges_keys = set(other.edges.keys())
         self_edges_keys = set(self.edges.keys())
 
-        return all([other_nodes_keys.issubset(self_nodes_keys), other_edges_keys.issubset(self_edges_keys)])
+        return all(
+            other_nodes_keys.issubset(self_nodes_keys),
+            other_edges_keys.issubset(self_edges_keys))
 
     def __copy__(self, memo={}):
         """
@@ -176,7 +182,9 @@ class Graph(object):
         if self.adjacency.keys() != other.adjacency.keys():
             return False
 
-        return all([set(self.adjacency[i]) == set(other.adjacency[i]) for i in self.adjacency])
+        return all(
+            set(self.adjacency[i]) == set(other.adjacency[i])
+            for i in self.adjacency)
 
     def __getitem__(self, key):
         """
@@ -225,7 +233,9 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+            GraphException(
+                "Object {0} not instance of Graph base class".format(
+                    type(other).__name__))
             return
 
         newgraph = graph_union(self, other)
@@ -307,9 +317,11 @@ class Graph(object):
 
         :rtype: string
         """
+        msg = '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'
 
-        return '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'.format(type(self).__name__,
-                                                                              id(self), len(self.nodes), len(self.edges), self.is_directed)
+        return msg.format(
+            type(self).__name__, id(self), len(self.nodes), len(self.edges),
+            self.is_directed)
 
     def __sub__(self, other):
         """
@@ -341,13 +353,14 @@ class Graph(object):
         """
 
         if len(self.adjacency):
-            self._nodeid = max([i if isinstance(i, int) else 0 for i in self.adjacency]) + 1
+            self._nodeid = max(
+                i if isinstance(i, int) else 0 for i in self.adjacency) + 1
 
     def _set_full_graph(self, graph):
 
         if isinstance(graph, Graph):
             self._full_graph = weakref.ref(graph._full_graph)()
-    
+
     def _set_adjacency(self):
         """
         (re)create the adjacency list from the graph edges
@@ -355,7 +368,9 @@ class Graph(object):
 
         self.adjacency = GraphDict(_edge_list_to_adjacency(self.edges.keys()))
 
-    def add_edge(self, nd1, nd2=None, attr=None, directed=None, deepcopy=True, node_from_edge=False, **kwargs):
+    def add_edge(
+            self, nd1, nd2=None, attr=None, directed=None, deepcopy=True,
+            node_from_edge=False, **kwargs):
         """
         Add edge between two nodes to the graph
 
@@ -382,7 +397,7 @@ class Graph(object):
         :rtype:                tuple of two ints
         """
 
-        if type(nd1) in (list, tuple):
+        if isinstance(nd1, list) or isinstance(nd1, tuple):
             nd2 = nd1[1]
             nd1 = nd1[0]
 
@@ -415,12 +430,15 @@ class Graph(object):
             else:
                 self.edges[edge] = attr
 
-            # Add target node as neighbour of source node in graph adjacency object
+            # Add target node as neighbour of source node in graph
+            # adjacency object
             # This operation is always directed.
             if not edge[1] in self.adjacency[edge[0]]:
                 self.adjacency[edge[0]].append(edge[1])
 
-            logger.debug('Add edge between node {0}-{1} with attributes {2}'.format(edge[0],edge[1],attr))
+            logger.debug(
+                'Add edge between node {0}-{1} with attributes {2}'.format(
+                    edge[0],edge[1], attr))
 
         return edges_to_add[0]
 
@@ -443,7 +461,11 @@ class Graph(object):
 
         edges_added = []
         for e in edges:
-            assert len(e) in (2, 3), logger.error('Edge needs to contain two nodes and optional arguments, got: {0}'.fomat(e))
+            pred = len(e) in (2, 3)
+            msg = 'Edge needs to contain two nodes and optional arguments, got: {0}'
+            err = logger.error(msg.fomat(e))
+
+            assert pred, err
             edges_added.append(self.add_edge(*e, **kwargs))
 
         return edges_added
@@ -479,25 +501,28 @@ class Graph(object):
 
             # Node needs to be hashable
             if not isinstance(node, collections.Hashable):
-                raise GraphException('Node {0} of type {1} not a hashable object'.format(nid, type(node).__name__))
+                raise GraphException(
+                    'Node {0} of type {1} not a hashable object'.format(
+                        nid, type(node).__name__))
 
             # Node needs to be unique
             if nid in self.nodes:
                 raise GraphException('Node {0} already assigned'.format(nid))
 
-        logger.debug('Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
+        logger.debug(
+            'Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
 
         # Prepaire node data dictionary
         node_data = {'nid': nid, '_id': self._nodeid}
         node_data[self.node_data_tag] = node
-        
-        # Update node data dictionary with attributes but exclude '_id' keyword and
-        # 'nid' if auto_nid equals True
+
+        # Update node data dictionary with attributes but exclude '_id'
+        # keyword and 'nid' if auto_nid equals True
         exclude = ['_id']
         if self.auto_nid:
             exclude.append('nid')
-        for k,v in copy.deepcopy(kwargs).items():
-            if not k in exclude:
+        for k, v in copy.deepcopy(kwargs).items():
+            if k not in exclude:
                 node_data[k] = v
 
         self.adjacency[nid] = []
@@ -531,20 +556,20 @@ class Graph(object):
     def attr(self, key, copy_attr=False):
         """
         Provides direct access to a node or edge attribute by ID.
-        
+
         It returns a reference to the original data source unless the copy_attr
         attribute equals True in case it will return a deepcopy of the
         dictionary.
 
         :param copy_attr: Return a deep copy of the data dictionary
         :type copy_attr:  boolean
-        
+
         :return:          Node or edge attribute.
         :rtype:           Node ID as integer or edge ID as tuple of 2 node ID's
         """
-        
+
         data_dict = None
-        if type(key) in (tuple, list):
+        if isinstance(key, tuple) or isinstance(key, list):
             key = tuple(key)
             if self.is_masked:
                 data_dict = self.edges.get(key)
@@ -553,11 +578,11 @@ class Graph(object):
         if self.is_masked:
             data_dict = self.nodes.get(key)
         data_dict = self._full_graph.nodes.get(key)
-        
+
         if copy_attr:
             return copy.deepcopy(data_dict)
         return data_dict
-        
+
     def clear(self):
         """
         Clear nodes and edges in the graph.
@@ -582,7 +607,7 @@ class Graph(object):
         If 'deep' equals true, a deepcopy of the class and its attributes is
         made. The new graph has _full_graph referenced to itself.
         A deep copy of graph returns a new graph that should be self
-        consistent. If a subgraph is copied this way it may contain edges 
+        consistent. If a subgraph is copied this way it may contain edges
         between nodes that are not in the subgraph. These are removed by
         default (clean attribute)
 
@@ -606,34 +631,40 @@ class Graph(object):
         # Make a deep copy
         if deep:
             class_copy = base_cls()
-            
-            class_copy.nodes.update(copy.deepcopy(self.nodes.dict(return_full=True)))
+
+            class_copy.nodes.update(
+                copy.deepcopy(self.nodes.dict(return_full=True)))
             if copy_view:
                 class_copy.nodes._view = copy.deepcopy(self.nodes._view)
-                
-            class_copy.edges.update(copy.deepcopy(self.edges.dict(return_full=True)))
+
+            class_copy.edges.update(copy.deepcopy(
+                self.edges.dict(return_full=True)))
             if copy_view:
                 class_copy.edges._view = copy.deepcopy(self.edges._view)
-            
+
             if clean:
                 nids = set(class_copy.nodes.keys())
                 for edge in [e for e in class_copy.edges.keys()]:
                     if not set(edge).issubset(nids):
                         del class_copy.edges[edge]
-                    
+
             # If clean, rebuild adjacency
             if clean:
                 class_copy._set_adjacency()
             else:
-                class_copy.adjacency.update(copy.deepcopy(self.adjacency.dict(return_full=True)))
+                class_copy.adjacency.update(
+                    copy.deepcopy(self.adjacency.dict(return_full=True)))
                 if copy_view:
-                    class_copy.adjacency._view = copy.deepcopy(self.adjacency._view)
-            
+                    class_copy.adjacency._view = copy.deepcopy(
+                        self.adjacency._view)
+
             class_copy.orm = copy.deepcopy(self.orm)
-            
+
         # Make a shallow copy
         else:
-            class_copy = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
+            class_copy = base_cls(
+                adjacency=self.adjacency, nodes=self.nodes, edges=self.edges,
+                orm=self.orm)
             class_copy._full_graph = self._full_graph
 
         # Copy all class attributes except 'adjacency','nodes', 'edges',
@@ -643,7 +674,9 @@ class Graph(object):
             if k not in notcopy:
                 class_copy.__dict__[k] = copy.deepcopy(v)
 
-        logger.debug('Return {0} copy of graph {1}'.format('deep' if deep else 'shallow', repr(self)))
+        logger.debug(
+            'Return {0} copy of graph {1}'.format(
+                'deep' if deep else 'shallow', repr(self)))
 
         return class_copy
 
@@ -676,7 +709,7 @@ class Graph(object):
         target = self.attr(nid)
 
         # Get key or default class node/edge data key
-        if type(nid) in (tuple, list):
+        if isinstance(nid, tuple) or isinstance(nid, list):
             key = key or self.edge_data_tag
         else:
             key = key or self.node_data_tag
@@ -713,7 +746,7 @@ class Graph(object):
         """
 
         # Coerce to list
-        if all([type(e) in (tuple, list) for e in edges]):
+        if all(type(e) in (tuple, list) for e in edges):
             edges = [tuple(e) for e in edges]
         elif len(edges) == 2:
             edges = [tuple(edges)]
@@ -722,7 +755,9 @@ class Graph(object):
         if edges:
             edges_not_present = [e for e in edges if e not in self.edges]
             if edges_not_present:
-                raise GraphException('Following edges are not in graph {0}'.format(edges_not_present))
+                raise GraphException(
+                    'Following edges are not in graph {0}'.format(
+                        edges_not_present))
         else:
             edges = []
 
@@ -731,17 +766,22 @@ class Graph(object):
         custom_orm_cls = []
         if orm_cls:
             if not isinstance(orm_cls, list):
-                raise GraphException('Custom edge classes need to be defined as list')
+                msg = 'Custom edge classes need to be defined as list'
+                raise GraphException(msg)
             custom_orm_cls.extend(orm_cls)
         if len(edges) == 1:
             custom_orm_cls.append(self.edge_tools)
 
-        base_cls = self.orm.get(self, edges, self._get_class_object(), classes=custom_orm_cls)
-        w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
+        base_cls = self.orm.get(
+            self, edges, self._get_class_object(), classes=custom_orm_cls)
+        w = base_cls(
+            adjacency=self.adjacency, nodes=self.nodes, edges=self.edges,
+            orm=self.orm)
 
         w.edges.set_view(edges)
 
-        # Get nodes and adjacency for the edge selection if it represents an isolated graph
+        # Get nodes and adjacency for the edge selection if it represents
+        # an isolated graph
         if self.is_masked:
             adjacency = _edge_list_to_adjacency(edges)
             w.nodes.set_view(adjacency.keys())
@@ -762,8 +802,8 @@ class Graph(object):
         Returns a new graph view object for the given node and it's edges.
         If `is_masked` equals True the new graph object will represent
         a fully isolated subgraph for the nodes, the edges that connect them
-        and the adjacency using views on the respective nodes, edges and adjacency
-        GraphDict instances.
+        and the adjacency using views on the respective nodes,
+        edges and adjacency GraphDict instances.
         If `is_masked` equals False only the nodes GraphDict will represent
         the subgraph as a view but edges and adjacency will represent the full
         graph. As such, connectivity with the full graph remains.
@@ -785,14 +825,16 @@ class Graph(object):
         """
 
         # Coerce to list
-        if not type(nodes) in (tuple, list) and nodes:
+        if (isinstance(nodes, tuple) or isinstance(nodes, list)) and nodes:
             nodes = [nodes]
 
         # Nodes need to be in graph
         if nodes:
             nodes_not_present = [n for n in nodes if n not in self.adjacency]
             if nodes_not_present:
-                raise GraphException('Following nodes are not in graph {0}'.format(nodes_not_present))
+                raise GraphException(
+                    'Following nodes are not in graph {0}'.format(
+                        nodes_not_present))
         else:
             nodes = []
 
@@ -801,17 +843,22 @@ class Graph(object):
         custom_orm_cls = []
         if orm_cls:
             if not isinstance(orm_cls, list):
-                raise GraphException('Custom node classes need to be defined as list')
+                raise GraphException(
+                    'Custom node classes need to be defined as list')
             custom_orm_cls.extend(orm_cls)
         if len(nodes) == 1:
             custom_orm_cls.append(self.node_tools)
 
-        base_cls = self.orm.get(self, nodes, self._get_class_object(), classes=custom_orm_cls)
-        w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
+        base_cls = self.orm.get(
+            self, nodes, self._get_class_object(), classes=custom_orm_cls)
+        w = base_cls(
+            adjacency=self.adjacency, nodes=self.nodes, edges=self.edges,
+            orm=self.orm)
 
         w.nodes.set_view(nodes)
 
-        # Get edges and adjacency for the node selection if it represents an isolated graph
+        # Get edges and adjacency for the node selection if it represents
+        # an isolated graph
         if self.is_masked:
             edges = _adjacency_to_edges(nodes, self.adjacency, nodes)
             w.edges.set_view(edges)
@@ -833,7 +880,8 @@ class Graph(object):
         # to the old root node in hierarchy.
         if w.root is not None and self.is_masked:
             if w.root not in w.nodes() and len(w.nodes):
-                w.root = min([w.nodes[n].get('_id', self._nodeid) for n in w.nodes()])
+                w.root = min(
+                    w.nodes[n].get('_id', self._nodeid) for n in w.nodes())
 
         return w
 
@@ -936,7 +984,7 @@ class Graph(object):
         :type nd1 nd2:  int or tuple/list for nd1
         """
 
-        if not type(nd1) in (list, tuple):
+        if not (isinstance(nd1, list) or isinstance(nd1, tuple)):
             nd1 = (nd1, nd2)
 
         # Make edges, directed or undirected based on graph settings
@@ -946,12 +994,14 @@ class Graph(object):
                 if edge[1] in self.adjacency[edge[0]]:
                     self.adjacency[edge[0]].remove(edge[1])
                 else:
-                    logger.warning('Node {0} not part of edge list node {1}'.format(*edge))
+                    msg = 'Node {0} not part of edge list node {1}'
+                    logger.warning(msg.format(*edge))
 
                 del self.edges[edge]
                 logger.debug('Removed edge {0} from graph'.format(edge))
             else:
-                logger.warning('Unable to remove edge {0}. No such edge ID'.format(edge))
+                logger.warning(
+                    'Unable to remove edge {0}. No such edge ID'.format(edge))
 
     def remove_edges(self, edges):
         """
@@ -994,9 +1044,12 @@ class Graph(object):
             del self.adjacency[node]
             del self.nodes[node]
 
-            logger.debug('Removed node {0} with {1} connecting edges from graph'.format(node, len(edges)))
+            msg = 'Removed node {0} with {1} connecting edges from graph'
+            logger.debug(msg.format(node, len(edges)))
+
         else:
-            logger.warning('Unable to remove node {0}. No such node ID'.format(node))
+            msg = 'Unable to remove node {0}. No such node ID'.format(node)
+            logger.warning(msg)
 
     def remove_nodes(self, nodes):
         """

@@ -5,15 +5,16 @@ Import/Export files in JSON compliant format
 """
 
 import json
-import inspect
 import logging
 
-from   ..                 import __version__
-from   ..graph            import Graph
-from   ..graph_axis_class import GraphAxis
-from   .io_helpers        import _check_lie_graph_version, _open_anything
+from .. import __version__
+from ..graph import Graph
+from ..graph_axis_class import GraphAxis
+from .io_helpers import _check_lie_graph_version, _open_anything
+
 
 BASICTYPES = (int, float, bool, long, str, unicode)
+
 
 def read_dict(dict_format):
     """

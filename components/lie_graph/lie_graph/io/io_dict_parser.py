@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pprint
-import os
-import logging as logger
-
 from ..graph_helpers import GraphException
 from ..graph import Graph
 from ..graph_axis_methods import closest_to

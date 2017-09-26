@@ -5,11 +5,11 @@ file: io_tgf_format.py
 
 Functions for reading and writing graphs defined in Trivial Graph Format (.tgf)
 a simple text-based file format for describing graphs. It consists of a list of
-node definitions, which map node IDs to labels, followed by a list of edges, 
-which specify node pairs and an optional edge label. Node IDs can be arbitrary 
+node definitions, which map node IDs to labels, followed by a list of edges,
+which specify node pairs and an optional edge label. Node IDs can be arbitrary
 identifiers, whereas labels for both nodes and edges are plain strings.
 
-The graph may be interpreted as a directed or undirected graph. 
+The graph may be interpreted as a directed or undirected graph.
 For directed graphs, to specify the concept of bi-directionality in an edge,
 one may either specify two edges (forward and back) or differentiate the edge
 by means of a label.
@@ -17,6 +17,7 @@ by means of a label.
 
 from ..graph import Graph
 from .io_helpers import _coarse_type
+
 
 def read_tgf(tgf, edge_data_label='label'):
     """

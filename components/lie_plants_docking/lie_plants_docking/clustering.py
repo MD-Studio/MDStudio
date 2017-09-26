@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import numpy
 import itertools
 
 from twisted.logger import Logger
-from scipy.spatial.distance import pdist, squareform
-from scipy.cluster.hierarchy import linkage, fcluster, leaders, dendrogram
+from scipy.spatial.distance import squareform
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 
 #import matplotlib.pyplot as plt
 

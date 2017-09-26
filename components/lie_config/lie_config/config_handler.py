@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import re
 import copy
-import logging
 import weakref
 
 from fnmatch import fnmatch

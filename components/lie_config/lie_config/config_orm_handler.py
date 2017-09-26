@@ -19,7 +19,9 @@ class ConfigOrmHandler(object):
     def get(self, key):
 
         if key and key in self._mapping:
-            ORMClass = type(self._baseclass.__name__, (self._mapping[key], self._baseclass), {})
+            ORMClass = type(
+                self._baseclass.__name__,
+                (self._mapping[key], self._baseclass), {})
         else:
             ORMClass = self._baseclass
 

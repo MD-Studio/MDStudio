@@ -53,7 +53,8 @@ class ComponentManager(object):
 
         components = {}
         if recursive:
-            for importer, name, isPkg in pkgutil.walk_packages([source], onerror=import_error):
+            for importer, name, isPkg in pkgutil.walk_packages(
+                    [source], onerror=import_error):
                 if isPkg:
                     components[name] = os.path.join(source, name)
         else:
@@ -63,8 +64,9 @@ class ComponentManager(object):
 
         return components
 
-    def add_searchpath(self, searchpath, prefix=None,
-                       search_method=lambda self, searchpath: self._list_components(searchpath)):
+    def add_searchpath(
+            self, searchpath, prefix=None, search_method=lambda self,
+            searchpath: self._list_components(searchpath)):
         """
         Add a component search path to the manager
 
@@ -81,17 +83,24 @@ class ComponentManager(object):
         """
 
         if not os.path.exists(searchpath):
-            self.logging.error('LIE component searchpath does not exist: {0}'.format(searchpath))
+            self.logging.error(
+                'LIE component searchpath does not exist: {0}'.format(
+                    searchpath))
 
         components = search_method(self, searchpath)
         if prefix:
-            components = dict([(k, v) for k, v in components.items() if k.startswith(prefix)])
+            components = {
+                k: v for k, v in components.items() if k.startswith(prefix)}
 
         if not components:
-            self.logging.info('No components found in path: {0} (prefix: {1})'.format(searchpath, prefix or ''))
+            self.logging.info(
+                'No components found in path: {0} (prefix: {1})'.format(
+                    searchpath, prefix or ''))
 
         self._components.update(components)
-        self.logging.debug("Added {0} components from search path: {1}".format(len(components), searchpath))
+        self.logging.debug(
+            "Added {0} components from search path: {1}".format(
+                len(components), searchpath))
 
         # Add component directory to sys.path and self._searchpath
         if searchpath not in self._searchpath:
@@ -126,7 +135,9 @@ class ComponentManager(object):
             if hasattr(self.get_component(component), 'settings'):
                 settings = self.get_component(component).settings
                 settings_dict[component] = settings
-                self.logging.debug('Load default settings from {0} component'.format(component))
+                self.logging.debug(
+                    'Load default settings from {0} component'.format(
+                        component))
 
         return settings_dict
 
@@ -180,7 +191,8 @@ class ComponentManager(object):
             if hasattr(self.get_component(component), 'oninit'):
                 oninit = self.get_component(component).oninit
                 if oninit:
-                    self.logging.debug('Bootstrap component {0}'.format(component))
+                    self.logging.debug(
+                        'Bootstrap component {0}'.format(component))
                     if oninit.func_code.co_argcount == 1:
                         oninit(self._config[component])
                     else:
@@ -188,7 +200,9 @@ class ComponentManager(object):
 
                     init_count += 1
 
-        self.logging.debug('Run bootstrap for {0} components. ({1} checked)'.format(init_count, len(components)))
+        self.logging.debug(
+            'Run bootstrap for {0} components. ({1} checked)'.format(
+                init_count, len(components)))
 
     def shutdown(self, components=None, order=[]):
         """
@@ -215,10 +229,13 @@ class ComponentManager(object):
             order = [c for c in components if c not in order] + order
             components = order
 
-        self.logging.debug('Application shutdown procedure for {0} components'.format(len(components)))
+        self.logging.debug(
+            'Application shutdown procedure for {0} components'.format(
+                len(components)))
         for component in components:
             if hasattr(self.get_component(component), 'onexit'):
                 onexit = self.get_component(component).onexit
                 if onexit:
-                    self.logging.debug('Shutdown component {0}'.format(component))
+                    self.logging.debug(
+                        'Shutdown component {0}'.format(component))
                     onexit(self._config[component])

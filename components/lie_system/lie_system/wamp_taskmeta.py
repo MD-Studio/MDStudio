@@ -5,7 +5,6 @@ file: wamp_message_format.py
 """
 
 import os
-import copy
 import time
 import random
 import json
@@ -13,6 +12,7 @@ import jsonpickle
 import jsonschema
 
 from getpass import getuser
+from twisted.logger import Logger
 
 # LieApplicationSession variables names defined in os.environ
 ENVIRON = {'_LIE_WAMP_REALM': 'realm',
@@ -20,30 +20,35 @@ ENVIRON = {'_LIE_WAMP_REALM': 'realm',
            '_LIE_AUTH_USERNAME': 'username',
            '_LIE_AUTH_PASSWORD': 'password'}
 
+logging = Logger()
 
-def wamp_session_schema(path=os.path.join(os.path.dirname(__file__), 'wamp_session_schema.json')):
+
+def wamp_session_schema(
+        path=os.path.join(os.path.dirname(__file__),
+                          'wamp_session_schema.json')):
     """
     Return the JSON wamp session schema from file
-    
+
     :param path: path to json schema file
     :type path:  :py:str
     """
-    
+
     if os.path.isfile(path):
         wamp_session_schema = json.load(open(path))
         return wamp_session_schema
     else:
         logging.error('No such file {0}'.forma(path))
-        return {} 
+        return {}
+
 
 def _schema_to_data(schema, data=None):
 
     default_data = {}
 
     required = schema.get('required', [])
-    properties = schema.get('properties',{})
+    properties = schema.get('properties', {})
 
-    for key,value in properties.items():
+    for key, value in properties.items():
         if key in required:
             default_data[key] = value.get('default')
 
@@ -52,6 +57,7 @@ def _schema_to_data(schema, data=None):
         default_data.update(data)
 
     return default_data
+
 
 class WAMPTaskMetaData(object):
     """
@@ -72,12 +78,13 @@ class WAMPTaskMetaData(object):
 
         # Update metadata with kwargs and environmental variables
         self.update(kwargs)
-        self.update(dict([(ENVIRON[k],os.environ[k]) for k in ENVIRON if k in os.environ]))
+        self.update({
+            (ENVIRON[k], os.environ[k]) for k in ENVIRON if k in os.environ})
 
         # Update defaults
-        if not 'system_user' in self._metadata:
+        if 'system_user' not in self._metadata:
             self._metadata['system_user'] = getuser()
-        if not 'itime' in self._metadata:
+        if 'itime' not in self._metadata:
             self._metadata['itime'] = int(time.time())
 
         # Validate against schema
@@ -104,7 +111,7 @@ class WAMPTaskMetaData(object):
     def __setattr__(self, attr, value):
         propobj = getattr(self.__class__, attr, None)
 
-        if not '_initialised' in self.__dict__:
+        if '_initialised' not in self.__dict__:
             return dict.__setattr__(self, attr, value)
         elif isinstance(propobj, property) and propobj.fset:
             propobj.fset(self, value)
@@ -143,7 +150,8 @@ class WAMPTaskMetaData(object):
         if value in self._allowed_status_labels:
             self._metadata['status'] = value
         else:
-            raise LookupError('Task status label "{0}" not allowed'.format(value))
+            raise LookupError(
+                'Task status label "{0}" not allowed'.format(value))
 
     @property
     def authmethod(self):
@@ -151,7 +159,7 @@ class WAMPTaskMetaData(object):
         Returns the Crossbar WAMP authentication method to use.
         A WAMP connection can possibly allow for multiple authentication
         methods.
-        
+
         :rtype: list or None
         """
 
@@ -167,7 +175,8 @@ class WAMPTaskMetaData(object):
     def task_id(self):
 
         if not self._metadata.get('task_id'):
-            self._metadata['task_id'] = '{0}-{1}'.format(int(time.time()), random.randint(1000, 9999))
+            self._metadata['task_id'] = '{0}-{1}'.format(
+                int(time.time()), random.randint(1000, 9999))
 
     def _update_time(self, time_stamp='utime'):
 
@@ -201,5 +210,5 @@ class WAMPTaskMetaData(object):
         return self._metadata
 
     def validate(self):
-        
+
         jsonschema.validate(self._metadata, self._session_schema)

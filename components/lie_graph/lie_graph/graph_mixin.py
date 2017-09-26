@@ -2,7 +2,7 @@
 
 import logging as logger
 
-from graph_helpers import GraphException
+from .graph_helpers import GraphException
 from .io.io_helpers import _open_anything
 
 

@@ -11,14 +11,13 @@ Graph nodes, edges and adjacency are stored as plain python dictionaries
 
 import os
 import pprint
-import pickle
 import logging as logger
 
 from ..graph import Graph
-from .io_helpers import _coarse_type
 
 
-def write_graph(graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle=False):
+def write_graph(
+        graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle=False):
     """
     Export graph as Graph Python Format file
 
@@ -37,7 +36,7 @@ def write_graph(graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle=False
 
     # Export graph as pickled Graph Python Format
     if pickle:
-        
+
         pickle_dict = {}
         pickle_dict['nodes'] = graph.nodes.dict()
         pickle_dict['edges'] = graph.edges.dict()

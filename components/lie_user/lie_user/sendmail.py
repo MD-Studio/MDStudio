@@ -11,15 +11,16 @@ import smtplib
 from email.mime.text import MIMEText
 from twisted.logger import Logger
 
-from settings import SETTINGS
-
 logging = Logger()
 
 
 class Email(object):
 
-    def __init__(self, email_sender='info@liestudio.vu.nl', email_smtp_server='127.0.01', email_smtp_port=1025,
-                 email_smtp_usetls=None, email_smtp_username=None, email_smtp_password=None):
+    def __init__(
+            self, email_sender='info@liestudio.vu.nl',
+            email_smtp_server='127.0.01', email_smtp_port=1025,
+            email_smtp_usetls=None, email_smtp_username=None,
+            email_smtp_password=None):
         """
         Email class using Python's buildin SMTP server (smtplib)
         for handling email message relay.
@@ -59,8 +60,8 @@ class Email(object):
 
             self.smtp_server.login(email_smtp_username, email_smtp_password)
         except Exception as e:
-            logging.error('{0} Unable to establish SMTP server connection to {1}:{2}'.format(type(e),
-                                                                                             email_smtp_server, email_smtp_port))
+            logging.error('{0} Unable to establish SMTP server connection to {1}:{2}'.format(
+                type(e), email_smtp_server, email_smtp_port))
 
     def __enter__(self):
         """

@@ -1,11 +1,11 @@
-import pdb
+
 import os
 import sys
 import unittest
 
 pybel = indy = ironable = rdk = cdk = webel = opsin = jchem = None
 try:
-    import pybel # From Open Babel
+    import pybel  # From Open Babel
 except ImportError:
     pass
 try:
@@ -37,20 +37,26 @@ try:
 except (NameError, RuntimeError, ImportError, KeyError):
     pass
 
-try: # Define next() for Jython 2.5
+try:  # Define next() for Jython 2.5
     next
 except (NameError):
     next = lambda x: x.next()
 
+
 class myTestCase(unittest.TestCase):
     """Additional methods not present in Jython 2.2"""
+
     # Taken from unittest.py in Python 2.5 distribution
     def assertFalse(self, expr, msg=None):
         "Fail the test if the expression is true."
-        if expr: raise self.failureException(msg)
+        if expr:
+            raise self.failureException(msg)
+
     def assertTrue(self, expr, msg=None):
         """Fail the test unless the expression is true."""
-        if not expr: raise self.failureException(msg)
+        if not expr:
+            raise self.failureException(msg)
+
     def assertAlmostEqual(self, first, second, places=7, msg=None):
         """Fail if the two objects are unequal as determined by their
            difference rounded to the given number of decimal places
@@ -61,23 +67,31 @@ class myTestCase(unittest.TestCase):
         """
         if round(second-first, places) != 0:
             raise self.failureException(
-                  (msg or '%r != %r within %r places' % (first, second, places)))
+                  (msg or '%r != %r within %r places' %
+                   (first, second, places)))
+
 
 class TestOpsin(myTestCase):
     toolkit = opsin
-    
+
     def testconversion(self):
         """Convert from acetylsaliclyic acid to other formats"""
         mol = self.toolkit.readstring("iupac", "benzene")
         self.assertEqual(mol.write("smi"), "C1=CC=CC=C1")
-        self.assertEqual(mol.write("inchi"), "InChI=1/C6H6/c1-2-4-6-5-3-1/h1-6H")
-        cml = mol.write("cml")
+        self.assertEqual(
+            mol.write("inchi"), "InChI=1/C6H6/c1-2-4-6-5-3-1/h1-6H")
+        mol.write("cml")
+
     def testnoconversion(self):
         """A failed conversion - should raise IOError"""
-        self.assertRaises(IOError, self.toolkit.readstring, "iupac", "Nosuchname")
+        self.assertRaises(
+            IOError, self.toolkit.readstring, "iupac", "Nosuchname")
+
     def testnoformats(self):
         """No such format - should raise ValueError"""
-        self.assertRaises(ValueError, self.toolkit.readstring, "noel", "benzene")
+        self.assertRaises(
+            ValueError, self.toolkit.readstring, "noel", "benzene")
+
     def testwritefile(self):
         """Test writing a file"""
         if os.path.isfile("tmp.cml"):
@@ -89,8 +103,9 @@ class TestOpsin(myTestCase):
         mol.write("cml", "tmp.cml", overwrite=True)
         os.remove("tmp.cml")
 
+
 class TestToolkit(myTestCase):
-    
+
     def setUp(self):
         self.mols = [self.toolkit.readstring("smi", "CCCC"),
                      self.toolkit.readstring("smi", "CCCN")]
@@ -123,7 +138,7 @@ class TestToolkit(myTestCase):
         """Test the calculation of the Tanimoto coefficient"""
         fps = [x.calcfp() for x in self.mols]
         self.assertAlmostEqual(fps[0] | fps[1], self.tanimotoresult, 3)
-        
+
     def testFPstringrepr(self):
         """Test the string representation and corner cases."""
         self.assertRaises(ValueError, self.mols[0].calcfp, "Nosuchname")
@@ -131,7 +146,7 @@ class TestToolkit(myTestCase):
         r = str(self.mols[0].calcfp())
         t = r.split(", ")
         self.assertEqual(len(t), self.Nfpbits)
-        
+
     def testFPbits(self):
         """Test whether the bits are set correctly."""
         bits = [x.calcfp().bits for x in self.mols]
@@ -176,7 +191,8 @@ class TestToolkit(myTestCase):
         """Create a 2D depiction"""
         self.mols[0].draw(show=False,
                           filename="%s.png" % self.toolkit.__name__)
-        self.mols[0].draw(show=False) # Just making sure that it doesn't raise an Error
+        # Just making sure that it doesn't raise an Error
+        self.mols[0].draw(show=False)
         self.mols[0].draw(show=False, update=True)
         coords = [x.coords for x in self.mols[0].atoms[0:2]]
         self.assertNotEqual(coords, [(0., 0., 0.), (0., 0., 0.)])
@@ -216,7 +232,7 @@ M  END
 """
         data, result = test.split("\n"), as_mol.split("\n")
         self.assertEqual(len(data), len(result))
-        self.assertEqual(data[-2], result[-2].rstrip()) # M  END
+        self.assertEqual(data[-2], result[-2].rstrip())  # M  END
 
     def testRSstringrepr(self):
         """Test the string representation of a molecule"""
@@ -227,22 +243,22 @@ M  END
         self.assertEqual(len(self.mols), 2)
 
     def RFreaderror(self):
-        mol = next(self.toolkit.readfile("sdf", "nosuchfile.sdf"))
+        next(self.toolkit.readfile("sdf", "nosuchfile.sdf"))
 
     def testRFmissingfile(self):
         """Test that reading from a non-existent file raises an error."""
         self.assertRaises(IOError, self.RFreaderror)
 
     def RFformaterror(self):
-        mol = next(self.toolkit.readfile("noel", "head.sdf"))
-    
+        next(self.toolkit.readfile("noel", "head.sdf"))
+
     def testRFformaterror(self):
         """Test that invalid formats raise an error"""
         self.assertRaises(ValueError, self.RFformaterror)
 
     def RFunitcellerror(self):
-        unitcell = self.mols[0].unitcell
-    
+        self.mols[0].unitcell
+
     def testRFunitcellerror(self):
         """Test that accessing the unitcell raises an error"""
         self.assertRaises(AttributeError, self.RFunitcellerror)
@@ -270,16 +286,19 @@ M  END
         self.assertRaises(IOError, mol.write, "smi", "testoutput.txt")
         os.remove("testoutput.txt")
         self.assertRaises(ValueError, mol.write, "noel", "testoutput.txt")
-    
+
     def testRFoutputfile(self):
         """Test the Outputfile class"""
-        self.assertRaises(ValueError, self.toolkit.Outputfile, "noel", "testoutput.txt")
+        self.assertRaises(
+            ValueError, self.toolkit.Outputfile, "noel", "testoutput.txt")
         outputfile = self.toolkit.Outputfile("sdf", "testoutput.txt")
         for mol in self.head:
             outputfile.write(mol)
         outputfile.close()
-        self.assertRaises(IOError, outputfile.write, mol)
-        self.assertRaises(IOError, self.toolkit.Outputfile, "sdf", "testoutput.txt")
+        self.assertRaises(
+            IOError, outputfile.write, mol)
+        self.assertRaises(
+            IOError, self.toolkit.Outputfile, "sdf", "testoutput.txt")
         input = open("testoutput.txt", "r")
         numdollar = len([x for x in input.readlines()
                          if x.rstrip() == "$$$$"])
@@ -308,7 +327,7 @@ M  END
         self.assertRaises(KeyError, self.MDaccesstest)
         data['noel'] = 'testvalue'
         self.assertEqual(data['noel'], 'testvalue')
-        newvalues = {'hey':'there', 'yo':1}
+        newvalues = {'hey': 'there', 'yo': 1}
         data.update(newvalues)
         self.assertEqual(data['yo'], '1')
         self.assertTrue('there' in data.values())
@@ -316,19 +335,19 @@ M  END
     def testMDglobalaccess(self):
         """Check out the keys"""
         data = self.head[0].data
-        self.assertFalse(data.has_key('Noel'))
+        self.assertFalse('Noel' in data)
         self.assertEqual(len(data), len(self.datakeys))
         for key in data:
             self.assertEqual(key in self.datakeys, True)
         r = repr(data)
-        self.assertTrue(r[0]=="{" and r[-2:]=="'}", r)
+        self.assertTrue(r[0] == "{" and r[-2:] == "'}", r)
 
     def testMDdelete(self):
         """Delete some keys"""
         data = self.head[0].data
-        self.assertTrue(data.has_key('NSC'))
+        self.assertTrue('NSC' in data)
         del data['NSC']
-        self.assertFalse(data.has_key('NSC'))
+        self.assertFalse('NSC' in data)
         data.clear()
         self.assertEqual(len(data), 0)
 
@@ -360,20 +379,21 @@ M  END
 
     def testAddh(self):
         """Adding and removing hydrogens"""
-        self.assertEqual(len(self.mols[0].atoms),4)
+        self.assertEqual(len(self.mols[0].atoms), 4)
         self.mols[0].addh()
-        self.assertEqual(len(self.mols[0].atoms),14)
+        self.assertEqual(len(self.mols[0].atoms), 14)
         self.mols[0].removeh()
-        self.assertEqual(len(self.mols[0].atoms),4)
-        
+        self.assertEqual(len(self.mols[0].atoms), 4)
+
+
 class TestOBabel(TestToolkit):
     toolkit = pybel
     tanimotoresult = 1/3.
     Natoms = 15
     tpsaname = "TPSA"
     Nfpbits = 32
-    datakeys = ['NSC', 'Comment', 'OpenBabel Symmetry Classes',
-		'MOL Chiral Flag']
+    datakeys = [
+        'NSC', 'Comment', 'OpenBabel Symmetry Classes', 'MOL Chiral Flag']
 
     def testFP_FP3(self):
         "Checking the results from FP3"
@@ -404,16 +424,20 @@ class TestOBabel(TestToolkit):
         self.assertEqual(len(self.mols[0].atoms), 4)
         self.assertRaises(AttributeError, self.RSaccesstest)
 
+
 class TestJybel(TestOBabel):
     pass
+
 
 class TestIronable(TestJybel):
     def testDraw(self):
         """No creating a 2D depiction"""
         pass
 
+
 class TestPybel(TestOBabel):
     toolkit = pybel
+
 
 class TestRDKit(TestToolkit):
     toolkit = rdk
@@ -426,6 +450,7 @@ class TestRDKit(TestToolkit):
     def testRSconversiontoMOL2(self):
         """No conversion to MOL2 done"""
         pass
+
 
 class TestIndigo(TestToolkit):
     toolkit = indy
@@ -453,6 +478,7 @@ class TestIndigo(TestToolkit):
     def testLocalOpt(self):
         """No forcefields"""
         pass
+
     def testMake3D(self):
         """No forcefields"""
         pass
@@ -472,12 +498,13 @@ class TestWebel(TestToolkit):
 
     def testselfconversion(self):
         """Test that the toolkit can eat its own dog-food."""
-##        newmol = self.toolkit.Molecule(self.head[0])
-##        self.assertEqual(newmol._exchange,
-##                         self.head[0]._exchange)
+        # newmol = self.toolkit.Molecule(self.head[0])
+        # self.assertEqual(newmol._exchange,
+        #                  self.head[0]._exchange)
         newmol = self.toolkit.Molecule(self.mols[0])
         self.assertEqual(newmol._exchange,
                          self.mols[0]._exchange)
+
     def testAattributes(self):
         """Not testing atom attributes"""
     def testAstringrepr(self):
@@ -497,7 +524,9 @@ class TestWebel(TestToolkit):
     def testMDdelete(self):
         """Not deleting some keys"""
     def testRFmissingfile(self):
-        """Not testing that reading from a non-existent file raises an error."""
+        """
+        Not testing that reading from a non-existent file raises an error.
+        """
     def testRFformaterror(self):
         """Not testing that invalid formats raise an error"""
     def testRSgetprops(self):
@@ -505,35 +534,43 @@ class TestWebel(TestToolkit):
         self.assertAlmostEqual(self.mols[0].molwt, 58.12, 2)
         self.assertEqual(self.mols[1].formula, "C3H9N")
         self.assertRaises(AttributeError, self.RSaccesstest)
+
     def testDraw(self):
         """Create a 2D depiction"""
         self.mols[0].draw(show=False,
                           filename="%s.png" % self.toolkit.__name__)
-        self.mols[0].draw(show=False) # Just making sure that it doesn't raise an Error
+        # Just making sure that it doesn't raise an Error
+        self.mols[0].draw(show=False)
+
     def testRSformaterror(self):
         """Test that invalid formats raise an error"""
         self.assertRaises(ValueError, self.toolkit.readstring, "noel", "jkjk")
+
     def testSMARTS(self):
         """Searching for ethyl groups in triethylamine"""
         mol = self.toolkit.readstring("smi", "CCN(CC)CC")
         smarts = self.toolkit.Smarts("[#6][#6]")
         ans = smarts.match(mol)
         self.assertTrue(ans)
+
     def testRFoutputfile(self):
         """Test the Outputfile class"""
-        self.assertRaises(ValueError, self.toolkit.Outputfile, "noel", "testoutput.txt")
+        self.assertRaises(
+            ValueError, self.toolkit.Outputfile, "noel", "testoutput.txt")
         outputfile = self.toolkit.Outputfile("sdf", "testoutput.txt")
         for mol in self.mols:
             outputfile.write(mol)
         outputfile.close()
         self.assertRaises(IOError, outputfile.write, mol)
-        self.assertRaises(IOError, self.toolkit.Outputfile, "sdf", "testoutput.txt")
+        self.assertRaises(
+            IOError, self.toolkit.Outputfile, "sdf", "testoutput.txt")
         input = open("testoutput.txt", "r")
         numdollar = len([x for x in input.readlines()
                          if x.rstrip() == "$$$$"])
         input.close()
         os.remove("testoutput.txt")
         self.assertEqual(numdollar, 2)
+
     def testattributes(self):
         """Test attributes like informats, descs and so on"""
         informats, outformats = self.toolkit.informats, self.toolkit.outformats
@@ -541,6 +578,7 @@ class TestWebel(TestToolkit):
         self.assertNotEqual(len(self.toolkit.outformats.keys()), 0)
         self.assertNotEqual(len(self.toolkit.getdescs()), 0)
         self.assertNotEqual(len(self.toolkit.fps), 0)
+
     def testRSconversiontoMOL(self):
         """Convert to mol"""
         as_mol = self.mols[0].write("mol")
@@ -579,20 +617,21 @@ M  END
 $$$$"""
         data, result = test.split("\n"), as_mol.split("\n")
         self.assertEqual(len(data), len(result))
-        self.assertEqual(data[-2], result[-2].rstrip()) # M  END
-        
-        
+        self.assertEqual(data[-2], result[-2].rstrip())  # M  END
+
+
 class TestCDK(TestToolkit):
     toolkit = cdk
     tanimotoresult = 0.375
     Natoms = 15
     tpsaname = "tpsa"
-    Nfpbits = 4 # The CDK uses a true java.util.Bitset
+    Nfpbits = 4  # The CDK uses a true java.util.Bitset
     datakeys = ['NSC', 'cdk:Remark', 'cdk:Title']
 
     def testLocalOpt(self):
         """No local opt testing done"""
         pass
+
     def testMake3D(self):
         """No 3D coordinate generation done"""
         pass
@@ -605,6 +644,7 @@ class TestCDK(TestToolkit):
         self.assertEqual(len(self.mols[0].atoms), 4)
         self.assertRaises(AttributeError, self.RSaccesstest)
 
+
 class TestJchem(TestToolkit):
     toolkit = jchem
     tanimotoresult = 0.444
@@ -616,6 +656,7 @@ class TestJchem(TestToolkit):
     def testLocalOpt(self):
         """No local opt testing done"""
         pass
+
     def testRSgetprops(self):
         """Get the values of the properties."""
         # self.assertAlmostEqual(self.mols[0].exactmass, 58.078, 3)
@@ -624,18 +665,21 @@ class TestJchem(TestToolkit):
         self.assertEqual(len(self.mols[0].atoms), 4)
         self.assertRaises(AttributeError, self.RSaccesstest)
 
+
 class TestCDKJPype(TestCDK):
     def testDraw(self):
         """No depiction supported I'm afraid"""
         pass
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     if os.path.isfile("testoutput.txt"):
         os.remove("testoutput.txt")
 
-    lookup = {'cdk': TestCDK, 'obabel':TestOBabel, 'rdk':TestRDKit,
-              'webel': TestWebel, 'opsin': TestOpsin, 'indy': TestIndigo,
-              'pybel':TestPybel, 'jchem':TestJchem}
+    lookup = {
+        'cdk': TestCDK, 'obabel': TestOBabel, 'rdk': TestRDKit,
+        'webel': TestWebel, 'opsin': TestOpsin, 'indy': TestIndigo,
+        'pybel': TestPybel, 'jchem': TestJchem}
     if sys.platform[:4] == "java":
         lookup['obabel'] = TestJybel
         del lookup['rdk']

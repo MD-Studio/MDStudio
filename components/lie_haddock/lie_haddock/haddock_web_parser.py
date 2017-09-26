@@ -65,7 +65,7 @@ class HaddockParamWeb(object):
         
         self.data=None
         
-        if filename
+        if filename:
             self.filename = filename
             self.type = self._type()
             self.data = self._parse()
