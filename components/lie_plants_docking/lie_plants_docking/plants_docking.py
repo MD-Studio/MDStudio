@@ -11,7 +11,6 @@ Classes for protein-ligand docking using the PLANTS software:
 
 import os
 import csv
-import json
 
 from twisted.logger import Logger
 from lie_config import configwrapper
@@ -22,7 +21,7 @@ from .utils import cmd_runner, settings
 from .clustering import coords_from_mol2, ClusterStructures
 
 
-@configwrapper('lie_plants_docking')        
+@configwrapper('lie_plants_docking')
 class PlantsDocking(DockingBase):
     """
     Class for running a protein-ligand docking using the PLANTS docking
