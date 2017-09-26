@@ -81,7 +81,7 @@ class WorkflowSpec(object):
         """
 
         # Schema already parsed as dictionary
-        if type(schema) == dict:
+        if isinstance(schema, dict):
             return schema
 
         # Try parsing using _open_anything
@@ -178,7 +178,9 @@ class WorkflowSpec(object):
 
         json_string = write_json(self.workflow)
         if path:
-            assert os.path.exists(os.path.dirname(path)), 'Directory does not exist: {0}'.format(os.path.dirname(path))
+            pred = os.path.exists(os.path.dirname(path))
+            msg = 'Directory does not exist: {0}'.format(os.path.dirname(path))
+            assert pred, msg
             try:
                 with open(path, 'w') as json_to_file:
                     json_to_file.write(json_string)
@@ -214,8 +216,13 @@ class WorkflowSpec(object):
         """
 
         # Task type needs to be supported by ORM
-        assert type(task_type) == str, 'Workflow task type needs to be of type string'
-        assert task_type in self.workflow.orm.mapped_node_types.get('task_type',[]), 'Workflow task type "{0}" not supported by graph ORM'.format(task_type)
+        pred_1 = isinstance(task_type, str),
+        msg_1 = 'Workflow task type needs to be of type string'
+        pred_2 = task_type in self.workflow.orm.mapped_node_types.get('task_type', [])
+        msg_2 = 'Workflow task type "{0}" not supported by graph ORM'.format(
+            task_type)
+        assert pred_1, msg_1
+        assert pred_2, msg_2
 
         # Add the task as node
         task_name = task_name or task_type.lower()
@@ -244,9 +251,9 @@ class WorkflowSpec(object):
         :param data_mapping:  output-input data mapping
         :type data_mapping:   :py:dict
         """
-
-        assert task1 in self.workflow.nodes, 'Task {0} not in workflow'.format(task1)
-        assert task2 in self.workflow.nodes, 'Task {0} not in workflow'.format(task2)
+        wf_nodes = self.workflow.nodes
+        assert task1 in wf_nodes, 'Task {0} not in workflow'.format(task1)
+        assert task2 in wf_nodes, 'Task {0} not in workflow'.format(task2)
 
         if data_mapping:
             self.workflow.add_edge(task1, task2, data_mapping=data_mapping)

@@ -90,7 +90,7 @@ class _TaskBase(object):
         for key, value in self.nodes[self.nid].get('input_data', {}).items():
 
             # Resolve reference
-            if type(value) == str and value.startswith('$'):
+            if isinstance(value, str) and value.startswith('$'):
                 split = value.strip('$').split('.')
                 ref_nid = int(split[0])
                 ref_key = split[1]
@@ -154,7 +154,7 @@ class WampTask(_TaskBase):
 
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(
-            metadata=self.nodes[self.nid].get('session',{}))
+            metadata=self.nodes[self.nid].get('session', {}))
 
         # Call the service
         deferred = runner(
@@ -269,7 +269,7 @@ class Mapper(_TaskBase):
     """
     Mapper class
 
-    Task that parallelises input from an array to all descending tasks or 
+    Task that parallelises input from an array to all descending tasks or
     upto a Collect task that is assigned to collect the output the task
     lineage created by this mapper class.
 
@@ -292,15 +292,16 @@ class Mapper(_TaskBase):
         map_argument = self.get('mapper_arg', 'mapper')
         task_input = self.get_input()
         if map_argument not in task_input:
-            errorback('Task {0} ({1}), mapper argument {2} not in input'.format(
-                self.nid, self.task_name, map_argument), self.nid)
+            errorback(
+                'Task {0} ({1}), mapper argument {2} not in input'.format(
+                    self.nid, self.task_name, map_argument), self.nid)
 
         mapped = task_input[map_argument]
         if len(mapped):
 
-           # Pre-process data array
-           # if runner:
-           #     mapped = runner(mapped)
+            # Pre-process data array
+            # if runner:
+            #     mapped = runner(mapped)
 
             logging.info(
                 'Task {0} ({1}), {2} items to map'.format(
@@ -358,7 +359,7 @@ class Mapper(_TaskBase):
 
                 # List item to dict if needed
                 tomap = mapped[i]
-                if not type(tomap) == dict:
+                if not isinstance(tomap, dict):
                     tomap = {map_argument: tomap}
 
                 # TODO: Define data mapper here
@@ -400,7 +401,8 @@ class Collect(_TaskBase):
             tid for tid in ancestors if self._full_graph.nodes[tid]['status']
             in ('failed', 'aborted')]
         if failed_ancestors:
-            logging.error('Failed parent tasks detected. Unable to collect all output')
+            logging.error(
+                'Failed parent tasks detected. Unable to collect all output')
             session.status = 'failed'
             session._metadata['utime'] = int(time.time())
             callback({'session': session.dict()}, self.nid)
@@ -408,9 +410,9 @@ class Collect(_TaskBase):
         # Check if the ancestors are al completed
         if all([self._full_graph.nodes[tid]['status'] in
                 ('completed', 'disabled') for tid in ancestors]):
-            logging.info(
-                'Task {0} ({1}): Output of {2} parent tasks available, continue'.format(self.nid, self.task_name, len(ancestors)))
-            
+            msg = 'Task {0} ({1}): Output of {2} parent tasks available, continue'
+            logging.info(msg.format(self.nid, self.task_name, len(ancestors)))
+
             # Collect output of previous tasks and apply data mapper
             collected_output = []
             for tid in ancestors:

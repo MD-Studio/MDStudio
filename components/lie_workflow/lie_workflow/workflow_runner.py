@@ -218,15 +218,15 @@ class WorkflowRunner(_WorkflowQueryMethods):
         workdir = os.path.abspath(workdir)
         if os.path.exists(workdir):
             if os.access(workdir, os.W_OK):
-                logging.info(
-                    'Project directory exists and writable: {0}'.format(workdir))
+                msg = 'Project directory exists and writable: {0}'
+                logging.info(msg.format(workdir))
         else:
             if create:
                 try:
                     os.makedirs(workdir, 0755)
                 except:
-                    raise WorkflowError(
-                        'Unable to create project directory: {0}'.format(workdir))
+                    msg = 'Unable to create project directory: {0}'
+                    raise WorkflowError(msg.format(workdir))
             else:
                 raise WorkflowError(
                     'Project directory does not exist: {0}'.format(workdir))
@@ -515,9 +515,9 @@ class WorkflowRunner(_WorkflowQueryMethods):
                 logging.debug(
                     'Load task runner function: {0} from module: {1}'.format(
                         function, module_name))
-            except: 
-                logging.error(
-                    'Unable to load task runner function: {0} from module: {1}'.format(function, module_name))
+            except:
+                msg = 'Unable to load task runner function: {0} from module: {1}'
+                logging.error(msg.format(function, module_name))
 
             return func
 
@@ -535,7 +535,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         run method will stop and the deamon thread will be closed.
 
         For canceling specific tasks please use the `cancel` function of the
-        specific task retrieved using the `WorkflowSpec.get_task` method or 
+        specific task retrieved using the `WorkflowSpec.get_task` method or
         workflow graph methods.
         """
 
@@ -663,7 +663,8 @@ class WorkflowRunner(_WorkflowQueryMethods):
                 'Task with tid {0} not in workflow'.format(tid))
 
         # Define results storage location
-        workdir = workdir or self.workflow.nodes[self.workflow.root].get('workdir')
+        self_wd = self.workflow.nodes[self.workflow.root].get('workdir')
+        workdir = workdir or self_wd
         if not workdir:
             logging.info('No project directory defined to store results')
         else:
