@@ -10,7 +10,7 @@ from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 
 from lie_system import LieApplicationSession
-from management import UserManager, resolve_domain, ip_domain_based_access
+from management import (UserManager, ip_domain_based_access)
 from settings import SETTINGS
 
 
@@ -36,12 +36,14 @@ class UserWampApi(LieApplicationSession):
         :rtype:            dict to JSON
         """
 
-        self.log.debug("SSO authentication token recieved: {0}".format(auth_token))
+        self.log.debug(
+            "SSO authentication token recieved: {0}".format(auth_token))
 
         # TODO: We are prefilling the username here, need to write SSO auth
         # validation routine
         if self.usermanager.validate_user_login('lieadmin', 'liepw@#'):
-            user_settings = self.usermanager.get_safe_user({'username': 'lieadmin'})
+            user_settings = self.usermanager.get_safe_user(
+                {'username': 'lieadmin'})
             user_settings['password'] = 'liepw@#'
             return user_settings
         else:
@@ -81,16 +83,20 @@ class UserWampApi(LieApplicationSession):
             domain = details[u'http_headers_received'].get(u'host', None)
             details[u'domain'] = domain
 
-        self.log.debug('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
-                       realm=realm, authid=authid, authmethod=authmethod, domain=domain)
+        self.log.debug(
+            'WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}', realm=realm, authid=authid, authmethod=authmethod, domain=domain)
 
         # Check for essentials (authid)
         if authid is None:
             raise ApplicationError('Authentication ID not defined')
 
         # Is the application only available for local users?
-        if domain and self.package_config.get('only_localhost_access', False) and domain != 'localhost':
-            raise ApplicationError('Access granted only to local users, access via domain {0}'.format(domain))
+        pred = all(
+            domain, self.package_config.get('only_localhost_access', False),
+            domain != 'localhost')
+        if pred:
+            raise ApplicationError(
+                'Access granted only to local users, access via domain {0}'.format(domain))
 
         # Is the domain blacklisted?
         if not ip_domain_based_access(domain, blacklist=self.package_config.get('domain-blacklist', [])):
@@ -100,23 +106,32 @@ class UserWampApi(LieApplicationSession):
         if authmethod == u'ticket':
             if self.usermanager.validate_user_login(authid, details['ticket']):
                 self.usermanager.set_session_id(details.get(u'session', 0))
-                user_settings = self.usermanager.get_safe_user({'username': authid})
-                auth_ticket = {u'realm': realm, u'role': user_settings['role'], u'extra': user_settings}
+                user_settings = self.usermanager.get_safe_user(
+                    {'username': authid})
+                auth_ticket = {
+                    u'realm': realm, u'role': user_settings['role'],
+                    u'extra': user_settings}
             else:
-                raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
+                raise ApplicationError(
+                    "com.example.invalid_ticket", "could not authenticate session")
 
         # WAMP-CRA authentication
         elif authmethod == u'wampcra':
             self.usermanager.set_session_id(details.get(u'session', 0))
             user_settings = self.usermanager.get_user({'username': authid})
             if user_settings:
-                auth_ticket = {u'realm': realm, u'role': user_settings['role'], u'extra': user_settings,
-                               u'secret': user_settings['password']}
+                auth_ticket = {
+                    u'realm': realm, u'role': user_settings['role'],
+                    u'extra': user_settings,
+                    u'secret': user_settings['password']}
             else:
-                raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
+                raise ApplicationError(
+                    "com.example.invalid_ticket",
+                    "could not authenticate session")
 
         else:
-            raise ApplicationError("No such authentication method known: {0}".format(authmethod))
+            raise ApplicationError(
+                "No such authentication method known: {0}".format(authmethod))
 
         # Log authorization
         self.log.info('Access granted. user: {user}', user=authid, **details)

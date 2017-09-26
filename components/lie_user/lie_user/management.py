@@ -10,7 +10,6 @@ import os
 import random
 import string
 import copy
-import time
 import hashlib
 import socket
 import fnmatch
@@ -23,17 +22,17 @@ except ImportError:
     from urlparse import urlparse
 
 from pymongo import MongoClient
-from pymongo.errors import ServerSelectionTimeoutError
 from werkzeug.security import generate_password_hash, check_password_hash
 from twisted.logger import Logger
 
-from settings import USER_TEMPLATE, PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE, SETTINGS
+from settings import (USER_TEMPLATE, PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE)
 from sendmail import Email
 
 # Connect to MongoDB.
 # TODO: this should be handled more elegantly
 host = os.getenv('MONGO_HOST', 'localhost')
-db = MongoClient(host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
+db = MongoClient(
+    host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
 
 
 logging = Logger()
@@ -56,7 +55,8 @@ def init_user(settings, config):
     global db
 
     # Check for MongoDB database
-    # TODO: should make a wrapper around PyMongo connection for easy checking connection
+    # TODO: should make a wrapper around PyMongo connection for easy
+    # checking connection
     if not db:
         logging.error('Unable to connect to database')
         return False
@@ -64,7 +64,8 @@ def init_user(settings, config):
     # Check if the database has a 'users' collection
     db_collection_name = settings.get('db_collection_name', 'users')
     if db_collection_name not in db.collection_names():
-        logging.info('Creating database "{0}" collection'.format(db_collection_name))
+        logging.info(
+            'Creating database "{0}" collection'.format(db_collection_name))
     users = db[db_collection_name]
 
     # Check for admin account (user with uid 0)
@@ -75,7 +76,8 @@ def init_user(settings, config):
         user = UserManager()
         userdata = {'username': settings.get('admin_username', 'admin'),
                     'email': settings.get('admin_email', None),
-                    'password': hash_password(settings.get('admin_password', None)),
+                    'password': hash_password(
+                        settings.get('admin_password', None)),
                     'role': 'admin'}
 
         admin = user.create_user(userdata)
@@ -108,8 +110,10 @@ def exit_user(settings):
 
     # Terminate active sessions
     if active_session_count:
-        users.update_many({'session_id': {'$ne': None}}, {'$set': {'session_id': None}})
-        logging.debug('Terminate {0} active user sessions'.format(active_session_count))
+        users.update_many(
+            {'session_id': {'$ne': None}}, {'$set': {'session_id': None}})
+        logging.debug(
+            'Terminate {0} active user sessions'.format(active_session_count))
 
     return True
 
@@ -129,8 +133,9 @@ def generate_password(password_length=10, min_length=8):
 
     # Should not generate passwords smaller then min_length characters
     if password_length < min_length:
-        logging.warn('Unable to generate password with less then {0} characters ({1})'.format(
-            min_length, password_length))
+        logging.warn(
+            'Unable to generate password with less then {0} characters ({1})'.format(
+                min_length, password_length))
         return
 
     # Import (pseudo)-random number generator
@@ -146,15 +151,22 @@ def generate_password(password_length=10, min_length=8):
     chargroups = [floordiv] * 3
     chargroups[0] = chargroups[0] + (password_length - (floordiv * 3))
 
-    # Pick random characters from three character collections based on partitioning
+    # Pick random characters from three character collections
+    # based on partitioning
     charcollection = (string.ascii_letters, string.digits, string.punctuation)
-    password = str().join([myrg.choice(charcollection[i]) for i, c in enumerate(chargroups) for _ in range(c)])
+    password = str().join(
+        [myrg.choice(charcollection[i]) for i, c in enumerate(chargroups)
+         for _ in range(c)])
 
-    logging.debug('Generate {0} character random password: {1}'.format(password_length, password))
+    logging.debug(
+        'Generate {0} character random password: {1}'.format(
+            password_length, password))
     return password
 
 
-def hash_password(password, key_derivation='pbkdf2', hash_method='sha256', salt_length=10, hash_iterations=1000):
+def hash_password(
+        password, key_derivation='pbkdf2', hash_method='sha256',
+        salt_length=10, hash_iterations=1000):
     """
     Hash a password using Werkzeug generate_password_hash method
 
@@ -163,11 +175,11 @@ def hash_password(password, key_derivation='pbkdf2', hash_method='sha256', salt_
     of a salt string.
 
     Look at Python's hashlib documentation for information on supported hashing
-    algorithms and Werkzeug security documentation on the generate_password_hash
-    method.
+    algorithms and Werkzeug security documentation on the
+    generate_password_hash method.
 
-    .. note:: Best to only use hashing methods from the hashlib.algorithms_guaranteed
-              collection.
+    .. note:: Best to only use hashing methods from the
+              hashlib.algorithms_guaranteed collection.
 
     :param password:        password to hash
     :type password:         string
@@ -332,9 +344,13 @@ class UserManager(object):
         self.session_id = key
 
         users = db['users']
-        users.update_one({'uid': self.user['uid']}, {'$set': {'session_id': self.session_id}})
+        users.update_one(
+            {'uid': self.user['uid']},
+            {'$set': {'session_id': self.session_id}})
 
-        logging.debug('Open session: {0} for user {1}'.format(self.session_id, self.user['uid']))
+        logging.debug(
+            'Open session: {0} for user {1}'.format(
+                self.session_id, self.user['uid']))
 
     def retrieve_password(self, email):
         """
@@ -361,12 +377,15 @@ class UserManager(object):
 
         new_password = generate_password()
         user['password'] = hash_password(new_password)
-        logging.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
+        logging.debug(
+            'New password {0} for user {1} send to {2}'.format(
+                new_password, user, email))
 
         with Email() as email:
             email.send(
                 email,
-                PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE.format(password=new_password, user=user['username']),
+                PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE.format(
+                    password=new_password, user=user['username']),
                 'Password retrieval request for LIEStudio'
             )
             self.user = user
@@ -410,9 +429,13 @@ class UserManager(object):
 
         if self.user and self.user.get('session_id', None) is not None:
             users = db['users']
-            users.update_one({'session_id': self.user['session_id']}, {'$set': {'session_id': None}})
+            users.update_one(
+                {'session_id': self.user['session_id']},
+                {'$set': {'session_id': None}})
 
-            logging.info('Logout user: {0}, uid: {1}'.format(self.user['username'], self.user['uid']))
+            logging.info(
+                'Logout user: {0}, uid: {1}'.format(
+                    self.user['username'], self.user['uid']))
             self.user = None
             return True
 
@@ -429,7 +452,8 @@ class UserManager(object):
         # Require at least a valid username and email
         for param in required:
             if not userdata.get(param, None):
-                logging.error('Unable to create new user. Missing "{0}"'.format(param))
+                logging.error(
+                    'Unable to create new user. Missing "{0}"'.format(param))
                 return
 
         # If no password, create random one
@@ -441,7 +465,8 @@ class UserManager(object):
 
         # Username and email should not be in use
         if users.find_one({'username': userdata['username']}):
-            logging.error('Username {0} already in use'.format(userdata['username']))
+            logging.error(
+                'Username {0} already in use'.format(userdata['username']))
             return
         if users.find_one({'email': userdata['email']}):
             logging.error('Email {0} already in use'.format(userdata['email']))
@@ -459,7 +484,8 @@ class UserManager(object):
         # Add the new user to the database
         did = users.insert_one(user_template).inserted_id
         if did:
-            logging.debug('Added new user to database. user: {username}, uid: {uid}'.format(**user_template))
+            logging.debug(
+                'Added new user to database. user: {username}, uid: {uid}'.format(**user_template))
         else:
             logging.error('Unable to add new user to database')
             return
@@ -477,10 +503,12 @@ class UserManager(object):
         user = self.get_user(userdata)
         if not user:
             logging.error('No such user to remove: {0}'.format(
-                ' '.join(['{0},{1}'.format(*item) for item in userdata.items()])))
+                ' '.join(['{0},{1}'.format(*item) for item
+                          in userdata.items()])))
             return False
         else:
-            logging.info('Removing user "{username}", with uid {uid} from database'.format(**user))
+            logging.info(
+                'Removing user "{username}", with uid {uid} from database'.format(**user))
             db['users'].delete_one(user)
 
         return True
