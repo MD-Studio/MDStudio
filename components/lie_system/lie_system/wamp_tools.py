@@ -54,21 +54,30 @@ class LieApplicationSession(ApplicationSession):
     """
     LieApplicationSession class
 
-    Inherits from the Autobahn Twisted based `ApplicationSession <http://autobahn.ws/python/reference/autobahn.twisted.html#autobahn.twisted.wamp.ApplicationSession>`_
+    Inherits from the Autobahn Twisted based
+    `ApplicationSession <http://autobahn.ws/python/reference/autobahn.twisted.html#autobahn.twisted.wamp.ApplicationSession>`_
     and extends it with methods to ease the process of automatic authentication,
     authorization and WAMP API configuration.
 
-    It does so by overriding the five `placeholder methods <http://autobahn.ws/python/wamp/programming.html>`_
+    It does so by overriding the five
+    `placeholder methods <http://autobahn.ws/python/wamp/programming.html>`_
     that the ApplicationSession calls over the course of the session life cycle:
 
-    * **onConnect**: first stage in establishing connection with the WAMP router
+    * **onConnect**:
+      first stage in establishing connection with the WAMP router
       (Crossbar). Define the rules of engagement; realm to join, authentication
       method to use.
-    * **onChallenge**: authenticate using any of the Crossbar supported `methods <http://crossbar.io/docs/Authentication/>`_.
-    * **onJoin**: register the API methods with the WAMP router and update local
-      API configuration with settings retrieved by calling ``liestudio.config.get``
-    * **onLeave**: cleanup methods when leaving the realm
-    * **onDisconnect**: cleanup methods when disconnecting from the WAMP router
+    * **onChallenge**:
+       authenticate using any of the Crossbar supported
+       `methods <http://crossbar.io/docs/Authentication/>`_.
+    * **onJoin**:
+      register the API methods with the WAMP router and update local
+      API configuration with settings retrieved by calling
+       ``liestudio.config.get``
+    * **onLeave**:
+      cleanup methods when leaving the realm
+    * **onDisconnect**:
+      cleanup methods when disconnecting from the WAMP router
 
     To enable custom events during the application life cycle, the
     LieApplicationSession defines it's own placeholder methods. Do not override
@@ -149,17 +158,16 @@ class LieApplicationSession(ApplicationSession):
         :type password:        str
         """
 
-        # we cannot use default argument {} since it stores references internally,
+        # we cannot use default argument {} since it stores
+        # references internally,
         # making subsequent constructions unpredictable
         if package_config is None:
             package_config = {}
 
         # Init session_config with default values
-        self.session_config = WAMPTaskMetaData(realm=config.realm,
-                                               package_name=self.__module__.split('.')[0],
-                                               class_name=type(self).__name__,
-                                               **kwargs
-                                              )
+        self.session_config = WAMPTaskMetaData(
+            realm=config.realm, package_name=self.__module__.split('.')[0],
+            class_name=type(self).__name__, **kwargs)
 
         # Update session_config with key/value pairs in config.extra except
         # for package config
@@ -183,7 +191,8 @@ class LieApplicationSession(ApplicationSession):
         # argument and finaly config.extra
         self.package_config = ConfigHandler()
         self.package_config.update(_resolve_package_config(package_config))
-        self.package_config.update(_resolve_package_config(extra.get('package_config')))
+        self.package_config.update(
+            _resolve_package_config(extra.get('package_config')))
 
         # Init database connection
         self._db = None
@@ -204,10 +213,13 @@ class LieApplicationSession(ApplicationSession):
         try:
             self._key = cryptosign.SigningKey.from_raw_key(key)
         except Exception as e:
-            self.log.error("could not load client private key: {log_failure}", log_failure=e)
+            self.log.error(
+                "could not load client private key: {log_failure}",
+                log_failure=e)
             self.leave()
         else:
-            self.log.debug("client public key loaded: {}".format(self._key.public_key()))
+            self.log.debug(
+                "client public key loaded: {}".format(self._key.public_key()))
 
     def _establish_database_connection(self, config=None):
         """
@@ -224,8 +236,10 @@ class LieApplicationSession(ApplicationSession):
 
         if not self._db and 'lie_db' in self.package_config:
             mongo_config = self.package_config.lie_db
-            client = mongodb_connect(host=os.getenv('MONGO_HOST', mongo_config.get('host', 'localhost')),
-                                     port=mongo_config.get('port', 27017))
+            client = mongodb_connect(
+                host=os.getenv('MONGO_HOST',
+                               mongo_config.get('host', 'localhost')),
+                port=mongo_config.get('port', 27017))
             self._db = client[mongo_config.get('dbname', 'liestudio')]
 
     @inlineCallbacks
@@ -244,10 +258,11 @@ class LieApplicationSession(ApplicationSession):
         authmethod = self.session_config.authmethod
         if authmethod and u'cryptosign' in authmethod:
 
-            # create a proxy signing key with the private key being held in SSH agent
-            # if the key has not yet been loaded in raw format.
+            # create a proxy signing key with the private key being held
+            # in SSH agent if the key has not yet been loaded in raw format.
             if not self._key:
-                self._key = yield cryptosign.SSHAgentSigningKey.new(self.session_config.get(u'pubkey'))
+                self._key = yield cryptosign.SSHAgentSigningKey.new(
+                    self.session_config.get(u'pubkey'))
 
             # authentication extra information for wamp-cryptosign
             extra[u'pubkey'] = self._key.public_key()
@@ -301,7 +316,9 @@ class LieApplicationSession(ApplicationSession):
         :type challenge:  obj
         """
 
-        self.log.debug("Recieved WAMP authentication challenge type '{0}'".format(challenge.method))
+        self.log.debug(
+            "Recieved WAMP authentication challenge type '{0}'".format(
+                challenge.method))
 
         # WAMP-Ticket based authentication
         if challenge.method == u"ticket":
@@ -312,10 +329,11 @@ class LieApplicationSession(ApplicationSession):
 
             # Salted password
             if u'salt' in challenge.extra:
-                key = auth.derive_key(self.session_config.get('password', None),
-                                      challenge.extra['salt'],
-                                      challenge.extra['iterations'],
-                                      challenge.extra['keylen'])
+                key = auth.derive_key(
+                    self.session_config.get('password', None),
+                    challenge.extra['salt'],
+                    challenge.extra['iterations'],
+                    challenge.extra['keylen'])
             else:
                 key = self.session_config.get('password', None)
 
@@ -330,7 +348,9 @@ class LieApplicationSession(ApplicationSession):
 
         # Unknow challenge type, exit.
         else:
-            raise Exception("don't know how to handle authmethod {}".format(challenge.method))
+            raise Exception(
+                "don't know how to handle authmethod {}".format(
+                    challenge.method))
 
     @inlineCallbacks
     def onJoin(self, details):
@@ -345,8 +365,8 @@ class LieApplicationSession(ApplicationSession):
 
         .. caution::
            onJoin overrides the Autobahn ApplicationSession onJoin method with
-           a few vital methods for the LIEStudio application. Do not overload it
-           but put custom code in the onRun method instead!
+           a few vital methods for the LIEStudio application. Do not overload
+           it but put custom code in the onRun method instead!
 
         :param details: Session details
         :type details:  Autobahn SessionDetails object
@@ -354,17 +374,24 @@ class LieApplicationSession(ApplicationSession):
 
         # Register methods
         res = yield self.register(self)
-        self.log.info("{class_name}: {procedures} procedures registered", procedures=len(res), class_name=self.session_config.class_name)
+        self.log.info(
+            "{class_name}: {procedures} procedures registered",
+            procedures=len(res), class_name=self.session_config.class_name)
 
         # Update session_config, they may have been changed by the application
         # authentication method
         for session_param in ('authid', 'session', 'authrole', 'authmethod'):
-            self.session_config[session_param] = getattr(details, session_param)
+            self.session_config[session_param] = getattr(
+                details, session_param)
 
-        # Retrieve package configuration based on package_name and update package_config
-        # Try to establish a MongoDB database connection if lie_db configuration available
+        # Retrieve package configuration based on package_name and update
+        # package_config.
+        # Try to establish a MongoDB database connection if lie_db
+        # configuration available.
         def handle_retrieve_config_error(failure):
-            self.log.warn('Unable to retrieve configuration for {0}'.format(self.session_config.get('package_name')))
+            self.log.warn(
+                'Unable to retrieve configuration for {0}'.format(
+                    self.session_config.get('package_name')))
 
         self.require_config.append(self.session_config.get('package_name'))
         self.require_config.append('lie_logger.global_log_level')
@@ -374,7 +401,9 @@ class LieApplicationSession(ApplicationSession):
         server_config.addErrback(handle_retrieve_config_error)
 
         # Init WAMP logging
-        self.logger = WampLogging(wamp=self, log_level=self.package_config.get('global_log_level', 'info'))
+        self.logger = WampLogging(
+            wamp=self,
+            log_level=self.package_config.get('global_log_level', 'info'))
 
         # Add self.disconnect to Event trigger in order to get propper shutdown
         # and exit of reactor event loop on Ctrl-C e.d.
@@ -396,7 +425,9 @@ class LieApplicationSession(ApplicationSession):
         :type details:  Autobahn SessionDetails object
         """
 
-        self.log.debug('{class_name} of {package_name} is leaving realm {realm}', **self.session_config.dict())
+        self.log.debug(
+            '{class_name} of {package_name} is leaving realm {realm}',
+            **self.session_config.dict())
 
         # Call onExit hook
         self.onExit(details)
@@ -411,16 +442,16 @@ class LieApplicationSession(ApplicationSession):
         """
 
         self.logger.debug('Call method {0}'.format(method))
-        
+
         if 'session' in kwargs:
             session_config = WAMPTaskMetaData(metadata=kwargs.get('session'))
             del kwargs['session']
-        else:    
+        else:
             session_config = self.session_config
-        
+
         return self.call(method, session=session_config(), *args, **kwargs)
-    
-    # Class placeholder methods. Override these for custom events during 
+
+    # Class placeholder methods. Override these for custom events during
     # application life cycle
     def onInit(self, **kwargs):
         """
