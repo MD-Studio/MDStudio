@@ -411,8 +411,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Get the task object from the graph. nid is expected to be in graph.
         # Check if the task has a 'run_task' method.
         task = self.workflow.getnodes(tid)
-        assert hasattr(task, 'run_task'),
-        logging.error('Task {0} ({1}) requires "run_task" method'.format(
+        assert hasattr(task, 'run_task'), logging.error('Task {0} ({1}) requires "run_task" method'.format(
             task.nid, task.task_name))
 
         # Bailout if the task is active
@@ -449,8 +448,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
                     self.input(tid, ref)
 
             # Do we need to store data to disk
-            if task.get('store_output', False) and
-            'workdir' not in task.get('input_data', {}):
+            if task.get('store_output', False) and 'workdir' not in task.get('input_data', {}):
                 workdir = self.workflow.nodes[self.workflow.root]['workdir']
                 workdir = os.path.join(
                     workdir, 'task-{0}-{1}'.format(
