@@ -21,7 +21,7 @@ variant_blueprints:
         mass-type: CH1
         charge: 0.12700
         charge-type: null
-        charge-group: 1
+        charge-group: 0
     add:
       H1: 
         vdw-type: H
@@ -1516,8 +1516,6 @@ solute_blueprints:
         charge-type: null
         charge-group: 2
     bonds:
-      - indices: [ SG, ^SG ]
-        type: gb_36
       - indices: [ N, H ]
         type: gb_2
       - indices: [ N, CA ]
@@ -1528,6 +1526,8 @@ solute_blueprints:
         type: gb_27
       - indices: [ CB, SG ]
         type: gb_32
+      - indices: [ SG, ^SG ]
+        type: gb_36
       - indices: [ C, O ]
         type: gb_5
       - indices: [ C, +N ]
@@ -5138,7 +5138,8 @@ solute_blueprints:
       CD1: [ CE3, CZ2 ]
       HD1: [ CD2, HE1, CE2 ]
       CD2: [ HE1, HZ2, HZ3, CH2 ]
-      NE1: [ CE3, HZ2, CH2, CZ2 ]
+      NE1: [ CE3, HZ2, CH2 ]
+      HE1: [ CZ2 ]
       CE2: [ HE3, CZ3, HH2 ]
       CE3: [ CZ2, HH2 ]
       HE3: [ HZ3, CH2 ]   
@@ -6342,7 +6343,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -6744,7 +6745,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -7159,7 +7160,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -7517,7 +7518,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -7864,7 +7865,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -8300,7 +8301,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -8749,7 +8750,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -9141,7 +9142,7 @@ solute_blueprints:
     variants: {}
     atoms:
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 0.99000
         charge-type: null
@@ -9566,7 +9567,7 @@ solute_blueprints:
         charge-type: null
         charge-group: 1
       P:
-        vdw-type: P
+        vdw-type: P_SI
         mass-type: P
         charge: 1.70000
         charge-type: null

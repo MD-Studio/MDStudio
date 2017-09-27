@@ -18,16 +18,21 @@ from lie_topology.utilities.make_topology import MakeSequence
 from lie_topology.writers.cnfWriter import WriteCnf
 from lie_topology.writers.gromosTopologyWriter import WriteGromosTopology
 
+from lie_topology.forcefield.physconst import PhysicalConstants
 from lie_topology.molecule.crystal import BoxVectorsToLattice, LatticeToBoxVectors
 
 
 def main():
+
+    
 
     with open( "../tests/data/md_top/54a7.aatop", 'r') as mdaa_ifs,\
          open( "../tests/data/md_top/54a7.mdtop", 'r') as mdtop_ifs:
 
         forcefield = ParseMdtop( mdtop_ifs )
         blueprint = ParseMDMtb( mdaa_ifs )
+
+        phys_const = PhysicalConstants()
 
         #topology = MakeSequence( forcefield, blueprint, ["NH3+_ALA", "CYS1", "ALA", "CYS2", "ALA_COO-"], [[1,3]] )
         topology = MakeSequence( forcefield, blueprint,\
@@ -57,7 +62,7 @@ def main():
                  "SER","MET","LYS","THR_COO-"], [[6,11],[26,42],[155,169],[180,208]] )
 
         with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
-            WriteGromosTopology( top_ofstream, topology, forcefield )
+            WriteGromosTopology( top_ofstream, topology, forcefield, phys_const )
 
 if __name__ == '__main__':
 
