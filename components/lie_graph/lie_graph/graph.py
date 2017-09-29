@@ -463,7 +463,7 @@ class Graph(object):
         for e in edges:
             pred = len(e) in (2, 3)
             msg = 'Edge needs to contain two nodes and optional arguments, got: {0}'
-            err = logger.error(msg.fomat(e))
+            err = logger.error(msg.format(e))
 
             assert pred, err
             edges_added.append(self.add_edge(*e, **kwargs))
