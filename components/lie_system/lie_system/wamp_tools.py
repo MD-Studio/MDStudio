@@ -2,6 +2,7 @@
 
 import json
 import os
+import six
 
 from autobahn.wamp import auth, cryptosign
 from autobahn.twisted.wamp import ApplicationSession
@@ -37,7 +38,7 @@ def _resolve_package_config(package_config):
         if type(package_config) in (dict, ConfigHandler):
             return package_config
 
-        if type(package_config) in (str, unicode):
+        if isinstance(package_config, six.text_type):
             package_config = os.path.abspath(package_config)
             if os.path.isfile(package_config):
 
@@ -371,7 +372,6 @@ class LieApplicationSession(ApplicationSession):
         :param details: Session details
         :type details:  Autobahn SessionDetails object
         """
-
         # Register methods
         res = yield self.register(self)
         self.log.info(
