@@ -15,20 +15,21 @@ GROMIT_ARG_DICT = {
     'prfc': '-prfc',
     'ttau': '-ttau',
     'salinity': '-conc',
-    'solvent', '-solvent',
+    'solvent': '-solvent',
     'ptau': '-ptau',
     'sim_time': '-time',
     'gromacs_vsite': '-vsite',
     'gmxrc': '-gmxrc'}
 
+
 def gromit_cmd(options):
-    
+
     gmxRun = './gmx45md.sh '
-    for arg,val in options.items():
-        if arg in GROMIT_ARG_DICT:        
-            if val == True:
+    for arg, val in options.items():
+        if arg in GROMIT_ARG_DICT:
+            if val:
                 gmxRun += '{0} '.format(GROMIT_ARG_DICT[arg])
             else:
-                gmxRun += '{0} {1} '.format(GROMIT_ARG_DICT[arg],val)
-    
+                gmxRun += '{0} {1} '.format(GROMIT_ARG_DICT[arg], val)
+
     return gmxRun
