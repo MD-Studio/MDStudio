@@ -118,7 +118,8 @@ class UserWampApi(LieApplicationSession):
                     u'extra': user_settings}
             else:
                 raise ApplicationError(
-                    "com.example.invalid_ticket", "could not authenticate session")
+                    "com.example.invalid_ticket",
+                    "could not authenticate session")
 
         # WAMP-CRA authentication
         elif authmethod == u'wampcra':
@@ -196,4 +197,5 @@ def make(config):
     else:
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'LIEStudio user management WAMPlet',
-                'description': 'WAMPlet proving LIEStudio user management endpoints'}
+                'description':
+                'WAMPlet proving LIEStudio user management endpoints'}
