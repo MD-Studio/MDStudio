@@ -29,3 +29,12 @@ class ModelTests(unittest.TestCase):
         self.assertNotEquals(self.model.wrapper, self.wrapper)
 
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
+
+    def test_construction_class(self):
+
+        class Users(Model):
+            pass
+
+        self.model = Users(self.wrapper)
+
+        self.assertEquals(self.model.collection, "users")

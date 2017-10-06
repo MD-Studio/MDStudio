@@ -12,14 +12,18 @@ class Model:
     # type: IDatabase
     wrapper = None
 
-    def __init__(self, wrapper, collection):
-        # type: (IDatabase, Union[str, Dict[str, str], Collection]) -> None
+    def __init__(self, wrapper, collection=None):
+        # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
         if isinstance(wrapper, ApplicationSession):
             self.wrapper = SessionDatabaseWrapper(wrapper)
         else:
             self.wrapper = wrapper
 
-        self.collection = collection
+        if issubclass(self.__class__, Model) and self.__class__ != Model:
+            self.collection = self.__class__.__name__.lower()
+        else:
+            assert collection, "No collection name was given!"
+            self.collection = collection
 
     def insert_one(self, insert, date_fields=None):
         # type: (DocumentType, DateFieldsType) -> Union[str, Deferred]
