@@ -68,8 +68,8 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self.session.call(u'mdstudio.db.endpoint.replace_one.{}'.format(self.namespace), request)
 
-    def count(self, collection, filter=None, skip=0, limit=None, cursor_id=None, with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], int, Optional[int], str, bool) -> Dict[str, Any]
+    def count(self, collection, filter=None, skip=None, limit=None, cursor_id=None, with_limit_and_skip=False):
+        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], str, bool) -> Dict[str, Any]
         request = {
             'collection': collection
         }
@@ -81,7 +81,7 @@ class SessionDatabaseWrapper(IDatabase):
         else:
             if filter:
                 request['filter'] = filter
-            if skip > 0:
+            if skip:
                 request['skip'] = skip
             if limit:
                 request['limit'] = limit
@@ -116,8 +116,8 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self.session.call(u'mdstudio.db.endpoint.update_many.{}'.format(self.namespace), request)
 
-    def find_one(self, collection, filter, projection=None, skip=0, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, int, SortOperators, DateFieldsType) -> Dict[str, Any]
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -125,15 +125,15 @@ class SessionDatabaseWrapper(IDatabase):
 
         if projection:
             request['projection'] = projection
-        if skip > 0:
+        if skip:
             request['skip'] = skip
         if sort:
             request['sort'] = sort
 
         return self.session.call(u'mdstudio.db.endpoint.find_one.{}'.format(self.namespace), request)
 
-    def find_many(self, collection, filter, projection=None, skip=0, limit=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators) -> Dict[str, Any]
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -141,7 +141,7 @@ class SessionDatabaseWrapper(IDatabase):
 
         if projection:
             request['projection'] = projection
-        if skip > 0:
+        if skip:
             request['skip'] = skip
         if limit:
             request['limit'] = limit
@@ -243,17 +243,19 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self.session.call(u'mdstudio.db.endpoint.delete_many.{}'.format(self.namespace), request)
 
+    @staticmethod
     @inlineCallbacks
-    def extract(self, result, property):
+    def extract(result, property):
         res = yield result
         returnValue(res[property])
+
+    @staticmethod
+    @inlineCallbacks
+    def transform(result, transformed):
+        res = yield result
+        returnValue(None if res is None else transformed(res))
 
     @inlineCallbacks
     def make_cursor(self, results):
         res = yield results
         returnValue(Cursor(self, res))
-
-    @inlineCallbacks
-    def transform(self, result, transformed):
-        res = yield result
-        returnValue(None if res is None else transformed(res))

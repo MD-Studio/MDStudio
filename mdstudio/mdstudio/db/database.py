@@ -50,8 +50,8 @@ class IDatabase:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def count(self, collection, filter=None, skip=0, limit=None, cursor_id=None, with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], int, Optional[int], str, bool) -> Any
+    def count(self, collection, filter=None, skip=None, limit=None, cursor_id=None, with_limit_and_skip=False):
+        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], str, bool) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -65,13 +65,13 @@ class IDatabase:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_one(self, collection, filter, projection=None, skip=0, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, int, SortOperators) -> Any
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_many(self, collection, filter, projection=None, skip=0, limit=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators) -> Any
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -112,11 +112,13 @@ class IDatabase:
         # type: (CollectionType, DocumentType) -> Any
         raise NotImplementedError
 
-    def transform(self, result, transformed):
-        return None if result is None else transformed(result)
-
-    def extract(self, result, name):
-        return result[name]
-
     def make_cursor(self, results):
         return Cursor(self, results)
+
+    @staticmethod
+    def transform(result, transformed):
+        return None if result is None else transformed(result)
+
+    @staticmethod
+    def extract(result, name):
+        return result[name]

@@ -12,6 +12,8 @@ class Model:
     # type: IDatabase
     wrapper = None
 
+    date_time_fields = []
+
     def __init__(self, wrapper, collection=None):
         # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
         if isinstance(wrapper, ApplicationSession):
@@ -27,15 +29,17 @@ class Model:
 
     def insert_one(self, insert, date_fields=None):
         # type: (DocumentType, DateFieldsType) -> Union[str, Deferred]
-        return self.wrapper.extract(self.wrapper.insert_one(self.collection, insert, date_fields), 'id')
+        insert_one = self.wrapper.insert_one(self.collection, insert, self._inject_date_fields(date_fields))
+        return self.wrapper.extract(insert_one, 'id')
 
     def insert_many(self, insert, date_fields=None):
         # type: (DocumentType, DateFieldsType) -> Union[List[str], Deferred]
-        return self.wrapper.extract(self.wrapper.insert_many(self.collection, insert, date_fields), 'ids')
+        insert_many = self.wrapper.insert_many(self.collection, insert, self._inject_date_fields(date_fields))
+        return self.wrapper.extract(insert_many, 'ids')
 
     def replace_one(self, filter, replacement, upsert=False, date_fields=None):
         # type: (DocumentType, DateFieldsType) -> Dict[ReplaceOneResponse, Any]
-        replace_one = self.wrapper.replace_one(self.collection, filter, replacement, upsert, date_fields)
+        replace_one = self.wrapper.replace_one(self.collection, filter, replacement, upsert, self._inject_date_fields(date_fields))
         return self.wrapper.transform(replace_one, ReplaceOneResponse)
 
     def count(self, filter=None, skip=0, limit=None, cursor_id=None, with_limit_and_skip=False):
@@ -45,12 +49,12 @@ class Model:
 
     def update_one(self, filter, update, upsert=False, date_fields=None):
         # type: (DocumentType, DocumentType, bool, DateFieldsType) -> Union[UpdateOneResponse, Deferred]
-        update_one = self.wrapper.update_one(self.collection, filter, update, upsert, date_fields)
+        update_one = self.wrapper.update_one(self.collection, filter, update, upsert, self._inject_date_fields(date_fields))
         return self.wrapper.transform(update_one, UpdateOneResponse)
 
     def update_many(self, filter, update, upsert=False, date_fields=None):
         # type: (DocumentType, DocumentType, bool, DateFieldsType) -> Union[UpdateManyResponse, Deferred]
-        update_many = self.wrapper.update_many(self.collection, filter, update, upsert, date_fields)
+        update_many = self.wrapper.update_many(self.collection, filter, update, upsert, self._inject_date_fields(date_fields))
         return self.wrapper.transform(update_many, UpdateManyResponse)
 
     def find_one(self, filter, projection=None, skip=0, sort=None):
@@ -68,13 +72,13 @@ class Model:
     def find_one_and_update(self, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, date_fields=None):
         # type: (DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Union[Optional[dict], Deferred]
-        result = self.wrapper.find_one_and_update(self.collection, filter, update, upsert, projection, sort, return_updated, date_fields)
+        result = self.wrapper.find_one_and_update(self.collection, filter, update, upsert, projection, sort, return_updated, self._inject_date_fields(date_fields))
         return self.wrapper.extract(result, 'result')
 
     def find_one_and_replace(self, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, date_fields=None):
         # type: (DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Union[Optional[dict], Deferred]
-        result = self.wrapper.find_one_and_replace(self.collection, filter, replacement, upsert, projection, sort, return_updated, date_fields)
+        result = self.wrapper.find_one_and_replace(self.collection, filter, replacement, upsert, projection, sort, return_updated, self._inject_date_fields(date_fields))
         return self.wrapper.extract(result, 'result')
 
     def find_one_and_delete(self, filter, projection=None, sort=None):
@@ -99,3 +103,10 @@ class Model:
     def delete_many(self, filter):
         # type: (DocumentType) -> Union[int, Deferred]
         return self.wrapper.extract(self.wrapper.delete_many(self.collection, filter), 'count')
+
+    def _inject_date_fields(self, fields):
+        if not fields:
+            if not self.date_time_fields:
+                return None
+            fields = []
+        return fields + self.date_time_fields

@@ -87,9 +87,9 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
-    def count(self, collection=None, filter=None, skip=0, limit=0, date_fields=None, cursor_id=None,
+    def count(self, collection=None, filter=None, skip=None, limit=0, date_fields=None, cursor_id=None,
               with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], int, DateFieldsType, str, bool) -> Dict[str, Any]
+        # type: (CollectionType, Optional[DocumentType], Optional[int], DateFieldsType, str, bool) -> Dict[str, Any]
         total = 0
         if cursor_id:
             total = self._cursors[cursor_id].count(with_limit_and_skip)
@@ -136,8 +136,8 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
-    def find_one(self, collection, filter, projection=None, skip=0, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, int, SortOperators, DateFieldsType) -> Dict[str, Any]
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         result = None
@@ -152,8 +152,8 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
-    def find_many(self, collection, filter, projection=None, skip=0, limit=0, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, int, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
+    def find_many(self, collection, filter, projection=None, skip=None, limit=0, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         if not db_collection:

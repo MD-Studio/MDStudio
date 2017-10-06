@@ -3,44 +3,44 @@
 
 class UpdateManyResponse:
     # type: int
-    matched_count = 0
+    matched = 0
     # type: int
-    modified_count = 0
+    modified = 0
     # type: str
     upserted_id = None
 
     def __init__(self, response):
         # type: (dict) -> None
-        self.matched_count = response['matched']
-        self.modified_count = response['modified']
-        self.upserted_id = response.get('upsertedId')
+        self.matched = response['matched']
+        self.modified = response['modified']
+        self.upserted_id = response.get('upsertedId', None)
 
 
 class UpdateOneResponse:
     # type: int
-    matched_count = 0
+    matched = 0
     # type: int
-    modified_count = 0
+    modified = 0
     # type: str
     upserted_id = None
 
     def __init__(self, response):
         # type: (dict) -> None
-        self.matched_count = response['matched']
-        self.modified_count = response['modified']
-        self.upserted_id = response.get('upsertedId')
+        self.matched = response['matched']
+        self.modified = response['modified']
+        self.upserted_id = response.get('upsertedId', None)
 
 
 class ReplaceOneResponse:
     # type: int
-    matched_count = 0
+    matched = 0
     # type: int
-    modified_count = 0
+    modified = 0
     # type: str
     upserted_id = None
 
     def __init__(self, response):
         # type: (dict) -> None
-        self.matched_count = response['matched']
-        self.modified_count = response['modified']
-        self.upserted_id = response.get('upsertedId')
+        self.matched = response['matched']
+        self.modified = response['modified']
+        self.upserted_id = response.get('upsertedId', None)
