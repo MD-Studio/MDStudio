@@ -15,7 +15,7 @@ GROMIT_ARG_DICT = {
     'prfc': '-prfc',
     'ttau': '-ttau',
     'salinity': '-conc',
-    'solvent', '-solvent',
+    'solvent': '-solvent',
     'ptau': '-ptau',
     'sim_time': '-time',
     'gromacs_vsite': '-vsite',
