@@ -6,7 +6,8 @@ from twisted.internet.defer import Deferred
 
 from mdstudio.db.collection import Collection
 from mdstudio.db.cursor import Cursor
-from mdstudio.db.database import DocumentType, DateFieldsType, ProjectionOperators, SortOperators, IDatabase
+from mdstudio.db.database import DocumentType, DateFieldsType, ProjectionOperators, SortOperators, IDatabase, \
+    AggregationOperator
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
 
@@ -61,14 +62,14 @@ class Model:
         update_many = self.wrapper.update_many(self.collection, filter, update, upsert, self._inject_date_fields(date_fields))
         return self.wrapper.transform(update_many, UpdateManyResponse)
 
-    def find_one(self, filter, projection=None, skip=0, sort=None):
-        # type: (DocumentType, ProjectionOperators, int, SortOperators) -> Union[Optional[dict], Deferred]
-        result = self.wrapper.find_one(self.collection, filter, projection, skip, sort)
+    def find_one(self, filter, projection=None, skip=0, sort=None, date_fields=None):
+        # type: (DocumentType, ProjectionOperators, int, SortOperators, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        result = self.wrapper.find_one(self.collection, filter, projection, skip, sort, date_fields)
         return self.wrapper.extract(result, 'result')
 
-    def find_many(self, filter=None, projection=None, skip=0, limit=None, sort=None):
-        # type: (DocumentType, ProjectionOperators, int, Optional[int], SortOperators) -> Cursor
-        results = self.wrapper.find_many(self.collection, filter, projection, skip, limit, sort)
+    def find_many(self, filter=None, projection=None, skip=0, limit=None, sort=None, date_fields=None):
+        # type: (DocumentType, ProjectionOperators, int, Optional[int], SortOperators, Optional[DateFieldsType]) -> Cursor
+        results = self.wrapper.find_many(self.collection, filter, projection, skip, limit, sort, date_fields)
         results = self.wrapper.extract(results, 'results')
 
         return self.wrapper.make_cursor(results)
@@ -85,14 +86,14 @@ class Model:
         result = self.wrapper.find_one_and_replace(self.collection, filter, replacement, upsert, projection, sort, return_updated, self._inject_date_fields(date_fields))
         return self.wrapper.extract(result, 'result')
 
-    def find_one_and_delete(self, filter, projection=None, sort=None):
-        # type: (DocumentType, ProjectionOperators, SortOperators, bool) -> Union[Optional[dict], Deferred]
-        result = self.wrapper.find_one_and_delete(self.collection, filter, projection, sort)
+    def find_one_and_delete(self, filter, projection=None, sort=None, date_fields=None):
+        # type: (DocumentType, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        result = self.wrapper.find_one_and_delete(self.collection, filter, projection, sort, date_fields)
         return self.wrapper.extract(result, 'result')
 
-    def distinct(self, field, filter=None):
-        # type: (str, Optional[DocumentType]) -> Union[List[dict], Deferred]
-        results = self.wrapper.distinct(self.collection, field, filter)
+    def distinct(self, field, filter=None, date_fields=None):
+        # type: (str, Optional[DocumentType], Optional[DateFieldsType]) -> Union[List[dict], Deferred]
+        results = self.wrapper.distinct(self.collection, field, filter, date_fields)
         return self.wrapper.extract(results, 'results')
 
     def aggregate(self, pipeline):
@@ -100,13 +101,13 @@ class Model:
         results = self.wrapper.aggregate(self.collection, pipeline)
         return self.wrapper.make_cursor(results)
 
-    def delete_one(self, filter):
-        # type: (DocumentType) -> Union[int, Deferred]
-        return self.wrapper.extract(self.wrapper.delete_one(self.collection, filter), 'count')
+    def delete_one(self, filter, date_fields=None):
+        # type: (DocumentType, Optional[DateFieldsType]) -> Union[int, Deferred]
+        return self.wrapper.extract(self.wrapper.delete_one(self.collection, filter, date_fields), 'count')
 
-    def delete_many(self, filter):
-        # type: (DocumentType) -> Union[int, Deferred]
-        return self.wrapper.extract(self.wrapper.delete_many(self.collection, filter), 'count')
+    def delete_many(self, filter, date_fields=None):
+        # type: (DocumentType, Optional[DateFieldsType]) -> Union[int, Deferred]
+        return self.wrapper.extract(self.wrapper.delete_many(self.collection, filter, date_fields), 'count')
 
     def _inject_date_fields(self, fields):
         if not fields:

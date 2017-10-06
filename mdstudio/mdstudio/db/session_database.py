@@ -85,6 +85,10 @@ class SessionDatabaseWrapper(IDatabase):
                 request['skip'] = skip
             if limit:
                 request['limit'] = limit
+            if date_fields:
+                request['fields'] = {
+                    'date': date_fields
+                }
 
         return self.session.call(u'mdstudio.db.endpoint.count.{}'.format(self.namespace), request)
 
@@ -98,7 +102,9 @@ class SessionDatabaseWrapper(IDatabase):
         if upsert:
             request['upsert'] = upsert
         if date_fields:
-            request['fields'] = {'date': date_fields}
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.update_one.{}'.format(self.namespace), request)
 
@@ -112,12 +118,14 @@ class SessionDatabaseWrapper(IDatabase):
         if upsert:
             request['upsert'] = upsert
         if date_fields:
-            request['fields'] = {'date': date_fields}
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.update_many.{}'.format(self.namespace), request)
 
-    def find_one(self, collection, filter, projection=None, skip=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators) -> Dict[str, Any]
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -129,11 +137,15 @@ class SessionDatabaseWrapper(IDatabase):
             request['skip'] = skip
         if sort:
             request['sort'] = sort
+        if date_fields:
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one.{}'.format(self.namespace), request)
 
-    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators) -> Dict[str, Any]
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -147,6 +159,10 @@ class SessionDatabaseWrapper(IDatabase):
             request['limit'] = limit
         if sort:
             request['sort'] = sort
+        if date_fields:
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.find_many.{}'.format(self.namespace), request)
 
@@ -166,7 +182,9 @@ class SessionDatabaseWrapper(IDatabase):
         if sort:
             request['sort'] = sort
         if date_fields:
-            request['fields'] = {'date': date_fields}
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one_and_update.{}'.format(self.namespace), request)
 
@@ -186,12 +204,14 @@ class SessionDatabaseWrapper(IDatabase):
         if sort:
             request['sort'] = sort
         if date_fields:
-            request['fields'] = {'date': date_fields}
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one_and_replace.{}'.format(self.namespace), request)
 
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool) -> Dict[str, Any]
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -201,11 +221,15 @@ class SessionDatabaseWrapper(IDatabase):
             request['projection'] = projection
         if sort:
             request['sort'] = sort
+        if date_fields:
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one_and_delete.{}'.format(self.namespace), request)
 
-    def distinct(self, collection, field, query=None):
-        # type: (CollectionType, str, Optional[DocumentType]) -> Dict[str, Any]
+    def distinct(self, collection, field, query=None, date_fields=None):
+        # type: (CollectionType, str, Optional[DocumentType], Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'field': field
@@ -213,6 +237,10 @@ class SessionDatabaseWrapper(IDatabase):
 
         if query:
             request['query'] = query
+        if date_fields:
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.distinct.{}'.format(self.namespace), request)
 
@@ -225,21 +253,29 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self.session.call(u'mdstudio.db.endpoint.aggregate.{}'.format(self.namespace), request)
 
-    def delete_one(self, collection, filter):
-        # type: (CollectionType, DocumentType) -> Dict[str, Any]
+    def delete_one(self, collection, filter, date_fields=None):
+        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
         }
+        if date_fields:
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.delete_one.{}'.format(self.namespace), request)
 
-    def delete_many(self, collection, filter):
-        # type: (CollectionType, DocumentType) -> Dict[str, Any]
+    def delete_many(self, collection, filter, date_fields=None):
+        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
         }
+        if date_fields:
+            request['fields'] = {
+                'date': date_fields
+            }
 
         return self.session.call(u'mdstudio.db.endpoint.delete_many.{}'.format(self.namespace), request)
 

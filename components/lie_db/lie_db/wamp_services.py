@@ -247,6 +247,20 @@ class DBWampApi(BaseApplicationSession):
 
         return self._client.get_namespace(namespace).find_one(request['collection'], request.get('filter', {}), **kwargs)
 
+    @register(u'mdstudio.db.endpoint.distinct',
+              WampSchema('db', 'distinct/distinct-request', versions={1}),
+              WampSchema('db', 'distinct/distinct-response', versions={1}),
+              match='prefix',
+              scope='read')
+    def distinct(self, request, details=None):
+        namespace = self._extract_namespace(details.procedure)
+
+        kwargs = {}
+        if 'fields' in request and 'date' in request['fields']:
+            kwargs['date_fields'] = request['fields']['date']
+
+        return self._client.get_namespace(namespace).distinct(request['collection'], request['pipeline'], **kwargs)
+
     @register(u'mdstudio.db.endpoint.aggregate',
               WampSchema('db', 'aggregate/aggregate-request', versions={1}),
               WampSchema('db', 'aggregate/aggregate-response', versions={1}),

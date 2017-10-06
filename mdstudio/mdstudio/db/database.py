@@ -65,13 +65,13 @@ class IDatabase:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_one(self, collection, filter, projection=None, skip=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators) -> Any
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators) -> Any
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -83,18 +83,18 @@ class IDatabase:
     @abc.abstractmethod
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Any
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool) -> Any
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
 
     @abc.abstractmethod
-    def distinct(self, collection, field, filter=None):
-        # type: (CollectionType, str, Optional[DocumentType]) -> Any
+    def distinct(self, collection, field, filter=None, date_fields=None):
+        # type: (CollectionType, str, Optional[DocumentType], Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -103,13 +103,13 @@ class IDatabase:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def delete_one(self, collection, filter):
-        # type: (CollectionType, DocumentType) -> Any
+    def delete_one(self, collection, filter, date_fields=None):
+        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def delete_many(self, collection, filter):
-        # type: (CollectionType, DocumentType) -> Any
+    def delete_many(self, collection, filter, date_fields=None):
+        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     def make_cursor(self, results):
