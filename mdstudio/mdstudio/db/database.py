@@ -36,32 +36,32 @@ class IDatabase:
 
     @abc.abstractmethod
     def insert_one(self, collection, insert, date_fields=None):
-        # type: (CollectionType, DocumentType, DateFieldsType) -> Any
+        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
     def insert_many(self, collection, insert, date_fields=None):
-        # type: (CollectionType, List[DocumentType], DateFieldsType) -> Any
+        # type: (CollectionType, List[DocumentType], Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
     def replace_one(self, collection, filter, replacement, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Any
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def count(self, collection, filter=None, skip=None, limit=None, cursor_id=None, with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], str, bool) -> Any
+    def count(self, collection, filter=None, skip=None, limit=None, date_fields=None, cursor_id=None, with_limit_and_skip=False):
+        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[DateFieldsType], Optional[str], bool) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
     def update_one(self, collection, filter, update, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Any
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
     def update_many(self, collection, filter, update, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Any
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -77,7 +77,7 @@ class IDatabase:
     @abc.abstractmethod
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Any
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
