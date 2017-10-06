@@ -36,13 +36,13 @@
     <option name="SDK_HOME" value="ssh://root@127.0.0.1:65432/app/.venv/bin/python" />
     <option name="WORKING_DIRECTORY" value="" />
     <option name="IS_MODULE_SDK" value="false" />
-    <option name="ADD_CONTENT_ROOTS" value="false" />
-    <option name="ADD_SOURCE_ROOTS" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
     <option name="_new_pattern" value="&quot;&quot;" />
     <option name="_new_additionalArguments" value="&quot;&quot;" />
     <option name="_new_legacyInformationCopiedToNew" value="true" />
-    <option name="_new_target" value="&quot;/app/lietest.py&quot;" />
+    <option name="_new_target" value="&quot;$PROJECT_DIR$/mdstudio&quot;" />
     <option name="_new_targetType" value="&quot;PATH&quot;" />
     <method />
   </configuration>

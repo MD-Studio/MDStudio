@@ -11,7 +11,7 @@ import unittest2
 def list_components_tests(search_path):
     found = {}
     for g in glob(os.path.join(search_path, '*/*/tests')):
-        match = re.match(r'(.*/.*/(.*))/tests', g)
+        match = re.match(r'(.*/lie_db/(.*))/tests', g)
         if match:
             found['{}_tests'.format(match.group(2))] = os.path.normpath(match.group(1))
     return found

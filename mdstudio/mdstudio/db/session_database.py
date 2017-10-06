@@ -223,7 +223,7 @@ class SessionDatabaseWrapper(IDatabase):
             'pipeline': pipeline
         }
 
-        return self.session.call(u'mdstudio.db.endpoint.distinct.{}'.format(self.namespace), request)
+        return self.session.call(u'mdstudio.db.endpoint.aggregate.{}'.format(self.namespace), request)
 
     def delete_one(self, collection, filter):
         # type: (CollectionType, DocumentType) -> Dict[str, Any]
