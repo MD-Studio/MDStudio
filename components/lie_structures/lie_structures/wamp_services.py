@@ -34,10 +34,10 @@ class StructuresWampApi(LieApplicationSession):
     #     self.log.info("StructuresWampApi: get_structure() registered!")
 
     @wamp.register(u'liestudio.structures.get_structure')
-    def get_structure(self, structure=None, session={}, **kwargs):
+    def get_structure(self, structure=None, session=None, **kwargs):
 
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session)
+        session = WAMPTaskMetaData(metadata=session or {})
 
         result = ''
         tmpdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/tmp'
@@ -57,13 +57,13 @@ class StructuresWampApi(LieApplicationSession):
         return {'session': session.dict(), 'structure': result}
 
     @wamp.register(u'liestudio.structure.convert')
-    def convert_structures(self, session={}, **kwargs):
+    def convert_structures(self, session=None, **kwargs):
         """
         Convert input file format to a different format
         """
-
+        
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+        session = WAMPTaskMetaData(metadata=session or {})
 
         # Load configuration and update
         config = self.package_config.lie_structures.dict()
@@ -78,18 +78,18 @@ class StructuresWampApi(LieApplicationSession):
             molobject,  mol_format=config.get('output_format'))
 
         # Update session
-        session['status'] = 'completed'
-
-        return {'mol': output, 'session': session}
+        session.status = 'completed'
+        
+        return {'mol': output, 'session': session.dict()}
 
     @wamp.register(u'liestudio.structure.addh')
-    def addh_structures(self, session={},  **kwargs):
+    def addh_structures(self, session=None,  **kwargs):
         """
         Add hydrogens to the input structure
         """
 
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+        session = WAMPTaskMetaData(metadata=session or {}).dict()
 
         # Load configuration and update
         config = self.package_config.lie_structures.dict()
@@ -115,13 +115,13 @@ class StructuresWampApi(LieApplicationSession):
         return {'mol': output, 'session': session}
 
     @wamp.register(u'liestudio.structure.removeh')
-    def removeh_structures(self, session={},  **kwargs):
+    def removeh_structures(self, session=None,  **kwargs):
         """
         Remove hydrogens from the input structure
         """
 
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+        session = WAMPTaskMetaData(metadata=session or {}).dict()
 
         # Load configuration and update
         config = self.package_config.lie_structures.dict()
@@ -144,13 +144,13 @@ class StructuresWampApi(LieApplicationSession):
         return {'mol': output, 'session': session}
 
     @wamp.register(u'liestudio.structure.make3d')
-    def make3d_structures(self, session={},  **kwargs):
+    def make3d_structures(self, session=None,  **kwargs):
         """
         Convert 1D or 2D structure representation to 3D
         """
-
+        
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+        session = WAMPTaskMetaData(metadata=session or {})
 
         # Load configuration and update
         config = self.package_config.lie_structures.dict()
@@ -169,20 +169,20 @@ class StructuresWampApi(LieApplicationSession):
 
         output = mol_write(
             molobject, mol_format=config.get('output_format'))
-
+        
         # Update session
-        session['status'] = 'completed'
-
-        return {'mol': output, 'session': session}
+        session.status = 'completed'
+        
+        return {'mol': output, 'session': session.dict()}
 
     @wamp.register(u'liestudio.structure.info')
-    def structure_attributes(self, session={}, **kwargs):
+    def structure_attributes(self, session=None, **kwargs):
         """
         Return common structure attributes
         """
 
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+        session = WAMPTaskMetaData(metadata=session or {}).dict()
 
         # Load configuration and update
         config = self.package_config.lie_structures.dict()
