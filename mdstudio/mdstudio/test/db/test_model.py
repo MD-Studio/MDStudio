@@ -3,10 +3,12 @@ import unittest
 import mock
 from autobahn.twisted import ApplicationSession
 
+from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase
 from mdstudio.db.model import Model
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
+from mdstudio.db.sort_mode import SortMode
 
 
 class ModelTests(unittest.TestCase):
@@ -24,7 +26,14 @@ class ModelTests(unittest.TestCase):
                 'bar': False
             }
         }
-        self.documents = [self.document, self.document]
+        self.document2 = {
+            '_id': 'test_id',
+            'test': 1235,
+            'foo': {
+                'bar': True
+            }
+        }
+        self.documents = [self.document, self.document2]
 
     def test_construction(self):
 
@@ -371,7 +380,6 @@ class ModelTests(unittest.TestCase):
 
         self.wrapper.update_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, ['test', 'test2'])
 
-
     def test_update_many(self):
 
         self.wrapper.update_many.return_value = {
@@ -422,4 +430,470 @@ class ModelTests(unittest.TestCase):
 
         self.wrapper.update_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, ['test', 'test2'])
 
+    def test_find_one(self):
 
+        self.wrapper.find_one.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one({'_id': 'test_id'})
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, None)
+
+    def test_find_one_projection(self):
+
+        self.wrapper.find_one.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one({'_id': 'test_id'}, {'_id': 'id'})
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, {'_id': 'id'}, None, None, None)
+
+    def test_find_one_skip(self):
+
+        self.wrapper.find_one.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one({'_id': 'test_id'}, skip=10)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, 10, None, None)
+
+    def test_find_one_sort(self):
+
+        self.wrapper.find_one.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, [('_id', SortMode.Desc)], None)
+
+    def test_find_one_date_field(self):
+
+        self.wrapper.find_one.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        self.model.date_time_fields = ['test']
+        result = self.model.find_one({'_id': 'test_id'}, date_fields=['test2'])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, ['test2', 'test'])
+
+    def test_find_many(self):
+
+        self.wrapper.find_many.return_value = {
+            '_id': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        results = self.model.find_many({'_id': 'test_id'})
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = list(results)
+        self.assertEquals(lresults[0], self.document)
+        self.assertEquals(lresults[1], self.document2)
+
+        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, None, None)
+
+    def test_find_many_projection(self):
+
+        self.wrapper.find_many.return_value = {
+            '_id': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        results = self.model.find_many({'_id': 'test_id'}, projection={'_id': 'id'})
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = list(results)
+        self.assertEquals(lresults[0], self.document)
+        self.assertEquals(lresults[1], self.document2)
+
+        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, {'_id': 'id'}, None, None, None, None)
+
+    def test_find_many_skip(self):
+
+        self.wrapper.find_many.return_value = {
+            '_id': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        results = self.model.find_many({'_id': 'test_id'}, skip=10)
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = list(results)
+        self.assertEquals(lresults[0], self.document)
+        self.assertEquals(lresults[1], self.document2)
+
+        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, 10, None, None, None)
+
+    def test_find_many_limit(self):
+
+        self.wrapper.find_many.return_value = {
+            '_id': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        results = self.model.find_many({'_id': 'test_id'}, limit=10)
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = list(results)
+        self.assertEquals(lresults[0], self.document)
+        self.assertEquals(lresults[1], self.document2)
+
+        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, 10, None, None)
+
+    def test_find_many_sort(self):
+
+        self.wrapper.find_many.return_value = {
+            '_id': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        results = self.model.find_many({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = list(results)
+        self.assertEquals(lresults[0], self.document)
+        self.assertEquals(lresults[1], self.document2)
+
+        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, [('_id', SortMode.Desc)], None)
+
+    def test_find_many_date_fields(self):
+
+        self.wrapper.find_many.return_value = {
+            '_id': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.model.date_time_fields = ['test']
+        results = self.model.find_many({'_id': 'test_id'}, date_fields=['test2'])
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = list(results)
+        self.assertEquals(lresults[0], self.document)
+        self.assertEquals(lresults[1], self.document2)
+
+        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, None, ['test2', 'test'])
+
+
+    def test_find_one_and_update(self):
+
+        self.wrapper.find_one_and_update.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, None)
+
+    def test_find_one_and_update_projection(self):
+
+        self.wrapper.find_one_and_update.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, {'_id': 'id'}, None, False, None)
+
+    def test_find_one_and_update_upsert(self):
+
+        self.wrapper.find_one_and_update.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, upsert=True)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, True, None, None, False, None)
+
+    def test_find_one_and_update_sort(self):
+
+        self.wrapper.find_one_and_update.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, [('_id', SortMode.Desc)], False, None)
+
+    def test_find_one_and_update_return_updated(self):
+
+        self.wrapper.find_one_and_update.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, return_updated=True)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, True, None)
+
+    def test_find_one_and_update_date_field(self):
+
+        self.wrapper.find_one_and_update.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        self.model.date_time_fields = ['test']
+        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, date_fields=['test2'])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, ['test2', 'test'])
+
+    def test_find_one_and_replace(self):
+
+        self.wrapper.find_one_and_replace.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, None)
+
+    def test_find_one_and_replace_projection(self):
+
+        self.wrapper.find_one_and_replace.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, {'_id': 'id'}, None, False, None)
+
+    def test_find_one_and_replace_upsert(self):
+
+        self.wrapper.find_one_and_replace.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, upsert=True)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, True, None, None, False, None)
+
+    def test_find_one_and_replace_sort(self):
+
+        self.wrapper.find_one_and_replace.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, [('_id', SortMode.Desc)], False, None)
+
+    def test_find_one_and_replace_return_updated(self):
+
+        self.wrapper.find_one_and_replace.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, return_updated=True)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, True, None)
+
+    def test_find_one_and_replace_date_field(self):
+
+        self.wrapper.find_one_and_replace.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        self.model.date_time_fields = ['test']
+        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, date_fields=['test2'])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, ['test2', 'test'])
+
+
+    def test_find_one_and_delete(self):
+
+        self.wrapper.find_one_and_delete.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_delete({'_id': 'test_id'}, self.document2)
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, None, None)
+
+    def test_find_one_and_delete_projection(self):
+
+        self.wrapper.find_one_and_delete.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_delete({'_id': 'test_id'}, projection={'_id': 'id'})
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'},  {'_id': 'id'}, None, None)
+
+    def test_find_one_and_delete_sort(self):
+
+        self.wrapper.find_one_and_delete.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.find_one_and_delete({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, [('_id', SortMode.Desc)], None)
+
+    def test_find_one_and_delete_date_field(self):
+
+        self.wrapper.find_one_and_delete.return_value = {
+            'result': self.document
+        }
+        self.wrapper.extract = IDatabase.extract
+        self.model.date_time_fields = ['test']
+        result = self.model.find_one_and_delete({'_id': 'test_id'}, date_fields=['test2'])
+
+        self.assertEquals(result, self.document)
+
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, ['test2', 'test'])
+
+    def test_distinct(self):
+
+        self.wrapper.distinct.return_value = {
+            'results': self.documents
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.distinct('_id')
+
+        self.assertEquals(result, self.documents)
+
+        self.wrapper.distinct.assert_called_once_with(self.collection, '_id', None, None)
+
+    def test_distinct_filter(self):
+
+        self.wrapper.distinct.return_value = {
+            'results': self.documents
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.distinct('_id', filter={'_id': 'test_id'})
+
+        self.assertEquals(result, self.documents)
+
+        self.wrapper.distinct.assert_called_once_with(self.collection, '_id', {'_id': 'test_id'}, None)
+
+    def test_distinct_date_fields(self):
+
+        self.wrapper.distinct.return_value = {
+            'results': self.documents
+        }
+        self.wrapper.extract = IDatabase.extract
+        self.model.date_time_fields = ['test2']
+        result = self.model.distinct('_id', date_fields=['test'])
+
+        self.assertEquals(result, self.documents)
+
+        self.wrapper.distinct.assert_called_once_with(self.collection, '_id', None, ['test', 'test2'])
+
+    def test_aggregate(self):
+
+        self.wrapper.aggregate.return_value = {
+            '_id': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.wrapper.extract = IDatabase.extract
+
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        results = self.model.aggregate([{'_id': 'test_id'}])
+
+        self.assertIsInstance(results, Cursor)
+        lresults = list(results)
+        self.assertEquals(lresults, self.documents)
+
+        self.wrapper.aggregate.assert_called_once_with(self.collection, [{'_id': 'test_id'}])
+
+    def test_delete_one(self):
+        self.wrapper.delete_one.return_value = {
+            'count': 1
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.delete_one({'_id': 'test_id'})
+
+        self.assertEquals(result, 1)
+
+        self.wrapper.delete_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None)
+
+    def test_delete_one_date_fields(self):
+        self.wrapper.delete_one.return_value = {
+            'count': 1
+        }
+        self.wrapper.extract = IDatabase.extract
+        self.model.date_time_fields = ['test']
+        result = self.model.delete_one({'_id': 'test_id'}, date_fields=['test2'])
+
+        self.assertEquals(result, 1)
+
+        self.wrapper.delete_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, ['test2', 'test'])
+
+    def test_delete_many(self):
+        self.wrapper.delete_many.return_value = {
+            'count': 2
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = self.model.delete_many({'_id': 'test_id'})
+
+        self.assertEquals(result, 2)
+
+        self.wrapper.delete_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None)
+
+    def test_delete_many_date_fields(self):
+        self.wrapper.delete_many.return_value = {
+            'count': 2
+        }
+        self.wrapper.extract = IDatabase.extract
+        self.model.date_time_fields = ['test']
+        result = self.model.delete_many({'_id': 'test_id'}, date_fields=['test2'])
+
+        self.assertEquals(result, 2)
+
+        self.wrapper.delete_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, ['test2', 'test'])

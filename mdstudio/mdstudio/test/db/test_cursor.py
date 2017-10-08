@@ -16,7 +16,7 @@ class CursorTests(unittest.TestCase):
         self.result = {
             '_id': 1234,
             'alive': True,
-            'result': self.values
+            'results': self.values
         }
         self.cursor = Cursor(self.wrapper, self.result)
 
@@ -33,7 +33,7 @@ class CursorTests(unittest.TestCase):
 
     def test_iter_stop(self):
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'result': []})
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
         for i, v in enumerate(self.cursor):
             self.assertEqual(v, self.values[i])
 
@@ -45,10 +45,10 @@ class CursorTests(unittest.TestCase):
         self.assertEqual(nxt(), {'test': 5})
         self.assertEqual(nxt(), {'test2': 2})
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': True, 'result': [{'test3': 8}]})
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': True, 'results': [{'test3': 8}]})
         self.assertEqual(nxt(), {'test3': 8})
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'result': [{'test6': 2}]})
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': [{'test6': 2}]})
         self.assertEqual(nxt(), {'test6': 2})
 
         self.assertRaises(StopIteration, nxt)
@@ -59,12 +59,12 @@ class CursorTests(unittest.TestCase):
         self.assertEqual(nxt(), {'test': 5})
         self.assertEqual(nxt(), {'test2': 2})
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1244, 'alive': True, 'result': [{'test3': 8}]})
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1244, 'alive': True, 'results': [{'test3': 8}]})
         self.assertEqual(nxt(), {'test3': 8})
 
         self.wrapper.more.assert_called_with(**{'cursor_id':1234})
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'result': [{'test6': 2}]})
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': [{'test6': 2}]})
         self.assertEqual(nxt(), {'test6': 2})
 
         self.wrapper.more.assert_called_with(**{'cursor_id':1244})
@@ -79,7 +79,7 @@ class CursorTests(unittest.TestCase):
             for k, v in o.items():
                 hist[k] += v
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'result': []})
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
         self.cursor.for_each(test)
 
         self.assertEqual(hist['test'], 5)
@@ -87,7 +87,7 @@ class CursorTests(unittest.TestCase):
 
     def test_query(self):
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'result': []})
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
         results = self.cursor.query().select(lambda x: True if 'test' in x else False).to_list()
 
         self.assertEqual(len(results), 2)

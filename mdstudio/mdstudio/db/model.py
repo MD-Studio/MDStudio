@@ -62,38 +62,37 @@ class Model:
         update_many = self.wrapper.update_many(self.collection, filter, update, upsert, self._inject_date_fields(date_fields))
         return self.wrapper.transform(update_many, UpdateManyResponse)
 
-    def find_one(self, filter, projection=None, skip=0, sort=None, date_fields=None):
-        # type: (DocumentType, ProjectionOperators, int, SortOperators, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
-        result = self.wrapper.find_one(self.collection, filter, projection, skip, sort, date_fields)
+    def find_one(self, filter, projection=None, skip=None, sort=None, date_fields=None):
+        # type: (DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        result = self.wrapper.find_one(self.collection, filter, projection, skip, sort, self._inject_date_fields(date_fields))
         return self.wrapper.extract(result, 'result')
 
-    def find_many(self, filter=None, projection=None, skip=0, limit=None, sort=None, date_fields=None):
-        # type: (DocumentType, ProjectionOperators, int, Optional[int], SortOperators, Optional[DateFieldsType]) -> Cursor
-        results = self.wrapper.find_many(self.collection, filter, projection, skip, limit, sort, date_fields)
-        results = self.wrapper.extract(results, 'results')
+    def find_many(self, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
+        # type: (DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[DateFieldsType]) -> Cursor
+        results = self.wrapper.find_many(self.collection, filter, projection, skip, limit, sort, self._inject_date_fields(date_fields))
 
         return self.wrapper.make_cursor(results)
 
     def find_one_and_update(self, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, date_fields=None):
-        # type: (DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
         result = self.wrapper.find_one_and_update(self.collection, filter, update, upsert, projection, sort, return_updated, self._inject_date_fields(date_fields))
         return self.wrapper.extract(result, 'result')
 
     def find_one_and_replace(self, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, date_fields=None):
-        # type: (DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
         result = self.wrapper.find_one_and_replace(self.collection, filter, replacement, upsert, projection, sort, return_updated, self._inject_date_fields(date_fields))
         return self.wrapper.extract(result, 'result')
 
     def find_one_and_delete(self, filter, projection=None, sort=None, date_fields=None):
-        # type: (DocumentType, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
-        result = self.wrapper.find_one_and_delete(self.collection, filter, projection, sort, date_fields)
+        # type: (DocumentType, Optional[ProjectionOperators], SortOperators, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        result = self.wrapper.find_one_and_delete(self.collection, filter, projection, sort, self._inject_date_fields(date_fields))
         return self.wrapper.extract(result, 'result')
 
     def distinct(self, field, filter=None, date_fields=None):
         # type: (str, Optional[DocumentType], Optional[DateFieldsType]) -> Union[List[dict], Deferred]
-        results = self.wrapper.distinct(self.collection, field, filter, date_fields)
+        results = self.wrapper.distinct(self.collection, field, filter, self._inject_date_fields(date_fields))
         return self.wrapper.extract(results, 'results')
 
     def aggregate(self, pipeline):
@@ -103,11 +102,13 @@ class Model:
 
     def delete_one(self, filter, date_fields=None):
         # type: (DocumentType, Optional[DateFieldsType]) -> Union[int, Deferred]
-        return self.wrapper.extract(self.wrapper.delete_one(self.collection, filter, date_fields), 'count')
+        delete_one = self.wrapper.delete_one(self.collection, filter, self._inject_date_fields(date_fields))
+        return self.wrapper.extract(delete_one, 'count')
 
     def delete_many(self, filter, date_fields=None):
         # type: (DocumentType, Optional[DateFieldsType]) -> Union[int, Deferred]
-        return self.wrapper.extract(self.wrapper.delete_many(self.collection, filter, date_fields), 'count')
+        delete_many = self.wrapper.delete_many(self.collection, filter, self._inject_date_fields(date_fields))
+        return self.wrapper.extract(delete_many, 'count')
 
     def _inject_date_fields(self, fields):
         if not fields:

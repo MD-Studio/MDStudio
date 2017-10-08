@@ -125,7 +125,7 @@ class SessionDatabaseWrapper(IDatabase):
         return self.session.call(u'mdstudio.db.endpoint.update_many.{}'.format(self.namespace), request)
 
     def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -145,7 +145,7 @@ class SessionDatabaseWrapper(IDatabase):
         return self.session.call(u'mdstudio.db.endpoint.find_one.{}'.format(self.namespace), request)
 
     def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -168,7 +168,7 @@ class SessionDatabaseWrapper(IDatabase):
 
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter,
@@ -190,7 +190,7 @@ class SessionDatabaseWrapper(IDatabase):
 
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter,
@@ -211,7 +211,7 @@ class SessionDatabaseWrapper(IDatabase):
         return self.session.call(u'mdstudio.db.endpoint.find_one_and_replace.{}'.format(self.namespace), request)
 
     def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter

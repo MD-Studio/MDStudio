@@ -22,7 +22,7 @@ class Cursor:
         self.current = 0
         self._id = response['_id']
         self._alive = response['alive']
-        self._data = deque(response['result'])
+        self._data = deque(response['results'])
 
     def __iter__(self):
         return self
@@ -69,6 +69,6 @@ class Cursor:
             more = self.wrapper.more(cursor_id=self._id)
             self._id = more['_id']
             self._alive = more['alive']
-            self._data = deque(more['result'])
+            self._data = deque(more['results'])
 
         return self._alive or len(self._data)
