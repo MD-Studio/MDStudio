@@ -825,7 +825,7 @@ class Graph(object):
         """
 
         # Coerce to list
-        if (isinstance(nodes, tuple) or isinstance(nodes, list)) and nodes:
+        if not (isinstance(nodes, tuple) or isinstance(nodes, list)) and nodes:
             nodes = [nodes]
 
         # Nodes need to be in graph

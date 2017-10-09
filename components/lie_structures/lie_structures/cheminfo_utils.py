@@ -113,8 +113,7 @@ def mol_removeh(molobject):
     return molobject
 
 
-def mol_make3D(
-        molobject, forcefield='mmff94', localopt=True, steps=50):
+def mol_make3D(molobject, forcefield='mmff94', localopt=True, steps=50):
     """
     Convert 1D or 2D to a 3D representation.
 

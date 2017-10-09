@@ -10,6 +10,7 @@ import json
 import os
 import tempfile
 import shutil
+import json
 
 from autobahn import wamp
 
