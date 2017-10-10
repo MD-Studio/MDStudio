@@ -37,6 +37,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
+    install_requires=['request'],
     include_package_data=True,
     zip_safe=True,
     entry_points={

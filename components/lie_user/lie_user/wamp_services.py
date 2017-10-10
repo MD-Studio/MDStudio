@@ -91,9 +91,9 @@ class UserWampApi(LieApplicationSession):
             raise ApplicationError('Authentication ID not defined')
 
         # Is the application only available for local users?
-        pred = all(
+        pred = all((
             domain, self.package_config.get('only_localhost_access', False),
-            domain != 'localhost')
+            domain != 'localhost'))
         if pred:
             raise ApplicationError(
                 'Access granted only to local users, access via domain {0}'.format(domain))

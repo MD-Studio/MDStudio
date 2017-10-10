@@ -30,7 +30,7 @@ _PY_SUPPORTED=( 2\.7\* 3\.4\* 3\.5\* )
 _PY_PACKAGES=( )
 _PY_VENV=
 _PY_VENV_ACTIVE=0
-_VENV_NAME='.venv'
+_VENV_NAME='venv'
 
 USAGE="""LIEStudio setup script
 
