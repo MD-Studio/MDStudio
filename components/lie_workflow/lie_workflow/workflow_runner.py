@@ -411,8 +411,8 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Get the task object from the graph. nid is expected to be in graph.
         # Check if the task has a 'run_task' method.
         task = self.workflow.getnodes(tid)
-        assert hasattr(task, 'run_task'), logging.error('Task {0} ({1}) requires "run_task" method'.format(
-            task.nid, task.task_name))
+        err = 'Task {0} ({1}) requires "run_task" method'.format(task.nid, task.task_name)
+        assert hasattr(task, 'run_task'), logging.error(err)
 
         # Bailout if the task is active
         if task.active:

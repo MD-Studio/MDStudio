@@ -215,3 +215,4 @@ app/bower_components/*
 
 # emacs
 *~
+venv
