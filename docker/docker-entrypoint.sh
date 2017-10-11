@@ -5,7 +5,7 @@ rm /tmp/.INSTALLINGDONE
 rm /tmp/.INSTALLING
 
 user=$(ls -ld /app | awk '{print $3}')
-group=$(ls -ld /app | awk '{print $4')
+group=$(ls -ld /app | awk '{print $4}')
 
 # check if the mounted filesystem is NTFS
 touch /app/.isntfs

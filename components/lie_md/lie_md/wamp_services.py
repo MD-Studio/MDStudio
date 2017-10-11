@@ -6,8 +6,8 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import json
 import os
-import sys
 import tempfile
 import shutil
 import json
@@ -27,81 +27,86 @@ class MDWampApi(LieApplicationSession):
     """
     MD WAMP methods.
     """
-    
+
     require_config = ['system']
-    
+
     @wamp.register(u'liestudio.gromacs.liemd')
-    def run_gromacs_liemd(self, session={}, protein_file=None, ligand_file=None, topology_file=None, **kwargs):
-        
+    def run_gromacs_liemd(
+            self, session={}, protein_file=None, ligand_file=None,
+            topology_file=None, **kwargs):
+
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
-        
+
         # Load GROMACS configuration and update
         gromacs_config = self.package_config.dict()
-        
+
         # Create workdir and save file
         workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
         os.chdir(workdir)
-        
+
         # Store protein file if available
         if protein_file:
-            protdsc = os.path.join(workdir,'protein.pdb')    
+            protdsc = os.path.join(workdir, 'protein.pdb')
             with open(protdsc, 'w') as inp:
                 inp.write(protein_file)
-        
+
         # Store ligand file if available
         if ligand_file:
-            ligdsc = os.path.join(workdir,'ligand.pdb')
+            ligdsc = os.path.join(workdir, 'ligand.pdb')
             try:
                 if os.path.isfile(ligand_file):
                     shutil.copy(ligand_file, ligdsc)
-            except:     
+            except:
                 with open(ligdsc, 'w') as inp:
                     inp.write(ligand_file)
-        
+
         # Save ligand topology files
         if topology_file:
-            topdsc = os.path.join(workdir,'ligtop.itp')
+            topdsc = os.path.join(workdir, 'ligtop.itp')
             try:
-                if os.path.isfile(os.path.join(topology_file, 'input_GMX.itp')):
-                    shutil.copy(os.path.join(topology_file, 'input_GMX.itp'), topdsc)
+                if os.path.isfile(
+                        os.path.join(topology_file, 'input_GMX.itp')):
+                    shutil.copy(
+                        os.path.join(topology_file, 'input_GMX.itp'), topdsc)
             except:        
                 with open(topdsc, 'w') as inp:
                     inp.write(topology_file)
-        
+
         # Copy script files to the working directory
         for script in ('getEnergies.py', 'gmx45md.sh'):
             src = os.path.join(__rootpath__, 'scripts/{0}'.format(script))
             dst = os.path.join(workdir, script)
             shutil.copy(src, dst)
-        
-        #Fix topology ligand
+
+        # Fix topology ligand
         itpOut = 'ligand.itp'
         results = correctItp(topdsc, itpOut, posre=True)
 
         # Prepaire simulation
         gromacs_config['charge'] = results['charge']
         gmxRun = gromit_cmd(gromacs_config)
-        
+
         if protein_file:
             gmxRun += '-f {0} '.format(os.path.basename(protdsc))
-        
+
         if ligand_file:
-            gmxRun += '-l {0},{1} '.format(os.path.basename(ligdsc), os.path.basename(results['itp']))
-        
+            gmxRun += '-l {0},{1} '.format(
+                os.path.basename(ligdsc), os.path.basename(results['itp']))
+
         # Prepaire post analysis (energy extraction)
         eneRun = 'python getEnergies.py -gmxrc {0} -ene -o ligand.ene'.format(GMXRC)
 
         # write executable
-        with open('run_md.sh','w') as outFile:
+        with open('run_md.sh', 'w') as outFile:
             outFile.write("{0}\n".format(gmxRun))
             outFile.write("{0}\n".format(eneRun))
-        
+
         session['status'] = 'completed'
-        
-        return {'session':session, 'output':'nothing'}
+
+        return {'session': session, 'output': 'nothing'}
 
 
 def make(config):

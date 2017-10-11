@@ -38,7 +38,7 @@ setup(
     packages=find_packages(),
     package_data={'': ['*.json']},
     py_modules=[distribution_name],
-    install_requires=['jsonpickle', 'jsonschema', 'pymongo'],
+    install_requires=['jsonpickle', 'jsonschema', 'pymongo', 'six'],
     test_suite="tests.module_test_suite",
     include_package_data=True,
     zip_safe=True,

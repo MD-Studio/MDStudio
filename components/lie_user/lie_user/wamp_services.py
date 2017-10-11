@@ -57,7 +57,8 @@ class UserWampApi(LieApplicationSession):
         the Crossbar supported authentication methods.
 
         For more information about crossbar authentication/authorization
-        consult the online documentation at: http://crossbar.io/docs/Administration/
+        consult the online documentation at:
+        http://crossbar.io/docs/Administration/
 
         This method also provides authentication based on IP/domain
         information in addition to the crossbar supported authentication
@@ -84,7 +85,8 @@ class UserWampApi(LieApplicationSession):
             details[u'domain'] = domain
 
         self.log.debug(
-            'WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}', realm=realm, authid=authid, authmethod=authmethod, domain=domain)
+            'WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
+            realm=realm, authid=authid, authmethod=authmethod, domain=domain)
 
         # Check for essentials (authid)
         if authid is None:
@@ -95,12 +97,15 @@ class UserWampApi(LieApplicationSession):
             domain, self.package_config.get('only_localhost_access', False),
             domain != 'localhost'))
         if pred:
-            raise ApplicationError(
-                'Access granted only to local users, access via domain {0}'.format(domain))
+            msg = 'Access granted only to local users, access via domain {0}'
+            raise ApplicationError(msg.format(domain))
 
         # Is the domain blacklisted?
-        if not ip_domain_based_access(domain, blacklist=self.package_config.get('domain-blacklist', [])):
-            raise ApplicationError('Access from domain {0} not allowed'.format(domain))
+        pred = ip_domain_based_access(
+            domain, blacklist=self.package_config.get('domain-blacklist', []))
+        if not pred:
+            raise ApplicationError(
+                'Access from domain {0} not allowed'.format(domain))
 
         # WAMP-ticket authetication
         if authmethod == u'ticket':
@@ -113,7 +118,8 @@ class UserWampApi(LieApplicationSession):
                     u'extra': user_settings}
             else:
                 raise ApplicationError(
-                    "com.example.invalid_ticket", "could not authenticate session")
+                    "com.example.invalid_ticket",
+                    "could not authenticate session")
 
         # WAMP-CRA authentication
         elif authmethod == u'wampcra':
@@ -191,4 +197,5 @@ def make(config):
     else:
         # if no config given, return a description of this WAMPlet ..
         return {'label': 'LIEStudio user management WAMPlet',
-                'description': 'WAMPlet proving LIEStudio user management endpoints'}
+                'description':
+                'WAMPlet proving LIEStudio user management endpoints'}

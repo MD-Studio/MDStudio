@@ -30,7 +30,7 @@ _PY_SUPPORTED=( 2\.7\* 3\.4\* 3\.5\* )
 _PY_PACKAGES=( )
 _PY_VENV=
 _PY_VENV_ACTIVE=0
-_VENV_NAME='.venv'
+_VENV_NAME='venv'
 
 USAGE="""LIEStudio setup script
 
@@ -459,7 +459,7 @@ if [[ $SETUP -eq 1 && $NO_VENV -eq 0 ]]; then
      
     # 3.1) Install Python or Anaconda/Miniconda virtual environment
     if [[ $USE_CONDA -eq 0 ]]; then
-        _setup_python_venv
+        _setup_venv
     else
         _setup_conda_venv
     fi
