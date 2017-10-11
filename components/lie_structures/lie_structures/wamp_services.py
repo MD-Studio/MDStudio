@@ -40,7 +40,7 @@ class StructuresWampApi(LieApplicationSession):
         session = WAMPTaskMetaData(metadata=session or {})
 
         result = ''
-        tmpdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/tmp'
+        tmpdir = kwargs['tmpdir']
         structure_file = os.path.join(tmpdir, structure)
         if os.path.exists(structure_file):
             with open(structure_file, 'r') as sf:
