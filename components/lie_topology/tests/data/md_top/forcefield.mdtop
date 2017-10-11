@@ -237,7 +237,7 @@ atom_types:
         c6_1-4_sqrt:  0.0317
         c12_1-4_sqrt: 0.0007057
 
-    P: # 30 P, SI phosphor or silicon
+    P_SI: # 30 P, SI phosphor or silicon
         atom_number:  15
         c6_sqrt:      0.1214         
         c12_sqrt:    [0.004711, 0.004711, 0.0]
