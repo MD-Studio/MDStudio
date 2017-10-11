@@ -158,6 +158,22 @@ def node_parent(graph, nid, root):
         return shortest_path[-2]
     return None
 
+def node_all_parents(graph, nid, root):
+    """
+    Get all parent nodes to the source node relative to the graph root
+    
+    :param node: node to define parents of
+    :type node:  int
+
+    :return:     parent node nids
+    :rtype:      :py:list
+    """
+    
+    children = node_children(graph, nid, root)
+    all_parents = [key for key,value in graph.adjacency().items() if 
+        nid in value and not key in children]
+        
+    return all_parents
 
 def node_siblings(graph, nid, root):
     """
@@ -167,7 +183,7 @@ def node_siblings(graph, nid, root):
     :type node:  mixed
 
     :return:     sibling node nids
-    :rtype:      list
+    :rtype:      :py:list
     """
 
     # Siblings are all children of the nid parent except self.
