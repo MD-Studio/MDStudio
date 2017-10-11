@@ -22,9 +22,11 @@ from lie_topology.forcefield.physconst import PhysicalConstants
 from lie_topology.molecule.crystal import BoxVectorsToLattice, LatticeToBoxVectors
 
 
-def main():
+def WriteSimJson( forcefield, coordinates ):
 
-    
+    pass
+
+def main():
 
     with open( "../tests/data/md_top/54a7.aatop", 'r') as mdaa_ifs,\
          open( "../tests/data/md_top/54a7.mdtop", 'r') as mdtop_ifs:
@@ -35,31 +37,53 @@ def main():
         phys_const = PhysicalConstants()
 
         #topology = MakeSequence( forcefield, blueprint, ["NH3+_ALA", "CYS1", "ALA", "CYS2", "ALA_COO-"], [[1,3]] )
-        topology = MakeSequence( forcefield, blueprint,\
-                ["NH3+_ILE","VAL","GLY","GLY","GLN","GLU","CYS1","LYS","ASP","GLY",\
-                 "GLU","CYS2","PRO","TRP","GLN","ALA","LEU","LEU","ILE","ASN",\
-                 "GLU","GLU","ASN","GLU","GLY","PHE","CYS1","GLY","GLY","THR",\
-                 "ILE","LEU","SER","GLU","PHE","TYR","ILE","LEU","THR","ALA",\
-                 "ALA","HISA","CYS2","LEU","TYR","GLN","ALA","LYS","ARG","PHE",\
-                 "LYS","VAL","ARG","VAL","GLY","ASP","ARG","ASN","THR","GLU",\
-                 "GLN","GLU","GLU","GLY","GLY","GLU","ALA","VAL","HISA","GLU",\
-                 "VAL","GLU","VAL","VAL","ILE","LYS","HISB","ASN","ARG","PHE",\
-                 "THR","LYS","GLU","THR","TYR","ASP","PHE","ASP","ILE","ALA",\
-                 "VAL","LEU","ARG","LEU","LYS","THR","PRO","ILE","THR","PHE",\
-                 "ARG","MET","ASN","VAL","ALA","PRO","ALA","CYSH","LEU","PRO",\
-                 "GLU","ARG","ASP","TRP","ALA","GLU","SER","THR","LEU","MET",\
-                 "THR","GLN","LYS","THR","GLY","ILE","VAL","SER","GLY","PHE",\
-                 "GLY","ARG","THR","HISB","GLU","LYS","GLY","ARG","GLN","SER",\
-                 "THR","ARG","LEU","LYS","MET","LEU","GLU","VAL","PRO","TYR",\
-                 "VAL","ASP","ARG","ASN","SER","CYS1","LYS","LEU","SER","SER",\
-                 "SER","PHE","ILE","ILE","THR","GLN","ASN","MET","PHE","CYS2",\
-                 "ALA","GLY","TYR","ASP","THR","LYS","GLN","GLU","ASP","ALA",\
-                 "CYS1","GLN","GLY","ASP","SER","GLY","GLY","PRO","HISB","VAL",\
-                 "THR","ARG","PHE","LYS","ASP","THR","TYR","PHE","VAL","THR",\
-                 "GLY","ILE","VAL","SER","TRP","GLY","GLU","GLY","CYS2","ALA",\
-                 "ARG","LYS","GLY","LYS","TYR","GLY","ILE","TYR","THR","LYS",\
-                 "VAL","THR","ALA","PHE","LEU","LYS","TRP","ILE","ASP","ARG",\
-                 "SER","MET","LYS","THR_COO-"], [[6,11],[26,42],[155,169],[180,208]] )
+        topology = MakeSequence( forcefield, blueprint, [
+                  "THR","ILE","LYSH","GLU","MET","PRO","GLN","PRO","LYSH","THR",
+                  "PHE","GLY","GLU","LEU","LYSH","ASN","LEU","PRO","LEU","LEU",
+                  "ASN","THR","ASP","LYSH","PRO","VAL","GLN","ALA","LEU","MET",
+                  "LYSH","ILE","ALA","ASP","GLU","LEU","GLY","GLU","ILE","PHE",
+                  "LYSH","PHE","GLU","ALA","PRO","GLY","LEU","VAL","THR","ARG",
+                  "TYR","LEU","SER","SER","GLN","ARG","LEU","ILE","LYSH","GLU",
+                  "ALA","CYSH","ASP","GLU","SER","ARG","PHE","ASP","LYSH","ASN",
+                  "LEU","ILE","GLN","ALA","LEU","LYSH","PHE","VAL","ARG","ASP",
+                  "PHE","TRP","GLY","ASP","GLY","LEU","VAL","THR","SER","TRP",
+                  "THR","HISA","GLU","LYSH","ASN","TRP","LYSH","LYSH","ALA","HISA",
+                  "ASN","ILE","LEU","LEU","PRO","SER","PHE","SER","GLN","GLN",
+                  "ALA","MET","LYSH","GLY","TYR","HISB","ALA","MET","MET","VAL",
+                  "ASP","ILE","ALA","VAL","GLN","LEU","VAL","GLN","LYSH","TRP",
+                  "GLU","ARG","LEU","ASN","ALA","ASP","GLU","HISA","ILE","GLU",
+                  "VAL","PRO","GLU","ASP","MET","THR","ARG","LEU","THR","LEU",
+                  "ASP","THR","ILE","GLY","LEU","CYSH","GLY","PHE","ASN","TYR",
+                  "ARG","PHE","ASN","SER","PHE","TYR","ARG","ASP","GLN","PRO",
+                  "HISB","PRO","PHE","ILE","THR","SER","MET","VAL","ARG","ALA",
+                  "LEU","ASP","GLU","ALA","MET","ASN","LYSH","GLN","GLN","ARG",
+                  "ALA","ASN","PRO","ASP","ASP","PRO","ALA","TYR","ASP","GLU",
+                  "ASN","LYSH","ARG","GLN","PHE","GLN","GLU","ASP","ILE","LYSH",
+                  "VAL","MET","ASN","ASP","LEU","VAL","ASP","LYSH","ILE","ILE",
+                  "ALA","ASP","ARG","LYSH","ALA","SER","GLY","GLU","GLN","SER",
+                  "ASP","ASP","LEU","LEU","THR","HISB","MET","LEU","ASN","GLY",
+                  "LYSH","ASP","PRO","GLU","THR","GLY","GLU","PRO","LEU","ASP",
+                  "ASP","GLU","ASN","ILE","ARG","TYR","GLN","ILE","ILE","THR",
+                  "PHE","LEU","ILE","ALA","GLY","HISA","VAL","THR","THR","SER",
+                  "GLY","LEU","LEU","SER","PHE","ALA","LEU","TYR","PHE","LEU",
+                  "VAL","LYSH","ASN","PRO","HISA","VAL","LEU","GLN","LYSH","ALA",
+                  "ALA","GLU","GLU","ALA","ALA","ARG","VAL","LEU","VAL","ASP",
+                  "PRO","VAL","PRO","SER","TYR","LYSH","GLN","VAL","LYSH","GLN",
+                  "LEU","LYSH","TYR","VAL","GLY","MET","VAL","LEU","ASN","GLU",
+                  "ALA","LEU","ARG","LEU","TRP","PRO","THR","ALA","PRO","ALA",
+                  "PHE","SER","LEU","TYR","ALA","LYSH","GLU","ASP","THR","VAL",
+                  "LEU","GLY","GLY","GLU","TYR","PRO","LEU","GLU","LYSH","GLY",
+                  "ASP","GLU","LEU","MET","VAL","LEU","ILE","PRO","GLN","LEU",
+                  "HISA","ARG","ASP","LYSH","THR","ILE","TRP","GLY","ASP","ASP",
+                  "VAL","GLU","GLU","PHE","ARG","PRO","GLU","ARG","PHE","GLU","ASN",
+                  "PRO","SER","ALA","ILE","PRO","GLN","HISB","ALA","PHE","LYSH",
+                  "PRO","PHE","GLY","ASN","GLY","GLN","ARG","ALA","CYSH","ILE",
+                  "GLY","GLN","GLN","PHE","ALA","LEU","HISB","GLU","ALA","THR",
+                  "LEU","VAL","LEU","GLY","MET","MET","LEU","LYSH","HISA","PHE",
+                  "ASP","PHE","GLU","ASP","HISB","THR","ASN","TYR","GLU","LEU",
+                  "ASP","ILE","LYSH","GLU","THR","LEU","THR","LEU","LYSH","PRO",
+                  "GLU","GLY","PHE","VAL","VAL","LYSH","ALA","LYSH","SER","LYSH",
+                  "LYSH","ILE","PRO","LEU" ], [] )
 
         with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
             WriteGromosTopology( top_ofstream, topology, forcefield, phys_const )
