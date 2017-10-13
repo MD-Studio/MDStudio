@@ -12,4 +12,4 @@ class SortModeTests(unittest.TestCase):
         self.assertEqual(str(SortMode.Desc), 'desc')
 
     def test_neq(self):
-        self.assertNotEquals(SortMode.Desc, SortMode.Asc)
+        self.assertNotEqual(SortMode.Desc, SortMode.Asc)
