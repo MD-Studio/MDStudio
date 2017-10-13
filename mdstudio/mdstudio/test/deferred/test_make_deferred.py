@@ -34,7 +34,7 @@ class TestMakeDeferred(TestCase):
 
         test.add(12,3).addCallback(self.assertEqual, 15)
 
-    def test_kargs(self):
+    def test_kwargs(self):
 
         class Test:
 

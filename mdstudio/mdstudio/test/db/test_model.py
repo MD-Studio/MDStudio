@@ -42,7 +42,7 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(self.model.wrapper, self.wrapper)
 
     def test_construction2(self):
-        self.assertEquals(self.model.wrapper, self.wrapper)
+        self.assertEqual(self.model.wrapper, self.wrapper)
 
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
 
@@ -52,7 +52,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
 
         self.model = Model(self.wrapper, self.collection)
-        self.assertEquals(self.model.wrapper, self.wrapper)
+        self.assertEqual(self.model.wrapper, self.wrapper)
 
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
 
@@ -72,14 +72,14 @@ class ModelTests(unittest.TestCase):
 
         self.model = Users(self.wrapper)
 
-        self.assertEquals(self.model.collection, 'users')
+        self.assertEqual(self.model.collection, 'users')
 
     def test_insert_one(self):
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_one(self.document)
 
-        self.assertEquals(result, '12345')
+        self.assertEqual(result, '12345')
 
         self.wrapper.insert_one.assert_called_once_with(self.collection,
                                                         insert=self.document,
@@ -90,7 +90,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_one(self.document, ['test'])
 
-        self.assertEquals(result, '12345')
+        self.assertEqual(result, '12345')
 
         self.wrapper.insert_one.assert_called_once_with(self.collection,
                                                         insert=self.document,
@@ -105,7 +105,7 @@ class ModelTests(unittest.TestCase):
         self.model = Users(self.wrapper, self.collection)
         result = self.model.insert_one(self.document, ['test'])
 
-        self.assertEquals(result, '12345')
+        self.assertEqual(result, '12345')
 
         self.wrapper.insert_one.assert_called_once_with('users',
                                                         insert=self.document,
@@ -120,7 +120,7 @@ class ModelTests(unittest.TestCase):
         self.model = Users(self.wrapper, self.collection)
         result = self.model.insert_one(self.document)
 
-        self.assertEquals(result, '12345')
+        self.assertEqual(result, '12345')
 
         self.wrapper.insert_one.assert_called_once_with('users',
                                                         insert=self.document,
@@ -131,7 +131,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_many(self.documents)
 
-        self.assertEquals(result, ['12345', '456789'])
+        self.assertEqual(result, ['12345', '456789'])
 
         self.wrapper.insert_many.assert_called_once_with(self.collection,
                                                          insert=self.documents,
@@ -142,7 +142,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_many(self.documents, ['test'])
 
-        self.assertEquals(result, ['12345', '456789'])
+        self.assertEqual(result, ['12345', '456789'])
 
         self.wrapper.insert_many.assert_called_once_with(self.collection,
                                                          insert=self.documents,
@@ -157,7 +157,7 @@ class ModelTests(unittest.TestCase):
         self.model = Users(self.wrapper, self.collection)
         result = self.model.insert_many(self.documents, ['test'])
 
-        self.assertEquals(result, ['12345', '456789'])
+        self.assertEqual(result, ['12345', '456789'])
 
         self.wrapper.insert_many.assert_called_once_with('users',
                                                          insert=self.documents,
@@ -172,7 +172,7 @@ class ModelTests(unittest.TestCase):
         self.model = Users(self.wrapper, self.collection)
         result = self.model.insert_many(self.documents)
 
-        self.assertEquals(result, ['12345', '456789'])
+        self.assertEqual(result, ['12345', '456789'])
 
         self.wrapper.insert_many.assert_called_once_with('users',
                                                          insert=self.documents,
@@ -187,9 +187,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.replace_one({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, ReplaceOneResponse)
-        self.assertEquals(result.matched, 1)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.replace_one.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
@@ -207,9 +207,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.replace_one({'_id': 'test_id'}, self.document, upsert=True)
 
         self.assertIsInstance(result, ReplaceOneResponse)
-        self.assertEquals(result.matched, 0)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, 'test_id2')
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, 'test_id2')
 
         self.wrapper.replace_one.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
@@ -226,9 +226,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.replace_one({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, ReplaceOneResponse)
-        self.assertEquals(result.matched, 1)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.replace_one.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
@@ -249,9 +249,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.replace_one({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, ReplaceOneResponse)
-        self.assertEquals(result.matched, 1)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.replace_one.assert_called_once_with('users',
                                                          filter={'_id': 'test_id'},
@@ -272,9 +272,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.replace_one({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, ReplaceOneResponse)
-        self.assertEquals(result.matched, 1)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.replace_one.assert_called_once_with('users',
                                                          filter={'_id': 'test_id'},
@@ -287,7 +287,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.count()
 
-        self.assertEquals(result, 12345)
+        self.assertEqual(result, 12345)
 
         self.wrapper.count.assert_called_once_with(self.collection,
                                                    filter=None,
@@ -302,7 +302,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.count({'_id': 'test_id'})
 
-        self.assertEquals(result, 12345)
+        self.assertEqual(result, 12345)
 
         self.wrapper.count.assert_called_once_with(self.collection,
                                                    filter={'_id': 'test_id'},
@@ -317,7 +317,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.count(skip=10)
 
-        self.assertEquals(result, 12345)
+        self.assertEqual(result, 12345)
 
         self.wrapper.count.assert_called_once_with(self.collection,
                                                    filter=None,
@@ -332,7 +332,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.count(limit=10)
 
-        self.assertEquals(result, 12345)
+        self.assertEqual(result, 12345)
 
         self.wrapper.count.assert_called_once_with(self.collection,
                                                    filter=None,
@@ -348,7 +348,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test2']
         result = self.model.count(cursor_id='test_id', date_fields=['test'])
 
-        self.assertEquals(result, 12345)
+        self.assertEqual(result, 12345)
 
         self.wrapper.count.assert_called_once_with(self.collection,
                                                    filter=None,
@@ -363,7 +363,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.count(cursor_id='test_id')
 
-        self.assertEquals(result, 12345)
+        self.assertEqual(result, 12345)
 
         self.wrapper.count.assert_called_once_with(self.collection,
                                                    filter=None,
@@ -378,7 +378,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.count(cursor_id='test_id', with_limit_and_skip=True)
 
-        self.assertEquals(result, 12345)
+        self.assertEqual(result, 12345)
 
         self.wrapper.count.assert_called_once_with(self.collection,
                                                    filter=None,
@@ -397,9 +397,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.update_one({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, UpdateOneResponse)
-        self.assertEquals(result.matched, 1)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.update_one.assert_called_once_with(self.collection,
                                                         filter={'_id': 'test_id'},
@@ -417,9 +417,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.update_one({'_id': 'test_id'}, self.document, True)
 
         self.assertIsInstance(result, UpdateOneResponse)
-        self.assertEquals(result.matched, 0)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, '1234')
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, '1234')
 
         self.wrapper.update_one.assert_called_once_with(self.collection,
                                                         filter={'_id': 'test_id'},
@@ -437,9 +437,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.update_one({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, UpdateOneResponse)
-        self.assertEquals(result.matched, 0)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.update_one.assert_called_once_with(self.collection,
                                                         filter={'_id': 'test_id'},
@@ -456,9 +456,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.update_many({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, UpdateManyResponse)
-        self.assertEquals(result.matched, 1)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.update_many.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
@@ -476,9 +476,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.update_many({'_id': 'test_id'}, self.document, True)
 
         self.assertIsInstance(result, UpdateManyResponse)
-        self.assertEquals(result.matched, 0)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, '1234')
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, '1234')
 
         self.wrapper.update_many.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
@@ -496,9 +496,9 @@ class ModelTests(unittest.TestCase):
         result = self.model.update_many({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, UpdateManyResponse)
-        self.assertEquals(result.matched, 0)
-        self.assertEquals(result.modified, 1)
-        self.assertEquals(result.upserted_id, None)
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
 
         self.wrapper.update_many.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
@@ -513,7 +513,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one({'_id': 'test_id'})
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one.assert_called_once_with(self.collection,
                                                       filter={'_id': 'test_id'},
@@ -529,7 +529,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one({'_id': 'test_id'}, {'_id': 'id'})
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one.assert_called_once_with(self.collection,
                                                       filter={'_id': 'test_id'},
@@ -545,7 +545,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one({'_id': 'test_id'}, skip=10)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one.assert_called_once_with(self.collection,
                                                       filter={'_id': 'test_id'},
@@ -561,7 +561,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one.assert_called_once_with(self.collection,
                                                       filter={'_id': 'test_id'},
@@ -578,7 +578,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test']
         result = self.model.find_one({'_id': 'test_id'}, date_fields=['test2'])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one.assert_called_once_with(self.collection,
                                                       filter={'_id': 'test_id'},
@@ -600,8 +600,8 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(results, Cursor)
 
         lresults = list(results)
-        self.assertEquals(lresults[0], self.document)
-        self.assertEquals(lresults[1], self.document2)
+        self.assertEqual(lresults[0], self.document)
+        self.assertEqual(lresults[1], self.document2)
 
         self.wrapper.find_many.assert_called_once_with(self.collection,
                                                        filter={'_id': 'test_id'},
@@ -623,8 +623,8 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(results, Cursor)
 
         lresults = list(results)
-        self.assertEquals(lresults[0], self.document)
-        self.assertEquals(lresults[1], self.document2)
+        self.assertEqual(lresults[0], self.document)
+        self.assertEqual(lresults[1], self.document2)
 
         self.wrapper.find_many.assert_called_once_with(self.collection,
                                                        filter={'_id': 'test_id'},
@@ -646,8 +646,8 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(results, Cursor)
 
         lresults = list(results)
-        self.assertEquals(lresults[0], self.document)
-        self.assertEquals(lresults[1], self.document2)
+        self.assertEqual(lresults[0], self.document)
+        self.assertEqual(lresults[1], self.document2)
 
         self.wrapper.find_many.assert_called_once_with(self.collection,
                                                        filter={'_id': 'test_id'},
@@ -669,8 +669,8 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(results, Cursor)
 
         lresults = list(results)
-        self.assertEquals(lresults[0], self.document)
-        self.assertEquals(lresults[1], self.document2)
+        self.assertEqual(lresults[0], self.document)
+        self.assertEqual(lresults[1], self.document2)
 
         self.wrapper.find_many.assert_called_once_with(self.collection,
                                                        filter={'_id': 'test_id'},
@@ -692,8 +692,8 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(results, Cursor)
 
         lresults = list(results)
-        self.assertEquals(lresults[0], self.document)
-        self.assertEquals(lresults[1], self.document2)
+        self.assertEqual(lresults[0], self.document)
+        self.assertEqual(lresults[1], self.document2)
 
         self.wrapper.find_many.assert_called_once_with(self.collection,
                                                        filter={'_id': 'test_id'},
@@ -716,8 +716,8 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(results, Cursor)
 
         lresults = list(results)
-        self.assertEquals(lresults[0], self.document)
-        self.assertEquals(lresults[1], self.document2)
+        self.assertEqual(lresults[0], self.document)
+        self.assertEqual(lresults[1], self.document2)
 
         self.wrapper.find_many.assert_called_once_with(self.collection,
                                                        filter={'_id': 'test_id'},
@@ -734,7 +734,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -752,7 +752,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -770,7 +770,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, upsert=True)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -788,7 +788,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -806,7 +806,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, return_updated=True)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -825,7 +825,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test']
         result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, date_fields=['test2'])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -843,7 +843,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
                                                                   filter={'_id': 'test_id'},
@@ -861,7 +861,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
                                                                   filter={'_id': 'test_id'},
@@ -879,7 +879,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, upsert=True)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
                                                                   filter={'_id': 'test_id'},
@@ -897,7 +897,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
                                                                   filter={'_id': 'test_id'},
@@ -915,7 +915,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, return_updated=True)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
                                                                   filter={'_id': 'test_id'},
@@ -934,7 +934,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test']
         result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, date_fields=['test2'])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
                                                                   filter={'_id': 'test_id'},
@@ -952,7 +952,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_delete({'_id': 'test_id'}, self.document2)
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -967,7 +967,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_delete({'_id': 'test_id'}, projection={'_id': 'id'})
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -982,7 +982,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.find_one_and_delete({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -998,7 +998,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test']
         result = self.model.find_one_and_delete({'_id': 'test_id'}, date_fields=['test2'])
 
-        self.assertEquals(result, self.document)
+        self.assertEqual(result, self.document)
 
         self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
                                                                  filter={'_id': 'test_id'},
@@ -1013,7 +1013,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.distinct('_id')
 
-        self.assertEquals(result, self.documents)
+        self.assertEqual(result, self.documents)
 
         self.wrapper.distinct.assert_called_once_with(self.collection,
                                                       field='_id',
@@ -1027,7 +1027,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.distinct('_id', filter={'_id': 'test_id'})
 
-        self.assertEquals(result, self.documents)
+        self.assertEqual(result, self.documents)
 
         self.wrapper.distinct.assert_called_once_with(self.collection,
                                                       field='_id',
@@ -1042,7 +1042,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test2']
         result = self.model.distinct('_id', date_fields=['test'])
 
-        self.assertEquals(result, self.documents)
+        self.assertEqual(result, self.documents)
 
         self.wrapper.distinct.assert_called_once_with(self.collection,
                                                       field='_id',
@@ -1062,7 +1062,7 @@ class ModelTests(unittest.TestCase):
 
         self.assertIsInstance(results, Cursor)
         lresults = list(results)
-        self.assertEquals(lresults, self.documents)
+        self.assertEqual(lresults, self.documents)
 
         self.wrapper.aggregate.assert_called_once_with(self.collection, pipeline=[{'_id': 'test_id'}])
 
@@ -1073,7 +1073,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.delete_one({'_id': 'test_id'})
 
-        self.assertEquals(result, 1)
+        self.assertEqual(result, 1)
 
         self.wrapper.delete_one.assert_called_once_with(self.collection,
                                                         filter={'_id': 'test_id'},
@@ -1087,7 +1087,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test']
         result = self.model.delete_one({'_id': 'test_id'}, date_fields=['test2'])
 
-        self.assertEquals(result, 1)
+        self.assertEqual(result, 1)
 
         self.wrapper.delete_one.assert_called_once_with(self.collection,
                                                         filter={'_id': 'test_id'},
@@ -1100,7 +1100,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.extract = IDatabase.extract
         result = self.model.delete_many({'_id': 'test_id'})
 
-        self.assertEquals(result, 2)
+        self.assertEqual(result, 2)
 
         self.wrapper.delete_many.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
@@ -1114,7 +1114,7 @@ class ModelTests(unittest.TestCase):
         self.model.date_time_fields = ['test']
         result = self.model.delete_many({'_id': 'test_id'}, date_fields=['test2'])
 
-        self.assertEquals(result, 2)
+        self.assertEqual(result, 2)
 
         self.wrapper.delete_many.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},

@@ -3,11 +3,11 @@ from twisted.trial.unittest import TestCase
 
 from mdstudio.deferred.deferred_wrapper import DeferredWrapper
 from mdstudio.deferred.make_deferred import make_deferred
-from mdstudio.deferred.chainable import nonblocking
+from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
-class NonBlockingTestClass:
+class ChainableTestClass:
     def __init__(self, inst):
         self.inst = inst
 
@@ -15,12 +15,12 @@ class NonBlockingTestClass:
     def test(self):
         return 3
 
-    @nonblocking
+    @chainable
     def call(self):
         value = yield self.test()
         return_value(value)
 
-    @nonblocking
+    @chainable
     def call2(self):
         value = yield self.call()
         return_value(value)
@@ -28,13 +28,13 @@ class NonBlockingTestClass:
     def call3(self):
         return self.call2()
 
-    def assertEquals(self, val):
-        self.inst.assertEquals(val)
+    def assertEqual(self, val):
+        self.inst.assertEqual(val)
 
 
-class TestNonBlocking(TestCase):
+class TestChainable(TestCase):
     def test_basic_deferred(self):
-        test = NonBlockingTestClass(self)
+        test = ChainableTestClass(self)
         test.call().addCallback(self.assertIsInstance, Deferred)
         test.call().addCallback(self.assertIsInstance, DeferredWrapper)
         self.assertIsInstance(test.call(), Deferred)
@@ -43,7 +43,7 @@ class TestNonBlocking(TestCase):
         test.call().addCallback(self.assertEquals, 3)
 
     def test_chained(self):
-        test = NonBlockingTestClass(self)
-        test.call().assertEquals(3)
-        test.call2().assertEquals(3)
-        test.call3().assertEquals(3)
+        test = ChainableTestClass(self)
+        test.call().assertEqual(3)
+        test.call2().assertEqual(3)
+        test.call3().assertEqual(3)
