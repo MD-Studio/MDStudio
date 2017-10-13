@@ -1,12 +1,7 @@
 from twisted.internet import defer
 
-def unblocking(f):
-    def _unblocking(*args, **kwargs):
-        d = defer.inlineCallbacks(f)(*args, **kwargs)
-        return DeferredWrapper(d)
 
-    return _unblocking
-
+# noinspection PyMissingConstructor
 class DeferredWrapper(defer.Deferred):
     def __init__(self, deferred):
         self.__deferred = deferred
