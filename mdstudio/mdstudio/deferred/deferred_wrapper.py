@@ -3,8 +3,10 @@ from twisted.internet import defer
 
 # noinspection PyMissingConstructor
 class DeferredWrapper(defer.Deferred):
-    def __init__(self, deferred):
+    def __init__(self, deferred, *args, **kwargs):
         self.__deferred = deferred
+        super().__init__(*args, **kwargs)
+
 
     def __getattr__(self, name):
         if hasattr(self.__deferred, name):
