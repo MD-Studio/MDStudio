@@ -2,6 +2,7 @@
 from typing import *
 
 import abc
+import six
 
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.sort_mode import SortMode
@@ -20,8 +21,8 @@ ProjectionOperators = Dict
 SortOperators = Optional[List[Tuple[str, SortMode]]]
 
 
+@six.add_metaclass(abc.ABCMeta)
 class IDatabase:
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def more(self, cursor_id):
