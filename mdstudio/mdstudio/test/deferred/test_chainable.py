@@ -3,13 +3,13 @@ from twisted.trial.unittest import TestCase
 from twisted.internet import reactor
 import twisted
 
-# import sys
+import sys
 
-# from twisted.python import log
+from twisted.python import log
 
 
 
-# log.startLogging(sys.stdout)
+log.startLogging(sys.stdout)
 
 from mdstudio.deferred.deferred_wrapper import DeferredWrapper
 from mdstudio.deferred.make_deferred import make_deferred
@@ -48,14 +48,15 @@ class TestDeferredChain(TestCase):
         class ChainedObject:
             @inlineCallbacks
             def chained_call(self):
-                res = yield d2
+                # res = yield d2
+                res = yield 2
                 # print('received d2')
                 return_value({'test': 42})
 
         @inlineCallbacks
         def initial_call(deferred):
             # print(deferred)
-            reactor.callLater(1, d2.callback, {})
+            # reactor.callLater(1, d2.callback, {})
             res = yield deferred.chained_call().get('test')
             d3.callback({})
             return_value(res)
