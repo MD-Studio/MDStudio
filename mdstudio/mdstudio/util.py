@@ -1,3 +1,4 @@
+# coding=utf-8
 import json
 from typing import *
 
@@ -15,8 +16,8 @@ try:
     unicode('')
 except NameError as e:
     class unicode(str):
-        def __init__(self, object='', *args, **kwargs):
-            super(unicode, self).__init__(u'{}'.format(object), *args, **kwargs)
+        def __init__(self, obj='', *args, **kwargs):
+            super(unicode, self).__init__(u'{}'.format(obj), *args, **kwargs)
 
 
 def resolve_config(config):
@@ -56,12 +57,12 @@ def extend_with_default(validator_class, session):
     validate_properties = validator_class.VALIDATORS["properties"]
 
     def set_defaults(validator, properties, instance, schema):
-        for property, subschema in properties.items():
-            if "default" in subschema and property not in instance.keys():
+        for prperty, subschema in properties.items():
+            if "default" in subschema and prperty not in instance.keys():
                 session.log.warn(
                     'WARNING: during json schema validation, {} was not present in the instance, setting to default'.format(
-                        property))
-                instance.setdefault(property, subschema["default"])
+                        prperty))
+                instance.setdefault(prperty, subschema["default"])
 
         for error in validate_properties(
                 validator, properties, instance, schema,
@@ -124,7 +125,7 @@ def validate_json_schema(session, schema_def, request):
         DefaultValidatingDraft4Validator = extend_with_default(jsonschema.Draft4Validator, session)
         validator = DefaultValidatingDraft4Validator(schema, resolver=resolver)
 
-        errors = sorted(validator.iter_errors(request), key=lambda e: e.path)
+        errors = sorted(validator.iter_errors(request), key=lambda x: x.path)
 
         if len(errors) == 0:
             valid = True
@@ -135,13 +136,15 @@ def validate_json_schema(session, schema_def, request):
 
     return valid
 
+
 class ISchema:
     def __str__(self):
         raise NotImplementedError('Subclass should implement this')
 
     def schemas(self):
         raise NotImplementedError('Subclass should implement this')
-        
+
+
 class Schema(ISchema):
     def __init__(self, url, transport='http'):
         self.schema_uri = '{}://{}'.format(transport, url)

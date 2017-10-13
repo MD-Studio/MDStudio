@@ -24,6 +24,7 @@ from mdstudio.util import resolve_config, WampSchema, WampSchemaHandler, validat
 if is_python3:
     pass
 
+
 class BaseApplicationSession(ApplicationSession):
     """
     BaseApplicationSession class
@@ -126,11 +127,11 @@ class BaseApplicationSession(ApplicationSession):
 
         # initialize defaults
         self.session_config_environment_variables = {
-            'authid':           '_LIE_AUTH_USERNAME',
-            'password':         '_LIE_AUTH_PASSWORD',
-            'realm':            '_LIE_AUTH_REALM',
-            'authmethod':       '_LIE_AUTH_METHOD',
-            'loggernamespace':  '_LIE_LOGGER_NAMESPACE'
+            'authid': '_LIE_AUTH_USERNAME',
+            'password': '_LIE_AUTH_PASSWORD',
+            'realm': '_LIE_AUTH_REALM',
+            'authmethod': '_LIE_AUTH_METHOD',
+            'loggernamespace': '_LIE_LOGGER_NAMESPACE'
         }
 
         self.package_config_template = WampSchema('mdstudio', 'settings/settings')
@@ -191,7 +192,7 @@ class BaseApplicationSession(ApplicationSession):
         super(BaseApplicationSession, self).__init__(config)
 
         extra = config.extra if isinstance(config.extra, dict) else {}
-        
+
         # Set package_config: first global package config, the package_config
         # argument and finaly config.extra
         self.package_config = ConfigHandler()
@@ -202,7 +203,7 @@ class BaseApplicationSession(ApplicationSession):
         # for package config
         for key, value in extra.items():
             if key not in ('session_config', 'package_config'):
-                self.session_config.set(key,value)
+                self.session_config.set(key, value)
 
         # Load client private key (raw format) if any
         self._key = None
@@ -224,7 +225,7 @@ class BaseApplicationSession(ApplicationSession):
         session_conf = resolve_config(session_config_file)
 
         dotenvfile = os.getenv('_LIE_DOTENV', os.path.join(package_config_dir, '.env'))
-        
+
         if os.path.isfile(dotenvfile):
             env = config_from_dotenv(dotenvfile)
         else:
@@ -240,7 +241,7 @@ class BaseApplicationSession(ApplicationSession):
 
         if validate_json_schema(self, self.session_config_template, session_conf):
             self.session_config.update(session_conf)
-        
+
         # start wamp logger for buffering
         f = None
         templogs = os.path.join(self._config_dir, 'wamplogs.temp')
@@ -254,7 +255,7 @@ class BaseApplicationSession(ApplicationSession):
 
         # start file logger
         log_file = twisted.python.logfile.DailyLogFile('daily.log', package_logs_dir)
-        self.file_logger = PrintingObserver(log_file, self.component_info.get('namespace'), 
+        self.file_logger = PrintingObserver(log_file, self.component_info.get('namespace'),
                                             self.session_config.get('log_level', 'info'))
         twisted.python.log.addObserver(self.file_logger)
 
@@ -269,7 +270,7 @@ class BaseApplicationSession(ApplicationSession):
 
         # Call onInit hook
         self.onInit(**kwargs)
-    
+
     def _load_public_key(self, key):
         """
         Load a clients public key signed using Ed25519 from a file into a
@@ -417,20 +418,20 @@ class BaseApplicationSession(ApplicationSession):
         failures = 0
         for r in res:
             if isinstance(r, Failure):
-                self.log.info("ERROR: {class_name}: {message}", class_name=self.component_info.get('class_name'), 
+                self.log.info("ERROR: {class_name}: {message}", class_name=self.component_info.get('class_name'),
                               message=r.value)
                 failures = failures + 1
 
         if failures > 0:
-            self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures, 
+            self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures,
                           class_name=self.component_info.get('class_name'))
 
-        self.log.info("{class_name}: {procedures} procedures successfully registered", procedures=len(res)-failures, 
+        self.log.info("{class_name}: {procedures} procedures successfully registered", procedures=len(res) - failures,
                       class_name=self.component_info.get('class_name'))
 
         # Update session_config, they may have been changed by the application authentication method
         for session_param in ('authid', 'session', 'authrole', 'authmethod'):
-            self.session_config[session_param] = getattr(details,session_param)
+            self.session_config[session_param] = getattr(details, session_param)
 
         # Retrieve package configuration based on package_name and update package_config
         # Try to establish a MongoDB database connection if lie_db configuration available
@@ -447,7 +448,7 @@ class BaseApplicationSession(ApplicationSession):
         # Add self.disconnect to Event trigger in order to get propper shutdown
         # and exit of reactor event loop on Ctrl-C e.d.
         # reactor.addSystemEventTrigger('before', 'shutdown', self.leave)
-            
+
         if self.autolog:
             self.wamp_logger.start_flushing()
         else:
@@ -455,7 +456,7 @@ class BaseApplicationSession(ApplicationSession):
                 self.wamp_logger.start_flushing()
                 self.logger_subscription.unsubscribe()
                 self.logger_subscription = None
-            
+
             self.log.info('Delayed logging for {package}', package=self.component_info['package_name'])
             self.logger_subscription = yield self.subscribe(logger_event, u'mdstudio.logger.endpoint.events.online')
 
@@ -471,11 +472,11 @@ class BaseApplicationSession(ApplicationSession):
             self.schema_subscription = yield self.subscribe(schema_event, u'mdstudio.schema.endpoint.events.online')
 
         self._register_scopes()
-        
+
         reactor.addSystemEventTrigger('before', 'shutdown', self.onCleanup)
 
         # Call onRun hook.
-        yield self.onRun(details)        
+        yield self.onRun(details)
 
     def onCleanup(self, *args, **kwargs):
         self.wamp_logger.stop_flushing()
@@ -509,13 +510,13 @@ class BaseApplicationSession(ApplicationSession):
     def onDisconnect(self):
         self.log.info('{class_name} of {package_name} disconnected from realm {realm}', realm=self.session_config.get('realm'),
                       **self.component_info)
-        
+
         self.wamp_logger.stop_flushing()
 
         res = yield super(BaseApplicationSession, self).onDisconnect()
 
         returnValue(res)
-    
+
     # Class placeholder methods. Override these for custom events during 
     # application life cycle
     def preInit(self, **kwargs):
@@ -560,7 +561,7 @@ class BaseApplicationSession(ApplicationSession):
 
         return
 
-    def get_schema(self, schema_path, module_path = None):
+    def get_schema(self, schema_path, module_path=None):
         if module_path is None:
             module_path = self.component_info.get('module_path')
 
@@ -571,7 +572,7 @@ class BaseApplicationSession(ApplicationSession):
 
         schema_abs_path = os.path.join(module_path, 'schema', schema_path)
 
-        if os.path.isfile(schema_abs_path): 
+        if os.path.isfile(schema_abs_path):
             return json.load(open(schema_abs_path))
 
         self.log.error('ERROR: Schema not found in {}'.format(schema_abs_path))
@@ -580,7 +581,8 @@ class BaseApplicationSession(ApplicationSession):
 
     @inlineCallbacks
     def flush_logs(self, namespace, log_list):
-        res = yield self.publish(u'mdstudio.logger.endpoint.log.{}'.format(namespace), {'logs': log_list}, options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
+        res = yield self.publish(u'mdstudio.logger.endpoint.log.{}'.format(namespace), {'logs': log_list},
+                                 options=wamp.PublishOptions(acknowledge=True, exclude_me=False))
 
         returnValue({})
 
@@ -608,7 +610,7 @@ class BaseApplicationSession(ApplicationSession):
                             self._collect_subschemas(schema_def, subschemas)
                         else:
                             self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
-                                            namespace=schema.namespace, path=schema_path)
+                                           namespace=schema.namespace, path=schema_path)
         if subschemas:
             self._filter_schemas(itertools.chain(s['schema'] for s in subschemas), schema_list)
 
@@ -628,6 +630,8 @@ class BaseApplicationSession(ApplicationSession):
     @inlineCallbacks
     def _register_scopes(self):
         if self.function_scopes:
-            res = yield self.call('mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')), {'scopes': self.function_scopes})
+            res = yield self.call('mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
+                                  {'scopes': self.function_scopes})
 
-            self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes), package=self.component_info['package_name'])
+            self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
+                          package=self.component_info['package_name'])

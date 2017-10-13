@@ -11,8 +11,8 @@ from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.db.sort_mode import SortMode
 
 
+# noinspection PyCallByClass
 class ModelTests(unittest.TestCase):
-
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
         self.wrapper.component_info = mock.MagicMock()
@@ -36,21 +36,17 @@ class ModelTests(unittest.TestCase):
         self.documents = [self.document, self.document2]
 
     def test_construction(self):
-
         self.wrapper = mock.Mock()
         self.collection = 'coll'
         self.model = Model(self.wrapper, self.collection)
         self.assertEqual(self.model.wrapper, self.wrapper)
 
     def test_construction2(self):
-
         self.assertEquals(self.model.wrapper, self.wrapper)
 
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
 
-
     def test_construction3(self):
-
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
         self.wrapper.component_info = mock.MagicMock()
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
@@ -61,7 +57,6 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
 
     def test_construction4(self):
-
         self.wrapper = mock.MagicMock(spec=ApplicationSession)
         self.wrapper.component_info = mock.MagicMock()
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
@@ -72,7 +67,6 @@ class ModelTests(unittest.TestCase):
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
 
     def test_construction_class(self):
-
         class Users(Model):
             pass
 
@@ -81,27 +75,28 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(self.model.collection, 'users')
 
     def test_insert_one(self):
-
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_one(self.document)
 
         self.assertEquals(result, '12345')
 
-        self.wrapper.insert_one.assert_called_once_with(self.collection, self.document, None)
+        self.wrapper.insert_one.assert_called_once_with(self.collection,
+                                                        insert=self.document,
+                                                        date_fields=None)
 
     def test_insert_one_date_time_fields(self):
-
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_one(self.document, ['test'])
 
         self.assertEquals(result, '12345')
 
-        self.wrapper.insert_one.assert_called_once_with(self.collection, self.document, ['test'])
+        self.wrapper.insert_one.assert_called_once_with(self.collection,
+                                                        insert=self.document,
+                                                        date_fields=['test'])
 
     def test_insert_one_date_time_fields_inject(self):
-
         class Users(Model):
             date_time_fields = ['datefields']
 
@@ -112,10 +107,11 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, '12345')
 
-        self.wrapper.insert_one.assert_called_once_with('users', self.document, ['test', 'datefields'])
+        self.wrapper.insert_one.assert_called_once_with('users',
+                                                        insert=self.document,
+                                                        date_fields=['test', 'datefields'])
 
     def test_insert_one_date_time_fields_only_inject(self):
-
         class Users(Model):
             date_time_fields = ['datefields']
 
@@ -126,30 +122,33 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, '12345')
 
-        self.wrapper.insert_one.assert_called_once_with('users', self.document, ['datefields'])
+        self.wrapper.insert_one.assert_called_once_with('users',
+                                                        insert=self.document,
+                                                        date_fields=['datefields'])
 
     def test_insert_many(self):
-
         self.wrapper.insert_many.return_value = {'ids': ['12345', '456789']}
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_many(self.documents)
 
         self.assertEquals(result, ['12345', '456789'])
 
-        self.wrapper.insert_many.assert_called_once_with(self.collection, self.documents, None)
+        self.wrapper.insert_many.assert_called_once_with(self.collection,
+                                                         insert=self.documents,
+                                                         date_fields=None)
 
     def test_insert_many_date_time_fields(self):
-
         self.wrapper.insert_many.return_value = {'ids': ['12345', '456789']}
         self.wrapper.extract = IDatabase.extract
         result = self.model.insert_many(self.documents, ['test'])
 
         self.assertEquals(result, ['12345', '456789'])
 
-        self.wrapper.insert_many.assert_called_once_with(self.collection, self.documents, ['test'])
+        self.wrapper.insert_many.assert_called_once_with(self.collection,
+                                                         insert=self.documents,
+                                                         date_fields=['test'])
 
     def test_insert_many_date_time_fields_inject(self):
-
         class Users(Model):
             date_time_fields = ['datefields']
 
@@ -160,10 +159,11 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, ['12345', '456789'])
 
-        self.wrapper.insert_many.assert_called_once_with('users', self.documents, ['test', 'datefields'])
+        self.wrapper.insert_many.assert_called_once_with('users',
+                                                         insert=self.documents,
+                                                         date_fields=['test', 'datefields'])
 
     def test_insert_many_date_time_fields_only_inject(self):
-
         class Users(Model):
             date_time_fields = ['datefields']
 
@@ -174,10 +174,11 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, ['12345', '456789'])
 
-        self.wrapper.insert_many.assert_called_once_with('users', self.documents, ['datefields'])
+        self.wrapper.insert_many.assert_called_once_with('users',
+                                                         insert=self.documents,
+                                                         date_fields=['datefields'])
 
     def test_replace_one(self):
-
         self.wrapper.replace_one.return_value = {
             'matched': 1,
             'modified': 1
@@ -190,10 +191,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.replace_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, None)
+        self.wrapper.replace_one.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         replacement=self.document,
+                                                         upsert=False,
+                                                         date_fields=None)
 
     def test_replace_one_upsert(self):
-
         self.wrapper.replace_one.return_value = {
             'matched': 0,
             'modified': 1,
@@ -207,10 +211,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, 'test_id2')
 
-        self.wrapper.replace_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, True, None)
+        self.wrapper.replace_one.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         replacement=self.document,
+                                                         upsert=True,
+                                                         date_fields=None)
 
     def test_replace_one_date_time_fields(self):
-
         self.wrapper.replace_one.return_value = {
             'matched': 1,
             'modified': 1
@@ -223,10 +230,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.replace_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, ['test'])
+        self.wrapper.replace_one.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         replacement=self.document,
+                                                         upsert=False,
+                                                         date_fields=['test'])
 
     def test_replace_one_date_time_fields_inject(self):
-
         class Users(Model):
             date_time_fields = ['datefields']
 
@@ -243,12 +253,15 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.replace_one.assert_called_once_with('users', {'_id': 'test_id'}, self.document, False, ['test', 'datefields'])
+        self.wrapper.replace_one.assert_called_once_with('users',
+                                                         filter={'_id': 'test_id'},
+                                                         replacement=self.document,
+                                                         upsert=False,
+                                                         date_fields=['test', 'datefields'])
 
     def test_replace_one_date_time_fields_only_inject(self):
-
         class Users(Model):
-            date_time_fields = ['datefields']
+            date_time_fields = ['date_fields']
 
         self.wrapper.replace_one.return_value = {
             'matched': 1,
@@ -263,17 +276,26 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.replace_one.assert_called_once_with('users', {'_id': 'test_id'}, self.document, False, ['datefields'])
+        self.wrapper.replace_one.assert_called_once_with('users',
+                                                         filter={'_id': 'test_id'},
+                                                         replacement=self.document,
+                                                         upsert=False,
+                                                         date_fields=['date_fields'])
 
     def test_count(self):
-
         self.wrapper.count.return_value = {'total': 12345}
         self.wrapper.extract = IDatabase.extract
         result = self.model.count()
 
         self.assertEquals(result, 12345)
 
-        self.wrapper.count.assert_called_once_with(self.collection, None, None, None, None, cursor_id=None, with_limit_and_skip=False)
+        self.wrapper.count.assert_called_once_with(self.collection,
+                                                   filter=None,
+                                                   skip=None,
+                                                   limit=None,
+                                                   date_fields=None,
+                                                   cursor_id=None,
+                                                   with_limit_and_skip=False)
 
     def test_count_filter(self):
         self.wrapper.count.return_value = {'total': 12345}
@@ -282,7 +304,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 12345)
 
-        self.wrapper.count.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, cursor_id=None, with_limit_and_skip=False)
+        self.wrapper.count.assert_called_once_with(self.collection,
+                                                   filter={'_id': 'test_id'},
+                                                   skip=None,
+                                                   limit=None,
+                                                   date_fields=None,
+                                                   cursor_id=None,
+                                                   with_limit_and_skip=False)
 
     def test_count_skip(self):
         self.wrapper.count.return_value = {'total': 12345}
@@ -291,7 +319,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 12345)
 
-        self.wrapper.count.assert_called_once_with(self.collection, None, 10, None, None, cursor_id=None, with_limit_and_skip=False)
+        self.wrapper.count.assert_called_once_with(self.collection,
+                                                   filter=None,
+                                                   skip=10,
+                                                   limit=None,
+                                                   date_fields=None,
+                                                   cursor_id=None,
+                                                   with_limit_and_skip=False)
 
     def test_count_limit(self):
         self.wrapper.count.return_value = {'total': 12345}
@@ -300,7 +334,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 12345)
 
-        self.wrapper.count.assert_called_once_with(self.collection, None, None, 10, None, cursor_id=None, with_limit_and_skip=False)
+        self.wrapper.count.assert_called_once_with(self.collection,
+                                                   filter=None,
+                                                   skip=None,
+                                                   limit=10,
+                                                   date_fields=None,
+                                                   cursor_id=None,
+                                                   with_limit_and_skip=False)
 
     def test_count_date_field(self):
         self.wrapper.count.return_value = {'total': 12345}
@@ -310,7 +350,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 12345)
 
-        self.wrapper.count.assert_called_once_with(self.collection, None, None, None, ['test', 'test2'], cursor_id='test_id', with_limit_and_skip=False)
+        self.wrapper.count.assert_called_once_with(self.collection,
+                                                   filter=None,
+                                                   skip=None,
+                                                   limit=None,
+                                                   date_fields=['test', 'test2'],
+                                                   cursor_id='test_id',
+                                                   with_limit_and_skip=False)
 
     def test_count_cursor_id(self):
         self.wrapper.count.return_value = {'total': 12345}
@@ -319,7 +365,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 12345)
 
-        self.wrapper.count.assert_called_once_with(self.collection, None, None, None, None, cursor_id='test_id', with_limit_and_skip=False)
+        self.wrapper.count.assert_called_once_with(self.collection,
+                                                   filter=None,
+                                                   skip=None,
+                                                   limit=None,
+                                                   date_fields=None,
+                                                   cursor_id='test_id',
+                                                   with_limit_and_skip=False)
 
     def test_count_cursor_id_with_limit_and_skip(self):
         self.wrapper.count.return_value = {'total': 12345}
@@ -328,10 +380,15 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 12345)
 
-        self.wrapper.count.assert_called_once_with(self.collection, None, None, None, None, cursor_id='test_id', with_limit_and_skip=True)
+        self.wrapper.count.assert_called_once_with(self.collection,
+                                                   filter=None,
+                                                   skip=None,
+                                                   limit=None,
+                                                   date_fields=None,
+                                                   cursor_id='test_id',
+                                                   with_limit_and_skip=True)
 
     def test_update_one(self):
-
         self.wrapper.update_one.return_value = {
             'matched': 1,
             'modified': 1
@@ -344,10 +401,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.update_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, None)
+        self.wrapper.update_one.assert_called_once_with(self.collection,
+                                                        filter={'_id': 'test_id'},
+                                                        update=self.document,
+                                                        upsert=False,
+                                                        date_fields=None)
 
     def test_update_one_upsert(self):
-
         self.wrapper.update_one.return_value = {
             'matched': 0,
             'modified': 1,
@@ -361,10 +421,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, '1234')
 
-        self.wrapper.update_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, True, None)
+        self.wrapper.update_one.assert_called_once_with(self.collection,
+                                                        filter={'_id': 'test_id'},
+                                                        update=self.document,
+                                                        upsert=True,
+                                                        date_fields=None)
 
     def test_update_one_date_fields(self):
-
         self.wrapper.update_one.return_value = {
             'matched': 0,
             'modified': 1
@@ -378,10 +441,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.update_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, ['test', 'test2'])
+        self.wrapper.update_one.assert_called_once_with(self.collection,
+                                                        filter={'_id': 'test_id'},
+                                                        update=self.document,
+                                                        upsert=False,
+                                                        date_fields=['test', 'test2'])
 
     def test_update_many(self):
-
         self.wrapper.update_many.return_value = {
             'matched': 1,
             'modified': 1
@@ -394,10 +460,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.update_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, None)
+        self.wrapper.update_many.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         update=self.document,
+                                                         upsert=False,
+                                                         date_fields=None)
 
     def test_update_many_upsert(self):
-
         self.wrapper.update_many.return_value = {
             'matched': 0,
             'modified': 1,
@@ -411,10 +480,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, '1234')
 
-        self.wrapper.update_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, True, None)
+        self.wrapper.update_many.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         update=self.document,
+                                                         upsert=True,
+                                                         date_fields=None)
 
     def test_update_many_date_fields(self):
-
         self.wrapper.update_many.return_value = {
             'matched': 0,
             'modified': 1
@@ -428,10 +500,13 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(result.modified, 1)
         self.assertEquals(result.upserted_id, None)
 
-        self.wrapper.update_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document, False, ['test', 'test2'])
+        self.wrapper.update_many.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         update=self.document,
+                                                         upsert=False,
+                                                         date_fields=['test', 'test2'])
 
     def test_find_one(self):
-
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
@@ -440,10 +515,14 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, None)
+        self.wrapper.find_one.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      projection=None,
+                                                      skip=None,
+                                                      sort=None,
+                                                      date_fields=None)
 
     def test_find_one_projection(self):
-
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
@@ -452,10 +531,14 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, {'_id': 'id'}, None, None, None)
+        self.wrapper.find_one.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      projection={'_id': 'id'},
+                                                      skip=None,
+                                                      sort=None,
+                                                      date_fields=None)
 
     def test_find_one_skip(self):
-
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
@@ -464,10 +547,14 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, 10, None, None)
+        self.wrapper.find_one.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      projection=None,
+                                                      skip=10,
+                                                      sort=None,
+                                                      date_fields=None)
 
     def test_find_one_sort(self):
-
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
@@ -476,10 +563,14 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, [('_id', SortMode.Desc)], None)
+        self.wrapper.find_one.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      projection=None,
+                                                      skip=None,
+                                                      sort=[('_id', SortMode.Desc)],
+                                                      date_fields=None)
 
     def test_find_one_date_field(self):
-
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
@@ -489,10 +580,15 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, ['test2', 'test'])
+        self.wrapper.find_one.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      projection=None,
+                                                      skip=None,
+                                                      sort=None,
+                                                      date_fields=['test2', 'test'])
 
+    # noinspection PyCallByClass
     def test_find_many(self):
-
         self.wrapper.find_many.return_value = {
             '_id': 1234,
             'alive': False,
@@ -507,10 +603,15 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(lresults[0], self.document)
         self.assertEquals(lresults[1], self.document2)
 
-        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, None, None)
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection=None,
+                                                       skip=None,
+                                                       limit=None,
+                                                       sort=None,
+                                                       date_fields=None)
 
     def test_find_many_projection(self):
-
         self.wrapper.find_many.return_value = {
             '_id': 1234,
             'alive': False,
@@ -525,10 +626,15 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(lresults[0], self.document)
         self.assertEquals(lresults[1], self.document2)
 
-        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, {'_id': 'id'}, None, None, None, None)
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection={'_id': 'id'},
+                                                       skip=None,
+                                                       limit=None,
+                                                       sort=None,
+                                                       date_fields=None)
 
     def test_find_many_skip(self):
-
         self.wrapper.find_many.return_value = {
             '_id': 1234,
             'alive': False,
@@ -543,10 +649,15 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(lresults[0], self.document)
         self.assertEquals(lresults[1], self.document2)
 
-        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, 10, None, None, None)
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection=None,
+                                                       skip=10,
+                                                       limit=None,
+                                                       sort=None,
+                                                       date_fields=None)
 
     def test_find_many_limit(self):
-
         self.wrapper.find_many.return_value = {
             '_id': 1234,
             'alive': False,
@@ -561,10 +672,15 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(lresults[0], self.document)
         self.assertEquals(lresults[1], self.document2)
 
-        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, 10, None, None)
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection=None,
+                                                       skip=None,
+                                                       limit=10,
+                                                       sort=None,
+                                                       date_fields=None)
 
     def test_find_many_sort(self):
-
         self.wrapper.find_many.return_value = {
             '_id': 1234,
             'alive': False,
@@ -579,10 +695,15 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(lresults[0], self.document)
         self.assertEquals(lresults[1], self.document2)
 
-        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, [('_id', SortMode.Desc)], None)
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection=None,
+                                                       skip=None,
+                                                       limit=None,
+                                                       sort=[('_id', SortMode.Desc)],
+                                                       date_fields=None)
 
     def test_find_many_date_fields(self):
-
         self.wrapper.find_many.return_value = {
             '_id': 1234,
             'alive': False,
@@ -598,11 +719,15 @@ class ModelTests(unittest.TestCase):
         self.assertEquals(lresults[0], self.document)
         self.assertEquals(lresults[1], self.document2)
 
-        self.wrapper.find_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, None, None, ['test2', 'test'])
-
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection=None,
+                                                       skip=None,
+                                                       limit=None,
+                                                       sort=None,
+                                                       date_fields=['test2', 'test'])
 
     def test_find_one_and_update(self):
-
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
@@ -611,10 +736,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, None)
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 update=self.document2,
+                                                                 upsert=False,
+                                                                 projection=None,
+                                                                 sort=None,
+                                                                 return_updated=False,
+                                                                 date_fields=None)
 
     def test_find_one_and_update_projection(self):
-
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
@@ -623,10 +754,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, {'_id': 'id'}, None, False, None)
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 update=self.document2,
+                                                                 upsert=False,
+                                                                 projection={'_id': 'id'},
+                                                                 sort=None,
+                                                                 return_updated=False,
+                                                                 date_fields=None)
 
     def test_find_one_and_update_upsert(self):
-
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
@@ -635,10 +772,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, True, None, None, False, None)
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 update=self.document2,
+                                                                 upsert=True,
+                                                                 projection=None,
+                                                                 sort=None,
+                                                                 return_updated=False,
+                                                                 date_fields=None)
 
     def test_find_one_and_update_sort(self):
-
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
@@ -647,10 +790,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, [('_id', SortMode.Desc)], False, None)
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 update=self.document2,
+                                                                 upsert=False,
+                                                                 projection=None,
+                                                                 sort=[('_id', SortMode.Desc)],
+                                                                 return_updated=False,
+                                                                 date_fields=None)
 
     def test_find_one_and_update_return_updated(self):
-
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
@@ -659,10 +808,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, True, None)
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 update=self.document2,
+                                                                 upsert=False,
+                                                                 projection=None,
+                                                                 sort=None,
+                                                                 return_updated=True,
+                                                                 date_fields=None)
 
     def test_find_one_and_update_date_field(self):
-
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
@@ -672,10 +827,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_update.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, ['test2', 'test'])
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 update=self.document2,
+                                                                 upsert=False,
+                                                                 projection=None,
+                                                                 sort=None,
+                                                                 return_updated=False,
+                                                                 date_fields=['test2', 'test'])
 
     def test_find_one_and_replace(self):
-
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
@@ -684,10 +845,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, None)
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
+                                                                  filter={'_id': 'test_id'},
+                                                                  replacement=self.document2,
+                                                                  upsert=False,
+                                                                  projection=None,
+                                                                  sort=None,
+                                                                  return_updated=False,
+                                                                  date_fields=None)
 
     def test_find_one_and_replace_projection(self):
-
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
@@ -696,10 +863,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, {'_id': 'id'}, None, False, None)
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
+                                                                  filter={'_id': 'test_id'},
+                                                                  replacement=self.document2,
+                                                                  upsert=False,
+                                                                  projection={'_id': 'id'},
+                                                                  sort=None,
+                                                                  return_updated=False,
+                                                                  date_fields=None)
 
     def test_find_one_and_replace_upsert(self):
-
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
@@ -708,10 +881,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, True, None, None, False, None)
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
+                                                                  filter={'_id': 'test_id'},
+                                                                  replacement=self.document2,
+                                                                  upsert=True,
+                                                                  projection=None,
+                                                                  sort=None,
+                                                                  return_updated=False,
+                                                                  date_fields=None)
 
     def test_find_one_and_replace_sort(self):
-
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
@@ -720,10 +899,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, [('_id', SortMode.Desc)], False, None)
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
+                                                                  filter={'_id': 'test_id'},
+                                                                  replacement=self.document2,
+                                                                  upsert=False,
+                                                                  projection=None,
+                                                                  sort=[('_id', SortMode.Desc)],
+                                                                  return_updated=False,
+                                                                  date_fields=None)
 
     def test_find_one_and_replace_return_updated(self):
-
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
@@ -732,10 +917,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, True, None)
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
+                                                                  filter={'_id': 'test_id'},
+                                                                  replacement=self.document2,
+                                                                  upsert=False,
+                                                                  projection=None,
+                                                                  sort=None,
+                                                                  return_updated=True,
+                                                                  date_fields=None)
 
     def test_find_one_and_replace_date_field(self):
-
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
@@ -745,11 +936,16 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, False, None, None, False, ['test2', 'test'])
-
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
+                                                                  filter={'_id': 'test_id'},
+                                                                  replacement=self.document2,
+                                                                  upsert=False,
+                                                                  projection=None,
+                                                                  sort=None,
+                                                                  return_updated=False,
+                                                                  date_fields=['test2', 'test'])
 
     def test_find_one_and_delete(self):
-
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
@@ -758,10 +954,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'}, self.document2, None, None)
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 projection=self.document2,
+                                                                 sort=None,
+                                                                 date_fields=None)
 
     def test_find_one_and_delete_projection(self):
-
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
@@ -770,10 +969,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'},  {'_id': 'id'}, None, None)
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 projection={'_id': 'id'},
+                                                                 sort=None,
+                                                                 date_fields=None)
 
     def test_find_one_and_delete_sort(self):
-
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
@@ -782,10 +984,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, [('_id', SortMode.Desc)], None)
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 projection=None,
+                                                                 sort=[('_id', SortMode.Desc)],
+                                                                 date_fields=None)
 
     def test_find_one_and_delete_date_field(self):
-
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
@@ -795,10 +1000,13 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.document)
 
-        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection, {'_id': 'test_id'}, None, None, ['test2', 'test'])
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
+                                                                 filter={'_id': 'test_id'},
+                                                                 projection=None,
+                                                                 sort=None,
+                                                                 date_fields=['test2', 'test'])
 
     def test_distinct(self):
-
         self.wrapper.distinct.return_value = {
             'results': self.documents
         }
@@ -807,10 +1015,12 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.documents)
 
-        self.wrapper.distinct.assert_called_once_with(self.collection, '_id', None, None)
+        self.wrapper.distinct.assert_called_once_with(self.collection,
+                                                      field='_id',
+                                                      filter=None,
+                                                      date_fields=None)
 
     def test_distinct_filter(self):
-
         self.wrapper.distinct.return_value = {
             'results': self.documents
         }
@@ -819,10 +1029,12 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.documents)
 
-        self.wrapper.distinct.assert_called_once_with(self.collection, '_id', {'_id': 'test_id'}, None)
+        self.wrapper.distinct.assert_called_once_with(self.collection,
+                                                      field='_id',
+                                                      filter={'_id': 'test_id'},
+                                                      date_fields=None)
 
     def test_distinct_date_fields(self):
-
         self.wrapper.distinct.return_value = {
             'results': self.documents
         }
@@ -832,10 +1044,12 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, self.documents)
 
-        self.wrapper.distinct.assert_called_once_with(self.collection, '_id', None, ['test', 'test2'])
+        self.wrapper.distinct.assert_called_once_with(self.collection,
+                                                      field='_id',
+                                                      filter=None,
+                                                      date_fields=['test', 'test2'])
 
     def test_aggregate(self):
-
         self.wrapper.aggregate.return_value = {
             '_id': 1234,
             'alive': False,
@@ -850,7 +1064,7 @@ class ModelTests(unittest.TestCase):
         lresults = list(results)
         self.assertEquals(lresults, self.documents)
 
-        self.wrapper.aggregate.assert_called_once_with(self.collection, [{'_id': 'test_id'}])
+        self.wrapper.aggregate.assert_called_once_with(self.collection, pipeline=[{'_id': 'test_id'}])
 
     def test_delete_one(self):
         self.wrapper.delete_one.return_value = {
@@ -861,7 +1075,9 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 1)
 
-        self.wrapper.delete_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, None)
+        self.wrapper.delete_one.assert_called_once_with(self.collection,
+                                                        filter={'_id': 'test_id'},
+                                                        date_fields=None)
 
     def test_delete_one_date_fields(self):
         self.wrapper.delete_one.return_value = {
@@ -873,7 +1089,9 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 1)
 
-        self.wrapper.delete_one.assert_called_once_with(self.collection, {'_id': 'test_id'}, ['test2', 'test'])
+        self.wrapper.delete_one.assert_called_once_with(self.collection,
+                                                        filter={'_id': 'test_id'},
+                                                        date_fields=['test2', 'test'])
 
     def test_delete_many(self):
         self.wrapper.delete_many.return_value = {
@@ -884,7 +1102,9 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 2)
 
-        self.wrapper.delete_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, None)
+        self.wrapper.delete_many.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         date_fields=None)
 
     def test_delete_many_date_fields(self):
         self.wrapper.delete_many.return_value = {
@@ -896,4 +1116,6 @@ class ModelTests(unittest.TestCase):
 
         self.assertEquals(result, 2)
 
-        self.wrapper.delete_many.assert_called_once_with(self.collection, {'_id': 'test_id'}, ['test2', 'test'])
+        self.wrapper.delete_many.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         date_fields=['test2', 'test'])

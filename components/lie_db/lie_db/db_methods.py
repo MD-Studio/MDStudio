@@ -7,6 +7,9 @@ import hashlib
 import pytz
 import random
 from dateutil.parser import parse as parsedate
+from twisted.internet.threads import deferToThread
+
+from make_deferred import make_deferred
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType
 from pymongo import MongoClient, ReturnDocument
 from bson import ObjectId
@@ -34,6 +37,7 @@ class MongoDatabaseWrapper(IDatabase):
         #         and should be fixed ASAP
         self._cursors = CacheDict(max_age_seconds=10 * 60)
 
+    @make_deferred
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
         cursor = self._cursors[cursor_id].next()
@@ -43,12 +47,14 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._get_cursor(cursor)
 
+    @make_deferred
     def rewind(self, cursor_id):
         # type: (str) -> Dict[str, Any]
         self._cursors[cursor_id].rewind()
 
         return self.more(cursor_id)
 
+    @make_deferred
     def insert_one(self, collection, insert, date_fields=None):
         # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
@@ -60,6 +66,7 @@ class MongoDatabaseWrapper(IDatabase):
             'id': str(db_collection.insert_one(insert).inserted_id)
         }
 
+    @make_deferred
     def insert_many(self, collection, insert, date_fields=None):
         # type: (CollectionType, List[DocumentType], DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
@@ -73,6 +80,7 @@ class MongoDatabaseWrapper(IDatabase):
             'ids': [str(oid) for oid in db_collection.insert_many(insert).inserted_ids]
         }
 
+    @make_deferred
     def replace_one(self, collection, filter, replacement, upsert=False, date_fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
@@ -88,6 +96,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
+    @make_deferred
     def count(self, collection=None, filter=None, skip=None, limit=None, date_fields=None, cursor_id=None, with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[DateFieldsType], Optional[str]) -> Dict[str, Any]
         total = 0
@@ -106,6 +115,7 @@ class MongoDatabaseWrapper(IDatabase):
             'total': total
         }
 
+    @make_deferred
     def update_one(self, collection, filter, update, upsert=False, date_fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
@@ -121,6 +131,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
+    @make_deferred
     def update_many(self, collection, filter, update, upsert=False, date_fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
@@ -136,6 +147,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._update_response(upsert, replace_result=replace_result)
 
+    @make_deferred
     def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
@@ -152,6 +164,7 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
+    @make_deferred
     def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
@@ -170,6 +183,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._get_cursor(cursor)
 
+    @make_deferred
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, date_fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
@@ -189,6 +203,7 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
+    @make_deferred
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, date_fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
@@ -208,6 +223,7 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
+    @make_deferred
     def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
@@ -223,6 +239,7 @@ class MongoDatabaseWrapper(IDatabase):
             'result': result
         }
 
+    @make_deferred
     def distinct(self, collection, field, filter=None, date_fields=None):
         # type: (CollectionType, str, Optional[DocumentType], DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
@@ -239,6 +256,7 @@ class MongoDatabaseWrapper(IDatabase):
             'results': results
         }
 
+    @make_deferred
     def aggregate(self, collection, pipeline):
         # type: (CollectionType, List[AggregationOperator]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
@@ -254,6 +272,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._get_cursor(cursor)
 
+    @make_deferred
     def delete_one(self, collection, filter, date_fields=None):
         # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
@@ -267,6 +286,7 @@ class MongoDatabaseWrapper(IDatabase):
             'count': count
         }
 
+    @make_deferred
     def delete_many(self, collection=None, filter=None, date_fields=None):
         # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)

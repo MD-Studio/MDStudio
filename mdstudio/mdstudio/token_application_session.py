@@ -1,5 +1,7 @@
+# coding=utf-8
 from autobahn.twisted.wamp import ApplicationSession
 from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock
+
 
 class TokenApplicationSession(ApplicationSession):
     def __init__(self, config, **kwargs):
@@ -8,7 +10,6 @@ class TokenApplicationSession(ApplicationSession):
 
         self.oauth_token = config.extra['oauth_token']
         self.operation = config.extra['operation']
-
 
     def onConnect(self):
         # Establish transport layer
@@ -27,4 +28,3 @@ class TokenApplicationSession(ApplicationSession):
 
     def onLeave(self, details):
         pass
-        

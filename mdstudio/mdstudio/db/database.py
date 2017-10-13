@@ -5,7 +5,6 @@ import abc
 
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.sort_mode import SortMode
-from mdstudio.db.collection import Collection
 
 try:
     from pymongo.collection import Collection
@@ -90,7 +89,6 @@ class IDatabase:
     def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
         # type: (CollectionType, DocumentType, Optional[ProjectionOperators], SortOperators, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
-
 
     @abc.abstractmethod
     def distinct(self, collection, field, filter=None, date_fields=None):

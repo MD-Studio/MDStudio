@@ -6,7 +6,6 @@ from mdstudio.db.cursor import Cursor
 
 
 class CursorTests(unittest.TestCase):
-
     def setUp(self):
         self.wrapper = mock.Mock()
         self.values = [
@@ -37,7 +36,7 @@ class CursorTests(unittest.TestCase):
         for i, v in enumerate(self.cursor):
             self.assertEqual(v, self.values[i])
 
-        self.wrapper.more.assert_called_with(**{'cursor_id':1234})
+        self.wrapper.more.assert_called_with(**{'cursor_id': 1234})
 
     def test_more(self):
 
@@ -62,12 +61,12 @@ class CursorTests(unittest.TestCase):
         self.wrapper.more = mock.MagicMock(return_value={'_id': 1244, 'alive': True, 'results': [{'test3': 8}]})
         self.assertEqual(nxt(), {'test3': 8})
 
-        self.wrapper.more.assert_called_with(**{'cursor_id':1234})
+        self.wrapper.more.assert_called_with(**{'cursor_id': 1234})
 
         self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': [{'test6': 2}]})
         self.assertEqual(nxt(), {'test6': 2})
 
-        self.wrapper.more.assert_called_with(**{'cursor_id':1244})
+        self.wrapper.more.assert_called_with(**{'cursor_id': 1244})
 
         self.assertRaises(StopIteration, nxt)
 

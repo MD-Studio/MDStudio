@@ -61,7 +61,8 @@ class Cursor:
         # type: () -> bool
         return self._alive
 
-    def _create_cursor(self, wrapper, rewind):
+    @staticmethod
+    def _create_cursor(wrapper, rewind):
         return Cursor(wrapper, rewind)
 
     def _refresh(self):

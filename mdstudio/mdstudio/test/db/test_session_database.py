@@ -3,7 +3,7 @@ import unittest
 
 from mock import mock
 from twisted.internet.defer import Deferred
-from twisted.trial._asynctest import TestCase
+from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.session_database import SessionDatabaseWrapper
@@ -590,7 +590,6 @@ class SessionDatabaseWrapperTests(unittest.TestCase):
 
 
 class TestSessionDatabaseWrapperDeferred(TestCase):
-
     def test_extract(self):
         d = {
             'test': 2,
@@ -604,14 +603,13 @@ class TestSessionDatabaseWrapperDeferred(TestCase):
         SessionDatabaseWrapper.extract(d, 'test2').addCallback(self.assertEqual, 3)
 
     def test_transform(self):
-
         identity = lambda x: x
         const = lambda x: 2
         SessionDatabaseWrapper.transform(None, identity).addCallback(self.assertEqual, None)
         SessionDatabaseWrapper.transform(None, const).addCallback(self.assertEqual, None)
         SessionDatabaseWrapper.transform(4, const).addCallback(self.assertEqual, 2)
         SessionDatabaseWrapper.transform(3, identity).addCallback(self.assertEqual, 3)
-        SessionDatabaseWrapper.transform(2, lambda x: x**2).addCallback(self.assertEqual, 4)
+        SessionDatabaseWrapper.transform(2, lambda x: x ** 2).addCallback(self.assertEqual, 4)
         SessionDatabaseWrapper.transform('test', identity).addCallback(self.assertEqual, 'test')
 
     def test_make_cursor(self):

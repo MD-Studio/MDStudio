@@ -1,7 +1,8 @@
+# coding=utf-8
 import os
 from twisted.python import log, logfile
 
-from .logger import PrintingObserver, WampLogObserver,block_on
+from .logger import PrintingObserver, WampLogObserver, block_on
 
 # Add global observer for daily logs
 if os.getenv('_LIE_GLOBAL_LOG', 0) == '1':

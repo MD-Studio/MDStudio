@@ -8,7 +8,6 @@ from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFi
     SortOperators, AggregationOperator
 
 
-
 class SessionDatabaseWrapper(IDatabase):
 
     def __init__(self, session):
@@ -281,9 +280,9 @@ class SessionDatabaseWrapper(IDatabase):
 
     @staticmethod
     @inlineCallbacks
-    def extract(result, property):
+    def extract(result, prperty):
         res = yield result
-        returnValue(res[property])
+        returnValue(res[prperty])
 
     @staticmethod
     @inlineCallbacks

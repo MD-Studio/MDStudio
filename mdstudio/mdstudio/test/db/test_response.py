@@ -5,7 +5,6 @@ from mdstudio.db.response import UpdateManyResponse, UpdateOneResponse, ReplaceO
 
 
 class ResponseTests(unittest.TestCase):
-
     def test_UpdateManyResponse(self):
         many = UpdateManyResponse({
             'matched': 2,

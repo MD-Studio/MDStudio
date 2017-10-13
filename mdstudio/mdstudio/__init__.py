@@ -10,7 +10,7 @@ import sys
 
 import os
 
-__module__    = 'mdstudio'
+__module__ = 'mdstudio'
 __docformat__ = 'restructuredtext'
 __version__ = '{major:d}.{minor:d}'.format(major=0, minor=1)
 __author__ = 'Marc van Dijk'

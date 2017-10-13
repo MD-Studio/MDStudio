@@ -1,27 +1,22 @@
-import threading
-import copy
+# coding=utf-8
 import json
-import pytz
-import sys
-import os
-
 from datetime import datetime
-from twisted.python import log
-from zope.interface import provider, implementer
-from twisted.python import logfile
-from twisted.internet import reactor
-from autobahn.wamp.exception import ApplicationError
-from twisted.internet.defer import inlineCallbacks, returnValue
+
+import os
+import pytz
 from autobahn.twisted.util import sleep
+from autobahn.wamp.exception import ApplicationError
+from twisted.internet import reactor
+from twisted.internet.defer import inlineCallbacks
 from twisted.python.failure import Failure
-from twisted.logger import (ILogObserver, ILogFilterPredicate, PredicateResult, LogLevel,
-                            globalLogPublisher, Logger, FilteringLogObserver, LogLevelFilterPredicate)
 
 from mdstudio import is_python3
 
 if is_python3:
+    # noinspection PyCompatibility
     from queue import Queue, Empty
 else:
+    # noinspection PyCompatibility
     from Queue import Queue, Empty
 
 
@@ -37,7 +32,9 @@ def block_on(d, timeout=None):
     else:
         return ret
 
+
 LOGLEVELS = ['debug', 'info', 'warn', 'error', 'critical']
+
 
 class PrintingObserver:
     """
@@ -54,7 +51,7 @@ class PrintingObserver:
     :type datefmt:       string
     """
 
-    def __init__(self, out, namespace = None, min_level='info', **kwargs):
+    def __init__(self, out, namespace=None, min_level='info', **kwargs):
         self._out = open(out, 'w') if out == os.devnull else out
 
         self.format_event = '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n'
@@ -92,8 +89,8 @@ class PrintingObserver:
             if oldMsg:
                 event['message'] = oldMsg
 
-class WampLogObserver(object):
 
+class WampLogObserver(object):
     def __init__(self, session, file, min_level='info'):
         self.format_event = '{asctime} - [{log_level.name:<5}: {log_namespace}] - {message}\n'
 
@@ -140,16 +137,16 @@ class WampLogObserver(object):
 
     def stop_flushing(self):
         self.shutdown = True
-    
+
     @inlineCallbacks
-    def _flush(self):        
+    def _flush(self):
         while not self.log_queue.empty() and not self.shutdown:
             try:
-                log = self.log_queue.get(timeout=0.1)
+                rlog = self.log_queue.get(timeout=0.1)
             except TimeoutError as e:
                 pass
             else:
-                self.log_list.append(log)
+                self.log_list.append(rlog)
 
         if len(self.log_list) > 0 and not self.shutdown:
             try:

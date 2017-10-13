@@ -1,7 +1,8 @@
+# coding=utf-8
 import os
 
-from autobahn.twisted.wamp  import ApplicationRunner, ComponentConfig
-from twisted.internet.ssl   import CertificateOptions
+from autobahn.twisted.wamp import ApplicationRunner, ComponentConfig
+from twisted.internet.ssl import CertificateOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet import reactor
 from twisted.logger import Logger
@@ -19,6 +20,7 @@ runner = ApplicationRunner(
     ssl=options
 )
 
+
 def main(component, extra=None, oninit=None, onexit=None, auto_reconnect=True, start_reactor=True):
     def make(cfg):
         if extra:
@@ -28,6 +30,5 @@ def main(component, extra=None, oninit=None, onexit=None, auto_reconnect=True, s
             return component(cfg)
         else:
             return component
-    
 
     return runner.run(make, auto_reconnect=auto_reconnect, start_reactor=(not reactor.running and start_reactor))
