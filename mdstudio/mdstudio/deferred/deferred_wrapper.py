@@ -1,12 +1,11 @@
-from twisted.internet import defer
+from twisted.internet.defer import Deferred
 import time
 
-# noinspection PyMissingConstructor
-class DeferredWrapper(defer.Deferred):
-    def __init__(self, deferred, *args, **kwargs):
-        self.__deferred = deferred
-        super().__init__(*args, **kwargs)
 
+# noinspection PyMissingConstructor
+class DeferredWrapper(Deferred):
+    def __init__(self, deferred):
+        self.__deferred = deferred
 
     def __getattr__(self, name):
         if hasattr(self.__deferred, name):
@@ -20,11 +19,11 @@ class DeferredWrapper(defer.Deferred):
                 #     result = yield getattr(res, name)(*args, **kwargs)
                 #     print(result)
                 #     defer.returnValue(result)
-                d = defer.Deferred()
+                d = Deferred()
 
                 def unwrapped_deferred(result):
                     res = getattr(result, name)(*args, **kwargs)
-                    if isinstance(res, defer.Deferred):
+                    if isinstance(res, Deferred):
                         res.addCallback(d.callback)
                     else:
                         d.callback(res)
