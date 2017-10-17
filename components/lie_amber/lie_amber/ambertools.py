@@ -4,7 +4,7 @@ import os
 import copy
 
 from .settings import SETTINGS
-from executor import ExternalCommand
+from subprocess import (PIPE, Popen)
 from twisted.logger import Logger
 
 logging = Logger()
@@ -12,7 +12,7 @@ logging = Logger()
 
 def set_bool_flags(options):
     return ['--{0}'.format(option) for option, flag
-            in options.items() if flag]
+            in options.items() if isinstance(flag, bool) and flag]
 
 
 def set_keyword_flags(options):
@@ -30,8 +30,13 @@ def amber_acpype(mol, workdir=None, **kwargs):
       Parser interfacE. (2012), BMC Res Notes. 2012 Jul 23;5:367.
       doi: 10.1186/1756-0500-5-367.
     """
-    # Construct CLI arguments
     acepype_exe = 'acpype.py'
+
+    # Check the input file
+    if not os.path.exists(mol):
+        logging.error('Input file does not exist {0}'.format(mol))
+
+    # Construct CLI arguments
     options = copy.deepcopy(SETTINGS['amber_acpype'])
     options.update(
         {k.lower().strip('-'): v for k, v in kwargs.items()}
@@ -42,28 +47,38 @@ def amber_acpype(mol, workdir=None, **kwargs):
         options['keyword'] = '"{0}"'.format(options['keyword'].strip('"'))
 
     # Process boolean flags
-    flags = set_bool_flags(options)
+    flags_1 = set_bool_flags(options)
 
     # Process keyword argument flags
-    flags = set_keyword_flags(options)
+    flags_2 = set_keyword_flags(options)
 
-    logging.info("Running ACPYPE with command line arguments: {0}".format(','.join(flags)))
+    flags = flags_1 + flags_2
+
+    logging.info(
+        "Running ACPYPE with command line arguments: {0}".format(', '.join(flags)))
     not_supported = ['--{0}'.format(n) for n in kwargs
                      if not n.lower() in SETTINGS['amber_acpype']]
     if not_supported:
         logging.warn(
-            "Following command line arguments not supported by ACPYPE: {0}".format(','.join(not_supported)))
+            "Following command line arguments not supported by ACPYPE: {0}".format(
+                ','.join(not_supported)))
 
     workdir_name = os.path.splitext(mol)[0]
     cmd = [acepype_exe, '-i', mol] + flags
 
+    logging.info(
+        "ACPYPE command: {0}".format(', '.join(cmd)))
+
     # Run the command
-    runner = ExternalCommand(
-            ' '.join(cmd), capture=True, check=False, **self._executor_commands)
-    output = runner.start()
+    os.chdir(workdir)
+    p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    cmd_out, cmd_err = p.communicate()
+    logging.info("OUTPUT:\n{}".format(cmd_out))
+    if cmd_err:
+        logging.error("Error:\n{}".format(cmd_err))
 
     output_path = os.path.join(workdir, '{0}.acpype'.format(workdir_name))
-    if runner.succeeded and os.path.isdir(output_path):
+    if os.path.isdir(output_path):
         return output_path
     else:
         logging.error('Acpype failed')
