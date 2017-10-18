@@ -54,8 +54,6 @@ def amber_acpype(mol, workdir=None, **kwargs):
 
     flags = flags_1 + flags_2
 
-    logging.info(
-        "Running ACPYPE with command line arguments: {0}".format(', '.join(flags)))
     not_supported = ['--{0}'.format(n) for n in kwargs
                      if not n.lower() in SETTINGS['amber_acpype']]
     if not_supported:
@@ -67,7 +65,7 @@ def amber_acpype(mol, workdir=None, **kwargs):
     cmd = [acepype_exe, '-i', mol] + flags
 
     logging.info(
-        "ACPYPE command: {0}".format(', '.join(cmd)))
+        "ACPYPE command: {0}".format(' '.join(cmd)))
 
     # Run the command
     os.chdir(workdir)
