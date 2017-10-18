@@ -71,9 +71,9 @@ def amber_acpype(mol, workdir=None, **kwargs):
     os.chdir(workdir)
     p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     cmd_out, cmd_err = p.communicate()
-    logging.info("OUTPUT:\n{}".format(cmd_out))
+    logging.info("OUTPUT ACPYPE:\n{}".format(cmd_out))
     if cmd_err:
-        logging.error("Error:\n{}".format(cmd_err))
+        logging.error("Error ACPYPE:\n{}".format(cmd_err))
 
     output_path = os.path.join(workdir, '{0}.acpype'.format(workdir_name))
     if os.path.isdir(output_path):
