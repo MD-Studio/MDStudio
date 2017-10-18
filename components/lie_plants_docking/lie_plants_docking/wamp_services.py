@@ -7,14 +7,12 @@ WAMP service methods the module exposes.
 """
 
 import os
-import sys
-import time
 import json
 import jsonschema
 
 from autobahn import wamp
 from autobahn.wamp.types import RegisterOptions
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from lie_plants_docking import settings, plants_docking_schema
 from lie_plants_docking.plants_docking import PlantsDocking
@@ -65,11 +63,11 @@ class DockingWampApi(LieApplicationSession):
         else:
             self.logger.error('File does not exists: {0}'.format(structure_path))
             return {'result': None}
-    
+
     def run_docking(self, session={}, **kwargs):
         """
         Perform a PLANTS (Protein-Ligand ANT System) molecular docking.
-        
+
         :param session:  call session information
         :type session:   :py:dict
         :param kwargs:   Plants configuration keyword arguments in accordance
@@ -79,30 +77,32 @@ class DockingWampApi(LieApplicationSession):
         :return:         Docking results
         :rtype:          Task data construct
         """
-        
+
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
-        
+
         # Load PLANTS configuration and update
         plants_config = self.package_config.lie_plants_docking.dict()
         plants_config.update(kwargs)
-        
+
         # Validate against JSON schema
         jsonschema.validate(plants_config, PLANTS_DOCKING_SCHEMA)
-        
+
         # Run the docking
-        #self.logger.info('Initiate PLANTS docking', **session)
+        # self.logger.info('Initiate PLANTS docking', **session)
 
         # Prepaire docking directory
-        if not 'workdir' in plants_config:
-            plants_config['workdir'] = prepaire_work_dir(plants_config.get('workdir', None), 
-                                                         user=session.get('authid', None),
-                                                         create=True)
-        
+        if 'workdir'not in plants_config:
+            plants_config['workdir'] = prepaire_work_dir(
+                plants_config.get('workdir', None),
+                user=session.get('authid', None),
+                create=True)
+
         # Run docking
-        docking = PlantsDocking(user_meta=session, **plants_config)  
-        success = docking.run(plants_config['protein_file'], plants_config['ligand_file'])
-        
+        docking = PlantsDocking(user_meta=session, **plants_config)
+        success = docking.run(
+            plants_config['protein_file'], plants_config['ligand_file'])
+
         if success:
             session['status'] = 'completed'
             results = docking.results()
@@ -113,7 +113,7 @@ class DockingWampApi(LieApplicationSession):
             docking.delete()
 
         #self.logger.info('Finished PLANTS docking', **session)
-        
+
         return {'session': session, 'output': results}
 
 
