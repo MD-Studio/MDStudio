@@ -151,9 +151,9 @@ class Graph(object):
         other_edges_keys = set(other.edges.keys())
         self_edges_keys = set(self.edges.keys())
 
-        return all(
+        return all((
             other_nodes_keys.issubset(self_nodes_keys),
-            other_edges_keys.issubset(self_edges_keys))
+            other_edges_keys.issubset(self_edges_keys)))
 
     def __copy__(self, memo={}):
         """
