@@ -3,7 +3,6 @@
 import os
 import sys
 import time
-import logging
 import threading
 import jsonschema
 import json
