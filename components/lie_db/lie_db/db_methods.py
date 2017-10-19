@@ -9,9 +9,10 @@ import random
 from dateutil.parser import parse as parsedate
 from twisted.internet.threads import deferToThread
 
-from make_deferred import make_deferred
+from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType
 from pymongo import MongoClient, ReturnDocument
+from pymongo.cursor import Cursor
 from bson import ObjectId
 from twisted.logger import Logger
 
@@ -324,8 +325,14 @@ class MongoDatabaseWrapper(IDatabase):
                             doc['_id'][k] = [ObjectId(oid) for oid in v]
 
     def _get_cursor(self, cursor):
-        size = len(cursor._Cursor__data)
+        # type: (Cursor) -> dict
+        # firstDoc = cursor.next()
+        # results = [] if firstDoc is None else [self._prepare_for_json(firstDoc)]
         results = []
+
+        # size = len(cursor._Cursor__data)
+        size = cursor._refresh()
+        
         for _ in range(size):
             doc = cursor.next()
             self._prepare_for_json(doc)
@@ -334,11 +341,11 @@ class MongoDatabaseWrapper(IDatabase):
         # cache the cursor for later use
         # by default it will be available for 10 minutes we also
         # hash the cursor id to make random guessing a lot harder
-        cursor_hash = hashlib.sha256(cursor.cursor_id + random.randint(1, 999999)).hexdigest()
+        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 999999)).encode()).hexdigest()
         self._cursors[cursor_hash] = cursor
 
         return {
-            'result': results,
+            'results': results,
             'size': size,
             'cursorId': cursor_hash,
             'alive': cursor.alive
