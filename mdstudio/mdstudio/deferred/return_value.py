@@ -1,9 +1,6 @@
 from typing import TypeVar
 
-from twisted.internet.defer import returnValue
+from twisted.internet import defer
 
 
-T = TypeVar('T')
-def return_value(val):
-    # type: (T) -> T
-    returnValue(val)
+return_value = defer.returnValue # T = TypeVar('T')

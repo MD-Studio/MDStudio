@@ -8,7 +8,7 @@ import re
 from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from .config.handler import ConfigHandler
+# from .config.handler import ConfigHandler
 from .logging import block_on
 
 # add unicode placeholder for PY3
@@ -38,7 +38,8 @@ def resolve_config(config):
 
     settings = {}
     if config:
-        if type(config) in (dict, ConfigHandler):
+        # if type(config) in (dict, ConfigHandler):
+        if isinstance(config, dict):
             return config
 
         if type(config) in (str, unicode):
@@ -294,3 +295,12 @@ def register(uri, input_schema, output_schema, match=None, options=None, scope=N
         return wrapped_f
 
     return wrap_f
+
+
+
+class MDStudioHelper:
+    def __init__(self):
+        pass
+
+    def register(self, uri, input_schema, output_schema, match=None, options=None, scope=None):
+        return register(uri, input_schema, output_schema, match, options, scope)

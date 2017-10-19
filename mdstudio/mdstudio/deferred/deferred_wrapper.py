@@ -1,38 +1,86 @@
 from twisted.internet import defer
 import time
 
-# noinspection PyMissingConstructor
-class DeferredWrapper(defer.Deferred):
-    def __init__(self, deferred, *args, **kwargs):
-        self.__deferred = deferred
-        super().__init__(*args, **kwargs)
+class DeferredWrapper:
+    @property
+    def __class__(self):
+        # Fake being a Deferred. We pass through everything to the deferred and catch what is not defined.
+        return defer.Deferred
 
+    def __init__(self, deferred):
+        self.__deferred = deferred
+
+    def __call__(self, *args, **kwargs):
+        # New deferred
+        d = defer.Deferred()
+
+        def chained(result):
+            # When the result of our __deferred arrives, call the function (assuming it's possible) and pass the result
+            # to the new deferred
+            result = result(*args, **kwargs)
+            if isinstance(result, defer.Deferred):
+                result.addCallback(d.callback)
+            else:
+                d.callback(result)
+        
+        # Register the chained function to catch the result of the old __deferred
+        self.__deferred.addCallback(chained)
+
+        # Return a new wrapper to allow further chaining and yielding of results
+        return DeferredWrapper(d)
+
+    def __getitem__(self, key):
+        d = defer.Deferred()
+
+        def unwrapped_deferred(result):
+            d.callback(result[key])
+
+        self.__deferred.addCallback(unwrapped_deferred)
+
+        return DeferredWrapper(d)
+
+    def __setitem__(self, key, value):
+        d = defer.Deferred()
+
+        def unwrapped_deferred(result):
+            result[key] = value
+            d.callback(None)
+
+        self.__deferred.addCallback(unwrapped_deferred)
+
+        return DeferredWrapper(d)
+
+    def __getattribute__(self, name):
+        return object.__getattribute__(self, name)
 
     def __getattr__(self, name):
+        # print(name)
         if hasattr(self.__deferred, name):
+            # If we try to address a property of the internal Deferred, pass it through
             return getattr(self.__deferred, name)
+        elif name == 'result':
+            # Prevent infinite nesting when the __deferred does not have a result yet
+            return None
         elif name != '__deferred':
-            # print(name)
-            def unwrap_deferred(*args, **kwargs):
-                # def _unwrap_deferred(*args, **kwargs):
-                #     d = defer.Deferred()
-                #     res = yield self.__deferred.addBoth()
-                #     result = yield getattr(res, name)(*args, **kwargs)
-                #     print(result)
-                #     defer.returnValue(result)
-                d = defer.Deferred()
+            # New deferred
+            d = defer.Deferred()
 
-                def unwrapped_deferred(result):
-                    res = getattr(result, name)(*args, **kwargs)
-                    if isinstance(res, defer.Deferred):
-                        res.addCallback(d.callback)
-                    else:
-                        d.callback(res)
+            # This will be called once the result arrives
+            def unwrapped_deferred(result):
+                # Get the desired attribute from the result
+                res = getattr(result, name)
 
-                self.__deferred.addCallback(unwrapped_deferred)
+                if isinstance(res, defer.Deferred):
+                    # If the result is a Deferred, pass through the result once it arrives
+                    res.addCallback(d.callback)
+                else:
+                    # Otherwise, pass the attribute (possibly a function) to the new deferred for further chaining
+                    d.callback(res)
 
-                return DeferredWrapper(d)
+            # Register the unwrapper to catch the result of the old __deferred
+            self.__deferred.addCallback(unwrapped_deferred)
 
-            return unwrap_deferred
+            # Return a new wrapper to allow further chaining and yielding of results
+            return DeferredWrapper(d)
         else:
-            return self.__dict__['_DeferredWrapper{}'.format(name)]
+            raise NotImplementedError("This execution path should not be taken")

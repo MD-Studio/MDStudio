@@ -62,7 +62,7 @@ class ModelTests(unittest.TestCase):
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
 
         self.model = Model(self.wrapper, self.collection)
-        self.assertNotEquals(self.model.wrapper, self.wrapper)
+        self.assertNotEqual(self.model.wrapper, self.wrapper)
 
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
 

@@ -1,15 +1,16 @@
 from twisted.internet.defer import Deferred, inlineCallbacks
 from twisted.trial.unittest import TestCase
-from twisted.internet import reactor
+from twisted.internet import reactor, threads
+import threading
 import twisted
 
-import sys
+# import sys
 
-from twisted.python import log
+# from twisted.python import log
 
 
 
-log.startLogging(sys.stdout)
+# log.startLogging(sys.stdout)
 
 from mdstudio.deferred.deferred_wrapper import DeferredWrapper
 from mdstudio.deferred.make_deferred import make_deferred
@@ -18,13 +19,30 @@ from mdstudio.deferred.return_value import return_value
 
 twisted.internet.base.DelayedCall.debug = True
 
+class ChainedObject:
+    def __init__(self, deferred):
+        self.deferred = deferred
+
+    @chainable
+    def chained_call(self):
+        res = yield self.deferred
+        return_value({'test': res})
+
+class TestableResult:
+    def __init__(self, inst, result):
+        self.inst = inst
+        self.value = result
+
+    def assertEqual(self, val):
+        self.inst.assertEqual(val, self.value)
+
 class ChainableTestClass:
     def __init__(self, inst):
         self.inst = inst
 
-    @make_deferred
+    # @make_deferred
     def test(self):
-        return 3
+        return TestableResult(self.inst, 3)
 
     @chainable
     def call(self):
@@ -39,49 +57,44 @@ class ChainableTestClass:
     def call3(self):
         return self.call2()
 
+    @chainable
+    def initial_call(self, deferred):
+        res = yield deferred.chained_call()['test']
+
+        return_value(TestableResult(self.inst, res))
+
     def assertEqual(self, val):
         self.inst.assertEqual(val)
-
-
-class TestDeferredChain(TestCase):
-    def test_basic_chain(self):
-        class ChainedObject:
-            @inlineCallbacks
-            def chained_call(self):
-                # res = yield d2
-                res = yield 2
-                # print('received d2')
-                return_value({'test': 42})
-
-        @inlineCallbacks
-        def initial_call(deferred):
-            # print(deferred)
-            # reactor.callLater(1, d2.callback, {})
-            res = yield deferred.chained_call().get('test')
-            d3.callback({})
-            return_value(res)
-
-        d = Deferred()
-        d2 = Deferred()
-        d3 = Deferred()
-        reactor.callLater(2, d.callback, ChainedObject())
-        reactor.callWhenRunning(initial_call, DeferredWrapper(d))
-
-        return d3
-
 
 class TestChainable(TestCase):
     def test_basic_deferred(self):
         test = ChainableTestClass(self)
-        test.call().addCallback(self.assertIsInstance, Deferred)
-        test.call().addCallback(self.assertIsInstance, DeferredWrapper)
         self.assertIsInstance(test.call(), Deferred)
         self.assertIsInstance(test.call(), DeferredWrapper)
+        test.call().value.addCallback(self.assertIsInstance, int)
 
-        test.call().addCallback(self.assertEquals, 3)
+        return test.call().assertEqual(3)
 
     def test_chained(self):
         test = ChainableTestClass(self)
-        test.call().assertEqual(3)
-        test.call2().assertEqual(3)
-        test.call3().assertEqual(3)
+
+        @chainable
+        def test_all():
+            test1 = yield test.call().assertEqual(3)
+            test2 = yield test.call2().assertEqual(3)
+            test3 = yield test.call3().assertEqual(3)
+            return_value(test3)
+
+        return test_all()
+
+    def test_deferred_chain(self):
+        d = Deferred()
+        d2 = Deferred()
+
+        test = ChainableTestClass(self)
+        result = test.initial_call(DeferredWrapper(d))
+
+        # result = initial_call(DeferredWrapper(d))
+        d.callback(ChainedObject(d2))
+        d2.callback(42)
+        result.assertEqual(42)
