@@ -16,14 +16,15 @@ from twisted.logger import Logger
 from twisted.python.failure import Failure
 
 from mdstudio import is_python3
-from mdstudio.config.io import config_from_dotenv
-from mdstudio.config import ConfigHandler
+# from mdstudio.config.io import config_from_dotenv
+# from mdstudio.config import ConfigHandler
 from mdstudio.logging import WampLogObserver, PrintingObserver
-from mdstudio.util import resolve_config, WampSchema, WampSchemaHandler, validate_json_schema
+from mdstudio.util import resolve_config, WampSchema, WampSchemaHandler, validate_json_schema, MDStudioHelper
 
 if is_python3:
     pass
 
+mdhelper = MDStudioHelper()
 
 class BaseApplicationSession(ApplicationSession):
     """
@@ -166,7 +167,8 @@ class BaseApplicationSession(ApplicationSession):
             'corelib_path': os.path.dirname(__file__)
         }
 
-        self.session_config = ConfigHandler()
+        # self.session_config = ConfigHandler()
+        self.session_config = {}
         if namespace:
             self.session_config['loggernamespace'] = 'namespace-{}'.format(namespace.group(1))
 
@@ -195,7 +197,8 @@ class BaseApplicationSession(ApplicationSession):
 
         # Set package_config: first global package config, the package_config
         # argument and finaly config.extra
-        self.package_config = ConfigHandler()
+        # self.package_config = ConfigHandler()
+        self.package_config = {}
         self.package_config.update(resolve_config(extra.get('package_config')))
         self.session_config.update(resolve_config(extra.get('sesion_config')))
 
@@ -203,7 +206,7 @@ class BaseApplicationSession(ApplicationSession):
         # for package config
         for key, value in extra.items():
             if key not in ('session_config', 'package_config'):
-                self.session_config.set(key, value)
+                self.session_config[key] = value
 
         # Load client private key (raw format) if any
         self._key = None
@@ -263,7 +266,7 @@ class BaseApplicationSession(ApplicationSession):
         config.realm = u'{}'.format(self.session_config.get('realm', config.realm))
 
         if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config.get('authmethod'), list):
-            self.session_config.set('authmethod', [self.session_config.get('authmethod')])
+            self.session_config['authmethod'] = [self.session_config.get('authmethod')]
 
         self.autolog = True
         self.autoschema = True
@@ -301,7 +304,7 @@ class BaseApplicationSession(ApplicationSession):
         extra = {}
 
         # Define authentication method
-        authmethod = self.session_config.authmethod
+        authmethod = self.session_config['authmethod']
         if authmethod and u'cryptosign' in authmethod:
 
             # create a proxy signing key with the private key being held in SSH agent
