@@ -1,23 +1,11 @@
-from twisted.internet.defer import Deferred, inlineCallbacks
-from twisted.trial.unittest import TestCase
-from twisted.internet import reactor, threads
-import threading
 import twisted
+from twisted.internet.defer import Deferred
+from twisted.trial.unittest import TestCase
 
-# import sys
-
-# from twisted.python import log
-
-
-
-# log.startLogging(sys.stdout)
-
-from mdstudio.deferred.deferred_wrapper import DeferredWrapper
-from mdstudio.deferred.make_deferred import make_deferred
+from mdstudio.deferred.chainable import Chainable
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
-twisted.internet.base.DelayedCall.debug = True
 
 class ChainedObject:
     def __init__(self, deferred):
@@ -28,6 +16,7 @@ class ChainedObject:
         res = yield self.deferred
         return_value({'test': res})
 
+
 class TestableResult:
     def __init__(self, inst, result):
         self.inst = inst
@@ -35,6 +24,7 @@ class TestableResult:
 
     def assertEqual(self, val):
         self.inst.assertEqual(val, self.value)
+
 
 class ChainableTestClass:
     def __init__(self, inst):
@@ -66,11 +56,12 @@ class ChainableTestClass:
     def assertEqual(self, val):
         self.inst.assertEqual(val)
 
+
 class TestChainable(TestCase):
     def test_basic_deferred(self):
         test = ChainableTestClass(self)
         self.assertIsInstance(test.call(), Deferred)
-        self.assertIsInstance(test.call(), DeferredWrapper)
+        self.assertIsInstance(test.call(), Chainable)
         test.call().value.addCallback(self.assertIsInstance, int)
 
         return test.call().assertEqual(3)
@@ -80,8 +71,8 @@ class TestChainable(TestCase):
 
         @chainable
         def test_all():
-            test1 = yield test.call().assertEqual(3)
-            test2 = yield test.call2().assertEqual(3)
+            yield test.call().assertEqual(3)
+            yield test.call2().assertEqual(3)
             test3 = yield test.call3().assertEqual(3)
             return_value(test3)
 
@@ -92,9 +83,8 @@ class TestChainable(TestCase):
         d2 = Deferred()
 
         test = ChainableTestClass(self)
-        result = test.initial_call(DeferredWrapper(d))
+        result = test.initial_call(Chainable(d))
 
-        # result = initial_call(DeferredWrapper(d))
         d.callback(ChainedObject(d2))
         d2.callback(42)
         result.assertEqual(42)

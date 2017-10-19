@@ -1,12 +1,9 @@
 # coding=utf-8
-import os
-
-from autobahn.twisted.wamp import ApplicationRunner, ComponentConfig
-from twisted.internet.ssl import CertificateOptions
-from twisted.internet.defer import inlineCallbacks, returnValue
-from twisted.internet import reactor
-from twisted.logger import Logger
 import OpenSSL
+import os
+from autobahn.twisted.wamp import ApplicationRunner
+from twisted.internet import reactor
+from twisted.internet.ssl import CertificateOptions
 
 crossbar_host = os.getenv('CROSSBAR_HOST', 'localhost')
 print('Crossbar host is: {}'.format(crossbar_host))
