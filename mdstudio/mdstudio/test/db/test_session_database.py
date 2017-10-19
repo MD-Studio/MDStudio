@@ -596,11 +596,7 @@ class TestSessionDatabaseWrapperDeferred(TestCase):
             'test2': 3
         }
 
-        SessionDatabaseWrapper.extract(d, 'test').addCallback(self.assertIsInstance, int)
-        self.assertIsInstance(SessionDatabaseWrapper.extract(d, 'test'), Deferred)
-
-        SessionDatabaseWrapper.extract(d, 'test').addCallback(self.assertEqual, 2)
-        SessionDatabaseWrapper.extract(d, 'test2').addCallback(self.assertEqual, 3)
+        self.assertEqual(SessionDatabaseWrapper.extract(d, 'test'), 2)
 
     def test_transform(self):
         identity = lambda x: x

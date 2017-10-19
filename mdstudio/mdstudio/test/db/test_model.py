@@ -12,6 +12,9 @@ from mdstudio.db.sort_mode import SortMode
 
 
 # noinspection PyCallByClass
+from mdstudio.deferred.chainable import chainable
+
+
 class ModelTests(TestCase):
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
@@ -178,13 +181,14 @@ class ModelTests(TestCase):
                                                          insert=self.documents,
                                                          date_fields=['datefields'])
 
+    @chainable
     def test_replace_one(self):
         self.wrapper.replace_one.return_value = {
             'matched': 1,
             'modified': 1
         }
         self.wrapper.transform = IDatabase.transform
-        result = self.model.replace_one({'_id': 'test_id'}, self.document)
+        result = yield self.model.replace_one({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, ReplaceOneResponse)
         self.assertEqual(result.matched, 1)
@@ -197,6 +201,7 @@ class ModelTests(TestCase):
                                                          upsert=False,
                                                          date_fields=None)
 
+    @chainable
     def test_replace_one_upsert(self):
         self.wrapper.replace_one.return_value = {
             'matched': 0,
@@ -204,7 +209,7 @@ class ModelTests(TestCase):
             'upsertedId': 'test_id2'
         }
         self.wrapper.transform = IDatabase.transform
-        result = self.model.replace_one({'_id': 'test_id'}, self.document, upsert=True)
+        result = yield self.model.replace_one({'_id': 'test_id'}, self.document, upsert=True)
 
         self.assertIsInstance(result, ReplaceOneResponse)
         self.assertEqual(result.matched, 0)
@@ -217,13 +222,14 @@ class ModelTests(TestCase):
                                                          upsert=True,
                                                          date_fields=None)
 
+    @chainable
     def test_replace_one_date_time_fields(self):
         self.wrapper.replace_one.return_value = {
             'matched': 1,
             'modified': 1
         }
         self.wrapper.transform = IDatabase.transform
-        result = self.model.replace_one({'_id': 'test_id'}, self.document, date_fields=['test'])
+        result = yield self.model.replace_one({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, ReplaceOneResponse)
         self.assertEqual(result.matched, 1)
@@ -236,6 +242,7 @@ class ModelTests(TestCase):
                                                          upsert=False,
                                                          date_fields=['test'])
 
+    @chainable
     def test_replace_one_date_time_fields_inject(self):
         class Users(Model):
             date_time_fields = ['datefields']
@@ -246,7 +253,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.transform = IDatabase.transform
         self.model = Users(self.wrapper, self.collection)
-        result = self.model.replace_one({'_id': 'test_id'}, self.document, date_fields=['test'])
+        result = yield self.model.replace_one({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, ReplaceOneResponse)
         self.assertEqual(result.matched, 1)
@@ -259,6 +266,7 @@ class ModelTests(TestCase):
                                                          upsert=False,
                                                          date_fields=['test', 'datefields'])
 
+    @chainable
     def test_replace_one_date_time_fields_only_inject(self):
         class Users(Model):
             date_time_fields = ['date_fields']
@@ -269,7 +277,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.transform = IDatabase.transform
         self.model = Users(self.wrapper, self.collection)
-        result = self.model.replace_one({'_id': 'test_id'}, self.document)
+        result = yield self.model.replace_one({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, ReplaceOneResponse)
         self.assertEqual(result.matched, 1)
@@ -388,13 +396,14 @@ class ModelTests(TestCase):
                                                    cursor_id='test_id',
                                                    with_limit_and_skip=True)
 
+    @chainable
     def test_update_one(self):
         self.wrapper.update_one.return_value = {
             'matched': 1,
             'modified': 1
         }
         self.wrapper.transform = IDatabase.transform
-        result = self.model.update_one({'_id': 'test_id'}, self.document)
+        result = yield self.model.update_one({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, UpdateOneResponse)
         self.assertEqual(result.matched, 1)
@@ -407,6 +416,7 @@ class ModelTests(TestCase):
                                                         upsert=False,
                                                         date_fields=None)
 
+    @chainable
     def test_update_one_upsert(self):
         self.wrapper.update_one.return_value = {
             'matched': 0,
@@ -414,7 +424,7 @@ class ModelTests(TestCase):
             'upsertedId': '1234'
         }
         self.wrapper.transform = IDatabase.transform
-        result = self.model.update_one({'_id': 'test_id'}, self.document, True)
+        result = yield self.model.update_one({'_id': 'test_id'}, self.document, True)
 
         self.assertIsInstance(result, UpdateOneResponse)
         self.assertEqual(result.matched, 0)
@@ -427,6 +437,7 @@ class ModelTests(TestCase):
                                                         upsert=True,
                                                         date_fields=None)
 
+    @chainable
     def test_update_one_date_fields(self):
         self.wrapper.update_one.return_value = {
             'matched': 0,
@@ -434,7 +445,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.transform = IDatabase.transform
         self.model.date_time_fields = ['test2']
-        result = self.model.update_one({'_id': 'test_id'}, self.document, date_fields=['test'])
+        result = yield self.model.update_one({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, UpdateOneResponse)
         self.assertEqual(result.matched, 0)
@@ -447,13 +458,14 @@ class ModelTests(TestCase):
                                                         upsert=False,
                                                         date_fields=['test', 'test2'])
 
+    @chainable
     def test_update_many(self):
         self.wrapper.update_many.return_value = {
             'matched': 1,
             'modified': 1
         }
         self.wrapper.transform = IDatabase.transform
-        result = self.model.update_many({'_id': 'test_id'}, self.document)
+        result = yield self.model.update_many({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, UpdateManyResponse)
         self.assertEqual(result.matched, 1)
@@ -466,6 +478,7 @@ class ModelTests(TestCase):
                                                          upsert=False,
                                                          date_fields=None)
 
+    @chainable
     def test_update_many_upsert(self):
         self.wrapper.update_many.return_value = {
             'matched': 0,
@@ -473,7 +486,7 @@ class ModelTests(TestCase):
             'upsertedId': '1234'
         }
         self.wrapper.transform = IDatabase.transform
-        result = self.model.update_many({'_id': 'test_id'}, self.document, True)
+        result = yield self.model.update_many({'_id': 'test_id'}, self.document, True)
 
         self.assertIsInstance(result, UpdateManyResponse)
         self.assertEqual(result.matched, 0)
@@ -486,6 +499,7 @@ class ModelTests(TestCase):
                                                          upsert=True,
                                                          date_fields=None)
 
+    @chainable
     def test_update_many_date_fields(self):
         self.wrapper.update_many.return_value = {
             'matched': 0,
@@ -493,7 +507,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.transform = IDatabase.transform
         self.model.date_time_fields = ['test2']
-        result = self.model.update_many({'_id': 'test_id'}, self.document, date_fields=['test'])
+        result = yield self.model.update_many({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, UpdateManyResponse)
         self.assertEqual(result.matched, 0)
@@ -588,6 +602,7 @@ class ModelTests(TestCase):
                                                       date_fields=['test2', 'test'])
 
     # noinspection PyCallByClass
+    @chainable
     def test_find_many(self):
         self.wrapper.find_many.return_value = {
             '_id': 1234,
@@ -595,7 +610,7 @@ class ModelTests(TestCase):
             'results': self.documents
         }
         self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
-        results = self.model.find_many({'_id': 'test_id'})
+        results = yield self.model.find_many({'_id': 'test_id'})
 
         self.assertIsInstance(results, Cursor)
 
@@ -611,6 +626,7 @@ class ModelTests(TestCase):
                                                        sort=None,
                                                        date_fields=None)
 
+    @chainable
     def test_find_many_projection(self):
         self.wrapper.find_many.return_value = {
             '_id': 1234,
@@ -618,7 +634,7 @@ class ModelTests(TestCase):
             'results': self.documents
         }
         self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
-        results = self.model.find_many({'_id': 'test_id'}, projection={'_id': 'id'})
+        results = yield self.model.find_many({'_id': 'test_id'}, projection={'_id': 'id'})
 
         self.assertIsInstance(results, Cursor)
 
@@ -634,6 +650,7 @@ class ModelTests(TestCase):
                                                        sort=None,
                                                        date_fields=None)
 
+    @chainable
     def test_find_many_skip(self):
         self.wrapper.find_many.return_value = {
             '_id': 1234,
@@ -641,7 +658,7 @@ class ModelTests(TestCase):
             'results': self.documents
         }
         self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
-        results = self.model.find_many({'_id': 'test_id'}, skip=10)
+        results = yield self.model.find_many({'_id': 'test_id'}, skip=10)
 
         self.assertIsInstance(results, Cursor)
 
@@ -657,6 +674,7 @@ class ModelTests(TestCase):
                                                        sort=None,
                                                        date_fields=None)
 
+    @chainable
     def test_find_many_limit(self):
         self.wrapper.find_many.return_value = {
             '_id': 1234,
@@ -664,7 +682,7 @@ class ModelTests(TestCase):
             'results': self.documents
         }
         self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
-        results = self.model.find_many({'_id': 'test_id'}, limit=10)
+        results = yield self.model.find_many({'_id': 'test_id'}, limit=10)
 
         self.assertIsInstance(results, Cursor)
 
@@ -680,6 +698,7 @@ class ModelTests(TestCase):
                                                        sort=None,
                                                        date_fields=None)
 
+    @chainable
     def test_find_many_sort(self):
         self.wrapper.find_many.return_value = {
             '_id': 1234,
@@ -687,7 +706,7 @@ class ModelTests(TestCase):
             'results': self.documents
         }
         self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
-        results = self.model.find_many({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
+        results = yield self.model.find_many({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
 
         self.assertIsInstance(results, Cursor)
 
@@ -703,6 +722,7 @@ class ModelTests(TestCase):
                                                        sort=[('_id', SortMode.Desc)],
                                                        date_fields=None)
 
+    @chainable
     def test_find_many_date_fields(self):
         self.wrapper.find_many.return_value = {
             '_id': 1234,
@@ -711,7 +731,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
         self.model.date_time_fields = ['test']
-        results = self.model.find_many({'_id': 'test_id'}, date_fields=['test2'])
+        results = yield self.model.find_many({'_id': 'test_id'}, date_fields=['test2'])
 
         self.assertIsInstance(results, Cursor)
 
@@ -1049,6 +1069,7 @@ class ModelTests(TestCase):
                                                       filter=None,
                                                       date_fields=['test', 'test2'])
 
+    @chainable
     def test_aggregate(self):
         self.wrapper.aggregate.return_value = {
             '_id': 1234,
@@ -1058,7 +1079,7 @@ class ModelTests(TestCase):
         self.wrapper.extract = IDatabase.extract
 
         self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
-        results = self.model.aggregate([{'_id': 'test_id'}])
+        results = yield self.model.aggregate([{'_id': 'test_id'}])
 
         self.assertIsInstance(results, Cursor)
         lresults = list(results)
