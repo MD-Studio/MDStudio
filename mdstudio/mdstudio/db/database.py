@@ -6,6 +6,8 @@ import six
 
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.sort_mode import SortMode
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 
 try:
     from pymongo.collection import Collection
@@ -111,13 +113,19 @@ class IDatabase:
         # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
-    def make_cursor(self, results):
-        return Cursor(self, results)
+    @staticmethod
+    @chainable
+    def extract(result, prperty):
+        res = yield result
+        return_value(res[prperty])
 
     @staticmethod
+    @chainable
     def transform(result, transformed):
-        return None if result is None else transformed(result)
+        res = yield result
+        return_value(None if res is None else transformed(res))
 
-    @staticmethod
-    def extract(result, name):
-        return result[name]
+    @chainable
+    def make_cursor(self, results):
+        res = yield results
+        return_value(Cursor(self, res))

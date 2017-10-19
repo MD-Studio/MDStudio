@@ -1,16 +1,13 @@
-from collections import defaultdict
-
 import os
 import re
-
 from autobahn import wamp
-from autobahn.wamp import SubscribeOptions, PublishOptions
-from twisted.internet.defer import inlineCallbacks, returnValue
+from autobahn.wamp import PublishOptions
+from twisted.internet.defer import inlineCallbacks
 
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.util import register, WampSchema
 
-from .db_methods import MongoClientWrapper, MongoDatabaseWrapper
+from .mongo_client_wrapper import MongoClientWrapper
 
 
 class DBWampApi(BaseApplicationSession):

@@ -277,20 +277,3 @@ class SessionDatabaseWrapper(IDatabase):
             }
 
         return self.session.call(u'mdstudio.db.endpoint.delete_many.{}'.format(self.namespace), request)
-
-    @staticmethod
-    @inlineCallbacks
-    def extract(result, prperty):
-        res = yield result
-        returnValue(res[prperty])
-
-    @staticmethod
-    @inlineCallbacks
-    def transform(result, transformed):
-        res = yield result
-        returnValue(None if res is None else transformed(res))
-
-    @inlineCallbacks
-    def make_cursor(self, results):
-        res = yield results
-        returnValue(Cursor(self, res))

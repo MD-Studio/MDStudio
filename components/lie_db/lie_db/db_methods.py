@@ -6,16 +6,14 @@ from typing import Optional, Dict, Any
 import hashlib
 import pytz
 import random
+from bson import ObjectId
 from dateutil.parser import parse as parsedate
-from twisted.internet.threads import deferToThread
-
-from mdstudio.deferred.make_deferred import make_deferred
-from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType
 from pymongo import MongoClient, ReturnDocument
 from pymongo.cursor import Cursor
-from bson import ObjectId
 from twisted.logger import Logger
 
+from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType
+from mdstudio.deferred.make_deferred import make_deferred
 from .cache_dict import CacheDict
 
 logger = Logger(namespace='db')
@@ -428,23 +426,3 @@ class MongoDatabaseWrapper(IDatabase):
                 document[key] = value.isoformat()
             else:
                 self._transform_datetime_to_isostring(value)
-
-
-class MongoClientWrapper:
-    def __init__(self, host, port):
-        self._host = host
-        self._port = port
-        self._client = MongoClient(host, port)
-        self._namespaces = {}
-
-    def get_namespace(self, namespace):
-        if namespace not in self._namespaces.keys():
-            if namespace not in self._client.database_names():
-                logger.info('Creating database for {namespace}', namespace=namespace)
-
-            db = MongoDatabaseWrapper(namespace, self._client[namespace])
-            self._namespaces[namespace] = db
-        else:
-            db = self._namespaces[namespace]
-
-        return db

@@ -1,0 +1,30 @@
+from pymongo import MongoClient
+
+import mdstudio.unittest.mongo as mongo
+from .db_methods import logger, MongoDatabaseWrapper
+
+class MongoClientWrapper:
+    def __init__(self, host, port):
+        self._host = host
+        self._port = port
+        self._client = self.create_mongo_client(host, port)
+        self._namespaces = {}
+
+    def get_namespace(self, namespace):
+        if namespace not in self._namespaces.keys():
+            if namespace not in self._client.database_names():
+                logger.info('Creating database for {namespace}', namespace=namespace)
+
+            db = MongoDatabaseWrapper(namespace, self._client[namespace])
+            self._namespaces[namespace] = db
+        else:
+            db = self._namespaces[namespace]
+
+        return db
+
+    @staticmethod
+    def create_mongo_client(host, port):
+        if mongo.create_mock_client:
+            import mongomock
+            return mongomock.MongoClient(host, port)
+        return MongoClient(host, port)

@@ -16,8 +16,6 @@ from twisted.logger import Logger
 from twisted.python.failure import Failure
 
 from mdstudio import is_python3
-# from mdstudio.config.io import config_from_dotenv
-# from mdstudio.config import ConfigHandler
 from mdstudio.logging import WampLogObserver, PrintingObserver
 from mdstudio.util import resolve_config, WampSchema, WampSchemaHandler, validate_json_schema, MDStudioHelper
 
