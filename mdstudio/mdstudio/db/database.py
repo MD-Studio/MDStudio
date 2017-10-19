@@ -113,19 +113,17 @@ class IDatabase:
         # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Any
         raise NotImplementedError
 
-    @staticmethod
     @chainable
+    def make_cursor(self, results):
+        res = yield results
+        return_value(Cursor(self, res))
+
+    @staticmethod
     def extract(result, prperty):
-        res = yield result
-        return_value(res[prperty])
+        return result[prperty]
 
     @staticmethod
     @chainable
     def transform(result, transformed):
         res = yield result
         return_value(None if res is None else transformed(res))
-
-    @chainable
-    def make_cursor(self, results):
-        res = yield results
-        return_value(Cursor(self, res))

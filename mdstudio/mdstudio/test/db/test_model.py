@@ -1,7 +1,7 @@
 # coding=utf-8
-import unittest
 import mock
 from autobahn.twisted import ApplicationSession
+from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase
@@ -12,7 +12,7 @@ from mdstudio.db.sort_mode import SortMode
 
 
 # noinspection PyCallByClass
-class ModelTests(unittest.TestCase):
+class ModelTests(TestCase):
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
         self.wrapper.component_info = mock.MagicMock()

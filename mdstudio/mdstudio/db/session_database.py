@@ -6,6 +6,8 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, ProjectionOperators, \
     SortOperators, AggregationOperator
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 
 
 class SessionDatabaseWrapper(IDatabase):
@@ -277,3 +279,8 @@ class SessionDatabaseWrapper(IDatabase):
             }
 
         return self.session.call(u'mdstudio.db.endpoint.delete_many.{}'.format(self.namespace), request)
+
+    @chainable
+    def make_cursor(self, results):
+        res = yield results
+        return_value(Cursor(self, res))
