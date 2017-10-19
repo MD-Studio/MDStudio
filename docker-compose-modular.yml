@@ -11,9 +11,9 @@ services:
             - 8080:8080
         volumes:
             - .:/app
-            - /app/.venv
             - crossbar_pipcache:/root/.cache
             - crossbar_pip:/usr/local/lib/python3.5/site-packages
+            - crossbar_pipenv:/root/.local/share/virtualenvs
         environment:
             - _LIE_MONGO_HOST=mongo
             - _LIE_GLOBAL_LOG=1
@@ -79,6 +79,8 @@ volumes:
     crossbar_pipcache:
         driver: "local"
     crossbar_pip:
+        driver: "local"
+    crossbar_pipenv:
         driver: "local"
     cli_pipcache:
         driver: "local"

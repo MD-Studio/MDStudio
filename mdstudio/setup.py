@@ -38,7 +38,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['jsonpickle', 'funcsigs','twisted','autobahn', 'pyyaml', 'pynacl', 'jsonschema', 'pyopenssl', 'service_identity', 'oauthlib', 'pytz', 'python-dateutil', 'asq'],
+    install_requires=['twisted','autobahn', 'pyyaml', 'jsonschema', 'oauthlib', 'pytz', 'python-dateutil', 'asq', 'typing'],
     test_suite="tests.module_test_suite",
     include_package_data=True,
     zip_safe=True,

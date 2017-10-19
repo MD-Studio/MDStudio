@@ -1,4 +1,6 @@
-FROM python:3.5
+FROM python:3.6
+
+RUN pip install --upgrade pip pipenv
 
 COPY /docker-entrypoint.sh /docker-entrypoint.sh
 
@@ -7,7 +9,4 @@ WORKDIR /app
 
 STOPSIGNAL SIGTERM
 
-RUN pip install typing
-
-ENTRYPOINT ["bash", "/docker-entrypoint.sh"]
-CMD python -m $COMPONENT
+CMD ["bash", "/docker-entrypoint.sh"]

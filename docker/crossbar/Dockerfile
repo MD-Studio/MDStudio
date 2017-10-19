@@ -1,14 +1,12 @@
-FROM python:3.5
+FROM python:3.6
 
-RUN apt-get install libssl-dev
+RUN pip install --upgrade pip pipenv
 
-RUN pip install pipenv
-ENV PIPENV_VENV_IN_PROJECT=1
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 
-ADD docker-entrypoint.sh /docker-entrypoint.sh
 VOLUME /app
 WORKDIR /app
 
-EXPOSE 8080 8000
+STOPSIGNAL SIGTERM
 
-ENTRYPOINT ["bash", "/docker-entrypoint.sh"]
+CMD ["bash", "/docker-entrypoint.sh"]

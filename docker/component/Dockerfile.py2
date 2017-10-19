@@ -1,5 +1,7 @@
 FROM python:2.7
 
+RUN pip install --upgrade pip pipenv
+
 COPY /docker-entrypoint.sh /docker-entrypoint.sh
 
 VOLUME /app
@@ -7,7 +9,4 @@ WORKDIR /app
 
 STOPSIGNAL SIGTERM
 
-RUN pip install typing
-
-ENTRYPOINT ["bash", "/docker-entrypoint.sh"]
-CMD python -m $COMPONENT
+CMD ["bash", "/docker-entrypoint.shs"]
