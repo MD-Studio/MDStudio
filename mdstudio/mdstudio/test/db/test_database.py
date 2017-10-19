@@ -1,12 +1,14 @@
 # coding=utf-8
-import unittest
 import mock
 
 from mdstudio.db.database import IDatabase
 from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
+from twisted.trial.unittest import TestCase
 
+import twisted
 
-class DatabaseTests(unittest.TestCase):
+class DatabaseTests(TestCase):
     @mock.patch.multiple(IDatabase, __abstractmethods__=set())
     @chainable
     def test_transform(self):

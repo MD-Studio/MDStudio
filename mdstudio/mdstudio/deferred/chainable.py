@@ -21,11 +21,13 @@ class Chainable:
             result = result(*args, **kwargs)
             if isinstance(result, Deferred):
                 result.addCallback(d.callback)
+                result.addErrback(d.errback)
             else:
                 d.callback(result)
 
         # Register the chained function to catch the result of the old __deferred
         self.__deferred.addCallback(chained)
+        self.__deferred.addErrback(d.errback)
 
         # Return a new wrapper to allow further chaining and yielding of results
         return Chainable(d)
@@ -37,6 +39,7 @@ class Chainable:
             d.callback(result[key])
 
         self.__deferred.addCallback(unwrapped_deferred)
+        self.__deferred.addErrback(d.errback)
 
         return Chainable(d)
 
@@ -48,6 +51,7 @@ class Chainable:
             d.callback(None)
 
         self.__deferred.addCallback(unwrapped_deferred)
+        self.__deferred.addErrback(d.errback)
 
         return Chainable(d)
 
@@ -74,12 +78,14 @@ class Chainable:
                 if isinstance(res, Deferred):
                     # If the result is a Deferred, pass through the result once it arrives
                     res.addCallback(d.callback)
+                    res.addErrback(d.errback)
                 else:
                     # Otherwise, pass the attribute (possibly a function) to the new deferred for further chaining
                     d.callback(res)
 
             # Register the unwrapper to catch the result of the old __deferred
             self.__deferred.addCallback(unwrapped_deferred)
+            self.__deferred.addErrback(d.errback)
 
             # Return a new wrapper to allow further chaining and yielding of results
             return Chainable(d)
