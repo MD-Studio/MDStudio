@@ -1,3 +1,4 @@
+from __future__ import print_function
 '''
 Tool to gather ensemble energies and per-residue decomposed energies from gromacs md files (edr and trr for decomposition)
 The program execute gromacs commands from inside
@@ -15,43 +16,50 @@ top file is: 'top',pref='*?sol'
 
 '''
 
-import sys,os
-import subprocess as sp
 import argparse
-from glob import glob
-import logging
+import os
 import re
+import subprocess as sp
+import sys
+
+from glob import glob
 from tempfile import NamedTemporaryFile
+from twisted.logger import Logger
+
+logging = Logger()
+
 
 def getGMXEnv(gmxrc):
-    command = ['bash', '-c', 'source %s && env'%gmxrc]
-    proc = sp.Popen(command, stdout = sp.PIPE)  
-    newEnv={}
+    command = ['bash', '-c', 'source %s && env' % gmxrc]
+    proc = sp.Popen(command, stdout=sp.PIPE)
+    newEnv = {}
     for line in proc.stdout:
-      (key, _, value) = line.partition("=")
-      newEnv[key] = value.rstrip()
+        (key, _, value) = line.partition("=")
+        newEnv[key] = value.rstrip()
     proc.communicate()
 
     return newEnv
 
 
 def parseResidues(strinput):
-  indexmol=[]
-  tempindexmol = strinput.split(',')
-  for item in tempindexmol:
-    if len(item.split('-'))==1:
-      indexmol.append(int(item))
-    elif len(item.split('-'))==2:
-      indexmol+=range(int(item.split('-')[0]),int(item.split('-')[1])+1)
+    indexmol = []
+    tempindexmol = strinput.split(',')
+    for item in tempindexmol:
+        if len(item.split('-')) == 1:
+            indexmol.append(int(item))
+        elif len(item.split('-')) == 2:
+            indexmol += range(
+                int(item.split('-')[0]),
+                int(item.split('-')[1]) + 1)
     else:
-      raise Exception("Invalid list,%i"%len(item.split('-')))
-  indexmol=sorted(set(indexmol))
+        raise Exception("Invalid list,%i" % len(item.split('-')))
+    indexmol = sorted(set(indexmol))
 
-  return indexmol
+    return indexmol
 
 
-def availProg(prog,myEnv):  
-    for path in myEnv["PATH"].split(os.pathsep):      
+def availProg(prog, myEnv):
+    for path in myEnv["PATH"].split(os. pathsep):
         cmd = os.path.join(path, prog)
         if os.path.isfile(cmd) and os.access(cmd, os.X_OK):
             return True
@@ -59,40 +67,42 @@ def availProg(prog,myEnv):
     return False
 
 
-def findFile(wdir,ext='edr',pref=''):
-    findString=os.path.join(wdir,"%s.%s"%(pref,ext))
-    listfound=glob(findString)
-    if len(listfound)==0:
-        msg='No file found: %s'%findString 
+def findFile(wdir, ext='edr', pref=''):
+    findString = os.path.join(wdir, "%s.%s" % (pref, ext))
+    listfound = glob(findString)
+    if len(listfound) == 0:
+        msg = 'No file found: %s' % findString
         return False, msg
 
-    if len(listfound)>1:
+    if len(listfound) > 1:
         # Additional option for selection could be implented here
-        print listfound
-        msg='I don\'t know what to do! Multiple files found: %s.'%findString
+        print(listfound)
+        msg = 'I don\'t know what to do! Multiple files found: %s.'%findString
         return False, msg
 
-    if len(listfound)==1:
-        return True,listfound[0]
+    if len(listfound) == 1:
+        return True, listfound[0]
 
 
-def getEne(fileEne,gmxEnv,listRes=['Ligand']):
+def getEne(fileEne, gmxEnv, listRes=['Ligand']):
     #Execute gmxdump
-    cmd=['gmxdump','-e',fileEne]
+    cmd=['gmxdump','-e', fileEne]
+
+    # use two space delimiter to split column from ene file
+    # (To include terms like "LJ (SR)" )
+    splitFormat = r'\s{2,}' 
     
-    splitFormat=r'\s{2,}' # use two space delimiter to split column from ene file (To include terms like "LJ (SR)" )
-    
-    potentialLab=['Potential']
-    kineticLab=['Kinetic En.']
-    tLab=['Temperature']
-    eleLab=['Coulomb-14','Coulomb (SR)','Coulomb (LR)', 'Coul. recip.']
-    vdwLab=['LJ-14','LJ (SR)','LJ (LR)']
-    
-    eleDecLab=['Coul-14','Coul-SR']
+    potentialLab = ['Potential']
+    kineticLab = ['Kinetic En.']
+    tLab = ['Temperature']
+    eleLab = ['Coulomb-14','Coulomb (SR)','Coulomb (LR)', 'Coul. recip.']
+    vdwLab = ['LJ-14','LJ (SR)','LJ (LR)']
+
+    eleDecLab = ['Coul-14','Coul-SR']
     vdwDecLab=['LJ-14','LJ-SR']
-    tDecLab=['T-']
-    
-    eneCard=[]
+    tDecLab = ['T-']
+
+    eneCard = []
     frame={}
 
     outpipe=NamedTemporaryFile(mode='w+b')   #open('cacca','w+b')#
@@ -321,17 +331,28 @@ def decomp(mdpDict, resList, ndx, gro, top, trr, gmxEnv, ligGroup='Ligand',outPr
         return (False,msg)
     
     return (True,outPref)
-    
-    
 
-parser = argparse.ArgumentParser(description='Dock sdf file into protein conformation')
 
-parser.add_argument('-gmxrc', required=False, dest='gmxrc',  help='GMXRC file for environment loading')
-parser.add_argument('-d', '--dir', required=False,    dest='dataDir',  help='directory with MD files to process', default=None)
-parser.add_argument('-dec', '--decompose', dest='decompose', help='perform residue decomposition analysis', action='store_true')
-parser.add_argument('-ene', '--energy', dest='energy', help='gather total energy', action='store_true')
-parser.add_argument('-res', '--residues', required=False,    dest='resList',  help='list of residue for which to decompose interaction energies (e.g. "1,2,3")', default=None)
-parser.add_argument('-o', '--output',dest='outName', required=True)
+parser = argparse.ArgumentParser(
+    description='Dock sdf file into protein conformation')
+
+parser.add_argument(
+    '-gmxrc', required=False, dest='gmxrc',
+    help='GMXRC file for environment loading')
+parser.add_argument(
+    '-d', '--dir', required=False,
+    dest='dataDir', help='directory with MD files to process', default=None)
+parser.add_argument(
+    '-dec', '--decompose', dest='decompose',
+    help='perform residue decomposition analysis', action='store_true')
+parser.add_argument(
+    '-ene', '--energy', dest='energy',
+    help='gather total energy', action='store_true')
+parser.add_argument(
+    '-res', '--residues', required=False, dest='resList',
+    help='list of residue for which to decompose interaction energies (e.g. "1,2,3")', default=None)
+parser.add_argument(
+    '-o', '--output',dest='outName', required=True)
 
 args = parser.parse_args()
 

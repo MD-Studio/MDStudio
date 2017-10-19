@@ -8,9 +8,7 @@ WAMP service methods the module exposes.
 
 import json
 import os
-import tempfile
 import shutil
-import json
 
 from autobahn import wamp
 
@@ -25,7 +23,7 @@ gromacs_schema = json.load(open(GROMACS_LIE_SCHEMA))
 
 class MDWampApi(LieApplicationSession):
     """
-    MD WAMP methods.
+    Molecular dynamics WAMP methods.
     """
 
     require_config = ['system']
@@ -34,6 +32,11 @@ class MDWampApi(LieApplicationSession):
     def run_gromacs_liemd(
             self, session={}, protein_file=None, ligand_file=None,
             topology_file=None, **kwargs):
+        """
+        Call gromacs using the Cerise-client infrastructure:
+        http://cerise-client.readthedocs.io/en/master/index.html
+        """
+        workdir = kwargs['workdir']
 
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
@@ -41,72 +44,68 @@ class MDWampApi(LieApplicationSession):
         # Load GROMACS configuration and update
         gromacs_config = self.package_config.dict()
 
-        # Create workdir and save file
-        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-        os.chdir(workdir)
-
         # Store protein file if available
-        if protein_file:
-            protdsc = os.path.join(workdir, 'protein.pdb')
-            with open(protdsc, 'w') as inp:
-                inp.write(protein_file)
+        store_structure_in_file(
+            protein_file, workdir, 'protein')
 
         # Store ligand file if available
-        if ligand_file:
-            ligdsc = os.path.join(workdir, 'ligand.pdb')
-            try:
-                if os.path.isfile(ligand_file):
-                    shutil.copy(ligand_file, ligdsc)
-            except:
-                with open(ligdsc, 'w') as inp:
-                    inp.write(ligand_file)
+        store_structure_in_file(
+            ligand_file, workdir, 'ligand')
 
         # Save ligand topology files
-        if topology_file:
-            topdsc = os.path.join(workdir, 'ligtop.itp')
-            try:
-                if os.path.isfile(
-                        os.path.join(topology_file, 'input_GMX.itp')):
-                    shutil.copy(
-                        os.path.join(topology_file, 'input_GMX.itp'), topdsc)
-            except:        
-                with open(topdsc, 'w') as inp:
-                    inp.write(topology_file)
+        store_structure_in_file(
+            topology_file, workdir, 'ligtop', ext='itp')
 
-        # Copy script files to the working directory
-        for script in ('getEnergies.py', 'gmx45md.sh'):
-            src = os.path.join(__rootpath__, 'scripts/{0}'.format(script))
-            dst = os.path.join(workdir, script)
-            shutil.copy(src, dst)
+        # # Copy script files to the working directory
+        # for script in ('getEnergies.py', 'gmx45md.sh'):
+        #     src = os.path.join(__rootpath__, 'scripts/{0}'.format(script))
+        #     dst = os.path.join(workdir, script)
+        #     shutil.copy(src, dst)
 
-        # Fix topology ligand
-        itpOut = 'ligand.itp'
-        results = correctItp(topdsc, itpOut, posre=True)
+        # # Fix topology ligand
+        # itpOut = 'ligand.itp'
+        # results = correctItp(topdsc, itpOut, posre=True)
 
-        # Prepaire simulation
-        gromacs_config['charge'] = results['charge']
-        gmxRun = gromit_cmd(gromacs_config)
+        # # Prepaire simulation
+        # gromacs_config['charge'] = results['charge']
+        # gmxRun = gromit_cmd(gromacs_config)
 
-        if protein_file:
-            gmxRun += '-f {0} '.format(os.path.basename(protdsc))
+        # if protein_file:
+        #     gmxRun += '-f {0} '.format(os.path.basename(protdsc))
 
-        if ligand_file:
-            gmxRun += '-l {0},{1} '.format(
-                os.path.basename(ligdsc), os.path.basename(results['itp']))
+        # if ligand_file:
+        #     gmxRun += '-l {0},{1} '.format(
+        #         os.path.basename(ligdsc), os.path.basename(results['itp']))
 
-        # Prepaire post analysis (energy extraction)
-        eneRun = 'python getEnergies.py -gmxrc {0} -ene -o ligand.ene'.format(GMXRC)
+        # # Prepaire post analysis (energy extraction)
+        # eneRun = 'python getEnergies.py -gmxrc {0} -ene -o ligand.ene'.format(GMXRC)
 
-        # write executable
-        with open('run_md.sh', 'w') as outFile:
-            outFile.write("{0}\n".format(gmxRun))
-            outFile.write("{0}\n".format(eneRun))
+        # # write executable
+        # with open('run_md.sh', 'w') as outFile:
+        #     outFile.write("{0}\n".format(gmxRun))
+        #     outFile.write("{0}\n".format(eneRun))
 
         session['status'] = 'completed'
 
         return {'session': session, 'output': 'nothing'}
+
+
+def store_structure_in_file(mol, workdir, name, ext='pdb'):
+    """
+    Store a molecule in a file if possible.
+    """
+    dest = os.path.join(workdir, '{}.{}'.format(name, ext))
+
+    if mol is None:
+        raise RuntimeError(
+            "There is not {} available".format(name))
+
+    elif os.path.isfile(mol):
+        shutil.copy(mol, dest)
+
+    else:
+        with open(dest, 'w') as inp:
+            inp.write(mol)
 
 
 def make(config):
