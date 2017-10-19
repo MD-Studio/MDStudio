@@ -1,4 +1,4 @@
-from twisted.internet import defer
+from twisted.internet.defer import Deferred
 import time
 
 class DeferredWrapper:
