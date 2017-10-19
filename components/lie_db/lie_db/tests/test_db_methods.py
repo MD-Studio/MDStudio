@@ -15,13 +15,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.db = MongoClientWrapper("localhost", 27127).get_namespace('testns')
         self.d = Model(self.db, 'test_collection')
 
+    @chainable
     def test_insert_one(self):
-        @chainable
-        def insert_one(self=self):
-            id = yield self.d.insert_one({'test': 2, '_id': 80})
-
-            self.assertEqual(id, 80)
-
-            return_value(id)
-
-        return insert_one()
+        id = yield self.d.insert_one({'test': 2, '_id': 80})
+        print(id)
+        self.assertEqual(id, 80)

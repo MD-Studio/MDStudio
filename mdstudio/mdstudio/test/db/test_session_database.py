@@ -10,7 +10,7 @@ from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.db.sort_mode import SortMode
 
 
-class SessionDatabaseWrapperTests(unittest.TestCase):
+class SessionDatabaseWrapperTests(TestCase):
     def setUp(self):
         self.session = mock.Mock()
         self.session.component_info.get = mock.MagicMock(return_value='namespace')

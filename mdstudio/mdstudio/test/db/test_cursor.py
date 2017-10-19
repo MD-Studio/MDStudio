@@ -1,11 +1,11 @@
 # coding=utf-8
-import unittest
 import mock
+from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor
 
 
-class CursorTests(unittest.TestCase):
+class CursorTests(TestCase):
     def setUp(self):
         self.wrapper = mock.Mock()
         self.values = [

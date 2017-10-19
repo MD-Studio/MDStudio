@@ -5,6 +5,9 @@ from typing import *
 from asq.initiators import query
 from asq.queryables import Queryable
 
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
+
 
 class Cursor:
 
@@ -27,9 +30,10 @@ class Cursor:
     def __iter__(self):
         return self
 
+    @chainable
     def next(self):
-        if len(self._data) or self._refresh():
-            return self._data.popleft()
+        if len(self._data) or (yield self._refresh()):
+            return return_value(self._data.popleft())
         else:
             raise StopIteration
 
@@ -48,9 +52,10 @@ class Cursor:
         # type: () -> Queryable
         return query(self)
 
+    @chainable
     def rewind(self):
         # type: () -> Cursor
-        return self._create_cursor(self.wrapper, self.wrapper.rewind())
+        return_value(self._create_cursor(self.wrapper, (yield self.wrapper.rewind())))
 
     def count(self, with_limit_and_skip=False):
         # type: (bool) -> int
@@ -65,11 +70,12 @@ class Cursor:
     def _create_cursor(wrapper, rewind):
         return Cursor(wrapper, rewind)
 
+    @chainable
     def _refresh(self):
         if self.alive:
-            more = self.wrapper.more(cursor_id=self._id)
+            more = yield self.wrapper.more(cursor_id=self._id)
             self._id = more['_id']
             self._alive = more['alive']
             self._data = deque(more['results'])
 
-        return self._alive or len(self._data)
+        return return_value(self._alive or len(self._data))
