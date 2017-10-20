@@ -7,16 +7,12 @@ WAMP service methods the module exposes.
 """
 
 import json
-import os
-import shutil
-
 from autobahn import wamp
-
+from cerise_interface import (
+    call_cerise_gromacs, retrieve_energies)
 from lie_system import LieApplicationSession, WAMPTaskMetaData
-from lie_md import __rootpath__
-from lie_md.gromacs_topology_amber import correctItp
-from lie_md.gromacs_gromit import gromit_cmd
 from lie_md.settings import SETTINGS, GROMACS_LIE_SCHEMA
+from md_config import set_gromacs_input
 
 gromacs_schema = json.load(open(GROMACS_LIE_SCHEMA))
 
@@ -43,69 +39,21 @@ class MDWampApi(LieApplicationSession):
 
         # Load GROMACS configuration and update
         gromacs_config = self.package_config.dict()
+        with open("gromacs.json", 'w') as f:
+            json.dump(gromacs_config, f)
 
-        # Store protein file if available
-        store_structure_in_file(
-            protein_file, workdir, 'protein')
+        # Prepare to run MD with gromacs
+        files = [protein_file, ligand_file, topology_file]
+        gromacs_config = set_gromacs_input(
+            files, gromacs_config, workdir)
 
-        # Store ligand file if available
-        store_structure_in_file(
-            ligand_file, workdir, 'ligand')
-
-        # Save ligand topology files
-        store_structure_in_file(
-            topology_file, workdir, 'ligtop', ext='itp')
-
-        # # Copy script files to the working directory
-        # for script in ('getEnergies.py', 'gmx45md.sh'):
-        #     src = os.path.join(__rootpath__, 'scripts/{0}'.format(script))
-        #     dst = os.path.join(workdir, script)
-        #     shutil.copy(src, dst)
-
-        # # Fix topology ligand
-        # itpOut = 'ligand.itp'
-        # results = correctItp(topdsc, itpOut, posre=True)
-
-        # # Prepaire simulation
-        # gromacs_config['charge'] = results['charge']
-        # gmxRun = gromit_cmd(gromacs_config)
-
-        # if protein_file:
-        #     gmxRun += '-f {0} '.format(os.path.basename(protdsc))
-
-        # if ligand_file:
-        #     gmxRun += '-l {0},{1} '.format(
-        #         os.path.basename(ligdsc), os.path.basename(results['itp']))
-
-        # # Prepaire post analysis (energy extraction)
-        # eneRun = 'python getEnergies.py -gmxrc {0} -ene -o ligand.ene'.format(GMXRC)
-
-        # # write executable
-        # with open('run_md.sh', 'w') as outFile:
-        #     outFile.write("{0}\n".format(gmxRun))
-        #     outFile.write("{0}\n".format(eneRun))
+        # Run the MD and retrieve the energies
+        call_cerise_gromacs(gromacs_config, workdir)
+        retrieve_energies(workdir)
 
         session['status'] = 'completed'
 
         return {'session': session, 'output': 'nothing'}
-
-
-def store_structure_in_file(mol, workdir, name, ext='pdb'):
-    """
-    Store a molecule in a file if possible.
-    """
-    dest = os.path.join(workdir, '{}.{}'.format(name, ext))
-
-    if mol is None:
-        raise RuntimeError(
-            "There is not {} available".format(name))
-
-    elif os.path.isfile(mol):
-        shutil.copy(mol, dest)
-
-    else:
-        with open(dest, 'w') as inp:
-            inp.write(mol)
 
 
 def make(config):
