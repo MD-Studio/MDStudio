@@ -6,21 +6,14 @@ createTopology function should receive an input file
  (already processed  e.g. protonated)
 and return a tuple containing itp and pdb of the ligand.
 """
-
-import sys
+import numpy as np
 import os
-import pybel
-import shutil
-import re
-import textwrap
-
-import subprocess as sp
-import gromacs_topology
-
-from . import __rootpath__
 from os.path import join
 from parsers import (itp_parser, parse_file)
 from twisted.logger import Logger
+
+from . import __rootpath__
+
 
 logger = Logger()
 
@@ -35,28 +28,28 @@ def correctItp(itp_file, new_itp_file, posre=True):
     '''Correct hydrogen and heavy atom masses in the .itp file
        makes position restraint file for the ligand'''
     if posre:
-        posreNm = "{}s-posre.itp".format(
+        posreNm = "{}-posre.itp".format(
             os.path.splitext(os.path.basename(new_itp_file))[0])
     else:
         posreNm = None
 
     # read itp
-    itp_dict = read_include_topology(itp_file)
-    
+    itp_dict, ordered_keys = read_include_topology(itp_file)
+
     # apply heavy hydrogens(HH)
-    itp = adjust_heavyH(itp_dict)
+    itp_dict = adjust_heavyH(itp_dict)
 
     # write corrected itp (with HH and no atomtype section
-    itpOut(itp, listItp, new_itp_file, posre=posreNm)
+    write_itp(itp_dict, ordered_keys, new_itp_file, posre=posreNm)
 
     # create positional restraints file
     if posre:
-        outPosre(itp, posreNm)
+        write_posre(itp_dict, posreNm)
     # get charge ligand
-    charge = sum(float(atom[6]) for atom in itp['atoms'])
+    charge = sum(float(atom[6]) for atom in itp_dict['atoms'])
 
-    return {'itp': itpOutFn, 'posre': posreNm,
-            'attypes': itp['atomtypes'],
+    return {'itp': new_itp_file, 'posre': posreNm,
+            'attypes': itp_dict['atomtypes'],
             'charge': int(charge)}
 
 
@@ -71,7 +64,10 @@ def read_include_topology(itp_file):
     rs = parse_file(itp_parser, itp_file)
 
     # tranform the result into a dictionary
-    return {key: val for key, val in chunks_of(rs[0], 2)}
+    d = {key: np.array(val) for key, val in chunks_of(rs[0], 2)}
+    ordered_keys = rs[0][0::2]
+
+    return d, ordered_keys
 
 
 def chunks_of(xs, n):
@@ -80,76 +76,121 @@ def chunks_of(xs, n):
         yield xs[i:i + n]
 
 
-# def adjust_heavyH(itp_dict):
-
-    
-def adjust_heavyH(card):
+def adjust_heavyH(itp_dict):
     """
     Adjust the weights of hydrogens, and their heavy atom partner
     """
-    atomBlock=card['atoms']
-    for bond in card['bonds']:
-        for i in [0,1]:
-            if re.match("^h|^H", card['atoms'][int(bond[i])-1][1]):
-                if i==0:
-                    j=1
-                elif i==1:
-                    j=0
-                ## Change heavy atom (heavy -3*H)               
-                atomBlock[int(bond[j])-1][7]=("%.4f" % ( float(card['atoms'][int(bond[j])-1][7]) - float(card['atoms'][int(bond[i])-1][7])*3  )  ) 
-                ## Change hydrogen (4*H)
-                atomBlock[int(bond[i])-1][7]=("%.4f" % ( float(card['atoms'][int(bond[i])-1][7])*4) )
+    # Indices of the hydrogens and their heavy companions
+    hs, ps = compute_index_hs_and_partners(itp_dict)
 
-    card['atoms']=atomBlock
-    
-    return(card)
+    # Count the number of hydrogens attached to the heavy atoms
+    heavy, coordination = np.unique(ps, return_counts=True)
+
+    # Update the weights
+    new_atoms = adjust_atom_weight(
+        itp_dict['atoms'], hs, heavy, coordination)
+    itp_dict['atoms'] = new_atoms
+
+    return itp_dict
+
+
+def adjust_atom_weight(atoms, hs, heavy, coordination):
+    """
+    Weight the masses of the `atoms` specificied  in `indices`
+    using the `weights`.
+    """
+    mass_hydrogen = float(atoms[hs[0], 7])
+    masses_hs = 4 * np.array(atoms[hs, 7], dtype=np.float)
+    masses_heavy = np.array(atoms[heavy, 7], dtype=np.float)
+    new_heavy_mass = masses_heavy - 3 * mass_hydrogen * coordination
+
+    # Array to string
+    fmt_hs = ['{:.4f}'.format(x) for x in masses_hs]
+    fmt_heavy = ['{:.4f}'.format(x) for x in new_heavy_mass]
+
+    # Update weights
+    atoms[hs, 7] = fmt_hs
+    atoms[heavy, 7] = fmt_heavy
+
+    return atoms
+
+
+def compute_index_hs_and_partners(itp_dict):
+    """
+    Extract the indices of the hydrogens and their heavy partners
+    Assuming the the hydrogens are always listed after the heavy
+    partner.
+    """
+    atoms = itp_dict['atoms']
+    bonds = itp_dict['bonds']
+
+    # Extract the bond indices
+    bs = np.array(bonds[:, :2], dtype=np.int) - 1
+
+    # Hydrogen indices
+    symbols = atoms[bs[:, 1], 1]
+    idxs = np.where([x.startswith(('h', 'H')) for x in symbols])
+    hs = bs[idxs, 1]
+
+    # Heavy partners
+    ps = bs[idxs, 0]
+
+    return hs.flatten(), ps.flatten()
 
 
 def itpFormat(block):
     formatTemplate = {
-        "defaults" : "{d[0]:>16s}{d[1]:>16s}{d[2]:>16s}{d[2]:>8s}{d[2]:>8s}\n",
-        "atomtypes" : "{d[0]:>3s}{d[1]:>9s}{d[2]:>17s}{d[3]:>9s}{d[4]:>4s}{d[5]:>16s}{d[6]:>14s}\n",
-        "moleculetype" : "{d[0]:>5s}{d[1]:>4s}\n",
-        "atoms" : "{d[0]:>6s}{d[1]:>5s}{d[2]:>6s}{d[3]:>6s}{d[4]:>6s}{d[5]:>5s}{d[6]:>13s}{d[7]:>13s}\n",
-        "pairs" : "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}\n",
-        "bonds" : "{d[0]:>6s}{d[1]:>7s}{d[2]:>4s}{d[3]:>14s}{d[4]:>14s}\n",
-        "angles" : "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>6s}{d[4]:>14s}{d[5]:>14s}\n",
-        "dihedrals" : "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>7s}{d[4]:>7s}{d[5]:>11s}{d[6]:>11s}{d[7]:>11s}{d[8]:>11s}{d[9]:>11s}{d[10]:>11s}\n",
-        "dihedrals2" : "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>7s}{d[4]:>7s}{d[5]:>9s}{d[6]:>10s}{d[7]:>4s}\n",
-        "exclusions" : "{d[0]:>5s}{d[1]:>5s}\n"
+        "defaults":
+        "{d[0]:>16s}{d[1]:>16s}{d[2]:>16s}{d[2]:>8s}{d[2]:>8s}\n",
+        "atomtypes":
+        "{d[0]:>3s}{d[1]:>9s}{d[2]:>17s}{d[3]:>9s}{d[4]:>4s}{d[5]:>16s}{d[6]:>14s}\n",
+        "moleculetype": "{d[0]:>5s}{d[1]:>4s}\n",
+        "atoms":
+        "{d[0]:>6s}{d[1]:>5s}{d[2]:>6s}{d[3]:>6s}{d[4]:>6s}{d[5]:>5s}{d[6]:>13s}{d[7]:>13s}\n",
+        "pairs": "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}\n",
+        "bonds": "{d[0]:>6s}{d[1]:>7s}{d[2]:>4s}{d[3]:>14s}{d[4]:>14s}\n",
+        "angles":
+        "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>6s}{d[4]:>14s}{d[5]:>14s}\n",
+        "dihedrals":
+        "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>7s}{d[4]:>7s}{d[5]:>11s}{d[6]:>11s}{d[7]:>11s}{d[8]:>11s}{d[9]:>11s}{d[10]:>11s}\n",
+        "dihedrals2":
+        "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>7s}{d[4]:>7s}{d[5]:>9s}{d[6]:>10s}{d[7]:>4s}\n",
+        "exclusions": "{d[0]:>5s}{d[1]:>5s}\n"
     }
-    
-    return(formatTemplate[block])
+
+    return formatTemplate[block]
 
 
-def itpOut(card,listCard,oitp,posre=None,excludeList=['atomtypes']):
-    '''write new itp. atomtyep block is removed'''
-    with open(oitp,"w") as outFile:
-        for blockName in listCard:
-            if not blockName in excludeList:
-                outFile.write("[ %s ]\n"%blockName)
-                for item in card[blockName]:
+def write_itp(itp_dict, keys, oitp, posre=None, excludeList=['atomtypes']):
+    """
+    write new itp. atomtype block is removed
+    """
+    with open(oitp, "w") as outFile:
+        for block_name in keys:
+            if block_name not in excludeList:
+                outFile.write("[ {} ]\n".format(block_name))
+                for item in itp_dict[block_name]:
                     try:
-                        outFile.write(itpFormat(blockName).format(d=item))
+                        outFile.write(itpFormat(block_name).format(d=item))
                     except:
-                        outFile.write(itpFormat("%s2"%blockName).format(d=item))
+                        outFile.write(
+                            itpFormat("%s2" % block_name).format(d=item))
         outFile.write("\n")
         if posre is not None:
-            outFile.write('#ifdef POSRES\n#include "%s"\n#endif\n'%posre)
+            outFile.write(
+                '#ifdef POSRES\n#include "%s"\n#endif\n' % posre)
 
-    return
 
-      
-# def outPosre(itp,oitp):
-#     with open(oitp,"w") as outFile:
-#         outFile.write("#ifndef 3POSCOS\n  #define 2POSCOS 5000\n#endif\n\n#ifndef 5POSCOS\n  #define 5POSCOS 0\n#endif\n\n[ position_restraints ]\n")  
-#         for atom in itp['atoms']:
-#             if atom[1].lower().startswith("h"):
-#                 outFile.write("%-4s    1  5POSCOS 5POSCOS 5POSCOS\n" % atom[0])
-#             else:
-#                 outFile.write("%-4s    1  2POSCOS 2POSCOS 2POSCOS\n" % atom[0])
+def write_posre(itp_dict, oitp):
+    with open(oitp, "w") as f:
+        f.write(
+            "#ifndef 3POSCOS\n  #define 2POSCOS 5000\n#endif\n\n#ifndef 5POSCOS\n  #define 5POSCOS 0\n#endif\n\n[ position_restraints ]\n")  
+        for atom in itp_dict['atoms']:
+            if atom[1].lower().startswith("h"):
+                f.write("%-4s    1  5POSCOS 5POSCOS 5POSCOS\n" % atom[0])
+            else:
+                f.write("%-4s    1  2POSCOS 2POSCOS 2POSCOS\n" % atom[0])
 
-#     return
 
 
 # def correctAttype(itp,newtypes):

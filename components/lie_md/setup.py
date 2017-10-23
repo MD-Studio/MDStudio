@@ -38,7 +38,7 @@ setup(
     packages=find_packages(),
     package_data={'': ['*.json'], 'lie_md': ['scripts/*']},
     py_modules=[distribution_name],
-    install_requires=['cerise_client'],
+    install_requires=['cerise_client', 'pyparsing'],
     include_package_data=True,
     zip_safe=True,
     entry_points={
