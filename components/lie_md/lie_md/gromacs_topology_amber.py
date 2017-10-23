@@ -29,7 +29,7 @@ def correctItp(itp_file, new_itp_file, posre=True):
        makes position restraint file for the ligand'''
     if posre:
         posreNm = "{}-posre.itp".format(
-            os.path.splitext(os.path.basename(new_itp_file))[0])
+            os.path.splitext(new_itp_file)[0])
     else:
         posreNm = None
 
@@ -182,6 +182,9 @@ def write_itp(itp_dict, keys, oitp, posre=None, excludeList=['atomtypes']):
 
 
 def write_posre(itp_dict, oitp):
+    """
+    Write position restraint itp file.
+    """
     with open(oitp, "w") as f:
         f.write(
             "#ifndef 3POSCOS\n  #define 2POSCOS 5000\n#endif\n\n#ifndef 5POSCOS\n  #define 5POSCOS 0\n#endif\n\n[ position_restraints ]\n")  

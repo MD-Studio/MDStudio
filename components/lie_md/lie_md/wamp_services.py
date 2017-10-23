@@ -9,7 +9,7 @@ WAMP service methods the module exposes.
 import json
 from autobahn import wamp
 from cerise_interface import (
-    call_cerise_gromacs, retrieve_energies)
+    call_cerise_gromacs, create_cerise_config, retrieve_energies)
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_md.settings import SETTINGS, GROMACS_LIE_SCHEMA
 from md_config import set_gromacs_input
@@ -39,16 +39,17 @@ class MDWampApi(LieApplicationSession):
 
         # Load GROMACS configuration and update
         gromacs_config = self.package_config.dict()
-        with open("gromacs.json", 'w') as f:
-            json.dump(gromacs_config, f)
 
         # Prepare to run MD with gromacs
         files = [protein_file, ligand_file, topology_file]
         gromacs_config = set_gromacs_input(
             files, gromacs_config, workdir)
 
+        # Cerise Configuration
+        cerise_config = create_cerise_config(workdir, session)
+
         # Run the MD and retrieve the energies
-        call_cerise_gromacs(gromacs_config, workdir)
+        call_cerise_gromacs(gromacs_config, cerise_config)
         retrieve_energies(workdir)
 
         session['status'] = 'completed'
