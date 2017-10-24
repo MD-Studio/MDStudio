@@ -2,22 +2,21 @@
 
 # from lie_md.gromacs_gromit import gromit_cmd
 import cerise_client.service as cc
+import json
 
 
-def create_cerise_config(workdir, session):
+def create_cerise_config(path_to_config, workdir, session):
     """
     Configuration to run MD jobs.
     """
-    cerise_config = {
-        'workdir': workdir,
-        'docker_name':
-        'cerise-mdstudio-das5-myuser',
-        'docker_image':
-        'mdstudio/cerise-mdstudio-das5:develop',
-        'port': 29593,
-        "task_id": session["task_id"]}
+    with open(path_to_config, 'r') as f:
+        config = json.load(f)
 
-    return cerise_config
+    config['workdir'] = workdir
+    config['task_id'] = session["task_id"]
+    config['service_dict'] = session.get('service_dict', None)
+
+    return config
 
 
 def call_cerise_gromacs(gromacs_config, cerise_config):
@@ -37,6 +36,8 @@ def call_cerise_gromacs(gromacs_config, cerise_config):
     # # run the job in the remote
     # run_job(job, srv, cerise_config)
 
+    # cc.stop_managed_service(srv)
+
 
 def create_service(config):
     """
@@ -48,7 +49,7 @@ def create_service(config):
     else:
         srv = cc.require_managed_service(
             config['docker_name'],
-            config['port'],
+            config.get('port', 29593),
             config['docker_image'],
             config['user_name'],
             config['password'])

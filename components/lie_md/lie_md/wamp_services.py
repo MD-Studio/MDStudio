@@ -27,7 +27,7 @@ class MDWampApi(LieApplicationSession):
     @wamp.register(u'liestudio.gromacs.liemd')
     def run_gromacs_liemd(
             self, session={}, protein_file=None, ligand_file=None,
-            topology_file=None, **kwargs):
+            topology_file=None, cerise_config=None, **kwargs):
         """
         Call gromacs using the Cerise-client infrastructure:
         http://cerise-client.readthedocs.io/en/master/index.html
