@@ -55,6 +55,9 @@ class Chainable:
 
         return Chainable(d)
 
+    def addCallback(self, *args, **kwargs):
+        return Chainable(self.__deferred.addCallback( *args, **kwargs))
+
     def __getattribute__(self, name):
         return object.__getattribute__(self, name)
 

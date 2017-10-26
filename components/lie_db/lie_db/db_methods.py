@@ -39,19 +39,14 @@ class MongoDatabaseWrapper(IDatabase):
     @make_deferred
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
-        cursor = self._cursors[cursor_id].next()
-
-        # refresh cursor keep alive time
-        self._cursors[cursor_id] = cursor
-
-        return self._get_cursor(cursor)
+        return self._more(cursor_id)
 
     @make_deferred
     def rewind(self, cursor_id):
         # type: (str) -> Dict[str, Any]
         self._cursors[cursor_id].rewind()
 
-        return self.more(cursor_id)
+        return self._more(cursor_id)
 
     @make_deferred
     def insert_one(self, collection, insert, date_fields=None):
@@ -351,6 +346,15 @@ class MongoDatabaseWrapper(IDatabase):
             'cursorId': cursor_hash,
             'alive': cursor.alive
         }
+
+    def _more(self, cursor_id):
+        # type: (str) -> Dict[str, Any]
+        cursor = self._cursors[cursor_id].next()
+
+        # refresh cursor keep alive time
+        self._cursors[cursor_id] = cursor
+
+        return self._get_cursor(cursor)
 
     def _update_response(self, upsert, result=None):
         if result is None:

@@ -1,10 +1,10 @@
 # coding=utf-8
 import mock
 from twisted.trial.unittest import TestCase
+from twisted.internet.defer import Deferred
 
-from mdstudio.db.cursor import Cursor
+from mdstudio.db.cursor import Cursor, CursorRefreshingError
 from mdstudio.deferred.chainable import chainable
-
 
 class CursorTests(TestCase):
     def setUp(self):
@@ -34,6 +34,17 @@ class CursorTests(TestCase):
 
         self.assertEqual((yield next(self.cursor)), {'test': 5})
         self.assertEqual((yield next(self.cursor)), {'test2': 2})
+
+    @chainable
+    def test_list(self):
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': [{'test6': 2}]})
+
+        self.assertEqual((yield self.cursor.to_list()), self.values + [{'test6': 2}])
+
+    def test_list_raise(self):
+        self.wrapper.more = mock.MagicMock(return_value=Deferred())
+
+        self.assertRaises(CursorRefreshingError, lambda: list(self.cursor))
 
     @chainable
     def test_iter_stop(self):
@@ -92,13 +103,14 @@ class CursorTests(TestCase):
         self.assertEqual(hist['test'], 5)
         self.assertEqual(hist['test2'], 2)
 
-    # def test_query(self):
+    @chainable
+    def test_query(self):
 
-    #     self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
-    #     results = self.cursor.query().select(lambda x: True if 'test' in x else False).to_list()
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
+        results = yield self.cursor.query().select(lambda x: True if 'test' in x else False).to_list()
 
-    #     self.assertEqual(len(results), 2)
-    #     self.assertEqual(results, [True, False])
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results, [True, False])
 
     def test_count(self):
 
@@ -112,11 +124,12 @@ class CursorTests(TestCase):
         self.assertEqual(self.cursor.count(True), 2)
         self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
 
-    # def test_len(self):
+    @chainable
+    def test_len(self):
 
-    #     self.wrapper.count = mock.MagicMock(return_value=2)
-    #     self.assertEqual(len(self.cursor), 2)
-    #     self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
+        self.wrapper.count = mock.MagicMock(return_value=2)
+        self.assertEqual((yield len(self.cursor)), 2)
+        self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
 
     @chainable
     def test_rewind(self):
