@@ -5,7 +5,9 @@ import datetime
 
 import pytz
 import twisted
+from bson import ObjectId
 from copy import deepcopy
+from mock import mock
 from twisted.internet import reactor
 
 from lie_db.db_methods import MongoDatabaseWrapper
@@ -30,9 +32,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         document = {
             'date': '2017-10-26T09:16:00+00:00'
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['date'])
+        self.assertEqual(document, {
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
         })
 
@@ -43,9 +44,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 'date2': '2017-9-26T09:16:00+00:00'
             }
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date', 'o.date2'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['date', 'o.date2'])
+        self.assertEqual(document, {
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
             'o': {
                 'date2': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
@@ -59,9 +59,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 'date2': '2017-9-26T09:16:00+00:00'
             }
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['o.o.date2'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['o.o.date2'])
+        self.assertEqual(document, {
             'date': '2017-10-26T09:16:00+00:00',
             'o': {
                 'date2': '2017-9-26T09:16:00+00:00'
@@ -73,9 +72,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
             'date': '2017-10-26T09:16:00+00:00',
             'f': '2017-10-26T09:15:00+00:00'
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['date'])
+        self.assertEqual(document, {
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
             'f': '2017-10-26T09:15:00+00:00'
         })
@@ -84,9 +82,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         document = {
             'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00']
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['date'])
+        self.assertEqual(document, {
             'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
                      datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)]
         })
@@ -102,9 +99,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 }
             ]
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['dates.date'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['dates.date'])
+        self.assertEqual(document, {
             'dates': [
                 {
                     'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
@@ -130,9 +126,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 }
             ]
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['dates.date.o'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['dates.date.o'])
+        self.assertEqual(document, {
             'dates': [
                 {
                     'date': {
@@ -158,9 +153,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 }
             ]
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['dates.date'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['dates.date'])
+        self.assertEqual(document, {
             'dates': [
                 {
                     'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
@@ -202,9 +196,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 'date': '2017-10-26T09:16:00+00:00'
             }
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date'], ['insert'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['date'], ['insert'])
+        self.assertEqual(document, {
             'insert': {
                 'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
             }
@@ -222,9 +215,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 'date': '2017-10-26T09:16:00+00:00'
             }
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date'], ['insert', 'inserts'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['date'], ['insert', 'inserts'])
+        self.assertEqual(document, {
             'insert': {
                 'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
             },
@@ -248,9 +240,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 'date': '2017-10-26T09:16:00+00:00'
             }
         }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['insert.date'], ['insert', 'inserts'])
-        self.assertEqual(cdocument, {
+        self.db._transform_to_datetime(document, ['insert.date'], ['insert', 'inserts'])
+        self.assertEqual(document, {
             'insert': {
                 'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
             },
@@ -267,9 +258,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
             'f': '2017-10-26T09:15:00+00:00'
         }
-        cdocument = deepcopy(document)
-        self.db._transform_datetime_to_isostring(cdocument)
-        self.assertEqual(cdocument, {
+        self.db._transform_datetime_to_isostring(document)
+        self.assertEqual(document, {
             'date': '2017-10-26T09:16:00+00:00',
             'f': '2017-10-26T09:15:00+00:00'
         })
@@ -282,9 +272,8 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 'f': '2017-10-26T09:15:00+00:00'
             }
         }
-        cdocument = deepcopy(document)
-        self.db._transform_datetime_to_isostring(cdocument)
-        self.assertEqual(cdocument, {
+        self.db._transform_datetime_to_isostring(document)
+        self.assertEqual(document, {
             'o': {
                 'date': '2017-10-26T09:16:00+00:00',
                 'f': '2017-10-26T09:15:00+00:00'
@@ -298,14 +287,95 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
                 'f': '2017-10-26T09:15:00+00:00'
             }
         }
-        cdocument = deepcopy(document)
-        self.db._transform_datetime_to_isostring(cdocument)
-        self.assertEqual(cdocument, {
+        self.db._transform_datetime_to_isostring(document)
+        self.assertEqual(document, {
             'o': {
                 'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00'],
                 'f': '2017-10-26T09:15:00+00:00'
             }
         })
+
+    def test_prepare_for_json(self):
+        document = {
+            'o': {
+                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc), datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        }
+
+        self.db._prepare_for_json(document)
+
+        self.assertEqual(document, {
+            'o': {
+                'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00'],
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        })
+
+    def test_prepare_for_json_id(self):
+        document = {
+            '_id': 1000,
+            'o': {
+                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc), datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        }
+
+        self.db._prepare_for_json(document)
+
+        self.assertEqual(document, {
+            '_id': '1000',
+            'o': {
+                'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00'],
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        })
+
+    def test_prepare_for_json_none(self):
+        document = None
+
+        self.db._prepare_for_json(document)
+
+        self.assertEqual(document, None)
+
+    def test_prepare_for_mongo(self):
+        document = {
+            'o': {
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        }
+
+        self.db._prepare_for_mongo(document)
+
+        self.assertEqual(document, {
+            'o': {
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        })
+
+    def test_prepare_for_mongo_id(self):
+        document = {
+            '_id': '0123456789ab0123456789ab',
+            'o': {
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        }
+
+        self.db._prepare_for_mongo(document)
+
+        self.assertEqual(document, {
+            '_id': ObjectId('0123456789ab0123456789ab'),
+            'o': {
+                'f': '2017-10-26T09:15:00+00:00'
+            }
+        })
+
+    def test_prepare_for_mongo_none(self):
+        document = None
+
+        self.db._prepare_for_mongo(document)
+
+        self.assertEqual(document, None)
 
     @chainable
     def _test_insert_one(self):

@@ -320,23 +320,12 @@ class MongoDatabaseWrapper(IDatabase):
         if doc:
             # convert json _id from str to ObjectId
             if '_id' in doc:
-                if isinstance(doc['_id'], str):
-                    doc['_id'] = ObjectId(doc['_id'])
-                if isinstance(doc['_id'], dict):
-                    for k, v in doc['_id'].items():
-                        # Assume it is a shallow dict containing either str or List[str]. This corresponds to mongo query operators
-                        if isinstance(v, str):
-                            doc['_id'][k] = ObjectId(v)
-                        else:
-                            doc['_id'][k] = [ObjectId(oid) for oid in v]
+                doc['_id'] = ObjectId(doc['_id'])
 
     def _get_cursor(self, cursor):
         # type: (Cursor) -> dict
-        # firstDoc = cursor.next()
-        # results = [] if firstDoc is None else [self._prepare_for_json(firstDoc)]
-        results = []
 
-        # size = len(cursor._Cursor__data)
+        results = []
         size = cursor._refresh()
 
         for _ in range(size):
