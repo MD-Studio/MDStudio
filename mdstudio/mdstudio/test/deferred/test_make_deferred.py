@@ -1,4 +1,4 @@
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred, succeed
 from twisted.internet.threads import deferToThread
 from twisted.trial.unittest import TestCase
 from twisted.internet import reactor
@@ -6,6 +6,7 @@ from twisted.internet import reactor
 from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.deferred.return_value import return_value
 from mdstudio.deferred.chainable import chainable
+from mdstudio.unittest import wait_for_completion
 
 class TestMakeDeferred(TestCase):
     
@@ -14,6 +15,11 @@ class TestMakeDeferred(TestCase):
             reactor.getThreadPool().start()
 
         super(TestMakeDeferred, self).setUp(*args, **kwargs)
+
+        wait_for_completion.wait_for_completion = True
+
+    def tearDown(self):
+        wait_for_completion.wait_for_completion = False
 
     @chainable
     def test_no_args(self):

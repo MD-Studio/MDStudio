@@ -8,6 +8,7 @@ from twisted.trial.unittest import TestCase
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.db.sort_mode import SortMode
+from mdstudio.deferred.chainable import chainable
 
 
 class SessionDatabaseWrapperTests(TestCase):
@@ -598,16 +599,18 @@ class TestSessionDatabaseWrapperDeferred(TestCase):
 
         self.assertEqual(SessionDatabaseWrapper.extract(d, 'test'), 2)
 
+    @chainable
     def test_transform(self):
         identity = lambda x: x
         const = lambda x: 2
-        SessionDatabaseWrapper.transform(None, identity).addCallback(self.assertEqual, None)
-        SessionDatabaseWrapper.transform(None, const).addCallback(self.assertEqual, None)
-        SessionDatabaseWrapper.transform(4, const).addCallback(self.assertEqual, 2)
-        SessionDatabaseWrapper.transform(3, identity).addCallback(self.assertEqual, 3)
-        SessionDatabaseWrapper.transform(2, lambda x: x ** 2).addCallback(self.assertEqual, 4)
-        SessionDatabaseWrapper.transform('test', identity).addCallback(self.assertEqual, 'test')
+        self.assertEqual((yield SessionDatabaseWrapper.transform(None, identity)), None)
+        self.assertEqual((yield SessionDatabaseWrapper.transform(None, const)), None)
+        self.assertEqual((yield SessionDatabaseWrapper.transform(4, const)), 2)
+        self.assertEqual((yield SessionDatabaseWrapper.transform(3, identity)), 3)
+        self.assertEqual((yield SessionDatabaseWrapper.transform(2, lambda x: x ** 2)), 4)
+        self.assertEqual((yield SessionDatabaseWrapper.transform('test', identity)), 'test')
 
+    @chainable
     def test_make_cursor(self):
         documents = [
             {
@@ -627,4 +630,6 @@ class TestSessionDatabaseWrapperDeferred(TestCase):
         db.make_cursor(d).addCallback(self.assertIsInstance, Cursor)
         self.assertIsInstance(db.make_cursor(d), Deferred)
 
-        db.make_cursor(d).addCallback(lambda x: list(x)).addCallback(self.assertEqual, documents)
+        docs = yield db.make_cursor(d).to_list()
+
+        self.assertEqual(docs, documents)

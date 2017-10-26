@@ -5,6 +5,8 @@ from typing import *
 from asq.initiators import query
 from asq.queryables import Queryable
 
+from twisted.internet.defer import Deferred, succeed
+
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
@@ -26,14 +28,23 @@ class Cursor:
         self._id = response['_id']
         self._alive = response['alive']
         self._data = deque(response['results'])
+        self._refreshing = False
 
     def __iter__(self):
         return self
 
-    @chainable
     def next(self):
-        if len(self._data) or (yield self._refresh()):
-            return_value(self._data.popleft())
+        if self._refreshing:
+            raise NotImplementedError("Yield or wait for the callback of the previous result.")
+
+        len_data = len(self._data)
+        if len_data > 1:
+            return succeed(self._data.popleft())
+        elif self._alive:
+            self._refreshing = True
+            return self._refresh()
+        elif len_data:
+            return succeed(self._data.popleft())
         else:
             raise StopIteration
 
@@ -43,9 +54,11 @@ class Cursor:
     def __len__(self):
         return self.count(True)
 
+    @chainable
     def for_each(self, func):
         # type: (Callable[[Dict[str,Any]], None]) -> None
         for o in self:
+            o = yield o
             func(o)
 
     def query(self):
@@ -61,6 +74,14 @@ class Cursor:
         # type: (bool) -> int
         return self.wrapper.count(cursor_id=self._id, with_limit_and_skip=with_limit_and_skip)
 
+    @chainable
+    def to_list(self):
+        results = []
+        for doc in self:
+            results.append((yield doc))
+
+        return_value(results)
+
     @property
     def alive(self):
         # type: () -> bool
@@ -72,10 +93,11 @@ class Cursor:
 
     @chainable
     def _refresh(self):
-        if self.alive:
-            more = yield self.wrapper.more(cursor_id=self._id)
-            self._id = more['_id']
-            self._alive = more['alive']
-            self._data = deque(more['results'])
+        more = yield self.wrapper.more(cursor_id=self._id)
+        self._id = more['_id']
+        self._alive = more['alive']
+        last_entry = self._data.popleft()
+        self._data = deque(more['results'])
+        self._refreshing = False
 
-        return_value(self._alive or len(self._data))
+        return_value(last_entry)

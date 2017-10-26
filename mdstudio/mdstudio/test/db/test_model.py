@@ -614,7 +614,7 @@ class ModelTests(TestCase):
 
         self.assertIsInstance(results, Cursor)
 
-        lresults = list(results)
+        lresults = yield results.to_list()
         self.assertEqual(lresults[0], self.document)
         self.assertEqual(lresults[1], self.document2)
 
@@ -638,7 +638,7 @@ class ModelTests(TestCase):
 
         self.assertIsInstance(results, Cursor)
 
-        lresults = list(results)
+        lresults = yield results.to_list()
         self.assertEqual(lresults[0], self.document)
         self.assertEqual(lresults[1], self.document2)
 
@@ -662,7 +662,7 @@ class ModelTests(TestCase):
 
         self.assertIsInstance(results, Cursor)
 
-        lresults = list(results)
+        lresults = yield results.to_list()
         self.assertEqual(lresults[0], self.document)
         self.assertEqual(lresults[1], self.document2)
 
@@ -686,7 +686,7 @@ class ModelTests(TestCase):
 
         self.assertIsInstance(results, Cursor)
 
-        lresults = list(results)
+        lresults = yield results.to_list()
         self.assertEqual(lresults[0], self.document)
         self.assertEqual(lresults[1], self.document2)
 
@@ -710,7 +710,7 @@ class ModelTests(TestCase):
 
         self.assertIsInstance(results, Cursor)
 
-        lresults = list(results)
+        lresults = yield results.to_list()
         self.assertEqual(lresults[0], self.document)
         self.assertEqual(lresults[1], self.document2)
 
@@ -735,7 +735,7 @@ class ModelTests(TestCase):
 
         self.assertIsInstance(results, Cursor)
 
-        lresults = list(results)
+        lresults = yield results.to_list()
         self.assertEqual(lresults[0], self.document)
         self.assertEqual(lresults[1], self.document2)
 
@@ -1082,7 +1082,7 @@ class ModelTests(TestCase):
         results = yield self.model.aggregate([{'_id': 'test_id'}])
 
         self.assertIsInstance(results, Cursor)
-        lresults = list(results)
+        lresults = yield results.to_list()
         self.assertEqual(lresults, self.documents)
 
         self.wrapper.aggregate.assert_called_once_with(self.collection, pipeline=[{'_id': 'test_id'}])
