@@ -22,6 +22,8 @@ def skipSupress(z):
 
 
 # parse utils
+natural = pp.Word(pp.nums)
+
 float_number = pp.Regex(r'(\-)?(\d+)?(\.)(\d*)?([eE][\-\+]\d+)?')
 
 skipLine = pp.Suppress(skipSupress('\n'))
@@ -43,5 +45,9 @@ section = brackets + pp.Optional(pp.OneOrMore(comment)) + lines
 many_sections = pp.Group(pp.OneOrMore(section))
 
 
-# Parsers for specific format
+# Parser for itp files
 itp_parser = comment + many_sections
+
+# Parser for the atom section of mol2 files
+header_mol2 = skipSupress(pp.Literal("@<TRIPOS>ATOM")) + skipLine
+parser_atoms_mol2 = header_mol2 + pp.Group(pp.OneOrMore(line + skipLine))

@@ -8,20 +8,28 @@ and return a tuple containing itp and pdb of the ligand.
 """
 import numpy as np
 import os
-from os.path import join
-from parsers import (itp_parser, parse_file)
+from parsers import (itp_parser, parser_atoms_mol2, parse_file)
 from twisted.logger import Logger
-
-from . import __rootpath__
-
 
 logger = Logger()
 
-AMBERHOME = os.environ['AMBERHOME']
-
-tleap = join(AMBERHOME, 'bin/tleap')
-ambpdb = join(AMBERHOME, 'bin/ambpdb')
-solventMols = join(__rootpath__, 'scripts/solventAmber.itp')
+formats_dict = {
+    "defaults":
+    "{:>16s}{:>16s}{:>16s}{:>8s}{:>8s}\n",
+    "atomtypes":
+    "{:>3s}{:>9s}{:>17s}{:>9s}{:>4s}{:>16s}{:>14s}\n",
+    "moleculetype": "{:>5s}{:>4s}\n",
+    "atoms":
+    "{:>6s}{:>5s}{:>6s}{:>6s}{:>6s}{:>5s}{:>13s}{:>13s}\n",
+    "pairs": "{:>6s}{:>7s}{:>7s}\n",
+    "bonds": "{:>6s}{:>7s}{:>4s}{:>14s}{:>14s}\n",
+    "angles":
+    "{:>6s}{:>7s}{:>7s}{:>6s}{:>14s}{:>14s}\n",
+    "dihedrals":
+    "{:>6s}{:>7s}{:>7s}{:>7s}{:>7s}{:>11s}{:>11s}{:>11s}{:>11s}{:>11s}{:>11s}\n",
+    "dihedrals_2":
+    "{:>6s}{:>7s}{:>7s}{:>7s}{:>7s}{:>9s}{:>10s}{:>4s}\n",
+    "exclusions": "{:>5s}{:>5s}\n"}
 
 
 def correctItp(itp_file, new_itp_file, posre=True):
@@ -63,17 +71,30 @@ def read_include_topology(itp_file):
     """
     rs = parse_file(itp_parser, itp_file)
 
-    # tranform the result into a dictionary
-    d = {key: np.array(val) for key, val in chunks_of(rs[0], 2)}
-    ordered_keys = rs[0][0::2]
+    # tranform the result into a dict
+    vals = rs[0][1::2]
+    unique_keys = create_unique_keys(rs[0][0::2])
+    d = {k: np.array(v) for k, v in zip(unique_keys, vals)}
 
-    return d, ordered_keys
+    return d, unique_keys
 
 
-def chunks_of(xs, n):
-    """Yield successive n-sized chunks from xs"""
-    for i in range(0, len(xs), n):
-        yield xs[i:i + n]
+def create_unique_keys(xs):
+    """
+    List of unique block names
+    """
+    ys = []
+    for key in xs:
+        ys.append(check_name(key, ys))
+
+    return ys
+
+
+def check_name(key, ys):
+    """Rename a key if already present in the list"""
+    if key in ys:
+        key = '{}_2'.format(key)
+    return key
 
 
 def adjust_heavyH(itp_dict):
@@ -138,29 +159,6 @@ def compute_index_hs_and_partners(itp_dict):
     return hs.flatten(), ps.flatten()
 
 
-def itpFormat(block):
-    formatTemplate = {
-        "defaults":
-        "{d[0]:>16s}{d[1]:>16s}{d[2]:>16s}{d[2]:>8s}{d[2]:>8s}\n",
-        "atomtypes":
-        "{d[0]:>3s}{d[1]:>9s}{d[2]:>17s}{d[3]:>9s}{d[4]:>4s}{d[5]:>16s}{d[6]:>14s}\n",
-        "moleculetype": "{d[0]:>5s}{d[1]:>4s}\n",
-        "atoms":
-        "{d[0]:>6s}{d[1]:>5s}{d[2]:>6s}{d[3]:>6s}{d[4]:>6s}{d[5]:>5s}{d[6]:>13s}{d[7]:>13s}\n",
-        "pairs": "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}\n",
-        "bonds": "{d[0]:>6s}{d[1]:>7s}{d[2]:>4s}{d[3]:>14s}{d[4]:>14s}\n",
-        "angles":
-        "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>6s}{d[4]:>14s}{d[5]:>14s}\n",
-        "dihedrals":
-        "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>7s}{d[4]:>7s}{d[5]:>11s}{d[6]:>11s}{d[7]:>11s}{d[8]:>11s}{d[9]:>11s}{d[10]:>11s}\n",
-        "dihedrals2":
-        "{d[0]:>6s}{d[1]:>7s}{d[2]:>7s}{d[3]:>7s}{d[4]:>7s}{d[5]:>9s}{d[6]:>10s}{d[7]:>4s}\n",
-        "exclusions": "{d[0]:>5s}{d[1]:>5s}\n"
-    }
-
-    return formatTemplate[block]
-
-
 def write_itp(itp_dict, keys, oitp, posre=None, excludeList=['atomtypes']):
     """
     write new itp. atomtype block is removed
@@ -168,206 +166,184 @@ def write_itp(itp_dict, keys, oitp, posre=None, excludeList=['atomtypes']):
     with open(oitp, "w") as outFile:
         for block_name in keys:
             if block_name not in excludeList:
-                outFile.write("[ {} ]\n".format(block_name))
+                outFile.write("[ {} ]\n".format(check_block_name(block_name)))
                 for item in itp_dict[block_name]:
-                    try:
-                        outFile.write(itpFormat(block_name).format(d=item))
-                    except:
-                        outFile.write(
-                            itpFormat("%s2" % block_name).format(d=item))
+                    outFile.write(formats_dict[block_name].format(*item))
         outFile.write("\n")
         if posre is not None:
             outFile.write(
                 '#ifdef POSRES\n#include "%s"\n#endif\n' % posre)
 
 
-def write_posre(itp_dict, oitp):
+def check_block_name(block_name):
+    """
+    Check whether a block_name has been rename
+    """
+    if block_name.endswith('_2'):
+        block_name = block_name[:-2]
+
+    return block_name
+
+
+def write_posre(itp_dict, output_itp):
     """
     Write position restraint itp file.
     """
-    with open(oitp, "w") as f:
-        f.write(
-            "#ifndef 3POSCOS\n  #define 2POSCOS 5000\n#endif\n\n#ifndef 5POSCOS\n  #define 5POSCOS 0\n#endif\n\n[ position_restraints ]\n")  
+    header = """
+#ifndef 3POSCOS
+  #define 2POSCOS 5000
+#endif
+
+#ifndef 5POSCOS
+  #define 5POSCOS 0
+#endif
+
+[ position_restraints ]
+"""
+    with open(output_itp, "w") as f:
+        f.write(header)
         for atom in itp_dict['atoms']:
             if atom[1].lower().startswith("h"):
-                f.write("%-4s    1  5POSCOS 5POSCOS 5POSCOS\n" % atom[0])
+                f.write(
+                    "{}-4s    1  5POSCOS 5POSCOS 5POSCOS\n".format(atom[0]))
             else:
-                f.write("%-4s    1  2POSCOS 2POSCOS 2POSCOS\n" % atom[0])
+                f.write(
+                    "{}-4s    1  2POSCOS 2POSCOS 2POSCOS\n".format(atom[0]))
 
 
+def reorderhem(
+        file_input, file_output='reordered.pdb',
+        path_to_hem_template=None,
+        listchange=None, diffres=0):
+    """
+    reorder the atom names for heme according to:
+    J Comput Chem. 2012 Jan 15;33(2):119-33
 
-# def correctAttype(itp,newtypes):
-    
-#     oldtypes=[x[0] for x in itp['atomtypes']]
-    
-#     for attype in newtypes:
-#         if not attype[0] in oldtypes:
-#             itp['atomtypes'].append(attype) 
+    patch non standard water residue names and other pdb feature
+    for amber topology creation
+    """
+    # Read HEME file specification
+    new_order = read_hem_template(path_to_hem_template)
 
-#     return itp
-
-
-
-# #### FUNCTIONS FOR PROTEIN PREPARATION
-
-
-# def refineTau(filein,listChanges, nhem, ncyp, outPref, cypCoord=True):
-#     # cypCoord True if the coordinating group is a cysteine, otherwise histidine, called HIH. 
-#     # Parameters are fine only if HEM is not directly interacting
-#     print 'refineTau'
-    
-#     print listChanges
-#     print nhem,ncyp
-#     outOrdered=reorderhem(filein,fileout='%s_ordered.pdb'%outPref,listchange=listChanges)
-
-#     print 'amber.py: refineTau to createProtSystem'
-#     outprmtop,outinpcrd=createProtSystem(outOrdered,outPref,nhem,ncyp,cypCoord=cypCoord)
-    
-#     print outprmtop
-#     # print as pqr, since openbabel is able to recognize atom properties (not the case with mol2) and charges
-#     confMol=convertAmber2PQR(outprmtop,outinpcrd,outPref)
-#     return (confMol,outprmtop,outinpcrd)
+    with open(file_output, 'w') as f_out, open(file_input, 'r') as f_inp:
+        pdb_lines = f_inp.readlines()
+        f_out.write(create_new_pdb(pdb_lines, new_order))
 
 
-# def reorderhem(filein,fileout='reordered.pdb',listchange=None, waterfn=None, diffres=0):
-#     # reorder the atom names for heme according to J Comput Chem. 2012 Jan 15;33(2):119-33
-#     # patch non standard water residue names and other pdb feature for amber topology creation
-#     fmt=[(6,'t'),(5,'i'),(5,'t'),(4,'t'),(2,'t'),(4,'i'),(12,'f'),(8,'f'),(8,'f'),(6,'f'),(6,'f')]
-#     fmtout="{d[0]:<6s}{d[1]:>5d}{d[2]:>5s}{d[3]:>4s}{d[4]:>2s}{d[5]:>4d}{d[6]:>12.3f}{d[7]:>8.3f}{d[8]:>8.3f}{d[9]:>6.2f}{d[10]:>6.2f}\n"
-#     fmtoutmol2="{d[0]:>7s}{d[1]:>5s}{d[2]:>14.4f}{d[3]:>10.4f}{d[4]:>10.4f}{d[5]:>10s}{d[6]:>5s}{d[7]:>5s}{d[8]:>10s}\n"
-    
-#     wat=[]
-#     if waterfn is not None:
-#         #print "Reading file with water molecules"
-#         input=open(waterfn,'r')
-#         templ=input.readlines()
-#         for line in templ:
-#             if line.startswith("HETATM"):
-#                 atm=line.split()
-#                 newln=[]
-#                 oldline=line
-#                 for col in fmt:
-#                     if col[1]=='t':
-#                         newln.append(oldline[0:col[0]].strip())
-#                     elif col[1]=='i':
-#                         newln.append(int(oldline[0:col[0]]))
-#                     elif col[1]=='f':
-#                         newln.append(float(oldline[0:col[0]]))
-#                     oldline=oldline[col[0]:]            
-#                 #print newln
-#                 if atm[3]=='HOH':
-#                     wat.append(newln)
-#                     print "wat", newln
+def read_hem_template(path_to_hem_template):
+    """
+    Retrieve all the atoms in the @<TRIPOS>ATOM section.
+    """
+    rs = parse_file(parser_atoms_mol2, path_to_hem_template)
+    return np.array(rs[0])
 
-#     #print 'reorder HEME'
-#     neworder=[]
-#     readln=False
-#     head=True
-#     with open(hemeTemplate) as temphem:
-#         for line in temphem:
-#             linesp=line.split()
-#             if len(linesp)>0:
-#                 if linesp[0]=="@<TRIPOS>BOND":
-#                     readln=False
-#                     head=False
-#                 if readln == True:            
-#                     neworder.append(linesp)
-#                 if linesp[0]=="@<TRIPOS>ATOM":
-#                     readln=True
-    
-#     input=open(filein,'r')
-#     templ=input.readlines()
-#     input.close()
-#     output=open(fileout,'w')
-#     hem=[]
-#     oldline=''
-#     #print 'check HETATMs'
-#     for line in templ:
-#         ishetatm=False
-#         if line.startswith("TER"):
-#             output.write(line)
-#         elif line.startswith("ATOM"):
-#             resname=line.split()[3]
-#             if resname=="HEM" or resname=="HOH" or resname=="WAT" or resname=="H2O":
-#                 ishetatm=True
-#             else:
-#                 newln=[]
-#                 oldline=line
-#                 for col in fmt:
-#                     if col[1]=='t':
-#                         newln.append(oldline[0:col[0]].strip())
-#                     elif col[1]=='i':
-#                         newln.append(int(oldline[0:col[0]]))
-#                     elif col[1]=='f':
-#                         newln.append(float(oldline[0:col[0]]))
-#                     oldline=oldline[col[0]:]
-    
-#                 pos=next(( (i,change)
-#                     for i, change in enumerate(listchange)
-#                     if newln[5]+diffres in change ),
-#                     None)
-#                 if pos is not None:
-#                     if newln[3]==listchange[pos[0]][1]:
-#                         newln[3]=listchange[pos[0]][2]
-#                     else:
-#                         raise Exception, "Residue number and name do not correspond: Maybe the list of histidines and so on is not the right one (script is not perfect" 
-#                 output.write(fmtout.format(d=newln))
-#                 if newln[2]=='OXT':            # After automatic adjustment of histidines with reduce and saving file with openbabel, TER line is removed. OXT is the carbossiterminal atom. 
-#                     output.write('TER\n')
 
-#         elif line.startswith("HETATM"):
-#             ishetatm=True           
+def create_new_pdb(pdb_lines, new_order):
+    """
+    Write the new order PDB file
+    """
+    pass
+    # fmt = [(6, 't'), (5, 'i'), (5, 't'), (4, 't'), (2, 't'), (4, 'i'),
 
-#         if ishetatm:
-#             atm=line.split()
-#             newln=[]
-#             oldline=line
-#             for col in fmt:
-#                 if col[1]=='t':
-#                     newln.append(oldline[0:col[0]].strip())
-#                 elif col[1]=='i':
-#                     newln.append(int(oldline[0:col[0]]))
-#                 elif col[1]=='f':
-#                     newln.append(float(oldline[0:col[0]]))
-#                 oldline=oldline[col[0]:]
+    #        (12, 'f'), (8, 'f'), (8, 'f'), (6, 'f'), (6, 'f')]
+    # fmtout = "{:<6s}{:>5d}{:>5s}{:>4s}{:>2s}{:>4d}{:>12.3f}{:>8.3f}{:>8.3f}{:>6.2f}{:>6.2f}\n"
+    # output = []
+    # hem = []
+    # oldline = ''
+    # for line in pdb_lines:
+    #     ishetatm=False
+    #     if line.startswith("TER"):
+    #         output.append(line)
+    #     elif line.startswith("ATOM"):
+    #         resname = line.split()[3]
+    #         ishetatm = any(resname == t for t in ["HEM", "HOH", "WAT", "H2O"])
+    #         if not ishetatm:
+    #             process_atom_lines()
 
-#             if atm[3]=='HEM':
-#                 hem.append(newln)
-#                 #print newln
-#             elif atm[3]=='HOH' or atm[3]=='WAT' or atm[3]=='H2O':
-#                 wat.append(newln)      
-
+# def process_atom_lines(line):
+        
+#     else:
+#         newln=[]
 #         oldline=line
-
-#     if len(hem)>0:
-#         atmidx=sorted([x[1] for x in hem])[0]
+#         for col in fmt:
+#             if col[1]=='t':
+#                 newln.append(oldline[0:col[0]].strip())
+#             elif col[1]=='i':
+#                 newln.append(int(oldline[0:col[0]]))
+#             elif col[1]=='f':
+#                 newln.append(float(oldline[0:col[0]]))
+#             oldline=oldline[col[0]:]
     
-#         for atmid in range(len(neworder)):
-#             atmnm=neworder[atmid][1]
-#             pos=next(((i,atm.index(atmnm)) 
-#                 for i, atm in enumerate(hem)
-#                 if atmnm in atm),
-#                 None)
-#             if pos is not None:
-#                 hem[pos[0]][1]=atmidx
-#                 output.write(fmtout.format(d=hem[pos[0]]))
-#                 atmidx+=1
-#         output.write('TER\n')
-
-#     if len(wat)>0:
-#         print "Add water molecules"
-#         for lnatm in wat:
-#             lnatm[1]=atmidx
-#             lnatm[0]='ATOM'
-#             lnatm[3]='WAT'
-#             output.write(fmtout.format(d=lnatm))
-#             atmidx+=1
+#         pos=next(( (i,change)
+#             for i, change in enumerate(listchange)
+#             if newln[5]+diffres in change ),
+#             None)
+#         if pos is not None:
+#             if newln[3]==listchange[pos[0]][1]:
+#                 newln[3]=listchange[pos[0]][2]
+#             else:
+#                 raise Exception, "Residue number and name do not correspond: Maybe the list of histidines and so on is not the right one (script is not perfect" 
+#         output.write(fmtout.format(d=newln))
+#         if newln[2]=='OXT':            # After automatic adjustment of histidines with reduce and saving file with openbabel, TER line is removed. OXT is the carbossiterminal atom. 
 #             output.write('TER\n')
-            
-#     output.write('END\n')
-#     output.close()
+
+    #     elif line.startswith("HETATM"):
+    #         ishetatm=True           
+
+    #     if ishetatm:
+    #         atm=line.split()
+    #         newln=[]
+    #         oldline=line
+    #         for col in fmt:
+    #             if col[1]=='t':
+    #                 newln.append(oldline[0:col[0]].strip())
+    #             elif col[1]=='i':
+    #                 newln.append(int(oldline[0:col[0]]))
+    #             elif col[1]=='f':
+    #                 newln.append(float(oldline[0:col[0]]))
+    #             oldline=oldline[col[0]:]
+
+    #         if atm[3]=='HEM':
+    #             hem.append(newln)
+    #             #print newln
+    #         elif atm[3]=='HOH' or atm[3]=='WAT' or atm[3]=='H2O':
+    #             wat.append(newln)      
+
+    #     oldline=line
+
+    # if len(hem)>0:
+    #     atmidx=sorted([x[1] for x in hem])[0]
     
-#     return os.path.join(os.getcwd(),fileout)
+    #     for atmid in range(len(neworder)):
+    #         atmnm=neworder[atmid][1]
+    #         pos=next(((i,atm.index(atmnm)) 
+    #             for i, atm in enumerate(hem)
+    #             if atmnm in atm),
+    #             None)
+    #         if pos is not None:
+    #             hem[pos[0]][1]=atmidx
+    #             output.write(fmtout.format(d=hem[pos[0]]))
+    #             atmidx+=1
+    #     output.write('TER\n')
+
+    # if len(wat)>0:
+    #     print "Add water molecules"
+    #     for lnatm in wat:
+    #         lnatm[1]=atmidx
+    #         lnatm[0]='ATOM'
+    #         lnatm[3]='WAT'
+    #         output.write(fmtout.format(d=lnatm))
+    #         atmidx+=1
+    #         output.write('TER\n')
+            
+    # output.write('END\n')
+
+
+# AMBERHOME = os.environ['AMBERHOME']
+
+# tleap = join(AMBERHOME, 'bin/tleap')
+# ambpdb = join(AMBERHOME, 'bin/ambpdb')
+# solventMols = join(__rootpath__, 'scripts/solventAmber.itp')
 
 
 # def convertAmber2PQR(prmtop,inpcrd,outprefix):
@@ -465,55 +441,6 @@ def write_posre(itp_dict, oitp):
 #         raise Exception('Error in elaboration of the PDB file. Check the input.')
 
 #     return (outtop,outgro)
-
-
-# def gmxTest(top,gro):
-#     def gmx_min(output):
-#         text=textwrap.dedent('''
-#             cpp                      = /usr/bin/cpp
-#             define                   =
-#             integrator               = cg
-#             nstcgsteep               = 50
-#             emtol                    = 1
-#             nsteps                   = 1000
-#             emstep                   = 0.001
-#             nstcomm                  = 1
-#             ns_type                  = grid
-#             nstlist                  = 1
-#             rlist                    = .9
-#             coulombtype              = Cut-off
-#             rcoulomb                 = 1.4
-#             vdwtype                  = Cut-off
-#             rvdw                     = 1.4
-#             Tcoupl                   = no
-#             Pcoupl                   = no
-#             constraints              = h-bonds
-#             constraint-algorithm     = LINCS
-#             lincs-order              = 8
-#             lincs-iter               = 2
-#             gen_vel                  = no
-#             nstxout                  = 10
-#             pbc                      = no
-#         ''').strip('\n')
-        
-#         inputf=open(output,'w')
-#         inputf.write(text)
-#         inputf.close()
-    
-#     # Perfom minimization
-#     locEnv=os.environ.copy()
-#     gmx_min('test.mdp')
-#     cmd = [grompp, '-f', 'test.mdp', '-p', top, '-c', gro, '-o', 'test.tpr']
-#     grmp=sp.Popen(cmd, env=locEnv)
-#     grmp.wait()
-    
-#     if os.path.exists('test.tpr'):
-#         success=True
-#         os.remove('test.tpr')
-#     else:
-#         success=False
-    
-#     return success
 
 
 # def prepare_sys(preset, pdbin,output,nhem,ncyp,misc=''):
@@ -618,3 +545,32 @@ def write_posre(itp_dict, oitp):
 #                 charge=float(line.split(":")[1])
 #                 break 
 #     return charge
+
+
+# def correctAttype(itp,newtypes):
+    
+#     oldtypes=[x[0] for x in itp['atomtypes']]
+    
+#     for attype in newtypes:
+#         if not attype[0] in oldtypes:
+#             itp['atomtypes'].append(attype) 
+
+#     return itp
+
+
+# def refineTau(filein,listChanges, nhem, ncyp, outPref, cypCoord=True):
+#     # cypCoord True if the coordinating group is a cysteine, otherwise histidine, called HIH. 
+#     # Parameters are fine only if HEM is not directly interacting
+#     print 'refineTau'
+    
+#     print listChanges
+#     print nhem,ncyp
+#     outOrdered=reorderhem(filein,fileout='%s_ordered.pdb'%outPref,listchange=listChanges)
+
+#     print 'amber.py: refineTau to createProtSystem'
+#     outprmtop,outinpcrd=createProtSystem(outOrdered,outPref,nhem,ncyp,cypCoord=cypCoord)
+    
+#     print outprmtop
+#     # print as pqr, since openbabel is able to recognize atom properties (not the case with mol2) and charges
+#     confMol=convertAmber2PQR(outprmtop,outinpcrd,outPref)
+#     return (confMol,outprmtop,outinpcrd)
