@@ -21,11 +21,19 @@ def set_gromacs_input(files, gromacs_config, workdir):
     gromacs_config['ligand_pdb'] = new_files.ligand
     gromacs_config['ligand_itp'] = new_files.topology
 
-    return fix_topology(
+    gromacs_config = fix_topology_ligand(
         gromacs_config, workdir, new_files.topology)
 
+    return fix_topology_protein(gromacs_config)
 
-def fix_topology(gromacs_config, workdir, topology):
+
+def fix_topology_protein(gromacs_config):
+    """
+    """
+    return gromacs_config
+
+
+def fix_topology_ligand(gromacs_config, workdir, topology):
     """
     Adjust topology for the ligand.
     """

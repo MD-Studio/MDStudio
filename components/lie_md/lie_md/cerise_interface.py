@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 # from lie_md.gromacs_gromit import gromit_cmd
+from twisted.logger import Logger
 import cerise_client.service as cc
 import json
+
+logger = Logger()
 
 
 def create_cerise_config(path_to_config, workdir, session):
@@ -24,19 +27,22 @@ def call_cerise_gromacs(gromacs_config, cerise_config):
     Use cerise to run gromacs in a remote cluster, see:
     http://cerise-client.readthedocs.io/en/latest/
     """
-    pass
-    # srv, cerise_config = create_service(cerise_config)
+    logger.info("Creating a Cerise-client service")
+    srv, cerise_config = create_service(cerise_config)
 
-    # # Start service
-    # cc.start_managed_service(srv)
+    # Start service
+    cc.start_managed_service(srv)
 
-    # # Create jobs
-    # job = create_job(srv, gromacs_config, cerise_config)
+    # Create jobs
+    logger.info("Creating Cerise-client job")
+    job = create_job(srv, gromacs_config, cerise_config)
 
-    # # run the job in the remote
-    # run_job(job, srv, cerise_config)
+    # run the job in the remote
+    logger.info("Running the job in a remote machine")
+    run_job(job, srv, cerise_config)
 
-    # cc.stop_managed_service(srv)
+    logger.info("Shutting down Cerise-client service")
+    cc.stop_managed_service(srv)
 
 
 def create_service(config):
