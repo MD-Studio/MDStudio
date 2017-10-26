@@ -33,7 +33,7 @@ class Cursor:
     @chainable
     def next(self):
         if len(self._data) or (yield self._refresh()):
-            return return_value(self._data.popleft())
+            return_value(self._data.popleft())
         else:
             raise StopIteration
 
@@ -78,4 +78,4 @@ class Cursor:
             self._alive = more['alive']
             self._data = deque(more['results'])
 
-        return return_value(self._alive or len(self._data))
+        return_value(self._alive or len(self._data))

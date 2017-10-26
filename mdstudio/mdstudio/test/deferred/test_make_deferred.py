@@ -1,11 +1,21 @@
 from twisted.internet.defer import Deferred
+from twisted.internet.threads import deferToThread
 from twisted.trial.unittest import TestCase
+from twisted.internet import reactor
 
 from mdstudio.deferred.make_deferred import make_deferred
-
+from mdstudio.deferred.return_value import return_value
+from mdstudio.deferred.chainable import chainable
 
 class TestMakeDeferred(TestCase):
+    
+    def setUp(self, *args, **kwargs):
+        if not reactor.getThreadPool().started:
+            reactor.getThreadPool().start()
 
+        super(TestMakeDeferred, self).setUp(*args, **kwargs)
+
+    @chainable
     def test_no_args(self):
 
         class Test:
@@ -15,11 +25,14 @@ class TestMakeDeferred(TestCase):
                 return 3
 
         test = Test()
-        test.test().addCallback(self.assertIsInstance, Deferred)
-        self.assertIsInstance(test.test(), Deferred)
 
-        test.test().addCallback(self.assertEqual, 3)
+        testTest = test.test()
+        self.assertIsInstance(testTest, Deferred)
+        self.assertEqual(3, (yield testTest))
 
+        return_value({})
+
+    @chainable
     def test_args(self):
 
         class Test:
@@ -29,11 +42,14 @@ class TestMakeDeferred(TestCase):
                 return a + b
 
         test = Test()
-        test.add(1, 5).addCallback(self.assertIsInstance, Deferred)
-        self.assertIsInstance(test.add(6, 9), Deferred)
+        testAdd = test.add(6, 9)
+        self.assertIsInstance(testAdd, Deferred)
 
-        test.add(12,3).addCallback(self.assertEqual, 15)
+        self.assertEqual((yield testAdd), 15)
 
+        return_value({})
+
+    @chainable
     def test_kwargs(self):
 
         class Test:
@@ -44,4 +60,8 @@ class TestMakeDeferred(TestCase):
 
         test = Test()
 
-        test.add(**{'a':12, 'b':3}).addCallback(self.assertEqual, 15)
+        testAdd = test.add(**{'a':12, 'b':3})
+        self.assertEqual((yield testAdd), 15)
+
+        return_value({})
+        
