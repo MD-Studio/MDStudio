@@ -3,11 +3,15 @@ import mock
 from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor
+from mdstudio.deferred.chainable import chainable
 
 
 class CursorTests(TestCase):
     def setUp(self):
         self.wrapper = mock.Mock()
+
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})        
+
         self.values = [
             {'test': 5},
             {'test2': 2}
@@ -25,51 +29,55 @@ class CursorTests(TestCase):
         self.assertEqual(self.cursor._alive, True)
         self.assertEqual(len(self.cursor._data), 2)
 
+    @chainable
     def test_next(self):
 
-        self.assertEqual(next(self.cursor), {'test': 5})
-        self.assertEqual(next(self.cursor), {'test2': 2})
+        self.assertEqual((yield next(self.cursor)), {'test': 5})
+        self.assertEqual((yield next(self.cursor)), {'test2': 2})
 
+    @chainable
     def test_iter_stop(self):
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
         for i, v in enumerate(self.cursor):
-            self.assertEqual(v, self.values[i])
+            self.assertEqual((yield v), self.values[i])
 
         self.wrapper.more.assert_called_with(**{'cursor_id': 1234})
 
+    @chainable
     def test_more(self):
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': True, 'results': [{'test3': 8}]})
 
         nxt = lambda: next(self.cursor)
-        self.assertEqual(nxt(), {'test': 5})
-        self.assertEqual(nxt(), {'test2': 2})
-
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': True, 'results': [{'test3': 8}]})
-        self.assertEqual(nxt(), {'test3': 8})
+        self.assertEqual((yield nxt()), {'test': 5})
+        self.assertEqual((yield nxt()), {'test2': 2})
 
         self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': [{'test6': 2}]})
-        self.assertEqual(nxt(), {'test6': 2})
+        self.assertEqual((yield nxt()), {'test3': 8})
+
+        self.assertEqual((yield nxt()), {'test6': 2})
 
         self.assertRaises(StopIteration, nxt)
 
+    @chainable
     def test_id(self):
+        self.wrapper.more = mock.MagicMock(return_value={'_id': 1244, 'alive': True, 'results': [{'test3': 8}]})
 
         nxt = lambda: next(self.cursor)
-        self.assertEqual(nxt(), {'test': 5})
-        self.assertEqual(nxt(), {'test2': 2})
-
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1244, 'alive': True, 'results': [{'test3': 8}]})
-        self.assertEqual(nxt(), {'test3': 8})
+        self.assertEqual((yield nxt()), {'test': 5})
+        self.assertEqual((yield nxt()), {'test2': 2})
 
         self.wrapper.more.assert_called_with(**{'cursor_id': 1234})
-
         self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': [{'test6': 2}]})
-        self.assertEqual(nxt(), {'test6': 2})
+
+        self.assertEqual((yield nxt()), {'test3': 8})
 
         self.wrapper.more.assert_called_with(**{'cursor_id': 1244})
 
+        self.assertEqual((yield nxt()), {'test6': 2})
+
         self.assertRaises(StopIteration, nxt)
 
+    @chainable
     def test_foreach(self):
 
         hist = {'test': 0, 'test2': 0}
@@ -79,18 +87,18 @@ class CursorTests(TestCase):
                 hist[k] += v
 
         self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
-        self.cursor.for_each(test)
+        yield self.cursor.for_each(test)
 
         self.assertEqual(hist['test'], 5)
         self.assertEqual(hist['test2'], 2)
 
-    def test_query(self):
+    # def test_query(self):
 
-        self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
-        results = self.cursor.query().select(lambda x: True if 'test' in x else False).to_list()
+    #     self.wrapper.more = mock.MagicMock(return_value={'_id': 1234, 'alive': False, 'results': []})
+    #     results = self.cursor.query().select(lambda x: True if 'test' in x else False).to_list()
 
-        self.assertEqual(len(results), 2)
-        self.assertEqual(results, [True, False])
+    #     self.assertEqual(len(results), 2)
+    #     self.assertEqual(results, [True, False])
 
     def test_count(self):
 
@@ -104,29 +112,31 @@ class CursorTests(TestCase):
         self.assertEqual(self.cursor.count(True), 2)
         self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
 
-    def test_len(self):
+    # def test_len(self):
 
-        self.wrapper.count = mock.MagicMock(return_value=2)
-        self.assertEqual(len(self.cursor), 2)
-        self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
+    #     self.wrapper.count = mock.MagicMock(return_value=2)
+    #     self.assertEqual(len(self.cursor), 2)
+    #     self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
 
+    @chainable
     def test_rewind(self):
 
         self.wrapper.rewind = mock.MagicMock(return_value={'rewound': True})
         self.cursor._create_cursor = mock.MagicMock(return_value=1456)
-        self.assertEqual(self.cursor.rewind(), 1456)
+        self.assertEqual((yield self.cursor.rewind()), 1456)
         self.cursor._create_cursor.assert_called_with(self.wrapper, {'rewound': True})
 
+    @chainable
     def test_rewind2(self):
 
         self.wrapper.rewind = mock.MagicMock(return_value=self.result)
 
         nxt = lambda: next(self.cursor)
-        self.assertEqual(nxt(), {'test': 5})
-        self.assertEqual(nxt(), {'test2': 2})
+        self.assertEqual((yield nxt()), {'test': 5})
+        self.assertEqual((yield nxt()), {'test2': 2})
 
-        self.cursor = self.cursor.rewind()
+        self.cursor = yield self.cursor.rewind()
 
         nxt = lambda: next(self.cursor)
-        self.assertEqual(nxt(), {'test': 5})
-        self.assertEqual(nxt(), {'test2': 2})
+        self.assertEqual((yield nxt()), {'test': 5})
+        self.assertEqual((yield nxt()), {'test2': 2})
