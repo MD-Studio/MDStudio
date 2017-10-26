@@ -10,6 +10,9 @@ from twisted.internet.defer import Deferred, succeed
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
+class CursorRefreshingError(Exception):
+    def __init__(self):
+        self.message = "Yield or wait for the callback of the previous result."
 
 class Cursor:
 
@@ -35,12 +38,12 @@ class Cursor:
 
     def next(self):
         if self._refreshing:
-            raise NotImplementedError("Yield or wait for the callback of the previous result.")
+            raise CursorRefreshingError()
 
         len_data = len(self._data)
         if len_data > 1:
             return succeed(self._data.popleft())
-        elif self._alive:
+        elif self.alive:
             self._refreshing = True
             return self._refresh()
         elif len_data:
@@ -63,7 +66,7 @@ class Cursor:
 
     def query(self):
         # type: () -> Queryable
-        return query(self)
+        return self.to_list().addCallback(lambda l: query(l))
 
     @chainable
     def rewind(self):
