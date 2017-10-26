@@ -59,7 +59,7 @@ class MongoDatabaseWrapper(IDatabase):
         db_collection = self._get_collection(collection, True)
 
         self._prepare_for_mongo(insert)
-        self._transform_to_datetime({'insert': insert}, date_fields)
+        self._transform_to_datetime({'insert': insert}, date_fields, ['insert'])
 
         return {
             'id': str(db_collection.insert_one(insert).inserted_id)
@@ -89,7 +89,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         self._prepare_for_mongo(filter)
         self._prepare_for_mongo(replacement)
-        self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields)
+        self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields, ['filter', 'replacement'])
 
         replace_result = db_collection.replace_one(filter, replacement, upsert)
 
@@ -103,6 +103,9 @@ class MongoDatabaseWrapper(IDatabase):
             total = self._cursors[cursor_id].count(with_limit_and_skip)
         else:
             db_collection = self._get_collection(collection)
+
+            skip = 0 if not skip else skip
+            limit = 0 if not limit else limit
 
             if db_collection:
                 self._prepare_for_mongo(filter)
@@ -151,14 +154,13 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
-        if skip is None:
-            skip = 0
+        skip = 0 if not skip else skip
 
         result = None
         if db_collection:
             self._prepare_for_mongo(filter)
             self._transform_to_datetime({'filter': filter}, date_fields)
-            result = db_collection.find_one(filter, projection, skip, sort=sort)
+            result = db_collection.find_one(filter, projection, skip=skip, sort=sort)
 
             self._prepare_for_json(result)
 
@@ -171,6 +173,9 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
+        skip = 0 if not skip else skip
+        limit = 0 if not limit else limit
+
         if not db_collection:
             return {
                 'results': [],
@@ -181,7 +186,7 @@ class MongoDatabaseWrapper(IDatabase):
         self._prepare_for_mongo(filter)
         self._transform_to_datetime({'filter': filter}, date_fields)
 
-        cursor = db_collection.find(filter, projection, skip, sort=sort)
+        cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=sort)
 
         return self._get_cursor(cursor)
 
@@ -333,7 +338,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         # size = len(cursor._Cursor__data)
         size = cursor._refresh()
-        
+
         for _ in range(size):
             doc = cursor.next()
             self._prepare_for_json(doc)
@@ -384,13 +389,24 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._db[collection_name]
 
-    def _transform_to_datetime(self, document, fields):
+    def _transform_to_datetime(self, document, fields, prefixes=None):
+
+        if prefixes is None:
+            prefixes = ['']
         if fields is None:
             return
 
-        for field in fields:
-            fields = field.split('.')
-            self._transform_docfield_to_datetime(document, fields)
+        nfields = []
+        for f in fields:
+            if all(not f.startswith(p) for p in prefixes):
+                for p in prefixes:
+                    nfields.append('{}.{}'.format(p, f))
+            else:
+                nfields.append(f)
+
+        for field in nfields:
+            split_fields = field.split('.')
+            self._transform_docfield_to_datetime(document, split_fields)
 
     def _transform_docfield_to_datetime(self, doc, field):
         subdoc = doc
@@ -410,11 +426,19 @@ class MongoDatabaseWrapper(IDatabase):
 
         key = field[-1]
 
+        # if we have a list of objects we support just indexing those
         if isinstance(subdoc, list):
             for d in subdoc:
-                d[key] = parsedate(d[key]).astimezone(pytz.utc)
+                if key in d:
+                    d[key] = parsedate(d[key]).astimezone(pytz.utc)
         else:
-            subdoc[key] = parsedate(subdoc[key]).astimezone(pytz.utc)
+            # either we indexed a normal datetime field, or a list with datetimes
+            if key in subdoc:
+                if isinstance(subdoc[key], list):
+                    for i, e in enumerate(subdoc[key]):
+                        subdoc[key][i] = parsedate(e).astimezone(pytz.utc)
+                else:
+                    subdoc[key] = parsedate(subdoc[key]).astimezone(pytz.utc)
 
     def _transform_datetime_to_isostring(self, document):
         if isinstance(document, dict):
