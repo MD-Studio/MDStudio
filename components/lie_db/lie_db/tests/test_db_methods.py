@@ -8,6 +8,7 @@ from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.unittest.mongo import TrialDBTestCase
+from mdstudio.unittest import wait_for_completion
 
 twisted.internet.base.DelayedCall.debug = True
 
@@ -18,6 +19,11 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
 
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
+
+        wait_for_completion.wait_for_completion = True
+
+    def tearDown(self):
+        wait_for_completion.wait_for_completion = False
 
     @chainable
     def test_insert_one(self):
