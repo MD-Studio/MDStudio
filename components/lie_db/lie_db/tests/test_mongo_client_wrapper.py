@@ -31,6 +31,19 @@ class TestMongoClientWrapper(DBTestCase):
             self.assertIsInstance(db, MongoDatabaseWrapper)
             self.assertEqual(db, self.d.get_namespace('ns1'))
 
+    def test_get_namespace_not_exists2(self):
+
+        self.d._client.get_database('ns1')
+
+        with mock.patch('lie_db.db_methods.logger.info'):
+
+            db = self.d.get_namespace('ns1')
+
+            logger.info.assert_not_called()
+
+            self.assertIsInstance(db, MongoDatabaseWrapper)
+            self.assertEqual(db, self.d.get_namespace('ns1'))
+
     def test_create_mongo_client(self):
         mongo.create_mock_client = False
 
