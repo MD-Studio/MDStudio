@@ -31,7 +31,7 @@ class TestMongoClientWrapper(DBTestCase):
             self.assertIsInstance(db, MongoDatabaseWrapper)
             self.assertEqual(db, self.d.get_namespace('ns1'))
 
-    def test_get_namespace_not_exists2(self):
+    def test_get_namespace_exists(self):
 
         self.d._client.get_database('ns1')
 

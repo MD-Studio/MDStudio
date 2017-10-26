@@ -336,7 +336,7 @@ class MongoDatabaseWrapper(IDatabase):
         # cache the cursor for later use
         # by default it will be available for 10 minutes we also
         # hash the cursor id to make random guessing a lot harder
-        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 999999)).encode()).hexdigest()
+        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 99999999)).encode()).hexdigest()
         self._cursors[cursor_hash] = cursor
 
         return {

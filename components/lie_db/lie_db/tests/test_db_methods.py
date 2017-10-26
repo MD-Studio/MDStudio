@@ -10,13 +10,14 @@ from copy import deepcopy
 from mock import mock
 from twisted.internet import reactor
 
-from lie_db.db_methods import MongoDatabaseWrapper
+from lie_db.db_methods import MongoDatabaseWrapper, logger
 from lie_db.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.unittest.mongo import TrialDBTestCase
 from mdstudio.unittest import wait_for_completion
+import mongomock
 
 twisted.internet.base.DelayedCall.debug = True
 
@@ -383,12 +384,59 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
 
         self.assertEqual(document, None)
 
+    def test_get_collection_dict(self):
+
+        with mock.patch('lie_db.db_methods.logger.info'):
+
+            collection = {
+                'name': 'test_collection'
+            }
+            self.assertEqual(self.db._get_collection(collection), None)
+            logger.info.assert_not_called()
+
+    def test_get_collection_dict_create(self):
+
+        with mock.patch('lie_db.db_methods.logger.info'):
+            collection = {
+                'name': 'test_collection'
+            }
+            self.assertIsInstance(self.db._get_collection(collection,create=True), mongomock.collection.Collection)
+
+            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}', collection='test_collection', namespace='testns')
+
+    def test_get_collection_str(self):
+
+        with mock.patch('lie_db.db_methods.logger.info'):
+
+            collection = 'test_collection'
+            self.assertEqual(self.db._get_collection(collection), None)
+            logger.info.assert_not_called()
+
+    def test_get_collection_str_create(self):
+
+        with mock.patch('lie_db.db_methods.logger.info'):
+            collection = 'test_collection'
+            self.assertIsInstance(self.db._get_collection(collection,create=True), mongomock.collection.Collection)
+
+            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}', collection='test_collection', namespace='testns')
+
+    def test_get_collection_exists(self):
+
+        with mock.patch('lie_db.db_methods.logger.info'):
+            collection = 'test_collection'
+            col = self.db._get_collection(collection,create=True)
+            self.assertIsInstance(col, mongomock.collection.Collection)
+
+            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}', collection='test_collection', namespace='testns')
+
+            self.assertIs(self.db._get_collection(collection), col)
+
     @chainable
     def _test_insert_one(self):
 
-        id = yield self.d.insert_one({'test': 2, '_id': 80})
-        self.assertEqual(id, '80')
+        id = yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab'})
+        self.assertEqual(id, '0123456789ab0123456789ab')
 
-        found = yield self.d.find_one({'_id': 80})
+        found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'})
 
-        self.assertEqual(found, {'test': 2, '_id': '80'})
+        self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab'})
