@@ -6,9 +6,10 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import os
 import json
 import jsonschema
+import os
+import tempfile
 
 from autobahn import wamp
 
@@ -35,7 +36,6 @@ class StructuresWampApi(LieApplicationSession):
 
     @wamp.register(u'liestudio.structures.get_structure')
     def get_structure(self, structure=None, session=None, **kwargs):
-
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session or {})
 
@@ -61,7 +61,6 @@ class StructuresWampApi(LieApplicationSession):
         """
         Convert input file format to a different format
         """
-        
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session or {})
 
@@ -72,15 +71,29 @@ class StructuresWampApi(LieApplicationSession):
         # Validate against JSON schema
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
+        # Create workdir and save file
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+
+        # Input/output molecule
+        inp_fmt = config.get('input_format')
+        out_fmt = config.get('output_format')
+        self.log.info(
+            "Reading Molecule in {} format".format(inp_fmt))
         molobject = mol_read(
-            config['mol'], mol_format=config.get('input_format'))
+            config['mol'], mol_format=inp_fmt)
+
+        self.log.info("Writing Molecule in {} format".format(out_fmt))
         output = mol_write(
-            molobject,  mol_format=config.get('output_format'))
+            molobject,  mol_format=out_fmt)
+
+        path = os.path.join(workdir, 'output.{}'.format(out_fmt))
+        with open(path, 'w') as f:
+            f.write(output)
 
         # Update session
         session.status = 'completed'
-        
-        return {'mol': output, 'session': session.dict()}
+
+        return {'mol': path, 'session': session.dict()}
 
     @wamp.register(u'liestudio.structure.addh')
     def addh_structures(self, session=None,  **kwargs):
