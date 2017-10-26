@@ -320,23 +320,12 @@ class MongoDatabaseWrapper(IDatabase):
         if doc:
             # convert json _id from str to ObjectId
             if '_id' in doc:
-                if isinstance(doc['_id'], str):
-                    doc['_id'] = ObjectId(doc['_id'])
-                if isinstance(doc['_id'], dict):
-                    for k, v in doc['_id'].items():
-                        # Assume it is a shallow dict containing either str or List[str]. This corresponds to mongo query operators
-                        if isinstance(v, str):
-                            doc['_id'][k] = ObjectId(v)
-                        else:
-                            doc['_id'][k] = [ObjectId(oid) for oid in v]
+                doc['_id'] = ObjectId(doc['_id'])
 
     def _get_cursor(self, cursor):
         # type: (Cursor) -> dict
-        # firstDoc = cursor.next()
-        # results = [] if firstDoc is None else [self._prepare_for_json(firstDoc)]
-        results = []
 
-        # size = len(cursor._Cursor__data)
+        results = []
         size = cursor._refresh()
 
         for _ in range(size):
@@ -347,7 +336,7 @@ class MongoDatabaseWrapper(IDatabase):
         # cache the cursor for later use
         # by default it will be available for 10 minutes we also
         # hash the cursor id to make random guessing a lot harder
-        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 999999)).encode()).hexdigest()
+        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 99999999)).encode()).hexdigest()
         self._cursors[cursor_hash] = cursor
 
         return {
