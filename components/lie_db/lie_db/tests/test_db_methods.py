@@ -534,15 +534,15 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
-        result = yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test': 6})
+        result = yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test2': 6})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
-        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'test': 6})])
+        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'test2': 6})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
         found2 = yield self.d.find_one({'_id': ids[1]})
-        self.assertEqual(found2, {'test': 6, '_id': ids[1]})
+        self.assertEqual(found2, {'test2': 6, '_id': ids[1]})
 
         self.assertEqual(result.matched, 1)
         self.assertEqual(result.modified, 1)
@@ -581,3 +581,187 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(result.matched, 0)
         self.assertEqual(result.modified, 0)
         self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_replace_one_datefields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        result = yield self.d.replace_one({'_id': '666f6f2d6261722d71757578'}, {'test': 6})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                '_id': ObjectId('666f6f2d6261722d71757578')
+            },
+            'replacement': {
+                'test': 6
+            }
+        }, None, ['filter', 'replacement'])
+
+    @chainable
+    def test_update_one(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = [
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ]
+        ids = yield self.d.insert_many(obs)
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        result = yield self.d.update_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}})
+
+        self.db._get_collection.assert_called_once_with('test_collection', False)
+        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'$set': {'test': 6}})])
+
+        found1 = yield self.d.find_one({'_id': ids[0]})
+        self.assertEqual(found1, {'test': 2, '_id': ids[0]})
+        found2 = yield self.d.find_one({'_id': ids[1]})
+        self.assertEqual(found2, {'test': 6, '_id': ids[1]})
+
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_update_one_upsert(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        result = yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}}, upsert=True)
+
+        self.db._get_collection.assert_called_once_with('test_collection', True)
+
+        found1 = yield self.d.find_one({'_id': ids[0]})
+        self.assertEqual(found1, {'test': 2, '_id': ids[0]})
+        found2 = yield self.d.find_one({'_id': ids[1]})
+        self.assertEqual(found2, {'test': 3, '_id': ids[1]})
+        found3 = yield self.d.find_one({'_id': '666f6f2d6261722d71757578'})
+        self.assertEqual(found3, {'test': 6, '_id': '666f6f2d6261722d71757578'})
+
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 0)
+        self.assertEqual(result.upserted_id, '666f6f2d6261722d71757578')
+
+    @chainable
+    def test_update_one_no_collection(self):
+
+        result = yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}})
+
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 0)
+        self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_update_one_datefields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        result = yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                '_id': ObjectId('666f6f2d6261722d71757578')
+            },
+            'update': {
+                '$set': {'test': 6}
+            }
+        }, None, ['filter', 'update'])
+
+    @chainable
+    def test_update_many(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = [
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ]
+        ids = yield self.d.insert_many(obs)
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        result = yield self.d.update_many({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}})
+
+        self.db._get_collection.assert_called_once_with('test_collection', False)
+        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'$set': {'test': 6}})])
+
+        found1 = yield self.d.find_one({'_id': ids[0]})
+        self.assertEqual(found1, {'test': 2, '_id': ids[0]})
+        found2 = yield self.d.find_one({'_id': ids[1]})
+        self.assertEqual(found2, {'test': 6, '_id': ids[1]})
+
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_update_many_upsert(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        result = yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}}, upsert=True)
+
+        self.db._get_collection.assert_called_once_with('test_collection', True)
+
+        found1 = yield self.d.find_one({'_id': ids[0]})
+        self.assertEqual(found1, {'test': 2, '_id': ids[0]})
+        found2 = yield self.d.find_one({'_id': ids[1]})
+        self.assertEqual(found2, {'test': 3, '_id': ids[1]})
+        found3 = yield self.d.find_one({'_id': '666f6f2d6261722d71757578'})
+        self.assertEqual(found3, {'test': 6, '_id': '666f6f2d6261722d71757578'})
+
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 0)
+        self.assertEqual(result.upserted_id, '666f6f2d6261722d71757578')
+
+    @chainable
+    def test_update_many_no_collection(self):
+
+        result = yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}})
+
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 0)
+        self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_update_many_datefields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        result = yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                '_id': ObjectId('666f6f2d6261722d71757578')
+            },
+            'update': {
+                '$set': {'test': 6}
+            }
+        }, None, ['filter', 'update'])
+

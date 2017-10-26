@@ -92,7 +92,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         replace_result = db_collection.replace_one(filter, replacement, upsert)
 
-        return self._update_response(upsert, replace_result=replace_result)
+        return self._update_response(upsert, result=replace_result)
 
     @make_deferred
     def count(self, collection=None, filter=None, skip=None, limit=None, date_fields=None, cursor_id=None, with_limit_and_skip=False):
@@ -126,11 +126,11 @@ class MongoDatabaseWrapper(IDatabase):
 
         self._prepare_for_mongo(filter)
         self._prepare_for_mongo(update)
-        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
 
-        replace_result = db_collection.update_one(filter, update, upsert)
+        result = db_collection.update_one(filter, update, upsert)
 
-        return self._update_response(upsert, replace_result=replace_result)
+        return self._update_response(upsert, result=result)
 
     @make_deferred
     def update_many(self, collection, filter, update, upsert=False, date_fields=None):
@@ -142,11 +142,11 @@ class MongoDatabaseWrapper(IDatabase):
 
         self._prepare_for_mongo(filter)
         self._prepare_for_mongo(update)
-        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
 
-        replace_result = db_collection.update_many(filter, update, upsert)
+        result = db_collection.update_many(filter, update, upsert)
 
-        return self._update_response(upsert, replace_result=replace_result)
+        return self._update_response(upsert, result=result)
 
     @make_deferred
     def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
@@ -158,7 +158,7 @@ class MongoDatabaseWrapper(IDatabase):
         result = None
         if db_collection:
             self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields)
+            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             result = db_collection.find_one(filter, projection, skip=skip, sort=sort)
 
             self._prepare_for_json(result)
@@ -352,20 +352,20 @@ class MongoDatabaseWrapper(IDatabase):
             'alive': cursor.alive
         }
 
-    def _update_response(self, upsert, replace_result=None):
-        if replace_result is None:
+    def _update_response(self, upsert, result=None):
+        if result is None:
             return {
                 'matched': 0,
                 'modified': 0
             }
 
         response = {
-            'matched': replace_result.matched_count,
-            'modified': replace_result.modified_count
+            'matched': result.matched_count,
+            'modified': result.modified_count
         }
 
-        if upsert and replace_result.upserted_id:
-            response['upsertedId'] = str(replace_result.upserted_id)
+        if upsert and result.upserted_id:
+            response['upsertedId'] = str(result.upserted_id)
 
         return response
 
