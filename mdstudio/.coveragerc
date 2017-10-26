@@ -2,7 +2,7 @@
 branch = True
 omit =
     # omit anything in the .venv directory
-    */.venv/*
+    **/virtualenvs/**
 
 [paths]
 source =

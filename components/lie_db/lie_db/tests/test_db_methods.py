@@ -630,6 +630,31 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(result.upserted_id, None)
 
     @chainable
+    def test_update_one_functionality(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = [
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 2, '_id': '59f1d9c57dd5d70043e74f8d'},
+            {'test': 6, '_id': '666f6f2d6261722d71757578'}
+        ]
+        ids = yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        result = yield self.d.update_one({'test': 2}, {'$set': {'test2': 6}})
+
+        found1 = yield self.d.find_one({'_id': ids[0]})
+        self.assertEqual(found1, {'test': 2, 'test2': 6, '_id': ids[0]})
+        found2 = yield self.d.find_one({'_id': ids[1]})
+        self.assertEqual(found2, {'test': 2, '_id': ids[1]})
+        found3 = yield self.d.find_one({'_id': ids[2]})
+        self.assertEqual(found3, {'test': 6, '_id': ids[2]})
+
+        self.assertEqual(result.matched, 1)
+        self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
+
+    @chainable
     def test_update_one_upsert(self):
 
         ids = yield self.d.insert_many([
@@ -708,6 +733,31 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
 
         self.assertEqual(result.matched, 1)
         self.assertEqual(result.modified, 1)
+        self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_update_many_functionality(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = [
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 2, '_id': '59f1d9c57dd5d70043e74f8d'},
+            {'test': 6, '_id': '666f6f2d6261722d71757578'}
+        ]
+        ids = yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        result = yield self.d.update_many({'test': 2}, {'$set': {'test2': 6}})
+
+        found1 = yield self.d.find_one({'_id': ids[0]})
+        self.assertEqual(found1, {'test': 2, 'test2': 6, '_id': ids[0]})
+        found2 = yield self.d.find_one({'_id': ids[1]})
+        self.assertEqual(found2, {'test': 2, 'test2': 6, '_id': ids[1]})
+        found3 = yield self.d.find_one({'_id': ids[2]})
+        self.assertEqual(found3, {'test': 6, '_id': ids[2]})
+
+        self.assertEqual(result.matched, 2)
+        self.assertEqual(result.modified, 2)
         self.assertEqual(result.upserted_id, None)
 
     @chainable
