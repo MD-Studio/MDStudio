@@ -70,8 +70,7 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, List[DocumentType], DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
-        for doc in insert:
-            self._prepare_for_mongo(doc)
+        self._prepare_for_mongo(insert)
 
         self._transform_to_datetime({'insert': insert}, date_fields, ['insert'])
 
@@ -317,10 +316,17 @@ class MongoDatabaseWrapper(IDatabase):
             self._transform_datetime_to_isostring(doc)
 
     def _prepare_for_mongo(self, doc):
-        if doc:
-            # convert json _id from str to ObjectId
-            if '_id' in doc:
-                doc['_id'] = ObjectId(doc['_id'])
+        def _prepare_obj(obj):
+            if obj:
+                # convert json _id from str to ObjectId
+                if '_id' in obj:
+                    obj['_id'] = ObjectId(obj['_id'])
+        if isinstance(doc, list):
+
+            for d in doc:
+                _prepare_obj(d)
+        else:
+            _prepare_obj(doc)
 
     def _get_cursor(self, cursor):
         # type: (Cursor) -> dict

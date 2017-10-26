@@ -7,7 +7,7 @@ import pytz
 import twisted
 from bson import ObjectId
 from copy import deepcopy
-from mock import mock
+from mock import mock, call
 from twisted.internet import reactor
 
 from lie_db.db_methods import MongoDatabaseWrapper, logger
@@ -434,9 +434,11 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
     @chainable
     def test_insert_one(self):
 
-        id = yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab'})
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        o = {'test': 2, '_id': '0123456789ab0123456789ab'}
+        id = yield self.d.insert_one(o)
         self.assertEqual(id, '0123456789ab0123456789ab')
-
+        self.db._prepare_for_mongo.assert_called_with(o)
         found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'})
 
         self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab'})
@@ -468,11 +470,14 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
     @chainable
     def test_insert_many(self):
 
-        ids = yield self.d.insert_many([
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = [
             {'test': 2, '_id': '0123456789ab0123456789ab'},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
-        ])
+        ]
+        ids = yield self.d.insert_many(obs)
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        self.db._prepare_for_mongo.assert_called_with(obs)
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -520,16 +525,19 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
     @chainable
     def test_replace_one(self):
 
-        ids = yield self.d.insert_many([
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = [
             {'test': 2, '_id': '0123456789ab0123456789ab'},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
-        ])
+        ]
+        ids = yield self.d.insert_many(obs)
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
         result = yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test': 6})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
+        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'test': 6})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -564,3 +572,12 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(result.matched, 0)
         self.assertEqual(result.modified, 0)
         self.assertEqual(result.upserted_id, '666f6f2d6261722d71757578')
+
+    @chainable
+    def test_replace_one_no_collection(self):
+
+        result = yield self.d.replace_one({'_id': '666f6f2d6261722d71757578'}, {'test': 6})
+
+        self.assertEqual(result.matched, 0)
+        self.assertEqual(result.modified, 0)
+        self.assertEqual(result.upserted_id, None)
