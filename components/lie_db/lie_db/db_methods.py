@@ -73,7 +73,7 @@ class MongoDatabaseWrapper(IDatabase):
         for doc in insert:
             self._prepare_for_mongo(doc)
 
-        self._transform_to_datetime({'insert': insert}, date_fields)
+        self._transform_to_datetime({'insert': insert}, date_fields, ['insert'])
 
         return {
             'ids': [str(oid) for oid in db_collection.insert_many(insert).inserted_ids]
@@ -336,7 +336,7 @@ class MongoDatabaseWrapper(IDatabase):
         # cache the cursor for later use
         # by default it will be available for 10 minutes we also
         # hash the cursor id to make random guessing a lot harder
-        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 99999999)).encode()).hexdigest()
+        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 999999999)).encode()).hexdigest()
         self._cursors[cursor_hash] = cursor
 
         return {
