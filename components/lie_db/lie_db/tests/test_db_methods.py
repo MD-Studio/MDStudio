@@ -10,17 +10,21 @@ from mdstudio.deferred.return_value import return_value
 from mdstudio.unittest.mongo import TrialDBTestCase
 
 twisted.internet.base.DelayedCall.debug = True
-class TestMongoDatabaseWrapper(TrialDBTestCase):
 
+class TestMongoDatabaseWrapper(TrialDBTestCase):
     def setUp(self):
         self.db = MongoClientWrapper("localhost", 27127).get_namespace('testns')
         self.d = Model(self.db, 'test_collection')
-    
+
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
 
-
     @chainable
     def test_insert_one(self):
+
         id = yield self.d.insert_one({'test': 2, '_id': 80})
         self.assertEqual(id, '80')
+
+        found = yield self.d.find_one({'_id': 80})
+
+        self.assertEqual(found, {'test': 2, '_id': '80'})

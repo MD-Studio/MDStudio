@@ -151,6 +151,9 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
+        if skip is None:
+            skip = 0
+
         result = None
         if db_collection:
             self._prepare_for_mongo(filter)

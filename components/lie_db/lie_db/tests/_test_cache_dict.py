@@ -1,6 +1,6 @@
-from unittest import TestCase
+from time import sleep
 
-from autobahn.twisted import sleep
+from twisted.trial.unittest import TestCase
 
 from lie_db.cache_dict import CacheDict
 
@@ -29,7 +29,7 @@ class TestCacheDict(TestCase):
         self.assertEqual(self.d['test'], 1)
         self.assertEqual(self.d['test2'], 2)
 
-        yield sleep(1)
+        sleep(1)
 
         self.assertFalse('test' in self.d)
         self.assertFalse('test2' in self.d)
@@ -41,7 +41,7 @@ class TestCacheDict(TestCase):
         self.assertEqual(self.d['test'], 1)
         self.assertEqual(self.d['test2'], 2)
 
-        yield sleep(1)
+        sleep(1)
 
         with self.assertRaises(KeyError):
             x = self.d['test']
@@ -57,7 +57,7 @@ class TestCacheDict(TestCase):
         self.assertEqual(self.d['test'], 1)
         self.assertEqual(self.d['test2'], 2)
 
-        yield sleep(1)
+        sleep(1)
 
         self.assertEqual(self.d['test'], 1)
         self.assertEqual(self.d['test2'], 2)
@@ -68,12 +68,12 @@ class TestCacheDict(TestCase):
         self.assertEqual(self.d['test'], 5)
         self.assertEqual(self.d['test2'], 6)
 
-        yield sleep(1)
+        sleep(1)
 
         self.assertEqual(self.d['test'], 5)
         self.assertEqual(self.d['test2'], 6)
 
-        yield sleep(1)
+        sleep(1)
 
         self.assertFalse('test' in self.d)
         self.assertFalse('test2' in self.d)
