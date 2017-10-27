@@ -9,6 +9,7 @@ WAMP service methods the module exposes.
 import json
 import jsonschema
 import os
+import six
 import tempfile
 
 from autobahn import wamp
@@ -79,8 +80,13 @@ class StructuresWampApi(LieApplicationSession):
         out_fmt = config.get('output_format')
         self.log.info(
             "Reading Molecule in {} format".format(inp_fmt))
-        molobject = mol_read(
-            config['mol'], mol_format=inp_fmt)
+
+        mol = config['mol']
+        if os.path.isfile(mol):
+            with open(mol, 'r') as f:
+                mol = f.read(mol)
+
+        molobject = mol_read(mol, mol_format=inp_fmt)
 
         self.log.info("Writing Molecule in {} format".format(out_fmt))
         output = mol_write(
@@ -93,7 +99,7 @@ class StructuresWampApi(LieApplicationSession):
         # Update session
         session.status = 'completed'
 
-        return {'mol': path, 'session': session.dict()}
+        return {'mol': six.text_type(path), 'session': session.dict()}
 
     @wamp.register(u'liestudio.structure.addh')
     def addh_structures(self, session=None,  **kwargs):

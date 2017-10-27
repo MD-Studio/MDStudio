@@ -1,45 +1,42 @@
 # -*- coding: utf-8 -*-
 
-from collections import namedtuple
 from lie_md.gromacs_topology_amber import correctItp
 from os.path import join
+from twisted.logger import Logger
 
 import os
 import shutil
 
-Files = namedtuple(
-    "Files", ("protein", "ligand", "topology"))
+logger = Logger()
 
 
-def set_gromacs_input(files, gromacs_config, workdir):
+def set_gromacs_input(gromacs_config, workdir):
     """
     Create input files for gromacs.
     """
-    # Input files
-    new_files = copy_data_to_workdir(files, workdir)
-    gromacs_config['protein_pdb'] = new_files.protein
-    gromacs_config['ligand_pdb'] = new_files.ligand
-    gromacs_config['ligand_itp'] = new_files.topology
+    # Write files and update links
+    gromacs_config = copy_data_to_workdir(gromacs_config, workdir)
 
-    gromacs_config = fix_topology_ligand(
-        gromacs_config, workdir, new_files.topology)
+    # correct topology
+    gromacs_config = fix_topology_ligand(gromacs_config, workdir)
 
     return fix_topology_protein(gromacs_config)
 
 
 def fix_topology_protein(gromacs_config):
     """
+    Adjust the topology of the protein
     """
     return gromacs_config
 
 
-def fix_topology_ligand(gromacs_config, workdir, topology):
+def fix_topology_ligand(gromacs_config, workdir):
     """
     Adjust topology for the ligand.
     """
     itp_file = join(workdir, 'ligand.itp')
     results = correctItp(
-        topology, itp_file, posre=True)
+        gromacs_config['ligand_itp'], itp_file, posre=True)
 
     # Add charges and topology
     gromacs_config['charge'] = results['charge']
@@ -48,25 +45,23 @@ def fix_topology_ligand(gromacs_config, workdir, topology):
     return gromacs_config
 
 
-def copy_data_to_workdir(files, workdir):
+def copy_data_to_workdir(config, workdir):
     """
     Move Gromacs related files to the Workdir
     """
-    files = Files(*files)
-
     # Store protein file if available
-    protein_file = store_structure_in_file(
-        files.protein, workdir, 'protein')
+    config['protein_pdb'] = store_structure_in_file(
+        config['protein_pdb'], workdir, 'protein')
 
     # Store ligand file if available
-    ligand_file = store_structure_in_file(
-        files.ligand, workdir, 'ligand')
+    config['ligand_pdb'] = store_structure_in_file(
+        config['ligand_pdb'], workdir, 'ligand')
 
     # Save ligand topology files
-    topology_file = store_structure_in_file(
-        files.topology, workdir, 'input_GMX', ext='itp')
+    config['ligand_itp'] = store_structure_in_file(
+        config['ligand_itp'], workdir, 'input_GMX', ext='itp')
 
-    return Files(protein_file, ligand_file, topology_file)
+    return config
 
 
 def store_structure_in_file(mol, workdir, name, ext='pdb'):
@@ -92,3 +87,24 @@ def store_structure_in_file(mol, workdir, name, ext='pdb'):
             inp.write(mol)
 
     return dest
+
+
+def create_topology_with_pdb2gmx():
+    pass
+
+# PDB2GMX="$GMXBIN/pdb2gmx -v -f $dirn/$base.pdb -o $base.gro -p $base.top -ignh -ff $ForceField -water $SolModel"
+
+
+# # 2. Position restraints
+# #    * The position restraint fc (-posrefc) is bogus and 
+# #      intended to allow easy replacement with sed.
+# #      These will be placed under control of a #define
+# PDB2GMX="$PDB2GMX -i $base-posre.itp -posrefc 999"
+
+
+# # 3. Virtual sites
+# $VirtualSites && PDB2GMX="$PDB2GMX -vsite hydrogens" 
+
+
+# # 4. Add program options specified on command line (--pdb2gmx-option=value)
+# PDB2GMX="$PDB2GMX $(program_options pdb2gmx

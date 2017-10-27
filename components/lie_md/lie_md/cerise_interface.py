@@ -35,7 +35,7 @@ def call_cerise_gromacs(gromacs_config, cerise_config):
 
     # Create jobs
     logger.info("Creating Cerise-client job")
-    job = create_job(srv, gromacs_config, cerise_config)
+    job = create_lie_job(srv, gromacs_config, cerise_config)
 
     # run the job in the remote
     logger.info("Running the job in a remote machine")
@@ -66,7 +66,7 @@ def create_service(config):
     return srv, config
 
 
-def create_job(srv, gromacs_config, cerise_config):
+def create_lie_job(srv, gromacs_config, cerise_config):
     """
     Create a Cerise job and set gromacs
     """
@@ -96,20 +96,3 @@ def retrieve_energies(workdir):
     """
     """
     pass
-
-        # gmxRun = gromit_cmd(gromacs_config)
-
-        # if protein_file:
-        #     gmxRun += '-f {0} '.format(os.path.basename(protdsc))
-
-        # if ligand_file:
-        #     gmxRun += '-l {0},{1} '.format(
-        #         os.path.basename(ligdsc), os.path.basename(results['itp']))
-
-        # # Prepaire post analysis (energy extraction)
-        # eneRun = 'python getEnergies.py -gmxrc {0} -ene -o ligand.ene'.format(GMXRC)
-
-        # # write executable
-        # with open('run_md.sh', 'w') as outFile:
-        #     outFile.write("{0}\n".format(gmxRun))
-        #     outFile.write("{0}\n".format(eneRun))

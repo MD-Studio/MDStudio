@@ -41,9 +41,12 @@ class MDWampApi(LieApplicationSession):
         gromacs_config = self.package_config.dict()
 
         # Prepare to run MD with gromacs
-        files = [protein_file, ligand_file, topology_file]
+        gromacs_config['protein_pdb'] = protein_file
+        gromacs_config['ligand_pdb'] = ligand_file
+        gromacs_config['ligand_itp'] = topology_file
+
         gromacs_config = set_gromacs_input(
-            files, gromacs_config, workdir)
+            gromacs_config, workdir)
 
         # Cerise Configuration
         cerise_config = create_cerise_config(
