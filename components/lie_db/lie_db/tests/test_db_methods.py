@@ -1526,13 +1526,13 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
 
 
     @chainable
-    def _test_aggregate(self):
+    def test_aggregate(self):
 
         total = 100
         obs = []
         for i in range(total):
             obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
-        for i in range(total):
+        for i in range(total * 2):
             obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
         yield self.d.insert_many(obs)
 
@@ -1540,11 +1540,26 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         found = yield self.d.aggregate([
             {
                 '$match': {'test': {'$gt': 50}}
+            },
+            {
+                '$group': {
+                    '_id': '$test2',
+                    'count': {'$sum': 1}
+                }
             }
         ])
         self.db._get_collection.assert_called_once_with('test_collection')
 
         self.assertIsInstance(found, Cursor)
-        self.assertEqual((yield found.to_list()), list(range(total)))
+        list = yield found.to_list()
+        self.assertEqual(list[0], {'_id': '0', 'count': 49})
+        self.assertEqual(list[1], {'_id': '1', 'count': 149})
+
+    @chainable
+    def test_aggregate_no_collection(self):
+
+        result = yield self.d.aggregate([])
+
+        self.assertEqual((yield result.to_list()), [])
 
 

@@ -265,7 +265,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         if not db_collection:
             return {
-                'result': [],
+                'results': [],
                 'alive': False,
                 'size': 0
             }

@@ -10,7 +10,7 @@ class CursorTests(TestCase):
     def setUp(self):
         self.wrapper = mock.Mock()
 
-        self.wrapper.more = mock.MagicMock(return_value={'cursorId': 1234, 'alive': False, 'results': []})
+        self.wrapper.more = mock.MagicMock(return_value={'alive': False, 'results': []})
 
         self.values = [
             {'test': 5},
