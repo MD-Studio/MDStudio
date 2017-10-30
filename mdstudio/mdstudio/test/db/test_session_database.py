@@ -621,7 +621,7 @@ class TestSessionDatabaseWrapperDeferred(TestCase):
             }
         ]
         d = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': documents
         }

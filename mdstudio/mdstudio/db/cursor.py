@@ -28,10 +28,11 @@ class Cursor:
     def __init__(self, wrapper, response):
         self.wrapper = wrapper
         self.current = 0
-        self._id = response['_id']
+        self._id = response['cursorId']
         self._alive = response['alive']
         self._data = deque(response['results'])
         self._refreshing = False
+        self._alive_no_data = False
 
     def __iter__(self):
         return self
@@ -97,10 +98,10 @@ class Cursor:
     @chainable
     def _refresh(self):
         more = yield self.wrapper.more(cursor_id=self._id)
-        self._id = more['_id']
-        self._alive = more['alive']
+        self._id = more['cursorId']
         last_entry = self._data.popleft()
         self._data = deque(more['results'])
+        self._alive = more['alive'] and len(self._data) > 0
         self._refreshing = False
 
         return_value(last_entry)

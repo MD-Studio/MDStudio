@@ -605,7 +605,7 @@ class ModelTests(TestCase):
     @chainable
     def test_find_many(self):
         self.wrapper.find_many.return_value = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': self.documents
         }
@@ -629,7 +629,7 @@ class ModelTests(TestCase):
     @chainable
     def test_find_many_projection(self):
         self.wrapper.find_many.return_value = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': self.documents
         }
@@ -653,7 +653,7 @@ class ModelTests(TestCase):
     @chainable
     def test_find_many_skip(self):
         self.wrapper.find_many.return_value = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': self.documents
         }
@@ -677,7 +677,7 @@ class ModelTests(TestCase):
     @chainable
     def test_find_many_limit(self):
         self.wrapper.find_many.return_value = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': self.documents
         }
@@ -701,7 +701,7 @@ class ModelTests(TestCase):
     @chainable
     def test_find_many_sort(self):
         self.wrapper.find_many.return_value = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': self.documents
         }
@@ -725,7 +725,7 @@ class ModelTests(TestCase):
     @chainable
     def test_find_many_date_fields(self):
         self.wrapper.find_many.return_value = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': self.documents
         }
@@ -1072,7 +1072,7 @@ class ModelTests(TestCase):
     @chainable
     def test_aggregate(self):
         self.wrapper.aggregate.return_value = {
-            '_id': 1234,
+            'cursorId': 1234,
             'alive': False,
             'results': self.documents
         }

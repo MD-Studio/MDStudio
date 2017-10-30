@@ -12,6 +12,7 @@ from twisted.internet import reactor
 
 from lie_db.db_methods import logger
 from lie_db.mongo_client_wrapper import MongoClientWrapper
+from mdstudio.db.cursor import Cursor
 from mdstudio.db.model import Model
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
@@ -301,6 +302,33 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
             }
         })
 
+    def test_prepare_sortmode_asc(self):
+        sort = ('test', SortMode.Asc)
+
+        sort = self.db._prepare_sortmode(sort)
+
+        self.assertEqual(sort, [('test', 1)])
+
+    def test_prepare_sortmode_desc(self):
+        sort = ('test', SortMode.Desc)
+
+        sort = self.db._prepare_sortmode(sort)
+
+        self.assertEqual(sort, [('test', -1)])
+
+    def test_prepare_sortmode_list(self):
+        sort = [
+            ('test', SortMode.Desc),
+            ('test2', SortMode.Asc),
+        ]
+
+        sort = self.db._prepare_sortmode(sort)
+
+        self.assertEqual(sort, [
+            ('test', -1),
+            ('test2', 1)
+        ])
+
     def test_prepare_for_json(self):
         document = {
             'o': {
@@ -343,6 +371,20 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.db._prepare_for_json(document)
 
         self.assertEqual(document, None)
+
+    def test_prepare_for_json_int(self):
+        document = 2
+
+        self.db._prepare_for_json(document)
+
+        self.assertEqual(document, 2)
+
+    def test_prepare_for_json_int_list(self):
+        document = [2,3,4]
+
+        self.db._prepare_for_json(document)
+
+        self.assertEqual(document, [2,3,4])
 
     def test_prepare_for_mongo(self):
         document = {
@@ -657,7 +699,6 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
     @chainable
     def test_update_one_functionality(self):
 
-        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
         obs = [
             {'test': 2, '_id': '0123456789ab0123456789ab'},
             {'test': 2, '_id': '59f1d9c57dd5d70043e74f8d'},
@@ -665,7 +706,6 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         ]
         ids = yield self.d.insert_many(obs)
 
-        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
         result = yield self.d.update_one({'test': 2}, {'$set': {'test2': 6}})
 
         found1 = yield self.d.find_one({'_id': ids[0]})
@@ -843,49 +883,668 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
     @chainable
     def test_find_one(self):
 
+        total = 100
         self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
         obs = []
-        for i in range(500):
+        for i in range(total):
             obs.append({'test': i, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-        for i in range(500):
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one({'test': i})
+            self.db._get_collection.assert_called_once_with('test_collection')
+
             self.assertEqual(obs[i]['_id'], ids[i])
             self.assertEqual(found, obs[i])
 
     @chainable
     def test_find_one_projection(self):
 
+        total = 100
         self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
         obs = []
-        for i in range(500):
+        for i in range(total):
             obs.append({'test': i, '_id': str(ObjectId())})
         yield self.d.insert_many(obs)
 
-        for i in range(500):
+        for i in range(total):
             found = yield self.d.find_one({'test': i}, {'_id': 0})
             self.assertEqual(found, {'test': i})
 
     @chainable
     def test_find_one_skip(self):
 
+        total = 100
         self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
         obs = []
-        for i in range(500):
+        for i in range(total):
             obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
-        for i in range(500):
+        for i in range(total):
             obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-        all = yield self.d.find_many({})
+        for i in range(total):
+            found = yield self.d.find_one({'test': i}, skip=1, sort=('_id', SortMode.Asc))
+            self.assertEqual(obs[i+total]['_id'], ids[i+total])
+            self.assertEqual(found, obs[i+total])
 
-        for i in range(500):
+    @chainable
+    def test_find_one_sort(self):
+
+        total = 100
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
             found = yield self.d.find_one({'test': i}, sort=('_id', SortMode.Desc))
-            self.assertEqual(obs[i+500]['_id'], ids[i+500])
-            self.assertEqual(found, obs[i+500])
+            self.assertEqual(obs[i+total]['_id'], ids[i+total])
+            self.assertEqual(found, obs[i+total])
 
-        for i in range(500):
+        for i in range(total):
             found = yield self.d.find_one({'test': i}, sort=('_id', SortMode.Asc))
             self.assertEqual(obs[i]['_id'], ids[i])
             self.assertEqual(found, obs[i])
+
+    @chainable
+    def test_find_one_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.find_one({'_id': '666f6f2d6261722d71757578'})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                '_id': ObjectId('666f6f2d6261722d71757578')
+            }
+        }, None, ['filter'])
+
+    @chainable
+    def test_find_one_no_collection(self):
+
+        result = yield self.d.find_one({'_id': '666f6f2d6261722d71757578'})
+
+        self.assertEqual(result, None)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @chainable
+    def test_find_one_and_update(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}})
+            self.db._get_collection.assert_called_once_with('test_collection', False)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+            found2 = yield self.d.find_one({'test': i})
+            self.assertEqual(found2, {'_id': obs[i]['_id'], 'test': i, 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_update_upsert(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, upsert=True)
+            self.db._get_collection.assert_called_once_with('test_collection', True)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+            found2 = yield self.d.find_one({'test': i})
+            self.assertEqual(found2, {'_id': obs[i]['_id'], 'test': i, 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_update_upsert2(self):
+
+        total = 100
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, upsert=True)
+            self.db._get_collection.assert_called_once_with('test_collection', True)
+
+            found2 = yield self.d.find_one({'test': i})
+
+            self.assertEqual(found, None)
+            self.assertEqual(found2['test'], i)
+            self.assertEqual(found2['test2'], total-i)
+
+    @chainable
+    def test_find_one_and_update_projection(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, projection={'_id': 0})
+            self.db._get_collection.assert_called_once_with('test_collection', False)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, {'test': i})
+
+            found2 = yield self.d.find_one({'test': i})
+            self.assertEqual(found2, {'_id': obs[i]['_id'], 'test': i, 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_update_sort(self):
+
+        total = 100
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, sort=('_id', SortMode.Desc))
+            self.assertEqual(obs[i+total]['_id'], ids[i+total])
+            self.assertEqual(found, obs[i+total])
+
+        for i in range(total):
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, sort=('_id', SortMode.Asc))
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+    @chainable
+    def test_find_one_and_update_return_updated(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, return_updated=True)
+            self.db._get_collection.assert_called_once_with('test_collection', False)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, {'_id': obs[i]['_id'], 'test': i, 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_update_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.find_one_and_update({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test2': 99}})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                '_id': ObjectId('666f6f2d6261722d71757578')
+            },
+            'update': {
+                '$set': {
+                    'test2': 99
+                }
+            }
+        }, None, ['filter', 'update'])
+
+    @chainable
+    def test_find_one_and_update_collection(self):
+
+        obs = [{'test': 1, '_id': str(ObjectId())}]
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        yield self.d.find_one_and_update({'test': 1}, {'$set': {'test2': 0}})
+        self.db._get_collection.assert_called_once_with('test_collection', False)
+
+    @chainable
+    def test_find_one_and_update_no_collection(self):
+
+        result = yield self.d.find_one_and_update({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}})
+
+        self.assertEqual(result, None)
+
+    @chainable
+    def test_find_one_and_replace(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i})
+            self.db._get_collection.assert_called_once_with('test_collection', False)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+            found2 = yield self.d.find_one({'test': i})
+            found3 = yield self.d.find_one({'test2':  total - i})
+            self.assertEqual(found2, None)
+            self.assertEqual(found3, {'_id': obs[i]['_id'], 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_replace_upsert(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, upsert=True)
+            self.db._get_collection.assert_called_once_with('test_collection', True)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+            found2 = yield self.d.find_one({'test': i})
+            found3 = yield self.d.find_one({'test2':  total - i})
+            self.assertEqual(found2, None)
+            self.assertEqual(found3, {'_id': obs[i]['_id'], 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_replace_upsert2(self):
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.find_one_and_replace({'test': 0}, {'test2': 100}, upsert=True)
+        self.db._get_collection.assert_called_once_with('test_collection', True)
+
+        found2 = yield self.d.find_one({'test': 0})
+        found3 = yield self.d.find_one({'test2': 100})
+
+        self.assertEqual(found, None)
+        self.assertEqual(found2, None)
+        self.assertEqual(found3['test2'], 100)
+
+    @chainable
+    def test_find_one_and_replace_upsert3(self):
+
+        total = 100
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, upsert=True)
+            self.db._get_collection.assert_called_once_with('test_collection', True)
+
+            found2 = yield self.d.find_one({'test': i})
+            found3 = yield self.d.find_one({'test2': total - i})
+
+            self.assertEqual(found, None)
+            self.assertEqual(found2, None)
+            self.assertEqual(found3['test2'], total-i)
+
+    @chainable
+    def test_find_one_and_replace_projection(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, projection={'_id': 0})
+            self.db._get_collection.assert_called_once_with('test_collection', False)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, {'test': i})
+
+            found2 = yield self.d.find_one({'test': i})
+            found3 = yield self.d.find_one({'test2':  total - i})
+            self.assertEqual(found2, None)
+            self.assertEqual(found3, {'_id': obs[i]['_id'], 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_replace_sort(self):
+
+        total = 100
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+            found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, sort=('_id', SortMode.Desc))
+            self.assertEqual(obs[i+total]['_id'], ids[i+total])
+            self.assertEqual(found, obs[i+total])
+
+        for i in range(total):
+            found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, sort=('_id', SortMode.Asc))
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+    @chainable
+    def test_find_one_and_replace_return_updated(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, return_updated=True)
+            self.db._get_collection.assert_called_once_with('test_collection', False)
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, {'_id': obs[i]['_id'], 'test2': total - i})
+
+    @chainable
+    def test_find_one_and_replace_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.find_one_and_replace({'_id': '666f6f2d6261722d71757578'}, {'test2': 99})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                '_id': ObjectId('666f6f2d6261722d71757578')
+            },
+            'replacement': {
+                'test2': 99
+            }
+        }, None, ['filter', 'replacement'])
+
+    @chainable
+    def test_find_one_and_replace_collection(self):
+
+        obs = [{'test': 1, '_id': str(ObjectId())}]
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        yield self.d.find_one_and_replace({'test': 1}, {'test2': 0})
+        self.db._get_collection.assert_called_once_with('test_collection', False)
+
+    @chainable
+    def test_find_one_and_replace_no_collection(self):
+
+        result = yield self.d.find_one_and_replace({'_id': '666f6f2d6261722d71757578'}, {'test': 6})
+
+        self.assertEqual(result, None)
+
+
+    @chainable
+    def test_find_one_and_delete(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_delete({'test': i})
+            self.db._get_collection.assert_called_once_with('test_collection')
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+            found2 = yield self.d.find_one({'test': i})
+            self.assertEqual(found2, None)
+
+    @chainable
+    def test_find_one_and_delete_projection(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+
+            self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+            found = yield self.d.find_one_and_delete({'test': i}, projection={'_id': 0})
+            self.db._get_collection.assert_called_once_with('test_collection')
+
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, {'test': i})
+
+            found2 = yield self.d.find_one({'test': i})
+            self.assertEqual(found2, None)
+
+    @chainable
+    def test_find_one_and_delete_sort(self):
+
+        total = 100
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(total):
+            found = yield self.d.find_one_and_delete({'test': i}, sort=('_id', SortMode.Desc))
+            self.assertEqual(obs[i+total]['_id'], ids[i+total])
+            self.assertEqual(found, obs[i+total])
+
+        for i in range(total):
+            found = yield self.d.find_one_and_delete({'test': i}, sort=('_id', SortMode.Asc))
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+
+    @chainable
+    def test_find_one_and_delete_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.find_one_and_delete({'_id': '666f6f2d6261722d71757578'}, {'test2': 99})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                '_id': ObjectId('666f6f2d6261722d71757578')
+            }
+        }, None, ['filter'])
+
+    @chainable
+    def test_find_one_and_delete_collection(self):
+
+        obs = [{'test': 1, '_id': str(ObjectId())}]
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        yield self.d.find_one_and_delete({'test': 1}, {'test2': 0})
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+    @chainable
+    def test_find_one_and_delete_no_collection(self):
+
+        result = yield self.d.find_one_and_delete({'_id': '666f6f2d6261722d71757578'}, {'test': 6})
+
+        self.assertEqual(result, None)
+
+    @chainable
+    def test_distinct(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.distinct('test')
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertEqual(found, list(range(total)))
+
+    @chainable
+    def test_distinct2(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.distinct('test')
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertEqual(found, list(range(total)))
+
+    @chainable
+    def test_distinct_filter(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.distinct('test', {'test': {'$gt': 50}})
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertEqual(found, list(range(51,total)))
+
+    @chainable
+    def test_distinct_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.distinct('test')
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': None
+        }, None, ['filter'])
+
+    @chainable
+    def test_distinct_collection(self):
+
+        obs = [{'test': 1, '_id': str(ObjectId())}]
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        yield self.d.distinct('test')
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+    @chainable
+    def test_distinct_no_collection(self):
+
+        result = yield self.d.distinct('test')
+
+        self.assertEqual(result, [])
+
+
+    @chainable
+    def _test_aggregate(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.aggregate([
+            {
+                '$match': {'test': {'$gt': 50}}
+            }
+        ])
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertIsInstance(found, Cursor)
+        self.assertEqual((yield found.to_list()), list(range(total)))
+
+

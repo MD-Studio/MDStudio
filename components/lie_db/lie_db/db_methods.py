@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 import hashlib
 import pytz
@@ -13,7 +13,7 @@ from pymongo.cursor import Cursor
 from twisted.logger import Logger
 
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, SortOperators, \
-    ProjectionOperators
+    ProjectionOperators, AggregationOperator
 from mdstudio.deferred.make_deferred import make_deferred
 from .cache_dict import CacheDict
 
@@ -179,7 +179,7 @@ class MongoDatabaseWrapper(IDatabase):
             }
 
         filter = self._prepare_for_mongo(filter)
-        self._transform_to_datetime({'filter': filter}, date_fields)
+        self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
 
         cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
 
@@ -189,16 +189,16 @@ class MongoDatabaseWrapper(IDatabase):
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, date_fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
-        db_collection = self._get_collection(collection)
+        db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
             update = self._prepare_for_mongo(update)
-            self._transform_to_datetime({'filter': filter, 'update': update}, date_fields)
+            self._transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
 
-            result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort), upsert=upsert,
-                                                       return_document=ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER)
+            return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
+            result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort), upsert=upsert,return_document=return_document)
             self._prepare_for_json(result)
 
         return {
@@ -209,16 +209,16 @@ class MongoDatabaseWrapper(IDatabase):
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, date_fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
-        db_collection = self._get_collection(collection)
+        db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
             replacement = self._prepare_for_mongo(replacement)
-            self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields)
+            self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields, ['filter', 'replacement'])
 
-            result = db_collection.find_one_and_replace(filter, replacement, projection, sort=self._prepare_sortmode(sort), upsert=upsert,
-                                                        return_document=ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER)
+            return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
+            result = db_collection.find_one_and_replace(filter, replacement, projection, sort=self._prepare_sortmode(sort), upsert=upsert, return_document=return_document)
             self._prepare_for_json(result)
 
         return {
@@ -227,13 +227,13 @@ class MongoDatabaseWrapper(IDatabase):
 
     @make_deferred
     def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, DateFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields)
+            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             result = db_collection.find_one_and_delete(filter, projection, sort=self._prepare_sortmode(sort))
             self._prepare_for_json(result)
 
@@ -249,7 +249,7 @@ class MongoDatabaseWrapper(IDatabase):
         results = []
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields)
+            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             results = db_collection.distinct(field, filter)
             for result in results:
                 self._prepare_for_json(result)
@@ -282,7 +282,7 @@ class MongoDatabaseWrapper(IDatabase):
         count = 0
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields)
+            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             count = db_collection.delete_one(filter).deleted_count
         return {
             'count': count
@@ -296,7 +296,7 @@ class MongoDatabaseWrapper(IDatabase):
         count = 0
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields)
+            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             count = db_collection.delete_many(filter).deleted_count
         return {
             'count': count
@@ -305,7 +305,7 @@ class MongoDatabaseWrapper(IDatabase):
     def _prepare_for_json(self, doc):
         if doc:
             # convert _id from ObjectId to str representation
-            if '_id' in doc:
+            if isinstance(doc, dict) and '_id' in doc:
                 doc['_id'] = str(doc['_id'])
 
             # convert all datetime fields to str representation
@@ -340,21 +340,34 @@ class MongoDatabaseWrapper(IDatabase):
             sort = [(sort[0], int(sort[1]))]
         return sort
 
-    def _get_cursor(self, cursor):
+    def _get_cursor(self, cursor, max_size=50):
         # type: (Cursor) -> dict
 
         results = []
-        size = cursor._refresh()
 
-        for _ in range(size):
-            doc = cursor.next()
-            self._prepare_for_json(doc)
-            results.append(doc)
+        # We have to deal with mock cursors and command cursors
+        try:
+            size = cursor._refresh()
+
+            for _ in range(size):
+                doc = cursor.next()
+                self._prepare_for_json(doc)
+                results.append(doc)
+        except AttributeError:
+            size = 0
+            for doc in cursor:
+                self._prepare_for_json(doc)
+                results.append(doc)
+                size += 1
+
+                if size >= max_size:
+                    break
 
         # cache the cursor for later use
         # by default it will be available for 10 minutes we also
         # hash the cursor id to make random guessing a lot harder
-        cursor_hash = hashlib.sha256('{}'.format(cursor.cursor_id + random.randint(1, 999999999)).encode()).hexdigest()
+        id = getattr(cursor, '_id', getattr(cursor, 'cursor_id', random.randint(1, 999999999)))
+        cursor_hash = hashlib.sha256('{}{}'.format(id,random.randint(1, 999999999)).encode()).hexdigest()
         self._cursors[cursor_hash] = cursor
 
         return {
@@ -366,8 +379,8 @@ class MongoDatabaseWrapper(IDatabase):
 
     def _more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
-        cursor = self._cursors[cursor_id].next()
 
+        cursor = self._cursors[cursor_id]
         # refresh cursor keep alive time
         self._cursors[cursor_id] = cursor
 
