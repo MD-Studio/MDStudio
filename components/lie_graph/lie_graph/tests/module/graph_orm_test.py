@@ -6,11 +6,9 @@ file: module_graphorm_test.py
 Unit tests for the Graph Object Relations Mapper (orm)
 """
 
-import copy
 import os
 import unittest2
 
-from lie_graph import Graph
 from lie_graph.graph_io.io_tgf_format import read_tgf
 from lie_graph.graph_orm import GraphORM
 from lie_graph.graph_mixin import FileHandler
@@ -18,14 +16,16 @@ from lie_graph.graph_mixin import FileHandler
 
 class ORMtestMo(object):
 
-    def get_label(self):
+    @staticmethod
+    def get_label():
 
         return "mo class"
 
 
 class ORMtestBi(object):
 
-    def get_label(self):
+    @staticmethod
+    def get_label():
 
         return "bi class"
 
@@ -98,6 +98,3 @@ class TestGraphORM(unittest2.TestCase):
         # Children should get node9 specific get_label method but with node6
         # attribute
         self.assertEqual(children.get_label(), 'tgf9 class 6')
-
-        self.graph.nodes[4]['url'] = self._gpf_graph
-        f = self.graph.getnodes(4)

@@ -15,6 +15,8 @@ one may either specify two edges (forward and back) or differentiate the edge
 by means of a label.
 """
 
+import logging as logger
+
 from ..graph import Graph
 from .io_helpers import _coarse_type
 

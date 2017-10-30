@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.WARN)
 modulepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, modulepath)
 
+
 def module_test_suite():
     """
     Run lie_graph module unit tests
@@ -32,5 +33,4 @@ def module_test_suite():
 
 
 if __name__ == '__main__':
-
     module_test_suite()

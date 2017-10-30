@@ -11,13 +11,13 @@ Graph nodes, edges and adjacency are stored as plain python dictionaries
 
 import os
 import pprint
+import pickle
 import logging as logger
 
 from ..graph import Graph
 
 
-def write_graph(
-        graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle=False):
+def write_graph(graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle_graph=False):
     """
     Export graph as Graph Python Format file
 
@@ -25,22 +25,20 @@ def write_graph(
     or pickled nodes and edges dictionary.
     The format is feature rich wth good performance but is not portable.
 
-    :param graph:  Graph object to export
-    :type graph:  Graph instance
-    :param path:   File path to write to
-    :type path:   path as string
-    :param pickle: export graph as pickled GPF format
-    :type pickle: bool
+    :param graph:        Graph object to export
+    :type graph:         Graph instance
+    :param path:         File path to write to
+    :type path:          path as string
+    :param pickle_graph: export graph as pickled GPF format
+    :type pickle_graph:  :py:bool
+
     :return: Graph instance
     """
 
     # Export graph as pickled Graph Python Format
-    if pickle:
+    if pickle_graph:
 
-        pickle_dict = {}
-        pickle_dict['nodes'] = graph.nodes.dict()
-        pickle_dict['edges'] = graph.edges.dict()
-
+        pickle_dict = {'nodes': graph.nodes.dict(), 'edges': graph.edges.dict()}
         with open(path, "wb") as output:
             pickle.dump(pickle_dict, output)
 
@@ -61,7 +59,7 @@ def write_graph(
         logger.info('Graph exported in GPF format to file: {0}'.format(path))
 
 
-def read_graph(graph_file, graph=None, pickle=False):
+def read_graph(graph_file, graph=None, pickle_graph=False):
     """
     Import graph from Graph Python Format file
 
@@ -69,20 +67,20 @@ def read_graph(graph_file, graph=None, pickle=False):
     or pickled nodes and edges dictionary.
     The format is feature rich wth good performance but is not portable.
 
-    :param path:   File path to read from
-    :type path:   path as string
-    :param graph:  Graph object to import to or Graph by default
-    :type graph:  Graph instance
-    :param pickle: Import graph as pickled GPF format
-    :type pickle: bool
-    :return: Graph instance
+    :param graph_file:    File path to read from
+    :type graph_file:     :py:str
+    :param graph:        Graph object to import to or Graph by default
+    :type graph:         Graph instance
+    :param pickle_graph: Import graph as pickled GPF format
+    :type pickle_graph:  :py:bool
+    :return:             Graph instance
     """
 
     if not graph:
         graph = Graph()
 
     # Import graph from pickled Graph Python Format
-    if pickle:
+    if pickle_graph:
         
         with open(graph_file, mode='rb') as graph_file:
             pickle_dict = pickle.load(graph_file)

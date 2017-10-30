@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 modulepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, modulepath)
 
+
 def module_test_suite():
     """
     Run lie_graph module unit tests

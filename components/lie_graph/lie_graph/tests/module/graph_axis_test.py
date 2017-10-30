@@ -52,7 +52,7 @@ class GraphAxisTests(unittest2.TestCase):
         self.assertEqual(self.graph.children(2, return_nids=True), [3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(self.graph.children(29, return_nids=True), [30])
 
-        # Using subgraphs
+        # Using sub graphs
         sub = self.graph.getnodes(18)
         self.assertEqual(sorted(sub.children().nodes.keys()), [19, 20, 21, 22])
         self.assertEqual(sub.children(return_nids=True), [19, 20, 21, 22])
@@ -114,7 +114,7 @@ class GraphAxisTests(unittest2.TestCase):
         self.assertEqual(self.graph.parent(15, return_nids=True), 11)
         self.assertEqual(self.graph.parent(23, return_nids=True), 22)
 
-        # Using subgraphs
+        # Using sub graphs
         sub = self.graph.getnodes(23)
         self.assertEqual(sorted(sub.parent().nodes.keys()), [22])
         self.assertEqual(sub.parent(return_nids=True), 22)
@@ -142,7 +142,7 @@ class GraphAxisTests(unittest2.TestCase):
         self.assertEqual(self.graph.ancestors(24, include_self=True, return_nids=True), [1, 10, 18, 22, 24])
         self.assertEqual(self.graph.ancestors(1, return_nids=True), [])
 
-        # Using subgraphs
+        # Using sub graphs
         sub = self.graph.getnodes(24)
         self.assertEqual(sorted(sub.ancestors().nodes.keys()), [1, 10, 18, 22])
         self.assertEqual(sorted(sub.ancestors(include_self=True).nodes.keys()), [1, 10, 18, 22, 24])
@@ -172,7 +172,7 @@ class GraphAxisTests(unittest2.TestCase):
         self.assertEqual(self.graph.descendants(24, return_nids=True), [])
         self.assertEqual(self.graph.descendants(2, return_nids=True), [3, 4, 5, 6, 7, 8, 9])
 
-        # Using subgraphs
+        # Using sub graphs
         sub = self.graph.getnodes(10)
         self.assertEqual(sorted(sub.descendants().nodes.keys()), [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
         self.assertEqual(sub.descendants(return_nids=True), [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
@@ -194,7 +194,7 @@ class GraphAxisTests(unittest2.TestCase):
         # Using node nid's directly, returning nids
         self.assertEqual(self.graph.leaves(return_nids=True), [3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 16, 17, 19, 20, 21, 23, 24, 26, 27, 28, 30])
 
-        # Using subgraphs
+        # Using sub graphs
         sub = self.graph.descendants(2)
         self.assertEqual(sorted(sub.leaves().nodes.keys()), [3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(sub.leaves(return_nids=True), [3, 4, 5, 6, 7, 8, 9])
@@ -221,7 +221,7 @@ class GraphAxisTests(unittest2.TestCase):
         self.assertEqual(self.graph.siblings(2, return_nids=True), [10, 25, 29])
         self.assertEqual(self.graph.siblings(3, return_nids=True), [4, 5, 6, 7, 8, 9])
 
-        # Using subgraphs, they don't have siblings if is_masked
+        # Using sub graphs, they don't have siblings if is_masked
         sub = self.graph.getnodes(1)
         self.assertEqual(sorted(sub.siblings().nodes.keys()), [])
         self.assertEqual(sub.siblings(return_nids=True), [])
@@ -240,11 +240,11 @@ class GraphAxisTests(unittest2.TestCase):
         # Root automatically define at data import stage
         self.assertEqual(self.graph.root, 1)
 
-        # Root node inherited in subgraph if not is_masked
+        # Root node inherited in sub graph if not is_masked
         sub = self.graph.getnodes(5)
         self.assertEqual(sub.root, 1)
 
-        # Root node reset in subgraph if is_masked
+        # Root node reset in sub graph if is_masked
         self.graph.is_masked = True
         sub = self.graph.getnodes(5)
         self.assertEqual(sub.root, 5)
@@ -258,7 +258,7 @@ class GraphAxisTests(unittest2.TestCase):
         Traversing a hierarchical graph using axis methods
         """
 
-        # Getting descendantss of node 1 children
+        # Getting descendants of node 1 children
         desc = {25: [26, 27, 28],
                 2: [3, 4, 5, 6, 7, 8, 9],
                 10: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
@@ -266,7 +266,7 @@ class GraphAxisTests(unittest2.TestCase):
         for n in self.graph.children():
             self.assertEqual(n.descendants(return_nids=True), desc[n.nid])
 
-        # Getting descendantss of node 10 with 11 as root
+        # Getting descendants of node 10 with 11 as root
         desc = {1: [2, 3, 4, 5, 6, 7, 8, 9, 25, 26, 27, 28, 29, 30],
                 18: [19, 20, 21, 22, 23, 24]}
         self.graph.root = 11

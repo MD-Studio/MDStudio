@@ -3,9 +3,11 @@
 import sys
 import os
 import collections
-
+import urlparse
 import StringIO
-import logging
+
+import urllib2 as urllib
+import logging as logger
 
 from .. import __version__
 
@@ -20,17 +22,17 @@ def _coarse_type(n):
 def _check_lie_graph_version(version=None):
     """
     Check if the graph version of the file is (backwards) compatible with
-    the current lie_graph module vesion
+    the current lie_graph module version
     """
     
     try:
         version = float(version)
-    except:
-        logging.error('No valid lie_graph version identifier {0}'.format(version))
+    except TypeError:
+        logger.error('No valid lie_graph version identifier {0}'.format(version))
         return False
     
     if version > float(__version__):
-        logging.error('Graph made with a newer version of lie_graph {0}, you have {1}'.format(version, __version__))
+        logger.error('Graph made with a newer version of lie_graph {0}, you have {1}'.format(version, __version__))
         return False
         
     return True    
@@ -52,37 +54,34 @@ def _open_anything(source, mode='r'):
 
     # Check if the source is a file and open
     if os.path.isfile(source):
-        logging.debug('Reading file from disk {0}'.format(source))
+        logger.debug('Reading file from disk {0}'.format(source))
         return open(source, mode)
 
     # Check if source is file already openend using 'open' or 'file' return
     if hasattr(source, 'read'):
-        logging.debug('Reading file {0} from file object'.format(source.name))
+        logger.debug('Reading file {0} from file object'.format(source.name))
         return source
 
     # Check if source is standard input
     if source == '-':
-        logging.debug('Reading file from standard input')
+        logger.debug('Reading file from standard input')
         return sys.stdin
 
     else:
         # Check if source is a URL and try to open
         try:
-
-            import urllib2
-            import urlparse
             if urlparse.urlparse(source)[0] == 'http':
                 result = urllib.urlopen(source)
-                loggin.debug("Reading file from URL with access info:\n {0}".format(result.info()))
+                logger.debug("Reading file from URL with access info:\n {0}".format(result.info()))
                 return result
-        except BaseException:
-            logging.info("Unable to access URL")
+        except IOError:
+            logger.info("Unable to access URL")
 
         # Check if source is file and try to open else regard as string
         try:
             return open(source)
-        except BaseException:
-            logging.debug("Unable to access as file, try to parse as string")
+        except IOError:
+            logger.debug("Unable to access as file, try to parse as string")
             return StringIO.StringIO(str(source))
 
 
@@ -94,13 +93,13 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
     needed.
 
     :param config:     dictionary to flatten
-    :type config:      dict
+    :type config:      :py:dict
     :param parent_key: leading string in concatenated keys
-    :type parent_key:  str
-    :param sep:        concatenation seperator
-    :type sep:         str
+    :type parent_key:  :py:str
+    :param sep:        concatenation separator
+    :type sep:         :py:str
     :return:           flattened dictionary
-    :rtype:            dict
+    :rtype:            :py:dict
     """
 
     items = []
@@ -108,7 +107,7 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
 
         # parse key to string if needed
         if type(key) not in (str, unicode):
-            logging.debug('Dictionary key {0} of type {1}. Parse to unicode'.format(key, type(key)))
+            logger.debug('Dictionary key {0} of type {1}. Parse to unicode'.format(key, type(key)))
             key = unicode(key)
 
         new_key = unicode(parent_key + sep + key if parent_key else key)

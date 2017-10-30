@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging as logger
+
 from ..graph_helpers import GraphException
 from ..graph import Graph
 from ..graph_axis_methods import closest_to
@@ -9,7 +11,8 @@ from .io_helpers import _nest_flattened_dict
 
 def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'):
 
-    assert isinstance(dictionary, dict), TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(dictionary)))
+    assert isinstance(dictionary, dict), \
+        TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(dictionary)))
 
     graph.node_data_tag = keystring
     rootnid = graph.add_node('config')
@@ -40,8 +43,8 @@ def graph_to_dict(graph, keystring='key', valuestring=None, nested=True, sep='.'
     Convert graph representation of the dictionary tree into a dictionary
     using a nested or flattened representation of the dictionary hierarchy.
 
-    In a flattened representation, the keys are concatinated using the `sep`
-    seperator.
+    In a flattened representation, the keys are concatenated using the `sep`
+    separator.
     Dictionary keys and values are obtained from the node attributes using
     `keystring` and `valuestring` that are set to graph node_key_tag and
     node_data_tag by default.
@@ -52,7 +55,7 @@ def graph_to_dict(graph, keystring='key', valuestring=None, nested=True, sep='.'
 
     :param nested:      return a nested or flattened dictionary
     :type nested:       bool
-    :param sep:         key seperator used in flattrening the dictionary
+    :param sep:         key separator used in flattening the dictionary
     :type sep:          str
     :param keystring:   key used to identify dictionary 'key' in node
                         attributes
@@ -70,8 +73,6 @@ def graph_to_dict(graph, keystring='key', valuestring=None, nested=True, sep='.'
 
     TODO: get path between nodes closest to root and leaves using closest_to
           method is potentially slow for large graphs.
-    TODO: in the end, (parts) of this method could be generalized into a
-          graph_to_dict function part of graph_io in the lie_graph lib.
     """
 
     # Graph should inherit from Graph baseclass
@@ -88,7 +89,7 @@ def graph_to_dict(graph, keystring='key', valuestring=None, nested=True, sep='.'
     # Determine rootnode relative to which hierarchy is resolved
     if graph.root is None:
         rootnodes = [min(graph.nodes.keys())]
-        logging.debug('No root node defined, set to node with _id: {0}'.format(rootnodes[0]))
+        logger.debug('No root node defined, set to node with _id: {0}'.format(rootnodes[0]))
 
     if graph.root in graph.nodes:
         rootnodes = [graph.root]

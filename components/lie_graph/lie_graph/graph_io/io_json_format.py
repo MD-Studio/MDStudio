@@ -5,7 +5,8 @@ Import/Export files in JSON compliant format
 """
 
 import json
-import logging
+
+import logging as logger
 
 from .. import __version__
 from ..graph import Graph
@@ -76,8 +77,8 @@ def read_json(json_format):
     json_format = _open_anything(json_format)
     try:
         parsed = json.load(json_format)
-    except:
-        logging.error('Unable to decode JSON string')
+    except IOError:
+        logger.error('Unable to decode JSON string')
         return
 
     # Check lie_graph version and format validity
@@ -85,7 +86,7 @@ def read_json(json_format):
         return
     keywords = ['graph', 'nodes', 'edges', 'edge_attr']
     if not set(keywords).issubset(set(parsed.keys())):
-        logging.error('JSON format does not contain required graph data')
+        logger.error('JSON format does not contain required graph data')
         return
 
     return read_dict(parsed)
@@ -102,14 +103,16 @@ def write_json(graph, indent=2, encoding="utf-8", **kwargs):
     * edges: Graph enumerated edge identifiers
     * edge_attr: Graph edge attributes
 
-    :param graph:  graph object to serialize
-    :type graph:   Graph or GraphAxis object
-    :param indent: JSON indentation count
-    :type indent:  :py:int
-    :param kwargs: additional data to be stored as file meta data
-    :type kwargs:  :py:dic
+    :param graph:    graph object to serialize
+    :type graph:     Graph or GraphAxis object
+    :param indent:   JSON indentation count
+    :type indent:    :py:int
+    :param encoding: JSON string encoding
+    :type encoding:  :py:str
+    :param kwargs:   additional data to be stored as file meta data
+    :type kwargs:    :py:dic
 
-    :return:       JSON encoded graph dictionary
+    :return:         JSON encoded graph dictionary
     """
 
     # Init JSON format envelope
@@ -142,5 +145,5 @@ def write_json(graph, indent=2, encoding="utf-8", **kwargs):
         if edgedata[edge]:
             json_format['edge_attr'][i] = edgedata[edge]
 
-    logging.info('Encode graph in JSON format')
+    logger.info('Encode graph in JSON format')
     return json.dumps(json_format, indent=indent, encoding=encoding)

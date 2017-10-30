@@ -78,7 +78,7 @@ def _make_edges(nodes, directed=True):
 def renumber_id(graph, start):
     """
     Renumber all node ID's in the graph from a new start ID and adjust edges
-    accordingly. Usefull when duplicating a graph substructure.
+    accordingly. Useful when duplicating a graph substructure.
     If the graph uses auto_nid, the node nid is also changed.
 
     :param graph:   Graph object to renumber

@@ -388,6 +388,7 @@ class TestGraph(unittest2.TestCase):
 
         from asq.initiators import query
         q = query(self.graph.nodes.values()).where(lambda n: n['tgf'].startswith("'s")).select(lambda s: s['nid'])
+        print(q)
 
     def test_node_iteration(self):
         """
