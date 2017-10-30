@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 
-import mdstudio.unittest.mongo as mongo
+import mdstudio.unittest.db as db
 from .db_methods import logger, MongoDatabaseWrapper
 
 class MongoClientWrapper:
@@ -24,7 +24,7 @@ class MongoClientWrapper:
 
     @staticmethod
     def create_mongo_client(host, port):
-        if mongo.create_mock_client:
+        if db.create_mock_client:
             import mongomock
             return mongomock.MongoClient(host, port)
         return MongoClient(host, port)

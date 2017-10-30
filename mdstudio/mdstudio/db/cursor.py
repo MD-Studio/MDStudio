@@ -4,11 +4,12 @@ from typing import *
 
 from asq.initiators import query
 from asq.queryables import Queryable
-
-from twisted.internet.defer import Deferred, succeed
+from twisted.internet.defer import succeed
 
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
+
+query = query
 
 class CursorRefreshingError(Exception):
     def __init__(self):
@@ -25,9 +26,11 @@ class Cursor:
     # type: deque
     _data = deque()
 
+    # type: int
+    _returned = None
+
     def __init__(self, wrapper, response):
         self.wrapper = wrapper
-        self.current = 0
         self._id = response.get('cursorId', None)
         self._alive = self._id is not None and response['alive']
         self._data = deque(response['results'])
@@ -71,7 +74,7 @@ class Cursor:
     @chainable
     def rewind(self):
         # type: () -> Cursor
-        return_value(self._create_cursor(self.wrapper, (yield self.wrapper.rewind())))
+        self.__init__(self.wrapper, (yield self.wrapper.rewind(self._id)))
 
     def count(self, with_limit_and_skip=False):
         # type: (bool) -> int
@@ -89,10 +92,6 @@ class Cursor:
     def alive(self):
         # type: () -> bool
         return self._alive
-
-    @staticmethod
-    def _create_cursor(wrapper, rewind):
-        return Cursor(wrapper, rewind)
 
     @chainable
     def _refresh(self):

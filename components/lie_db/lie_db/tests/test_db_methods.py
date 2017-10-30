@@ -12,16 +12,16 @@ from twisted.internet import reactor
 
 from lie_db.db_methods import logger
 from lie_db.mongo_client_wrapper import MongoClientWrapper
-from mdstudio.db.cursor import Cursor
+from mdstudio.db.cursor import Cursor, query
 from mdstudio.db.model import Model
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
 from mdstudio.unittest import wait_for_completion
-from mdstudio.unittest.mongo import TrialDBTestCase
+from mdstudio.unittest.db import DBTestCase
 
 twisted.internet.base.DelayedCall.debug = True
 
-class TestMongoDatabaseWrapper(TrialDBTestCase):
+class TestMongoDatabaseWrapper(DBTestCase):
     def setUp(self):
         self.db = MongoClientWrapper("localhost", 27127).get_namespace('testns')
         self.d = Model(self.db, 'test_collection')
@@ -978,15 +978,142 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
 
         self.assertEqual(result, None)
 
+    @chainable
+    def test_find_many(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.find_many({})
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertIsInstance(found, Cursor)
+        self.assertSequenceEqual((yield found.to_list()), obs)
+
+    @chainable
+    def test_find_many_projection(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        found = yield self.d.find_many({}, {'_id': 0})
+
+        self.assertIsInstance(found, Cursor)
+        self.assertSequenceEqual((yield found.to_list()), query(obs).select(lambda x: {'test': x['test']}).to_list())
+
+    @chainable
+    def test_find_many_skip(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        found = yield self.d.find_many({}, skip=10)
+
+        self.assertIsInstance(found, Cursor)
+        self.assertSequenceEqual((yield found.to_list()), obs[10:])
+
+    @chainable
+    def test_find_many_limit(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        found = yield self.d.find_many({}, limit=10)
+
+        self.assertIsInstance(found, Cursor)
+        self.assertSequenceEqual((yield found.to_list()), obs[:10])
+
+    @chainable
+    def test_find_many_sort(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        found = yield self.d.find_many({}, sort=('test', SortMode.Desc))
+
+        self.assertIsInstance(found, Cursor)
+        self.assertListEqual((yield found.to_list()), list(reversed(obs)))
 
 
+    @chainable
+    def test_find_many_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.find_many({})
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {}
+        }, None, ['filter'])
 
 
+    @chainable
+    def test_find_many_no_collection(self):
 
+        result = yield self.d.find_many({'_id': '666f6f2d6261722d71757578'})
 
+        self.assertIsInstance(result, Cursor)
+        self.assertSequenceEqual((yield result.to_list()),[])
 
+    @chainable
+    def test_rewind(self):
 
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
 
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.find_many({})
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertIsInstance(found, Cursor)
+
+        for i in range(total):
+            self.assertEqual((yield next(found)), obs[i])
+
+        found.rewind()
+
+        for i in range(total):
+            self.assertEqual((yield next(found)), obs[i])
+
+    @chainable
+    def test_count_cursor(self):
+
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.find_many({})
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertIsInstance(found, Cursor)
+        self.assertEqual((yield found.count()), 150)
 
 
 
@@ -1588,7 +1715,7 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
 
         result = yield self.d.aggregate([])
 
-        self.assertEqual((yield result.to_list()), [])
+        self.assertSequenceEqual((yield result.to_list()), [])
 
 
     @chainable

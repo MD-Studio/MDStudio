@@ -1,5 +1,4 @@
 # coding=utf-8
-import unittest
 
 from mock import mock
 from twisted.internet.defer import Deferred

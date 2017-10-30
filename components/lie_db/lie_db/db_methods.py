@@ -340,7 +340,7 @@ class MongoDatabaseWrapper(IDatabase):
             sort = [(sort[0], int(sort[1]))]
         return sort
 
-    def _get_cursor(self, cursor, max_size=50):
+    def _get_cursor(self, cursor, max_size=20):
         # type: (Cursor) -> dict
 
         results = []
@@ -372,7 +372,7 @@ class MongoDatabaseWrapper(IDatabase):
             'results': results,
             'size': size,
             'cursorId': cursor_hash,
-            'alive': cursor.alive
+            'alive': getattr(cursor, 'alive', True)
         }
 
     def _more(self, cursor_id):

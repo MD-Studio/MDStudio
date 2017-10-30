@@ -11,7 +11,6 @@ from mdstudio.db.database import DocumentType, DateFieldsType, ProjectionOperato
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
 
-
 class Model:
 
     # type: IDatabase
