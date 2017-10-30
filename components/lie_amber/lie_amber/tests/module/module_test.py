@@ -7,19 +7,15 @@ Unit tests for the Automated Topology Builder server API
 """
 
 import os
-import sys
 import unittest2
 import shutil
 
-# Add modules in package to path so we can import them
-currpath = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
+from lie_amber import settings, amber_reduce, amber_acpype
 
-from   lie_amber import *
 
 class TestAPI(unittest2.TestCase):
-    
-    _files_dir = os.path.join(currpath, 'files')
+    currpath = os.path.dirname(__file__)
+    _files_dir = os.path.join(currpath, '../', 'files')
     
     def setUp(self):
         """
@@ -64,5 +60,4 @@ class TestAPI(unittest2.TestCase):
         self.files_to_delete.append(outdir)
         
         self.assertTrue(os.path.isdir(outdir))
-        
-        
+
