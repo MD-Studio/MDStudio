@@ -3,11 +3,15 @@
 import sys
 import os
 import collections
-import urlparse
-import StringIO
-
-import urllib2 as urllib
 import logging as logger
+
+if sys.version_info[0] < 3:
+    import StringIO
+    import urlparse
+    import urllib2 as urllib
+else:
+    from io import StringIO
+    from urllib import parse as urlparse
 
 from .. import __version__
 
