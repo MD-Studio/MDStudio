@@ -22,10 +22,9 @@ def amber_acpype(mol, workdir=None, **kwargs):
       doi: 10.1186/1756-0500-5-367.
     """
     
-    # ACPYPE executable is part of the package
-    lie_amber_path = os.path.dirname(os.path.realpath(__file__))
-    acepype_exe_path = os.path.join(lie_amber_path, 'acpype.py')
-    
+    # ACPYPE executable is in bin
+    acepype_exe_path = SETTINGS['acpype_path']
+    print acepype_exe_path
     # Check the input file
     if not os.path.exists(mol):
         logging.error('Input file does not exist {0}'.format(mol))
@@ -62,6 +61,7 @@ def amber_acpype(mol, workdir=None, **kwargs):
         return output_path
     else:
         logging.error('Acpype failed')
+
 
 def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwargs):
     """
@@ -144,4 +144,3 @@ def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwa
                 return out.read()
     else:
         logging.error('Reduce failed, not output file {0}'.format(output))
-    
