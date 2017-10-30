@@ -354,14 +354,12 @@ class MongoDatabaseWrapper(IDatabase):
                 self._prepare_for_json(doc)
                 results.append(doc)
         except AttributeError:
-            size = 0
             for doc in cursor:
                 self._prepare_for_json(doc)
                 results.append(doc)
-                size += 1
-
-                if size >= max_size:
+                if len(results) >= max_size:
                     break
+            size = len(results)
 
         # cache the cursor for later use
         # by default it will be available for 10 minutes we also
@@ -381,6 +379,7 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (str) -> Dict[str, Any]
 
         cursor = self._cursors[cursor_id]
+
         # refresh cursor keep alive time
         self._cursors[cursor_id] = cursor
 

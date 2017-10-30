@@ -1555,6 +1555,42 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(list[0], {'_id': '0', 'count': 49})
         self.assertEqual(list[1], {'_id': '1', 'count': 149})
 
+
+    @chainable
+    def test_aggregate2(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total * 2):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        found = yield self.d.aggregate([
+            {
+                '$match': {'test': {'$gt': 50}}
+            },
+            {
+                '$group': {
+                    '_id': '$test',
+                    'count': {'$sum': 1}
+                }
+            },
+            {
+                '$sort': {
+                    '_id': int(SortMode.Asc)
+                }
+            }
+        ])
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertIsInstance(found, Cursor)
+        list = yield found.to_list()
+        for i in range(total * 2 - 51):
+            self.assertEqual(list[i], {'_id': str(51 + i), 'count': 1 if i >= 49 else 2})
+
     @chainable
     def test_aggregate_no_collection(self):
 
