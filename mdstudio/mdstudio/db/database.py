@@ -20,7 +20,7 @@ DateFieldsType = List[Union[str, List[str]]]
 DocumentType = Dict
 AggregationOperator = Dict
 ProjectionOperators = Dict
-SortOperators = Optional[List[Tuple[str, SortMode]]]
+SortOperators = Optional[Union[List[Tuple[str, SortMode]],Tuple[str, SortMode]]]
 
 
 @six.add_metaclass(abc.ABCMeta)

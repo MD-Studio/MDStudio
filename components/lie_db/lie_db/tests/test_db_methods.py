@@ -1,8 +1,8 @@
 # coding=utf-8
-import time
 
 import datetime
 
+import mongomock
 import pytz
 import twisted
 from bson import ObjectId
@@ -10,14 +10,13 @@ from copy import deepcopy
 from mock import mock, call
 from twisted.internet import reactor
 
-from lie_db.db_methods import MongoDatabaseWrapper, logger
+from lie_db.db_methods import logger
 from lie_db.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.db.model import Model
+from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.return_value import return_value
-from mdstudio.unittest.mongo import TrialDBTestCase
 from mdstudio.unittest import wait_for_completion
-import mongomock
+from mdstudio.unittest.mongo import TrialDBTestCase
 
 twisted.internet.base.DelayedCall.debug = True
 
@@ -352,9 +351,10 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
             }
         }
 
-        self.db._prepare_for_mongo(document)
+        result = self.db._prepare_for_mongo(document)
 
-        self.assertEqual(document, {
+        self.assertIsNot(document, result)
+        self.assertEqual(result, {
             'o': {
                 'f': '2017-10-26T09:15:00+00:00'
             }
@@ -368,9 +368,10 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
             }
         }
 
-        self.db._prepare_for_mongo(document)
+        result = self.db._prepare_for_mongo(document)
 
-        self.assertEqual(document, {
+        self.assertIsNot(document, result)
+        self.assertEqual(result, {
             '_id': ObjectId('0123456789ab0123456789ab'),
             'o': {
                 'f': '2017-10-26T09:15:00+00:00'
@@ -380,9 +381,9 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
     def test_prepare_for_mongo_none(self):
         document = None
 
-        self.db._prepare_for_mongo(document)
+        result = self.db._prepare_for_mongo(document)
 
-        self.assertEqual(document, None)
+        self.assertEqual(result, None)
 
     def test_get_collection_dict(self):
 
@@ -444,6 +445,16 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab'})
 
     @chainable
+    def test_insert_one_not_modified(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        o = {'test': 2, '_id': '0123456789ab0123456789ab'}
+        yield self.d.insert_one(o)
+        found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'})
+
+        self.assertIsNot(o, found)
+
+    @chainable
     def test_insert_one_no_id(self):
 
         id = yield self.d.insert_one({'test': 2})
@@ -483,6 +494,20 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
         found2 = yield self.d.find_one({'_id': ids[1]})
         self.assertEqual(found2, {'test': 3, '_id': ids[1]})
+
+    @chainable
+    def test_insert_many_not_modified(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = [
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ]
+        ids = yield self.d.insert_many(obs)
+        found1 = yield self.d.find_one({'_id': ids[0]})
+        found2 = yield self.d.find_one({'_id': ids[1]})
+        self.assertIsNot(found1, obs[0])
+        self.assertIsNot(found2, obs[1])
 
     @chainable
     def test_insert_many_no_ids(self):
@@ -537,7 +562,7 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         result = yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test2': 6})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
-        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'test2': 6})])
+        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': '59f1d9c57dd5d70043e74f8d'}),call({'test2': 6})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -592,7 +617,7 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        result = yield self.d.replace_one({'_id': '666f6f2d6261722d71757578'}, {'test': 6})
+        yield self.d.replace_one({'_id': '666f6f2d6261722d71757578'}, {'test': 6})
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -618,7 +643,7 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         result = yield self.d.update_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
-        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'$set': {'test': 6}})])
+        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': '59f1d9c57dd5d70043e74f8d'}),call({'$set': {'test': 6}})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -698,7 +723,7 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        result = yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
+        yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -724,7 +749,7 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         result = yield self.d.update_many({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
-        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': ObjectId('59f1d9c57dd5d70043e74f8d')}),call({'$set': {'test': 6}})])
+        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': '59f1d9c57dd5d70043e74f8d'}),call({'$set': {'test': 6}})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -804,7 +829,7 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        result = yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
+        yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -815,3 +840,52 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
             }
         }, None, ['filter', 'update'])
 
+    @chainable
+    def test_find_one(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = []
+        for i in range(500):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        for i in range(500):
+            found = yield self.d.find_one({'test': i})
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
+
+    @chainable
+    def test_find_one_projection(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = []
+        for i in range(500):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        for i in range(500):
+            found = yield self.d.find_one({'test': i}, {'_id': 0})
+            self.assertEqual(found, {'test': i})
+
+    @chainable
+    def test_find_one_skip(self):
+
+        self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
+        obs = []
+        for i in range(500):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(500):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        ids = yield self.d.insert_many(obs)
+
+        all = yield self.d.find_many({})
+
+        for i in range(500):
+            found = yield self.d.find_one({'test': i}, sort=('_id', SortMode.Desc))
+            self.assertEqual(obs[i+500]['_id'], ids[i+500])
+            self.assertEqual(found, obs[i+500])
+
+        for i in range(500):
+            found = yield self.d.find_one({'test': i}, sort=('_id', SortMode.Asc))
+            self.assertEqual(obs[i]['_id'], ids[i])
+            self.assertEqual(found, obs[i])
