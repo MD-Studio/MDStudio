@@ -15,7 +15,7 @@ from autobahn import wamp
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_structures import settings, structures_schema
 from lie_structures.cheminfo_utils import (
-    mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write)
+     mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write)
 
 STRUCTURES_SCHEMA = json.load(open(structures_schema))
 

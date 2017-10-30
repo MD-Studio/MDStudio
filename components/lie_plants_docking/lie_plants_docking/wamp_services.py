@@ -7,8 +7,6 @@ WAMP service methods the module exposes.
 """
 
 import os
-import sys
-import time
 import json
 import jsonschema
 
