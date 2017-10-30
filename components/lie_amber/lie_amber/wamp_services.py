@@ -7,15 +7,11 @@ WAMP service methods the module exposes.
 """
 
 import os
-import sys
-import time
 import json
 import jsonschema
-import re
 import tempfile
 
 from autobahn               import wamp
-from twisted.internet.defer import inlineCallbacks
 
 from lie_amber.settings import SETTINGS, AMBER_SCHEMA
 from lie_amber.ambertools import amber_acpype, amber_reduce
