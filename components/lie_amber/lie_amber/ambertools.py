@@ -12,7 +12,7 @@ from .settings import SETTINGS
 logging = Logger()
 
 
-def amber_acpype(mol, workdir=None, **kwargs):
+def amber_acpype(mol, workdir=None, acepype_path=None, **kwargs):
     """
     Run the ACPYPE program (AnteChamber PYthon Parser interfacE)
     
@@ -22,9 +22,9 @@ def amber_acpype(mol, workdir=None, **kwargs):
       doi: 10.1186/1756-0500-5-367.
     """
     
-    # ACPYPE executable is in bin
-    acepype_exe_path = SETTINGS['acpype_path']
-    print acepype_exe_path
+    # ACPYPE executable
+    acepype_exe_path = acepype_path or SETTINGS['acpype_path']
+
     # Check the input file
     if not os.path.exists(mol):
         logging.error('Input file does not exist {0}'.format(mol))
