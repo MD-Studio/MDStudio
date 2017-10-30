@@ -8,21 +8,16 @@ Unit tests for the Graph base class
 
 import copy
 import os
-import sys
 import types
 import unittest2
 
-# Add modules in package to path so we can import them
-currpath = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
-
 from lie_graph import Graph
 from lie_graph.graph import GraphException
-from lie_graph.io.io_tgf_format import read_tgf
+from lie_graph.graph_io.io_tgf_format import read_tgf
 
 
 class TestGraph(unittest2.TestCase):
-
+    currpath = os.path.dirname(__file__)
     _gpf_graph = os.path.join(currpath, '../', 'files', 'graph.tgf')
 
     def setUp(self):

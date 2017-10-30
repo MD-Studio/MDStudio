@@ -6,25 +6,19 @@ file: module_graphaxis_test.py
 Unit tests for the Graph axis methods
 """
 
-import copy
 import json
 import os
-import sys
 import unittest2
-
-# Add modules in package to path so we can import them
-currpath = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
 
 from lie_graph import GraphAxis
 from lie_graph.graph_helpers import GraphException
-from lie_graph.io.io_dict_parser import dict_to_graph
-from lie_graph.io.io_helpers import _nest_flattened_dict
+from lie_graph.graph_io.io_dict_parser import dict_to_graph
+from lie_graph.graph_io.io_helpers import _nest_flattened_dict
 from lie_graph.graph_axis_methods import *
 
 
 class GraphAxisTests(unittest2.TestCase):
-
+    currpath = os.path.dirname(__file__)
     _settings_json = os.path.join(currpath, '../', 'files', 'config_handler_test.json')
 
     def setUp(self):

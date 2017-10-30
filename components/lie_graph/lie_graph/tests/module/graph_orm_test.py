@@ -8,15 +8,10 @@ Unit tests for the Graph Object Relations Mapper (orm)
 
 import copy
 import os
-import sys
 import unittest2
 
-# Add modules in package to path so we can import them
-currpath = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
-
 from lie_graph import Graph
-from lie_graph.io.io_tgf_format import read_tgf
+from lie_graph.graph_io.io_tgf_format import read_tgf
 from lie_graph.graph_orm import GraphORM
 from lie_graph.graph_mixin import FileHandler
 
@@ -52,7 +47,7 @@ class ORMtestTgf9(object):
 
 
 class TestGraphORM(unittest2.TestCase):
-
+    currpath = os.path.dirname(__file__)
     _gpf_graph = os.path.join(currpath, '../', 'files', 'graph.tgf')
 
     def setUp(self):

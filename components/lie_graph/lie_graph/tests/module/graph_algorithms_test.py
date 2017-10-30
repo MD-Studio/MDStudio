@@ -12,10 +12,6 @@ import sys
 import types
 import unittest2
 
-# Add modules in package to path so we can import them
-currpath = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
-
 from lie_graph import Graph
 from lie_graph.graph_algorithms import *
 
