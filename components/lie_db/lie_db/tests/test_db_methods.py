@@ -993,14 +993,6 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
 
 
 
-
-
-
-
-
-
-
-
     @chainable
     def test_find_one_and_update(self):
 
@@ -1599,3 +1591,83 @@ class TestMongoDatabaseWrapper(TrialDBTestCase):
         self.assertEqual((yield result.to_list()), [])
 
 
+    @chainable
+    def test_delete_one(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        count = yield self.d.delete_one({'test': 1})
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertEqual(count, 1)
+        found = yield self.d.find_one({'test': 1})
+        self.assertEqual(found['test'], 1)
+        self.assertEqual(found['test2'], 1)
+
+    @chainable
+    def test_delete_one_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.delete_one({'test': 2})
+
+        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, None, ['filter'])
+
+    @chainable
+    def test_delete_one_no_collection(self):
+
+        result = yield self.d.delete_one({})
+
+        self.assertEqual(result, 0)
+
+    @chainable
+    def test_delete_many(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, 'test2': 0, '_id': str(ObjectId())})
+        for i in range(total):
+            obs.append({'test': i, 'test2': 1, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        count = yield self.d.delete_many({'test': 1})
+        self.db._get_collection.assert_called_once_with('test_collection')
+
+        self.assertEqual(count, 2)
+        found = yield self.d.find_one({'test': 1})
+        self.assertEqual(found, None)
+
+    @chainable
+    def test_delete_many_date_fields(self):
+
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab'},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d'},
+        ])
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.delete_many({'test': 2})
+
+        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, None, ['filter'])
+
+    @chainable
+    def test_delete_many_no_collection(self):
+
+        result = yield self.d.delete_many({})
+
+        self.assertEqual(result, 0)
