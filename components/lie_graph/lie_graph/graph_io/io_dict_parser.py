@@ -12,10 +12,10 @@ from .io_helpers import _nest_flattened_dict
 def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'):
 
     assert isinstance(dictionary, dict), \
-        TypeError("Default configuration needs to be a dictionary type, got: {0}".format(type(dictionary)))
+        TypeError("Requires dictionary, got: {0}".format(type(dictionary)))
 
     graph.node_data_tag = keystring
-    rootnid = graph.add_node('config')
+    rootnid = graph.add_node('root')
     graph.root = rootnid
 
     def _walk_dict(key, item, rootnid):

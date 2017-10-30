@@ -153,7 +153,7 @@ class GraphORM(object):
         is_edges = all([type(i) in (tuple, list) for i in objects])
         if not is_edges:
 
-            is_nodes = all([type(i) in (int, str) for i in objects])
+            is_nodes = all([type(i) in (int, str, unicode) for i in objects])
             assert is_nodes, 'Query need to be only nodes or only edges not mixed.'
 
         # Get the node/edge attributes to match against
