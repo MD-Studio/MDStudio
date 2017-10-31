@@ -22,7 +22,7 @@ from lie_graph.graph_algorithms import dfs_paths
 from lie_graph.graph_helpers import renumber_id
 from lie_system import WAMPTaskMetaData
 
-from .common import _schema_to_data
+from .workflow_common import _schema_to_data
 
 # Get the task schema definitions from the default task_schema.json file
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
@@ -147,7 +147,7 @@ class Task(_TaskBase):
 class WampTask(_TaskBase):
 
     def run_task(self, runner, callback, errorback=None):
-
+        
         method_url = unicode(self.uri)
         logging.info('Task {0} ({1}) running on {2}'.format(
             self.nid, self.task_name, method_url))
@@ -182,7 +182,7 @@ class BlockingTask(_TaskBase):
         # Get task session
         session = WAMPTaskMetaData(
             metadata=self.nodes[self.nid].get('session', {}))
-
+        
         try:
             output = runner(
                 session=session.dict(), **self.get_input())
@@ -270,7 +270,7 @@ class Mapper(_TaskBase):
     Mapper class
 
     Task that parallelises input from an array to all descending tasks or
-    upto a Collect task that is assigned to collect the output the task
+    upto a task that is assigned to collect the output the task
     lineage created by this mapper class.
 
     Tasks lineages are duplicated dynamically. The mapping procedure may be
@@ -299,10 +299,6 @@ class Mapper(_TaskBase):
         mapped = task_input[map_argument]
         if len(mapped):
 
-            # Pre-process data array
-            # if runner:
-            #     mapped = runner(mapped)
-
             logging.info(
                 'Task {0} ({1}), {2} items to map'.format(
                     self.nid, self.task_name, len(mapped)))
@@ -311,7 +307,7 @@ class Mapper(_TaskBase):
             session = WAMPTaskMetaData(
                 metadata=self.nodes[self.nid].get('session', {}))
 
-            # Get the full descendant lineage from this Mapper taks to
+            # Get the full descendant lineage from this Mapper task to
             # the Collect task assigned to the mapper
             collector_task = self._full_graph.query_nodes(
                 {'to_mapper': self.nid})
@@ -324,7 +320,7 @@ class Mapper(_TaskBase):
             else:
                 maptid = self.descendants(return_nids=True)
 
-            # Create subgraph of the mapper tasks lineage.
+            # Create sub graph of the mapper tasks lineage.
             # Call errorback if no task lineage
             if maptid:
                 subgraph = self._full_graph.getnodes(maptid).copy()
@@ -334,15 +330,29 @@ class Mapper(_TaskBase):
                         self.nid, self.task_name), self.nid)
                 return
 
-            # Make a copy of the task lineage subgraph for every data item to
+            # Make a copy of the task lineage sub graph for every data item to
             # be mapped.
             first_task = maptid[0]
             last_task = maptid[-1]
+
+            # Collect additional edges connected to the first task
+            first = self.getnodes(first_task)
+            mapper_data_mapping = self._full_graph.edges[(self.nid, first_task)]
+            exclude_links = set(maptid[1:] + [self.nid] + first.descendants(return_nids=True))
+            additional_inputs = []
+            for edge in first.connected_edges():
+                if not set(edge).intersection(exclude_links):
+                    additional_inputs.append((edge[0], self._full_graph.edges[edge]))
+            print(mapper_data_mapping)
             for task in range(len(mapped)-1):
 
                 g, tidmap = renumber_id(subgraph, self._full_graph._nodeid)
                 self._full_graph += g
-                self._full_graph.add_edge(self.nid, tidmap[first_task])
+                self._full_graph.add_edge(self.nid, tidmap[first_task], **mapper_data_mapping)
+
+                # Reconnect other inputs to the first task
+                for inp in additional_inputs:
+                    self._full_graph.add_edge(inp[0], tidmap[first_task], **inp[1])
 
                 if collector_task:
                     self._full_graph.add_edge(
@@ -357,12 +367,12 @@ class Mapper(_TaskBase):
                 if 'input_data' not in child:
                     self._full_graph.nodes[child.nid]['input_data'] = {}
 
-                # List item to dict if needed
+                # List item to dict if needed and perform data mapping
                 tomap = mapped[i]
                 if not isinstance(tomap, dict):
-                    tomap = {map_argument: tomap}
-
-                # TODO: Define data mapper here
+                    datamap = mapper_data_mapping.get('data_mapping', {})
+                    datamap = datamap.get(map_argument, map_argument)
+                    tomap = {datamap: tomap}
                 child['input_data'].update(tomap)
 
                 # Add all other input arguments to
@@ -378,71 +388,10 @@ class Mapper(_TaskBase):
                 self.nid, self.task_name), self.nid)
 
 
-class Collect(_TaskBase):
-    """
-    Reducer class
-
-    Waits for all parent tasks to finish and collects the output
-    """
-
-    def run_task(self, runner, callback, errorback=None):
-
-        session = WAMPTaskMetaData(
-            metadata=self.nodes[self.nid].get('session', {}))
-
-        # Get all nodes connected to self. In the directed workflow graph these
-        # are the ancestors
-        ancestors = [nid for nid, adj in self.adjacency.items()
-                     if self.nid in adj]
-
-        # Check if there are failed tasks among the ancestors and if we are
-        # allowed to continue with less
-        failed_ancestors = [
-            tid for tid in ancestors if self._full_graph.nodes[tid]['status']
-            in ('failed', 'aborted')]
-        if failed_ancestors:
-            logging.error(
-                'Failed parent tasks detected. Unable to collect all output')
-            session.status = 'failed'
-            session._metadata['utime'] = int(time.time())
-            callback({'session': session.dict()}, self.nid)
-
-        # Check if the ancestors are al completed
-        if all([self._full_graph.nodes[tid]['status'] in
-                ('completed', 'disabled') for tid in ancestors]):
-            msg = 'Task {0} ({1}): Output of {2} parent tasks available, continue'
-            logging.info(msg.format(self.nid, self.task_name, len(ancestors)))
-
-            # Collect output of previous tasks and apply data mapper
-            collected_output = []
-            for tid in ancestors:
-                mapper = self._full_graph.edges[(tid, self.nid)].get('data_mapping', {})
-                new_dict = {mapper.get(k, k): v for k, v in
-                            self._full_graph.nodes[tid]['output_data'].items()}
-                collected_output.append(new_dict)
-
-            session.status = 'completed'
-            session._metadata['utime'] = int(time.time())
-
-            output = {'session': session.dict()}
-            output.update(runner(collected_output))
-            callback(output, self.nid)
-
-        else:
-            # Output collection not complete. Reset task status to ready and
-            # evaluate again at next pass
-            logging.info(
-                'Task {0} ({1}): Not all output available yet'.format(
-                    self.nid, self.task_name))
-            self.status = 'ready'
-            callback({'session': session.dict()}, self.nid)
-
-
 WORKFLOW_ORM = GraphORM(inherit=False)
 WORKFLOW_ORM.map_node(StartTask, {'task_type': 'Start'})
 WORKFLOW_ORM.map_node(Task, {'task_type': 'Task'})
 WORKFLOW_ORM.map_node(Choice, {'task_type': 'Choice'})
-WORKFLOW_ORM.map_node(Collect, {'task_type': 'Collect'})
 WORKFLOW_ORM.map_node(BlockingTask, {'task_type': 'BlockingTask'})
 WORKFLOW_ORM.map_node(WampTask, {'task_type': 'WampTask'})
 WORKFLOW_ORM.map_node(Mapper, {'task_type': 'Mapper'})
