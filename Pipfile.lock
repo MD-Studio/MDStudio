@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d9fb111cf4eac1176ea4edcf50e36fe8e89202e8adc24b8f88e234f1099162a6"
+            "sha256": "3f4c300b671a812eb23e974cfa84915d7b915890b05f6072c9b527f1b01a6d0b"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -9,9 +9,9 @@
             "os_name": "posix",
             "platform_machine": "x86_64",
             "platform_python_implementation": "CPython",
-            "platform_release": "4.9.41-moby",
+            "platform_release": "4.9.49-moby",
             "platform_system": "Linux",
-            "platform_version": "#1 SMP Wed Sep 6 00:05:16 UTC 2017",
+            "platform_version": "#1 SMP Wed Sep 27 00:36:29 UTC 2017",
             "python_full_version": "3.6.3",
             "python_version": "3.6",
             "sys_platform": "linux"
@@ -114,7 +114,6 @@
                 "sha256:75e1de9ba7c155d89bcf67d149b1c741df553c8158536e8d27e63167403159af",
                 "sha256:ab87dd91c0c4073758d07334c1e5f712ce8fe48f007b86f8238773963ee700a6"
             ],
-            "markers": "platform_python_implementation != 'PyPy'",
             "version": "==1.11.2"
         },
         "chardet": {
@@ -643,9 +642,6 @@
         }
     },
     "develop": {
-        "565fdcd": {
-            "file": "https://github.com/kennethreitz/pipenv/archive/master.zip"
-        },
         "alabaster": {
             "hashes": [
                 "sha256:2eef172f44e8d301d25aff8068fddd65f767a3f04b5f15b0f4922f113aa1c732",
@@ -693,13 +689,6 @@
                 "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"
             ],
             "version": "==3.0.4"
-        },
-        "colorama": {
-            "hashes": [
-                "sha256:463f8483208e921368c9f306094eb6f725c6ca42b0f97e313cb5d5512459feda",
-                "sha256:48eb22f4f8461b1df5734a074b57042430fb06e1d61bd1e11b078c0fe6d7a1f1"
-            ],
-            "version": "==0.3.9"
         },
         "coverage": {
             "hashes": [
@@ -799,12 +788,6 @@
             ],
             "version": "==2.1.7"
         },
-        "green": {
-            "hashes": [
-                "sha256:4360fcd7f147d63bf82dc7f1eaaffabcdeb1b3255ed33c716a38df27c5d3e0ef"
-            ],
-            "version": "==2.11.1"
-        },
         "idna": {
             "hashes": [
                 "sha256:8c7309c718f94b3a625cb648ace320157ad16ff131ae0af362c9f21b80ef6ec4",
@@ -852,6 +835,9 @@
                 "sha256:b158b6df76edd239b8208d481dc46b6afd45a846b7812ff0ce58971cf5bc8bba"
             ],
             "version": "==2.0.0"
+        },
+        "mongomock": {
+            "git": "https://github.com/Zefiros-Software/mongomock.git"
         },
         "pathtools": {
             "hashes": [
@@ -907,13 +893,6 @@
                 "sha256:dbae1046def0efb574852fab9e90209b23f556367b5a320c0bcb871c77c3e8cc"
             ],
             "version": "==2.2.0"
-        },
-        "python-termstyle": {
-            "hashes": [
-                "sha256:f42a6bb16fbfc5e2c66d553e7ad46524ea833872f75ee5d827c15115fafc94e2",
-                "sha256:6faf42ba42f2826c38cf70dacb3ac51f248a418e48afc0e36593df11cf3ab1d2"
-            ],
-            "version": "==0.1.10"
         },
         "pytz": {
             "hashes": [
@@ -1020,13 +999,6 @@
                 "sha256:1fb8e494cd46c674d86fac5885a3ff87b0e283937a47d74eb3c02a48c9e89ad0"
             ],
             "version": "==4.5.2"
-        },
-        "unidecode": {
-            "hashes": [
-                "sha256:61f807220eda0203a774a09f84b4304a3f93b5944110cc132af29ddb81366883",
-                "sha256:280a6ab88e1f2eb5af79edff450021a0d3f0448952847cd79677e55e58bad051"
-            ],
-            "version": "==0.4.21"
         },
         "urllib3": {
             "hashes": [

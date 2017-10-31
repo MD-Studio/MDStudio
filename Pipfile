@@ -29,4 +29,4 @@ coverage = "*"
 "pepper8" = "*"
 "autopep8" = "*"
 mock = "*"
-mongomock = {git = "https://github.com/mongomock/mongomock.git"}
+mongomock = {git = "https://github.com/Zefiros-Software/mongomock.git"}

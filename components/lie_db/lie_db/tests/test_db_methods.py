@@ -1113,7 +1113,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.db._get_collection.assert_called_once_with('test_collection')
 
         self.assertIsInstance(found, Cursor)
-        self.assertEqual((yield found.count()), 150)
+        self.assertEqual((yield found.count()), 200)
 
 
 

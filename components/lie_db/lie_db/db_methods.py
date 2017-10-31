@@ -340,7 +340,7 @@ class MongoDatabaseWrapper(IDatabase):
             sort = [(sort[0], int(sort[1]))]
         return sort
 
-    def _get_cursor(self, cursor, max_size=20):
+    def _get_cursor(self, cursor, max_size=50):
         # type: (Cursor) -> dict
 
         results = []
@@ -412,6 +412,7 @@ class MongoDatabaseWrapper(IDatabase):
             if create:
                 logger.info('Creating collection {collection} in {namespace}', collection=collection_name,
                             namespace=self._namespace)
+                return self._db.create_collection(collection_name)
             else:
                 return None
 
