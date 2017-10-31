@@ -36,7 +36,7 @@ setup(
     keywords='LIEStudio molecular simulationg',
     platforms=['Any'],
     packages=find_packages(),
-    package_data={'': ['*.json'], 'lie_md': ['scripts/*']},
+    package_data={'lie_md': ['data/*']},
     py_modules=[distribution_name],
     install_requires=['cerise_client', 'numpy', 'pyparsing'],
     include_package_data=True,
@@ -54,4 +54,5 @@ setup(
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
     ],
+    scripts=['lie_md/scripts/getEnergies.py']
 )

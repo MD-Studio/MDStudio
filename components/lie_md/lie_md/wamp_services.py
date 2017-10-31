@@ -6,15 +6,12 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import json
 from autobahn import wamp
 from cerise_interface import (
     call_cerise_gromacs, create_cerise_config, retrieve_energies)
 from lie_system import LieApplicationSession, WAMPTaskMetaData
-from lie_md.settings import SETTINGS, GROMACS_LIE_SCHEMA
+from lie_md.settings import SETTINGS
 from md_config import set_gromacs_input
-
-gromacs_schema = json.load(open(GROMACS_LIE_SCHEMA))
 
 
 class MDWampApi(LieApplicationSession):
@@ -26,34 +23,37 @@ class MDWampApi(LieApplicationSession):
 
     @wamp.register(u'liestudio.gromacs.liemd')
     def run_gromacs_liemd(
-            self, session={}, protein_file=None, ligand_file=None,
-            topology_file=None, path_cerise_config=None, **kwargs):
+            self, session={}, path_cerise_config=None,
+            cwl_workflow=None, **kwargs):
         """
         Call gromacs using the Cerise-client infrastructure:
         http://cerise-client.readthedocs.io/en/master/index.html
+
+        it expects the following keywords files for gromacs:
+            * protein_pdb
+            * protein_top
+            * protein_itp
+            * ligand_pdb
+            * ligand_top
+            * ligand_itp
         """
         workdir = kwargs['workdir']
+        self.logger.info("Workdir is: {}".format(workdir))
+        # self.logger.info("ligand file is: {}".format(ligand_file))
 
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
 
         # Load GROMACS configuration and update
-        gromacs_config = self.package_config.dict()
-
-        # Prepare to run MD with gromacs
-        gromacs_config['protein_pdb'] = protein_file
-        gromacs_config['ligand_pdb'] = ligand_file
-        gromacs_config['ligand_itp'] = topology_file
-
         gromacs_config = set_gromacs_input(
-            gromacs_config, workdir)
+            self.package_config.dict(), workdir, kwargs)
 
         # Cerise Configuration
         cerise_config = create_cerise_config(
             path_cerise_config, workdir, session)
 
         # Run the MD and retrieve the energies
-        call_cerise_gromacs(gromacs_config, cerise_config)
+        call_cerise_gromacs(gromacs_config, cerise_config, cwl_workflow)
         retrieve_energies(workdir)
 
         session['status'] = 'completed'

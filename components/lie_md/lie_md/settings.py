@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os
 import json
+import os
+import pkgutil
 
 
 def _schema_to_data(schema, data=None, defdict=None):
@@ -26,7 +27,6 @@ def _schema_to_data(schema, data=None, defdict=None):
 
 
 GROMACS_LIE_SCHEMA = os.path.join(
-    os.path.dirname(__file__), 'gromacs_lie_schema.json')
+    pkgutil.get_data('lie_md', 'data/gromacs_lie_schema.json'))
 
-SETTINGS = _schema_to_data(
-    json.load(open(GROMACS_LIE_SCHEMA)))
+SETTINGS = _schema_to_data(json.loads(GROMACS_LIE_SCHEMA))
