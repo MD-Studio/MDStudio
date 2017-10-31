@@ -154,7 +154,7 @@ def set_input(job, gromacs_config):
     """
     Set input variables
     """
-    job.set_input('forcefield', gromacs_config['forcefield'])
+    job.set_input('force_field', gromacs_config['forcefield'])
     job.set_input('sim_time', gromacs_config['sim_time'])
 
     return job

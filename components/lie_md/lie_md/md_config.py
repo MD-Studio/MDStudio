@@ -4,6 +4,7 @@ from lie_md.gromacs_topology_amber import correctItp
 from os.path import join
 from twisted.logger import Logger
 
+import json
 import os
 import shutil
 
@@ -19,6 +20,9 @@ def set_gromacs_input(gromacs_config, workdir, input_dict):
 
     # correct topology
     gromacs_config = fix_topology_ligand(gromacs_config, workdir)
+
+    with open("/home/felipe/WorkbenchPython/Workflows/CYP19A1vs/gromacs.json", 'w') as f:
+        json.dump(gromacs_config, f)
 
     return fix_topology_protein(gromacs_config)
 
