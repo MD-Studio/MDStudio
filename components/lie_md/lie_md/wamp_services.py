@@ -97,6 +97,7 @@ class MDWampApi(LieApplicationSession):
                 os.path.basename(ligdsc), os.path.basename(results['itp']))
 
         # Prepaire post analysis (energy extraction)
+        GMXRC = 'mock_path_to_gmxrc'
         eneRun = 'python getEnergies.py -gmxrc {0} -ene -o ligand.ene'.format(GMXRC)
 
         # write executable
