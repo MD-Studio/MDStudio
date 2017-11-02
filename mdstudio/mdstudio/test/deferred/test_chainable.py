@@ -18,6 +18,7 @@ class ChainedObject:
         res = yield self.deferred
         return_value({'test': res})
 
+
 class ChainableTestClass:
     def __init__(self, inst):
         self.inst = inst
