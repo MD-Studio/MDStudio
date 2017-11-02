@@ -12,14 +12,25 @@ from cerise_interface import (
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_md.settings import SETTINGS
 from md_config import set_gromacs_input
+from pymongo import MongoClient
+import os
 
 
 class MDWampApi(LieApplicationSession):
     """
     Molecular dynamics WAMP methods.
     """
-
+    db = None
     require_config = ['system']
+
+    def __init__(self, config, package_config=None, **kwargs):
+
+        super(MDWampApi, self).__init__(config, package_config, **kwargs)
+
+        if self.db is None:
+            host = os.getenv('MONGO_HOST', 'localhost')
+            self.db = MongoClient(
+                host=host, port=27017, serverSelectionTimeoutMS=1)['liestudio']
 
     @wamp.register(u'liestudio.gromacs.liemd')
     def run_gromacs_liemd(
@@ -43,6 +54,7 @@ class MDWampApi(LieApplicationSession):
 
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
+        session['workdir'] = workdir
 
         # Load GROMACS configuration and update
         gromacs_config = set_gromacs_input(
@@ -50,11 +62,11 @@ class MDWampApi(LieApplicationSession):
 
         # Cerise Configuration
         cerise_config = create_cerise_config(
-            path_cerise_config, workdir, session)
+            path_cerise_config, session, cwl_workflow)
 
         # Run the MD and retrieve the energies
-        call_cerise_gromacs(gromacs_config, cerise_config, cwl_workflow)
-        retrieve_energies(workdir)
+        call_cerise_gromacs(gromacs_config, cerise_config, self.db['cerise'])
+        # retrieve_energies(workdir)
 
         session['status'] = 'completed'
 

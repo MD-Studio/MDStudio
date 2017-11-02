@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # from lie_md.gromacs_gromit import gromit_cmd
+from collections import defaultdict
 from twisted.logger import Logger
 import cerise_client.service as cc
 import json
@@ -13,41 +14,44 @@ logger = Logger()
 
 
 def create_cerise_config(
-        path_to_config, workdir, session):
+        path_to_config, session, cwl_workflow):
     """
     Configuration to run MD jobs.
     """
     with open(path_to_config, 'r') as f:
         config = json.load(f)
 
-    config['workdir'] = workdir
-    config['task_id'] = session["task_id"]
-    config['service_dict'] = session.get('service_dict', None)
+    # Return None if key no in dict
+    config = defaultdict(lambda: None, **config)
+    config.update(session)
+
     config['jobs'] = set()
-    config['log'] = join(workdir, 'cerise.log')
+    config['log'] = join(config['workdir'], 'cerise.log')
+
+    # Set Workflow
+    config['cwl_workflow'] = check_cwl_workflow(cwl_workflow)
 
     return config
 
 
-def call_cerise_gromacs(gromacs_config, cerise_config, cwl_workflow):
+def call_cerise_gromacs(
+        gromacs_config, cerise_config, cerise_collection):
     """
     Use cerise to run gromacs in a remote cluster, see:
     http://cerise-client.readthedocs.io/en/latest/
     """
     logger.info("Creating a Cerise-client service")
-    srv, cerise_config = create_service(cerise_config)
+    srv = create_service(cerise_config, cerise_collection)
 
     # Start service
     cc.start_managed_service(srv)
 
     # Create jobs
     logger.info("Creating Cerise-client job")
-    job = create_lie_job(srv, gromacs_config, cerise_config, cwl_workflow)
+    job = create_lie_job(srv, gromacs_config, cerise_config)
 
-    # Set Workflow
-    cwl_workflow = check_cwl_workflow(cwl_workflow)
-    job.set_workflow(cwl_workflow)
-    logger.info("CWL worflow is: {}".format(cwl_workflow))
+    job.set_workflow(cerise_config['cwl_workflow'])
+    logger.info("CWL worflow is: {}".format(cerise_config['cwl_workflow']))
 
     # run the job in the remote
     logger.info("Running the job in a remote machine")
@@ -116,11 +120,12 @@ def wait_for_job(job, cerise_config):
     return job, cerise_config
 
 
-def create_service(config):
+def create_service(config, cerise_collection):
     """
     Create a Cerise service if one is not already running.
     """
-    srv_data = config.get('service_dict', None)
+    srv_data = {u"name": u"cerise-mdstudio-das5-myuser", u"port": 29593}
+    # srv_data = config.get('service_dict', None)
     if srv_data is not None:
         srv = cc.service_from_dict(srv_data)
     else:
@@ -132,12 +137,12 @@ def create_service(config):
             config['password'])
 
         # Update config
-        config['service_dict'] = cc.service_to_dict(srv)
+        # Save the service in the database
 
-    return srv, config
+    return srv
 
 
-def create_lie_job(srv, gromacs_config, cerise_config, cwl_workflow):
+def create_lie_job(srv, gromacs_config, cerise_config):
     """
     Create a Cerise job and set gromacs
     """

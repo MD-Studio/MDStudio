@@ -21,9 +21,6 @@ def set_gromacs_input(gromacs_config, workdir, input_dict):
     # correct topology
     gromacs_config = fix_topology_ligand(gromacs_config, workdir)
 
-    with open("/home/felipe/WorkbenchPython/Workflows/CYP19A1vs/gromacs.json", 'w') as f:
-        json.dump(gromacs_config, f)
-
     return fix_topology_protein(gromacs_config)
 
 
