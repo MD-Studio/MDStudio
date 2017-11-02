@@ -1195,6 +1195,20 @@ class TestMongoDatabaseWrapper(DBTestCase):
         }, ['test'], ['filter'])
 
     @chainable
+    def test_count_filter_no_collection(self):
+
+        result = yield self.d.count({'_id': '666f6f2d6261722d71757578'})
+
+        self.assertEqual(result, 0)
+
+    @chainable
+    def test_count_neither(self):
+
+        result = yield self.d.count()
+        self.assertEqual(result, 0)
+
+
+    @chainable
     def test_find_one_and_update(self):
 
         total = 100

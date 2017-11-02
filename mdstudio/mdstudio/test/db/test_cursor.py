@@ -138,30 +138,34 @@ class CursorTests(TestCase):
 
     def test_count(self):
 
-        self.wrapper.count = mock.MagicMock(return_value=2)
+        self.wrapper.count = mock.MagicMock(return_value={'total': 2})
         self.assertEqual(self.cursor.count(), 2)
         self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': False})
 
     def test_count2(self):
 
-        self.wrapper.count = mock.MagicMock(return_value=2)
+        self.wrapper.count = mock.MagicMock(return_value={'total': 2})
         self.assertEqual(self.cursor.count(True), 2)
         self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
 
     @chainable
     def test_len(self):
 
-        self.wrapper.count = mock.MagicMock(return_value=2)
+        self.wrapper.count = mock.MagicMock(return_value={'total': 2})
         self.assertEqual((yield len(self.cursor)), 2)
         self.wrapper.count.assert_called_with(**{'cursor_id': 1234, 'with_limit_and_skip': True})
 
     @chainable
     def test_rewind(self):
 
-        self.wrapper.rewind = mock.MagicMock(return_value={'rewound': True})
-        self.cursor._create_cursor = mock.MagicMock(return_value=1456)
-        self.assertEqual((yield self.cursor.rewind()), 1456)
-        self.cursor._create_cursor.assert_called_with(self.wrapper, {'rewound': True})
+        self.assertEqual((yield next(self.cursor)), {'test': 5})
+        self.assertEqual((yield next(self.cursor)), {'test2': 2})
+
+        self.wrapper.rewind = mock.MagicMock(return_value=self.result)
+        self.assertEqual((yield self.cursor.rewind()), self.cursor)
+
+        self.assertEqual((yield next(self.cursor)), {'test': 5})
+        self.assertEqual((yield next(self.cursor)), {'test2': 2})
 
     @chainable
     def test_rewind2(self):
