@@ -21,6 +21,7 @@ from mdstudio.unittest.db import DBTestCase
 
 twisted.internet.base.DelayedCall.debug = True
 
+
 class TestMongoDatabaseWrapper(DBTestCase):
     def setUp(self):
         self.db = MongoClientWrapper("localhost", 27127).get_namespace('testns')
@@ -33,7 +34,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
     def tearDown(self):
         wait_for_completion.wait_for_completion = False
-
 
     def test_transform_to_datetime(self):
         document = {
@@ -271,7 +271,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
             'f': '2017-10-26T09:15:00+00:00'
         })
 
-
     def test_transform_datetime_to_isostring_nested(self):
         document = {
             'o': {
@@ -290,7 +289,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_transform_datetime_to_isostring_nested_list(self):
         document = {
             'o': {
-                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc), datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
+                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                         datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
                 'f': '2017-10-26T09:15:00+00:00'
             }
         }
@@ -332,7 +332,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_prepare_for_json(self):
         document = {
             'o': {
-                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc), datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
+                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                         datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
                 'f': '2017-10-26T09:15:00+00:00'
             }
         }
@@ -350,7 +351,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
         document = {
             '_id': 1000,
             'o': {
-                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc), datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
+                'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                         datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)],
                 'f': '2017-10-26T09:15:00+00:00'
             }
         }
@@ -380,11 +382,11 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(document, 2)
 
     def test_prepare_for_json_int_list(self):
-        document = [2,3,4]
+        document = [2, 3, 4]
 
         self.db._prepare_for_json(document)
 
-        self.assertEqual(document, [2,3,4])
+        self.assertEqual(document, [2, 3, 4])
 
     def test_prepare_for_mongo(self):
         document = {
@@ -430,7 +432,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_get_collection_dict(self):
 
         with mock.patch('lie_db.db_methods.logger.info'):
-
             collection = {
                 'name': 'test_collection'
             }
@@ -443,14 +444,14 @@ class TestMongoDatabaseWrapper(DBTestCase):
             collection = {
                 'name': 'test_collection'
             }
-            self.assertIsInstance(self.db._get_collection(collection,create=True), mongomock.collection.Collection)
+            self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
-            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}', collection='test_collection', namespace='testns')
+            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}',
+                                                collection='test_collection', namespace='testns')
 
     def test_get_collection_str(self):
 
         with mock.patch('lie_db.db_methods.logger.info'):
-
             collection = 'test_collection'
             self.assertEqual(self.db._get_collection(collection), None)
             logger.info.assert_not_called()
@@ -459,18 +460,20 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         with mock.patch('lie_db.db_methods.logger.info'):
             collection = 'test_collection'
-            self.assertIsInstance(self.db._get_collection(collection,create=True), mongomock.collection.Collection)
+            self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
-            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}', collection='test_collection', namespace='testns')
+            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}',
+                                                collection='test_collection', namespace='testns')
 
     def test_get_collection_exists(self):
 
         with mock.patch('lie_db.db_methods.logger.info'):
             collection = 'test_collection'
-            col = self.db._get_collection(collection,create=True)
+            col = self.db._get_collection(collection, create=True)
             self.assertIsInstance(col, mongomock.collection.Collection)
 
-            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}', collection='test_collection', namespace='testns')
+            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}',
+                                                collection='test_collection', namespace='testns')
 
             self.assertIs(self.db._get_collection(collection), col)
 
@@ -518,7 +521,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         id = yield self.d.insert_one({'test': 2}, date_fields=['date'])
 
-        self.db._transform_to_datetime.assert_called_once_with({'insert': {'test': 2, '_id': ObjectId(id)}}, ['date'], ['insert'])
+        self.db._transform_to_datetime.assert_called_once_with({'insert': {'test': 2, '_id': ObjectId(id)}}, ['date'],
+                                                               ['insert'])
 
     @chainable
     def test_insert_many(self):
@@ -604,7 +608,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test2': 6})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
-        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': '59f1d9c57dd5d70043e74f8d'}),call({'test2': 6})])
+        self.db._prepare_for_mongo.assert_has_calls(
+            [call(obs), call({'_id': '59f1d9c57dd5d70043e74f8d'}), call({'test2': 6})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -659,7 +664,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.replace_one({'_id': '666f6f2d6261722d71757578'}, {'test': 6})
+        yield self.d.replace_one({'_id': '666f6f2d6261722d71757578'}, {'test': 6}, date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -668,7 +673,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             'replacement': {
                 'test': 6
             }
-        }, None, ['filter', 'replacement'])
+        }, ['test'], ['filter', 'replacement'])
 
     @chainable
     def test_update_one(self):
@@ -685,7 +690,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.update_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
-        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': '59f1d9c57dd5d70043e74f8d'}),call({'$set': {'test': 6}})])
+        self.db._prepare_for_mongo.assert_has_calls(
+            [call(obs), call({'_id': '59f1d9c57dd5d70043e74f8d'}), call({'$set': {'test': 6}})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -763,7 +769,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
+        yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}}, date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -772,7 +778,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             'update': {
                 '$set': {'test': 6}
             }
-        }, None, ['filter', 'update'])
+        }, ['test'], ['filter', 'update'])
 
     @chainable
     def test_update_many(self):
@@ -789,7 +795,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.update_many({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}})
 
         self.db._get_collection.assert_called_once_with('test_collection', False)
-        self.db._prepare_for_mongo.assert_has_calls([call(obs),call({'_id': '59f1d9c57dd5d70043e74f8d'}),call({'$set': {'test': 6}})])
+        self.db._prepare_for_mongo.assert_has_calls(
+            [call(obs), call({'_id': '59f1d9c57dd5d70043e74f8d'}), call({'$set': {'test': 6}})])
 
         found1 = yield self.d.find_one({'_id': ids[0]})
         self.assertEqual(found1, {'test': 2, '_id': ids[0]})
@@ -869,7 +876,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set':{'test': 6}})
+        yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}}, date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -878,7 +885,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             'update': {
                 '$set': {'test': 6}
             }
-        }, None, ['filter', 'update'])
+        }, ['test'], ['filter', 'update'])
 
     @chainable
     def test_find_one(self):
@@ -890,9 +897,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             obs.append({'test': i, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one({'test': i})
             self.db._get_collection.assert_called_once_with('test_collection')
@@ -928,8 +933,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         for i in range(total):
             found = yield self.d.find_one({'test': i}, skip=1, sort=('_id', SortMode.Asc))
-            self.assertEqual(obs[i+total]['_id'], ids[i+total])
-            self.assertEqual(found, obs[i+total])
+            self.assertEqual(obs[i + total]['_id'], ids[i + total])
+            self.assertEqual(found, obs[i + total])
 
     @chainable
     def test_find_one_sort(self):
@@ -945,8 +950,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         for i in range(total):
             found = yield self.d.find_one({'test': i}, sort=('_id', SortMode.Desc))
-            self.assertEqual(obs[i+total]['_id'], ids[i+total])
-            self.assertEqual(found, obs[i+total])
+            self.assertEqual(obs[i + total]['_id'], ids[i + total])
+            self.assertEqual(found, obs[i + total])
 
         for i in range(total):
             found = yield self.d.find_one({'test': i}, sort=('_id', SortMode.Asc))
@@ -963,13 +968,13 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.find_one({'_id': '666f6f2d6261722d71757578'})
+        yield self.d.find_one({'_id': '666f6f2d6261722d71757578'}, date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
                 '_id': ObjectId('666f6f2d6261722d71757578')
             }
-        }, None, ['filter'])
+        }, ['test'], ['filter'])
 
     @chainable
     def test_find_one_no_collection(self):
@@ -1050,7 +1055,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertIsInstance(found, Cursor)
         self.assertListEqual((yield found.to_list()), list(reversed(obs)))
 
-
     @chainable
     def test_find_many_date_fields(self):
 
@@ -1061,12 +1065,11 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.find_many({})
+        yield self.d.find_many({}, date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {}
-        }, None, ['filter'])
-
+        }, ['test'], ['filter'])
 
     @chainable
     def test_find_many_no_collection(self):
@@ -1074,7 +1077,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.find_many({'_id': '666f6f2d6261722d71757578'})
 
         self.assertIsInstance(result, Cursor)
-        self.assertSequenceEqual((yield result.to_list()),[])
+        self.assertSequenceEqual((yield result.to_list()), [])
 
     @chainable
     def test_rewind(self):
@@ -1115,10 +1118,81 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertIsInstance(found, Cursor)
         self.assertEqual((yield found.count()), 200)
 
+    @chainable
+    def test_count_no_filter(self):
 
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
 
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        count = yield self.d.count()
+        self.db._get_collection.assert_called_once_with('test_collection')
+        self.assertEqual(count, 200)
 
+    @chainable
+    def test_count_filter(self):
 
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        count = yield self.d.count({'test': {'$gt': 50}})
+        self.db._get_collection.assert_called_once_with('test_collection')
+        self.assertEqual(count, 149)
+
+    @chainable
+    def test_count_filter_skip(self):
+
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        count = yield self.d.count({'test': {'$lt': 50}}, skip=10)
+        self.db._get_collection.assert_called_once_with('test_collection')
+        self.assertEqual(count, 40)
+
+    @chainable
+    def test_count_filter_limit(self):
+
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
+        count = yield self.d.count({'test': {'$gt': 50}}, limit=10)
+        self.db._get_collection.assert_called_once_with('test_collection')
+        self.assertEqual(count, 10)
+
+    @chainable
+    def test_count_filter_date_fields(self):
+
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        self.db._transform_to_datetime = mock.MagicMock()
+        yield self.d.count({'test': {'$gt': 50}}, date_fields=['test'])
+
+        self.db._transform_to_datetime.assert_called_once_with({
+            'filter': {
+                'test': {
+                    '$gt': 50
+                }
+            }
+        }, ['test'], ['filter'])
 
     @chainable
     def test_find_one_and_update(self):
@@ -1129,9 +1203,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             obs.append({'test': i, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}})
             self.db._get_collection.assert_called_once_with('test_collection', False)
@@ -1151,9 +1223,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             obs.append({'test': i, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, upsert=True)
             self.db._get_collection.assert_called_once_with('test_collection', True)
@@ -1169,7 +1239,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         total = 100
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, upsert=True)
             self.db._get_collection.assert_called_once_with('test_collection', True)
@@ -1178,7 +1247,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
             self.assertEqual(found, None)
             self.assertEqual(found2['test'], i)
-            self.assertEqual(found2['test2'], total-i)
+            self.assertEqual(found2['test2'], total - i)
 
     @chainable
     def test_find_one_and_update_projection(self):
@@ -1190,7 +1259,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ids = yield self.d.insert_many(obs)
 
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, projection={'_id': 0})
             self.db._get_collection.assert_called_once_with('test_collection', False)
@@ -1214,12 +1282,14 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ids = yield self.d.insert_many(obs)
 
         for i in range(total):
-            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, sort=('_id', SortMode.Desc))
-            self.assertEqual(obs[i+total]['_id'], ids[i+total])
-            self.assertEqual(found, obs[i+total])
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}},
+                                                     sort=('_id', SortMode.Desc))
+            self.assertEqual(obs[i + total]['_id'], ids[i + total])
+            self.assertEqual(found, obs[i + total])
 
         for i in range(total):
-            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, sort=('_id', SortMode.Asc))
+            found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}},
+                                                     sort=('_id', SortMode.Asc))
             self.assertEqual(obs[i]['_id'], ids[i])
             self.assertEqual(found, obs[i])
 
@@ -1233,7 +1303,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ids = yield self.d.insert_many(obs)
 
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_update({'test': i}, {'$set': {'test2': total - i}}, return_updated=True)
             self.db._get_collection.assert_called_once_with('test_collection', False)
@@ -1251,7 +1320,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.find_one_and_update({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test2': 99}})
+        yield self.d.find_one_and_update({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test2': 99}},
+                                         date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -1262,7 +1332,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
                     'test2': 99
                 }
             }
-        }, None, ['filter', 'update'])
+        }, ['test'], ['filter', 'update'])
 
     @chainable
     def test_find_one_and_update_collection(self):
@@ -1290,9 +1360,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             obs.append({'test': i, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i})
             self.db._get_collection.assert_called_once_with('test_collection', False)
@@ -1301,7 +1369,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             self.assertEqual(found, obs[i])
 
             found2 = yield self.d.find_one({'test': i})
-            found3 = yield self.d.find_one({'test2':  total - i})
+            found3 = yield self.d.find_one({'test2': total - i})
             self.assertEqual(found2, None)
             self.assertEqual(found3, {'_id': obs[i]['_id'], 'test2': total - i})
 
@@ -1314,9 +1382,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             obs.append({'test': i, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, upsert=True)
             self.db._get_collection.assert_called_once_with('test_collection', True)
@@ -1325,7 +1391,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             self.assertEqual(found, obs[i])
 
             found2 = yield self.d.find_one({'test': i})
-            found3 = yield self.d.find_one({'test2':  total - i})
+            found3 = yield self.d.find_one({'test2': total - i})
             self.assertEqual(found2, None)
             self.assertEqual(found3, {'_id': obs[i]['_id'], 'test2': total - i})
 
@@ -1348,7 +1414,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         total = 100
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, upsert=True)
             self.db._get_collection.assert_called_once_with('test_collection', True)
@@ -1358,7 +1423,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
             self.assertEqual(found, None)
             self.assertEqual(found2, None)
-            self.assertEqual(found3['test2'], total-i)
+            self.assertEqual(found3['test2'], total - i)
 
     @chainable
     def test_find_one_and_replace_projection(self):
@@ -1370,7 +1435,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ids = yield self.d.insert_many(obs)
 
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, projection={'_id': 0})
             self.db._get_collection.assert_called_once_with('test_collection', False)
@@ -1379,7 +1443,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             self.assertEqual(found, {'test': i})
 
             found2 = yield self.d.find_one({'test': i})
-            found3 = yield self.d.find_one({'test2':  total - i})
+            found3 = yield self.d.find_one({'test2': total - i})
             self.assertEqual(found2, None)
             self.assertEqual(found3, {'_id': obs[i]['_id'], 'test2': total - i})
 
@@ -1397,8 +1461,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         for i in range(total):
             found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, sort=('_id', SortMode.Desc))
-            self.assertEqual(obs[i+total]['_id'], ids[i+total])
-            self.assertEqual(found, obs[i+total])
+            self.assertEqual(obs[i + total]['_id'], ids[i + total])
+            self.assertEqual(found, obs[i + total])
 
         for i in range(total):
             found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, sort=('_id', SortMode.Asc))
@@ -1415,7 +1479,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ids = yield self.d.insert_many(obs)
 
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_replace({'test': i}, {'test2': total - i}, return_updated=True)
             self.db._get_collection.assert_called_once_with('test_collection', False)
@@ -1433,7 +1496,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.find_one_and_replace({'_id': '666f6f2d6261722d71757578'}, {'test2': 99})
+        yield self.d.find_one_and_replace({'_id': '666f6f2d6261722d71757578'}, {'test2': 99}, date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
@@ -1442,7 +1505,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             'replacement': {
                 'test2': 99
             }
-        }, None, ['filter', 'replacement'])
+        }, ['test'], ['filter', 'replacement'])
 
     @chainable
     def test_find_one_and_replace_collection(self):
@@ -1461,7 +1524,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         self.assertEqual(result, None)
 
-
     @chainable
     def test_find_one_and_delete(self):
 
@@ -1471,9 +1533,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             obs.append({'test': i, '_id': str(ObjectId())})
         ids = yield self.d.insert_many(obs)
 
-
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_delete({'test': i})
             self.db._get_collection.assert_called_once_with('test_collection')
@@ -1494,7 +1554,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ids = yield self.d.insert_many(obs)
 
         for i in range(total):
-
             self.db._get_collection = mock.MagicMock(wraps=self.db._get_collection)
             found = yield self.d.find_one_and_delete({'test': i}, projection={'_id': 0})
             self.db._get_collection.assert_called_once_with('test_collection')
@@ -1519,14 +1578,13 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         for i in range(total):
             found = yield self.d.find_one_and_delete({'test': i}, sort=('_id', SortMode.Desc))
-            self.assertEqual(obs[i+total]['_id'], ids[i+total])
-            self.assertEqual(found, obs[i+total])
+            self.assertEqual(obs[i + total]['_id'], ids[i + total])
+            self.assertEqual(found, obs[i + total])
 
         for i in range(total):
             found = yield self.d.find_one_and_delete({'test': i}, sort=('_id', SortMode.Asc))
             self.assertEqual(obs[i]['_id'], ids[i])
             self.assertEqual(found, obs[i])
-
 
     @chainable
     def test_find_one_and_delete_date_fields(self):
@@ -1538,13 +1596,13 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.find_one_and_delete({'_id': '666f6f2d6261722d71757578'}, {'test2': 99})
+        yield self.d.find_one_and_delete({'_id': '666f6f2d6261722d71757578'}, {'test2': 99}, date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': {
                 '_id': ObjectId('666f6f2d6261722d71757578')
             }
-        }, None, ['filter'])
+        }, ['test'], ['filter'])
 
     @chainable
     def test_find_one_and_delete_collection(self):
@@ -1608,7 +1666,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
         found = yield self.d.distinct('test', {'test': {'$gt': 50}})
         self.db._get_collection.assert_called_once_with('test_collection')
 
-        self.assertEqual(found, list(range(51,total)))
+        self.assertEqual(found, list(range(51, total)))
 
     @chainable
     def test_distinct_date_fields(self):
@@ -1620,11 +1678,11 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.distinct('test')
+        yield self.d.distinct('test', date_fields=['test'])
 
         self.db._transform_to_datetime.assert_called_once_with({
             'filter': None
-        }, None, ['filter'])
+        }, ['test'], ['filter'])
 
     @chainable
     def test_distinct_collection(self):
@@ -1642,7 +1700,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.distinct('test')
 
         self.assertEqual(result, [])
-
 
     @chainable
     def test_aggregate(self):
@@ -1673,7 +1730,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         list = yield found.to_list()
         self.assertEqual(list[0], {'_id': '0', 'count': 49})
         self.assertEqual(list[1], {'_id': '1', 'count': 149})
-
 
     @chainable
     def test_aggregate2(self):
@@ -1717,7 +1773,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         self.assertSequenceEqual((yield result.to_list()), [])
 
-
     @chainable
     def test_delete_one(self):
 
@@ -1748,9 +1803,9 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.delete_one({'test': 2})
+        yield self.d.delete_one({'test': 2}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, None, ['filter'])
+        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, ['test'], ['filter'])
 
     @chainable
     def test_delete_one_no_collection(self):
@@ -1788,9 +1843,9 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
         self.db._transform_to_datetime = mock.MagicMock()
-        yield self.d.delete_many({'test': 2})
+        yield self.d.delete_many({'test': 2}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, None, ['filter'])
+        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, ['test'], ['filter'])
 
     @chainable
     def test_delete_many_no_collection(self):

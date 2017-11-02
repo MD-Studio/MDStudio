@@ -104,7 +104,7 @@ class MongoDatabaseWrapper(IDatabase):
 
             if db_collection:
                 filter = self._prepare_for_mongo(filter)
-                self._transform_to_datetime({'filter': filter}, date_fields)
+                self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
 
                 total = db_collection.count(filter, skip=skip, limit=limit)
 
