@@ -1103,9 +1103,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         for i in range(total):
             self.assertEqual((yield next(found)), obs[i])
 
-    @chainable
     def test_rewind_dry(self):
-        return self.assertFailure(self.d.wrapper.rewind("wefwefwef").deferred, DatabaseException)
+        def handler(e):
+            self.assertIsInstance(e.value, DatabaseException)
+        return self.d.wrapper.rewind("wefwefwef").addErrback(handler)
 
     @chainable
     def test_count_cursor(self):

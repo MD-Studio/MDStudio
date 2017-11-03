@@ -14,7 +14,10 @@ def make_deferred(method):
         d = Deferred()
 
         def _wrapper():
-            d.callback(method(instance, *args, **kwargs))
+            try:
+                d.callback(method(instance, *args, **kwargs))
+            except Exception as e:
+                d.errback(e)
 
         reactor.callInThread(_wrapper)
 
