@@ -96,6 +96,16 @@ class TestMongoDatabaseWrapper(DBTestCase):
                      datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)]
         })
 
+    def test_transform_to_datetime_no_list(self):
+        document = {
+            'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00']
+        }
+        self.db._transform_to_datetime(document, 'date')
+        self.assertEqual(document, {
+            'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                     datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)]
+        })
+
     def test_transform_to_datetime_object_list(self):
         document = {
             'dates': [
@@ -1080,6 +1090,9 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertIsInstance(result, Cursor)
         self.assertSequenceEqual((yield result.to_list()), [])
 
+    def test_more_dry(self):
+        return self.assertFailure(self.d.wrapper.more("wefwefwef"), DatabaseException)
+
     @chainable
     def test_rewind(self):
 
@@ -1104,9 +1117,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             self.assertEqual((yield next(found)), obs[i])
 
     def test_rewind_dry(self):
-        def handler(e):
-            self.assertIsInstance(e.value, DatabaseException)
-        return self.d.wrapper.rewind("wefwefwef").addErrback(handler)
+        return self.assertFailure(self.d.wrapper.rewind("wefwefwef"), DatabaseException)
 
     @chainable
     def test_count_cursor(self):

@@ -3,9 +3,9 @@
     "title": "Fields",
     "type": "object",
     "properties": {
-        "date": {
+        "datetime": {
             "type": "array",
-            "description": "List of keys of date fields to transform",
+            "description": "List of keys of date time fields to transform",
             "items": {
                 "$ref": "wamp://mdstudio.schema.get/db/fields/type.v1.json"
             }

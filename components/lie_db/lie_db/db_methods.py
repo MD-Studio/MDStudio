@@ -15,6 +15,7 @@ from twisted.logger import Logger
 from lie_db.exception import DatabaseException
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, SortOperators, \
     ProjectionOperators, AggregationOperator
+from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
 from .cache_dict import CacheDict
 
@@ -259,7 +260,8 @@ class MongoDatabaseWrapper(IDatabase):
                 self._prepare_for_json(result)
 
         return {
-            'results': results
+            'results': results,
+            'total': len(results)
         }
 
     @make_deferred
@@ -336,12 +338,17 @@ class MongoDatabaseWrapper(IDatabase):
         if not sort:
             return sort
 
+        def _convert_mode(mode):
+            if isinstance(mode, str):
+                mode = SortMode.Desc if mode == "desc" else SortMode.Asc
+            return int(mode)
+
         sort = copy.deepcopy(sort)
         if isinstance(sort, list):
             for i, (name, mode) in enumerate(sort):
-                sort[i] = (name, int(mode))
+                sort[i] = (name, _convert_mode(mode))
         else:
-            sort = [(sort[0], int(sort[1]))]
+            sort = [(sort[0], _convert_mode(sort[1]))]
         return sort
 
     def _get_cursor(self, cursor, max_size=50):
@@ -376,7 +383,7 @@ class MongoDatabaseWrapper(IDatabase):
             'results': results,
             'size': size,
             'cursorId': cursor_hash,
-            'alive': getattr(cursor, 'alive', True)
+            'alive': getattr(cursor, 'alive', True) and len(results) > 0
         }
 
     def _more(self, cursor_id):
@@ -427,11 +434,13 @@ class MongoDatabaseWrapper(IDatabase):
         return self._db[collection_name]
 
     def _transform_to_datetime(self, document, fields, prefixes=None):
-
-        if prefixes is None:
-            prefixes = ['']
         if fields is None:
             return
+
+        if not isinstance(fields, list):
+            fields = [fields]
+        if prefixes is None:
+            prefixes = ['']
 
         nfields = []
         for f in fields:
@@ -463,19 +472,27 @@ class MongoDatabaseWrapper(IDatabase):
 
         key = field[-1]
 
+        def _parse_value(val):
+            if isinstance(val, str):
+                return parsedate(val).astimezone(pytz.utc)
+            elif isinstance(val, datetime.datetime):
+                return val
+            else:
+                raise DatabaseException("Failed to parse datetime field '{}'", val)
+
         # if we have a list of objects we support just indexing those
         if isinstance(subdoc, list):
             for d in subdoc:
                 if key in d:
-                    d[key] = parsedate(d[key]).astimezone(pytz.utc)
+                    d[key] = _parse_value(d[key])
         else:
             # either we indexed a normal datetime field, or a list with datetimes
             if key in subdoc:
                 if isinstance(subdoc[key], list):
                     for i, e in enumerate(subdoc[key]):
-                        subdoc[key][i] = parsedate(e).astimezone(pytz.utc)
+                        subdoc[key][i] = _parse_value(e)
                 else:
-                    subdoc[key] = parsedate(subdoc[key]).astimezone(pytz.utc)
+                    subdoc[key] = _parse_value(subdoc[key])
 
     def _transform_datetime_to_isostring(self, document):
         if isinstance(document, dict):

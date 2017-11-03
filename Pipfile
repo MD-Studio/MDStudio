@@ -30,3 +30,4 @@ coverage = "*"
 "autopep8" = "*"
 mock = "*"
 mongomock = {git = "https://github.com/Zefiros-Software/mongomock.git"}
+faker = "*"

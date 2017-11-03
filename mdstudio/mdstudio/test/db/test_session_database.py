@@ -51,7 +51,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'insert': {'test': 8},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -70,7 +70,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'insert': [{'test': 8}, {'test4': 4}],
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -103,7 +103,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'replacement': {'test': 8},
             'upsert': False,
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -168,7 +168,7 @@ class SessionDatabaseWrapperTests(TestCase):
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.count.namespace', {
             'collection': 'col',
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -199,7 +199,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'filter': {'_id': 50},
             'update': {'test': 11},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -230,7 +230,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'filter': {'_id': 50},
             'update': {'test': 11},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -276,7 +276,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'_id': 50},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -331,7 +331,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'_id': 50},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -376,7 +376,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'filter': {'_id': 50},
             'update': {'test': 80},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             },
             'returnUpdated': False,
             'upsert': False
@@ -447,7 +447,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'filter': {'_id': 50},
             'replacement': {'test': 80},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             },
             'returnUpdated': False,
             'upsert': False
@@ -510,7 +510,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'_id': 50},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -538,7 +538,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'field': '_id',
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -565,7 +565,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'test': 10},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 
@@ -584,7 +584,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'test': 10},
             'fields': {
-                'date': ['field1', 'field2']
+                'datetime': ['field1', 'field2']
             }
         })
 

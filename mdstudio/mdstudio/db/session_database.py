@@ -38,7 +38,7 @@ class SessionDatabaseWrapper(IDatabase):
         }
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.insert_one.{}'.format(self.namespace), request)
@@ -51,7 +51,7 @@ class SessionDatabaseWrapper(IDatabase):
         }
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.insert_many.{}'.format(self.namespace), request)
@@ -65,7 +65,7 @@ class SessionDatabaseWrapper(IDatabase):
             'upsert': upsert
         }
         if date_fields:
-            request['fields'] = {'date': date_fields}
+            request['fields'] = {'datetime': date_fields}
 
         return self.session.call(u'mdstudio.db.endpoint.replace_one.{}'.format(self.namespace), request)
 
@@ -88,7 +88,7 @@ class SessionDatabaseWrapper(IDatabase):
                 request['limit'] = limit
             if date_fields:
                 request['fields'] = {
-                    'date': date_fields
+                    'datetime': date_fields
                 }
 
         return self.session.call(u'mdstudio.db.endpoint.count.{}'.format(self.namespace), request)
@@ -104,7 +104,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['upsert'] = upsert
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.update_one.{}'.format(self.namespace), request)
@@ -120,7 +120,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['upsert'] = upsert
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.update_many.{}'.format(self.namespace), request)
@@ -140,7 +140,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['sort'] = sort
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one.{}'.format(self.namespace), request)
@@ -162,7 +162,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['sort'] = sort
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.find_many.{}'.format(self.namespace), request)
@@ -184,7 +184,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['sort'] = sort
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one_and_update.{}'.format(self.namespace), request)
@@ -206,7 +206,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['sort'] = sort
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one_and_replace.{}'.format(self.namespace), request)
@@ -224,7 +224,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['sort'] = sort
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.find_one_and_delete.{}'.format(self.namespace), request)
@@ -240,7 +240,7 @@ class SessionDatabaseWrapper(IDatabase):
             request['query'] = query
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.distinct.{}'.format(self.namespace), request)
@@ -262,7 +262,7 @@ class SessionDatabaseWrapper(IDatabase):
         }
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.delete_one.{}'.format(self.namespace), request)
@@ -275,7 +275,7 @@ class SessionDatabaseWrapper(IDatabase):
         }
         if date_fields:
             request['fields'] = {
-                'date': date_fields
+                'datetime': date_fields
             }
 
         return self.session.call(u'mdstudio.db.endpoint.delete_many.{}'.format(self.namespace), request)

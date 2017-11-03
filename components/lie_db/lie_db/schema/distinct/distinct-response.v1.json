@@ -10,14 +10,14 @@
             },
             "additionalItems": false
         },
-        "count": {
+        "total": {
             "type": "integer",
             "min": 0
         }
     },
     "required": [
         "results",
-        "count"
+        "total"
     ],
     "additionalProperties": false
 }
