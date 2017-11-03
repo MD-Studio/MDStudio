@@ -37,13 +37,15 @@ class TestWampService(DBTestCase, APITestCase):
         self.assertEqual(self.service.session_config['loggernamespace'], 'db')
 
     def test_onInit(self):
+        with mock.patch.dict('os.environ'):
+            del os.environ['MD_MONGO_HOST']
+            del os.environ['MD_MONGO_PORT']
+            self.service.onInit()
 
-        self.service.onInit()
-
-        self.assertEqual(self.service._client._host, "localhost")
-        self.assertEqual(self.service._client._port, 27017)
-        self.assertEqual(self.service.autolog, False)
-        self.assertEqual(self.service.autoschema, False)
+            self.assertEqual(self.service._client._host, "localhost")
+            self.assertEqual(self.service._client._port, 27017)
+            self.assertEqual(self.service.autolog, False)
+            self.assertEqual(self.service.autoschema, False)
 
     @mock.patch.dict(os.environ, {'MD_MONGO_HOST': 'localhost2'})
     def test_onInit_host(self):
