@@ -5,14 +5,12 @@ from mock import mock
 from lie_db import DBWampApi
 from lie_db.db_methods import MongoDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
+from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 from mdstudio.util import WampSchema
 
 
-class TestSession:
-    procedure = "test.procedure"
-
-class TestWampService(DBTestCase):
+class TestWampService(DBTestCase, APITestCase):
 
     def setUp(self):
         self.service = DBWampApi()
@@ -60,8 +58,9 @@ class TestWampService(DBTestCase):
         self.service.publish.assert_called_once_with(u'mdstudio.db.endpoint.events.online', True, options=self.service.publish_options)
 
     def test_more(self):
-        self.service.more.wrapped(self.service, {
-            'cursorId': 123456
-        }, TestSession())
+
+        self.assertApi(self.service ,'more', {
+            'cursorId' : 123456
+        }, {})
 
         self.db.more.assert_called_once_with(123456)
