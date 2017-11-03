@@ -1,5 +1,6 @@
 from twisted.trial.unittest import TestCase
 
+from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.util import validate_input, validate_output
 
@@ -9,9 +10,8 @@ class TestSession:
 
 class APITestCase(TestCase):
 
-    @make_deferred
+    @chainable
     def assertApi(self, object, method, input, output):
         registered_callable = getattr(object, method)
-        result = yield validate_input(registered_callable._lie_input_schema) \
-            (validate_output(registered_callable._lie_output_schema)(registered_callable.wrapped))(input, TestSession())
+        result = yield registered_callable.wrapped(object, input, TestSession())
         self.assertEqual(result, output)

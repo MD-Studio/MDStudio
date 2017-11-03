@@ -5,6 +5,7 @@ from autobahn.wamp import PublishOptions
 
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 from mdstudio.util import register, WampSchema
 from .mongo_client_wrapper import MongoClientWrapper
 
