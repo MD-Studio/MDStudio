@@ -15,12 +15,12 @@ class MongoClientWrapper:
             if namespace not in self._client.database_names():
                 logger.info('Creating database for {namespace}', namespace=namespace)
 
-            db = MongoDatabaseWrapper(namespace, self._client[namespace])
-            self._namespaces[namespace] = db
+            database = MongoDatabaseWrapper(namespace, self._client[namespace])
+            self._namespaces[namespace] = database
         else:
-            db = self._namespaces[namespace]
+            database = self._namespaces[namespace]
 
-        return db
+        return database
 
     @staticmethod
     def create_mongo_client(host, port):

@@ -2,11 +2,10 @@ import os
 import re
 from autobahn import wamp
 from autobahn.wamp import PublishOptions
-from twisted.internet.defer import inlineCallbacks
 
 from mdstudio.application_session import BaseApplicationSession
+from mdstudio.deferred.chainable import chainable
 from mdstudio.util import register, WampSchema
-
 from .mongo_client_wrapper import MongoClientWrapper
 
 
@@ -21,19 +20,16 @@ class DBWampApi(BaseApplicationSession):
         self.session_config['loggernamespace'] = 'db'
 
     def onInit(self, **kwargs):
-        dbhost = os.getenv('_LIE_MONGO_HOST', self.package_config.get('dbhost', 'localhost'))
-        dbport = self.package_config.get('dbport', 27017)
-        self._client = MongoClientWrapper(dbhost, dbport)
+        db_host = os.getenv('MD_MONGO_HOST', self.package_config.get('host', 'localhost'))
+        db_port = int(os.getenv('MD_MONGO_PORT', self.package_config.get('port', 27017)))
+        self._client = MongoClientWrapper(db_host, db_port)
         self.autolog = False
         self.autoschema = False
 
-    @inlineCallbacks
+    @chainable
     def onRun(self, details):
-        yield self.publish(u'mdstudio.db.endpoint.events.online', True, options=PublishOptions(acknowledge=True))
-
-    @wamp.register(u'mdstudio.db.endpoint.status')
-    def status(self):
-        return True
+        self.publish_options = PublishOptions(acknowledge=True)
+        yield self.publish(u'mdstudio.db.endpoint.events.online', True, options=self.publish_options)
 
     @register(u'mdstudio.db.endpoint.more',
               WampSchema('db', 'cursor/more-request', versions={1}),

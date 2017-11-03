@@ -15,8 +15,9 @@ services:
             - crossbar_pip:/usr/local/lib/python3.5/site-packages
             - crossbar_pipenv:/root/.local/share/virtualenvs
         environment:
-            - _LIE_MONGO_HOST=mongo
-            - _LIE_GLOBAL_LOG=1
+            - MD_MONGO_HOST=mongo
+            - MD_MONGO_PORT=27017
+            - MD_GLOBAL_LOG=1
         env_file: .env
 
     md:

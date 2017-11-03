@@ -9,6 +9,7 @@ from autobahn import wamp
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 # from .config.handler import ConfigHandler
+from mdstudio.deferred.chainable import chainable
 from .logging import block_on
 
 # add unicode placeholder for PY3
@@ -169,6 +170,14 @@ class WampSchema(ISchema):
 
         self.url_format = 'wamp://mdstudio.schema.get/{}/{}'
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.namespace == other.namespace and \
+                   self.path == other.path and \
+                   self.versions == other.versions and \
+                   self.url_format == other.url_format
+        return False
+
     def __str__(self):
         return self.url_format.format('{}', '{}.{}') \
             .format(self.namespace, self.path, ['v{}'.format(v) for v in self.versions])
@@ -279,7 +288,7 @@ def register(uri, input_schema, output_schema, match=None, options=None, scope=N
         @wamp.register(uri, options)
         @validate_input(input_schema)
         @validate_output(output_schema)
-        @inlineCallbacks
+        @chainable
         def wrapped_f(self, request, *args, **kwargs):
             res = yield f(self, request, *args, **kwargs)
 
@@ -287,6 +296,8 @@ def register(uri, input_schema, output_schema, match=None, options=None, scope=N
 
         wrapped_f._lie_input_schema = input_schema
         wrapped_f._lie_output_schema = output_schema
+
+        wrapped_f.wrapped = f
 
         if scope:
             wrapped_f._lie_uri = uri

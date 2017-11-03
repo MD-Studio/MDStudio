@@ -14,6 +14,7 @@ from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.logger import Logger
 from twisted.python.failure import Failure
+from twisted.python.logfile import DailyLogFile
 
 from mdstudio import is_python3
 from mdstudio.logging import WampLogObserver, PrintingObserver
@@ -23,6 +24,7 @@ if is_python3:
     pass
 
 mdhelper = MDStudioHelper()
+
 
 class BaseApplicationSession(ApplicationSession):
     """
@@ -60,7 +62,7 @@ class BaseApplicationSession(ApplicationSession):
 
     require_config = []
 
-    def __init__(self, config, **kwargs):
+    def __init__(self, config=None, **kwargs):
         """
         Class constructor
 
@@ -102,10 +104,10 @@ class BaseApplicationSession(ApplicationSession):
 
         * Arguments defined using system environment variables parsed using
           os.environ are used to update session_config. Available variables:
-          - _LIE_WAMP_REALM = Crossbar WAMP realm to join
-          - _LIE_AUTH_METHOD = WAMP authentication method to use
-          - _LIE_AUTH_USERNAME = username for authentication
-          - _LIE_AUTH_PASSWORD = password for authentication
+          - MD_AUTH_REALM = Crossbar WAMP realm to join
+          - MD_AUTH_METHOD = WAMP authentication method to use
+          - MD_AUTH_USERNAME = username for authentication
+          - MD_AUTH_PASSWORD = password for authentication
 
         The constructor checks all of these configuration options in sequence.
 
@@ -126,11 +128,11 @@ class BaseApplicationSession(ApplicationSession):
 
         # initialize defaults
         self.session_config_environment_variables = {
-            'authid': '_LIE_AUTH_USERNAME',
-            'password': '_LIE_AUTH_PASSWORD',
-            'realm': '_LIE_AUTH_REALM',
-            'authmethod': '_LIE_AUTH_METHOD',
-            'loggernamespace': '_LIE_LOGGER_NAMESPACE'
+            'authid': 'MD_AUTH_USERNAME',
+            'password': 'MD_AUTH_PASSWORD',
+            'realm': 'MD_AUTH_REALM',
+            'authmethod': 'MD_AUTH_METHOD',
+            'loggernamespace': 'MD_LOGGER_NAMESPACE'
         }
 
         self.package_config_template = WampSchema('mdstudio', 'settings/settings')
@@ -191,7 +193,7 @@ class BaseApplicationSession(ApplicationSession):
         # Init toplevel ApplicationSession
         super(BaseApplicationSession, self).__init__(config)
 
-        extra = config.extra if isinstance(config.extra, dict) else {}
+        extra = config.extra if config and isinstance(config.extra, dict) else {}
 
         # Set package_config: first global package config, the package_config
         # argument and finaly config.extra
@@ -225,7 +227,7 @@ class BaseApplicationSession(ApplicationSession):
         session_config_file = os.path.join(package_config_dir, 'session_config.json')
         session_conf = resolve_config(session_config_file)
 
-        dotenvfile = os.getenv('_LIE_DOTENV', os.path.join(package_config_dir, '.env'))
+        dotenvfile = os.getenv('MD_DOTENV', os.path.join(package_config_dir, '.env'))
 
         if os.path.isfile(dotenvfile):
             env = config_from_dotenv(dotenvfile)
@@ -255,13 +257,14 @@ class BaseApplicationSession(ApplicationSession):
         twisted.python.log.addObserver(self.wamp_logger)
 
         # start file logger
-        log_file = twisted.python.logfile.DailyLogFile('daily.log', package_logs_dir)
+        log_file = DailyLogFile('daily.log', package_logs_dir)
         self.file_logger = PrintingObserver(log_file, self.component_info.get('namespace'),
                                             self.session_config.get('log_level', 'info'))
         twisted.python.log.addObserver(self.file_logger)
 
         # Configure config object
-        config.realm = u'{}'.format(self.session_config.get('realm', config.realm))
+        if config:
+            config.realm = u'{}'.format(self.session_config.get('realm', config.realm))
 
         if 'authmethod' in self.session_config.keys() and not isinstance(self.session_config.get('authmethod'), list):
             self.session_config['authmethod'] = [self.session_config.get('authmethod')]
@@ -509,7 +512,8 @@ class BaseApplicationSession(ApplicationSession):
 
     @inlineCallbacks
     def onDisconnect(self):
-        self.log.info('{class_name} of {package_name} disconnected from realm {realm}', realm=self.session_config.get('realm'),
+        self.log.info('{class_name} of {package_name} disconnected from realm {realm}',
+                      realm=self.session_config.get('realm'),
                       **self.component_info)
 
         self.wamp_logger.stop_flushing()
@@ -574,7 +578,8 @@ class BaseApplicationSession(ApplicationSession):
         schema_abs_path = os.path.join(module_path, 'schema', schema_path)
 
         if os.path.isfile(schema_abs_path):
-            return json.load(open(schema_abs_path))
+            with open(schema_abs_path) as json_file:
+                return json.load(json_file)
 
         self.log.error('ERROR: Schema not found in {}'.format(schema_abs_path))
 
@@ -594,7 +599,8 @@ class BaseApplicationSession(ApplicationSession):
         self._filter_schemas(schemas, schema_list)
 
         if schema_list:
-            yield self.call(u'mdstudio.schema.endpoint.register.{}'.format(self.component_info.get('namespace')), {'schemas': schema_list})
+            yield self.call(u'mdstudio.schema.endpoint.register.{}'.format(self.component_info.get('namespace')),
+                            {'schemas': schema_list})
 
         self.log.info('Registered schemas for {package}', package=self.component_info['package_name'])
 
@@ -610,8 +616,9 @@ class BaseApplicationSession(ApplicationSession):
                             schema_list.append({'path': schema_path, 'schema': schema_def})
                             self._collect_subschemas(schema_def, subschemas)
                         else:
-                            self.log.error('ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
-                                           namespace=schema.namespace, path=schema_path)
+                            self.log.error(
+                                'ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
+                                namespace=schema.namespace, path=schema_path)
         if subschemas:
             self._filter_schemas(itertools.chain(s['schema'] for s in subschemas), schema_list)
 
@@ -621,7 +628,8 @@ class BaseApplicationSession(ApplicationSession):
                 if k == u"$ref":
                     if v.startswith('wamp://') and not any(s['uri'] == v for s in subschemas):
                         match = re.match('wamp://mdstudio\.schema\.get/([a-z_]+)/(.+)\\.v([0-9]+)(.json)?', v)
-                        subschemas.append({'uri': v, 'schema': WampSchema(match.group(1), match.group(2), match.group(3))})
+                        subschemas.append(
+                            {'uri': v, 'schema': WampSchema(match.group(1), match.group(2), match.group(3))})
                 else:
                     self._collect_subschemas(v, subschemas)
         elif isinstance(schema_def, list):
@@ -631,8 +639,9 @@ class BaseApplicationSession(ApplicationSession):
     @inlineCallbacks
     def _register_scopes(self):
         if self.function_scopes:
-            res = yield self.call('mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
-                                  {'scopes': self.function_scopes})
+            res = yield self.call(
+                'mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
+                {'scopes': self.function_scopes})
 
             self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
                           package=self.component_info['package_name'])

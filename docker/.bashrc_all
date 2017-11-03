@@ -11,7 +11,8 @@ alias liecheck="(cd /app; mkdir -p build/ build/flake8; flake8 components; peppe
 alias liepep8="(cd /app; autopep8 --in-place --aggressive --aggressive --recursive --ignore E501,E24 --exclude="*.md" *.py)"
 
 source /app/.venv/bin/activate
-export _LIE_MONGO_HOST=mongo
+export MD_MONGO_HOST=mongo
+export MD_MONGO_PORT=27017
 export IS_DOCKER=1
 export PIPENV_VENV_IN_PROJECT=1
 cd /app

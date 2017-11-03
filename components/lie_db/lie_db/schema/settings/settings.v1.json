@@ -1,16 +1,28 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "DBSettings",
-    "type": "object",
-    "properties": {
-        "dbport": {"type":"integer", "default": 27017},
-        "dbhost": {"type": "string", "default": "localhost"},
-        "log_level": {
-            "type": "string",
-            "desciption": "Log level for the microservice task",
-            "default": "info",
-            "enum": ["debug","info","warn","error","critical"]
-        }
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "DBSettings",
+  "type": "object",
+  "properties": {
+    "port": {
+      "type": "integer",
+      "default": 27017
     },
-    "additionalProperties": false
+    "host": {
+      "type": "string",
+      "default": "localhost"
+    },
+    "log_level": {
+      "type": "string",
+      "description": "Log level for the microservice task",
+      "default": "info",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "critical"
+      ]
+    }
+  },
+  "additionalProperties": false
 }

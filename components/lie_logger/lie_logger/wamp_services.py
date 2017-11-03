@@ -23,8 +23,8 @@ from mdstudio.logging import PrintingObserver
 
 # Add global observer for daily logs
 # TODO:  make this available without an ugly injection
-if os.getenv('_LIE_GLOBAL_LOG', 0) != 0:
-    observer = PrintingObserver(logfile.DailyLogFile('daily.log', os.getenv('_LIE_GLOBAL_LOG_DIR', './data/logs')))
+if os.getenv('MD_GLOBAL_LOG', 0) != 0:
+    observer = PrintingObserver(logfile.DailyLogFile('daily.log', os.getenv('MD_GLOBAL_LOG_DIR', './data/logs')))
     log.addObserver(observer)
 
 class LoggerWampApi(BaseApplicationSession):

@@ -48,9 +48,9 @@ class AuthWampApi(BaseApplicationSession):
         self.package_config_template = WampSchema('auth', 'settings/settings')
         
         self.session_config_environment_variables.update({
-            'admin_username': '_LIE_AUTH_USERNAME',
-            'admin_email': '_LIE_USER_ADMIN_EMAIL',
-            'admin_password': '_LIE_AUTH_PASSWORD'
+            'admin_username': 'MD_AUTH_USERNAME',
+            'admin_email': 'MD_USER_ADMIN_EMAIL',
+            'admin_password': 'MD_AUTH_PASSWORD'
         })
 
         self.oauth_client = oauth2.BackendApplicationClient('auth')
