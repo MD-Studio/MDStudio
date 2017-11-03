@@ -9,14 +9,14 @@ class Chainable:
         return Deferred
 
     def __init__(self, deferred):
-        self.__deferred = deferred
+        self.deferred = deferred
 
     def __call__(self, *args, **kwargs):
         # New deferred
         d = Deferred()
 
         def chained(result):
-            # When the result of our __deferred arrives, call the function (assuming it's possible) and pass the result
+            # When the result of our deferred arrives, call the function (assuming it's possible) and pass the result
             # to the new deferred
             result = result(*args, **kwargs)
             if isinstance(result, Deferred):
@@ -25,9 +25,9 @@ class Chainable:
             else:
                 d.callback(result)
 
-        # Register the chained function to catch the result of the old __deferred
-        self.__deferred.addCallback(chained)
-        self.__deferred.addErrback(d.errback)
+        # Register the chained function to catch the result of the old deferred
+        self.deferred.addCallback(chained)
+        self.deferred.addErrback(d.errback)
 
         # Return a new wrapper to allow further chaining and yielding of results
         return Chainable(d)
@@ -38,8 +38,8 @@ class Chainable:
         def unwrapped_deferred(result):
             d.callback(result[key])
 
-        self.__deferred.addCallback(unwrapped_deferred)
-        self.__deferred.addErrback(d.errback)
+        self.deferred.addCallback(unwrapped_deferred)
+        self.deferred.addErrback(d.errback)
 
         return Chainable(d)
 
@@ -50,26 +50,26 @@ class Chainable:
             result[key] = value
             d.callback(None)
 
-        self.__deferred.addCallback(unwrapped_deferred)
-        self.__deferred.addErrback(d.errback)
+        self.deferred.addCallback(unwrapped_deferred)
+        self.deferred.addErrback(d.errback)
 
         return Chainable(d)
 
     def addCallback(self, *args, **kwargs):
-        return Chainable(self.__deferred.addCallback( *args, **kwargs))
+        return Chainable(self.deferred.addCallback( *args, **kwargs))
 
     def __getattribute__(self, name):
         return object.__getattribute__(self, name)
 
     def __getattr__(self, name):
         # print(name)
-        if hasattr(self.__deferred, name):
+        if hasattr(self.deferred, name):
             # If we try to address a property of the internal Deferred, pass it through
-            return getattr(self.__deferred, name)
+            return getattr(self.deferred, name)
         elif name == 'result':
-            # Prevent infinite nesting when the __deferred does not have a result yet
+            # Prevent infinite nesting when the deferred does not have a result yet
             return None
-        elif name != '__deferred':
+        elif name != 'deferred':
             # New deferred
             d = Deferred()
 
@@ -86,9 +86,9 @@ class Chainable:
                     # Otherwise, pass the attribute (possibly a function) to the new deferred for further chaining
                     d.callback(res)
 
-            # Register the unwrapper to catch the result of the old __deferred
-            self.__deferred.addCallback(unwrapped_deferred)
-            self.__deferred.addErrback(d.errback)
+            # Register the unwrapper to catch the result of the old deferred
+            self.deferred.addCallback(unwrapped_deferred)
+            self.deferred.addErrback(d.errback)
 
             # Return a new wrapper to allow further chaining and yielding of results
             return Chainable(d)

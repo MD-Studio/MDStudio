@@ -17,8 +17,8 @@ class TestWampService(DBTestCase, APITestCase):
     def setUp(self):
         self.service = DBWampApi()
         self.service._extract_namespace = mock.MagicMock(return_value='test.namespace')
-        self.db = mock.MagicMock(wraps=MongoDatabaseWrapper)
-        self.service._client.get_namespace = mock.MagicMock(return_value=self.db)
+        #self.db = MongoDatabaseWrapper()#mock.MagicMock(wraps=MongoDatabaseWrapper())
+        #self.service._client.get_namespace = mock.MagicMock(return_value=self.service._client._client['test.namespace'])
 
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()

@@ -12,6 +12,7 @@ from pymongo import MongoClient, ReturnDocument
 from pymongo.cursor import Cursor
 from twisted.logger import Logger
 
+from lie_db.exception import DatabaseException
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, SortOperators, \
     ProjectionOperators, AggregationOperator
 from mdstudio.deferred.make_deferred import make_deferred
@@ -45,9 +46,12 @@ class MongoDatabaseWrapper(IDatabase):
     @make_deferred
     def rewind(self, cursor_id):
         # type: (str) -> Dict[str, Any]
-        self._cursors[cursor_id].rewind()
+        try:
+            self._cursors[cursor_id].rewind()
 
-        return self._more(cursor_id)
+            return self._more(cursor_id)
+        except KeyError:
+            raise DatabaseException("Cursor with id '{}' is unknown".format(cursor_id))
 
     @make_deferred
     def insert_one(self, collection, insert, date_fields=None):
@@ -378,12 +382,16 @@ class MongoDatabaseWrapper(IDatabase):
     def _more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
 
-        cursor = self._cursors[cursor_id]
+        try:
+            cursor = self._cursors[cursor_id]
 
-        # refresh cursor keep alive time
-        self._cursors[cursor_id] = cursor
+            # refresh cursor keep alive time
+            self._cursors[cursor_id] = cursor
 
-        return self._get_cursor(cursor)
+            return self._get_cursor(cursor)
+
+        except KeyError:
+            raise DatabaseException("Cursor with id '{}' is unknown".format(cursor_id))
 
     def _update_response(self, upsert, result=None):
         if result is None:

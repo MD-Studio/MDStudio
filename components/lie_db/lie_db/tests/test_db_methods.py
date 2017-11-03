@@ -11,6 +11,7 @@ from mock import mock, call
 from twisted.internet import reactor
 
 from lie_db.db_methods import logger
+from lie_db.exception import DatabaseException
 from lie_db.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.db.cursor import Cursor, query
 from mdstudio.db.model import Model
@@ -1101,6 +1102,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         for i in range(total):
             self.assertEqual((yield next(found)), obs[i])
+
+    @chainable
+    def test_rewind_dry(self):
+        return self.assertFailure(self.d.wrapper.rewind("wefwefwef").deferred, DatabaseException)
 
     @chainable
     def test_count_cursor(self):
