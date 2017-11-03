@@ -25,11 +25,9 @@ def create_cerise_config(
     config = defaultdict(lambda: None, **config)
     config.update(session)
 
-    config['jobs'] = set()
-    config['log'] = join(config['workdir'], 'cerise.log')
-
     # Set Workflow
     config['cwl_workflow'] = check_cwl_workflow(cwl_workflow)
+    config['log'] = join(config['workdir'], 'cerise.log')
 
     return config
 
@@ -39,107 +37,81 @@ def call_cerise_gromacs(
     """
     Use cerise to run gromacs in a remote cluster, see:
     http://cerise-client.readthedocs.io/en/latest/
-    """
-    logger.info("Creating a Cerise-client service")
-    srv = create_service(cerise_config, cerise_collection)
 
-    # Start service
+    :param gromacs_config: dict containing the gromacs parameters
+    for the simulation.
+    :param cerise_config: dict containing the settings to create
+    and call a cerise-client process.
+    :param cerise_collection: MongoDB collection to keep the information
+    related to the Cerise services and jobs.
+    """
+    srv_data = retrieve_service_from_db(cerise_config, cerise_collection)
+
+    if srv_data is None:
+        srv = create_service(cerise_config, cerise_collection)
+        job, srv_data = submit_new_job(
+            srv, gromacs_config, cerise_config, cerise_collection)
+    else:
+        srv = restart_service(srv_data)
+        job = srv.get_job_by_id(srv_data['job_id'])
+
+    # Wait, extract and clean
+    job = wait_for_job(job, cerise_config['log'])
+    output = get_output(job, cerise_config)
+    cleanup(srv, srv_data, cerise_collection)
+
+    return output
+
+
+def restart_service(srv_data):
+    """
+    use a dictionary to restart a service
+    """
+    logger.info(
+        "There is already a service in the database, restarting it!")
+    srv = cc.service_from_dict(srv_data)
     cc.start_managed_service(srv)
 
-    # Create jobs
-    logger.info("Creating Cerise-client job")
-    job = create_lie_job(srv, gromacs_config, cerise_config)
-
-    job.set_workflow(cerise_config['cwl_workflow'])
-    logger.info("CWL worflow is: {}".format(cerise_config['cwl_workflow']))
-
-    # run the job in the remote
-    logger.info("Running the job in a remote machine")
-    job.run()
-
-    # Wait for the job to finish
-    job, cerise_config = wait_for_job(job, cerise_config)
-
-    output = get_output(job, cerise_config)
-
-    cleanup(srv, job, cerise_config)
-
-    return output, cerise_config
-
-
-def cleanup(srv, job, cerise_config):
-    """
-    Clean up the job and the service
-    """
-    logger.info("Shutting down Cerise-client service")
-    srv.destroy_job(job)
-    cc.destroy_managed_service(srv)
-
-
-def get_output(job, config):
-    """
-    retrieve output information from the job.
-    """
-    if job.state == 'Success':
-        task_id = config['task_id']
-        workdir = config['workdir']
-        path = join(workdir, 'output_{}.trr'.format(task_id))
-        job.outputs['trajectory'].save_as(path)
-
-        return path
-
-    else:
-        return None
-
-
-def wait_for_job(job, cerise_config):
-    """
-    Wait until job is done.
-    """
-    # Waiting for job to finish
-    while job.state == 'Waiting':
-        sleep(5)
-
-    # Save id of the current job in the set
-    cerise_config['jobs'].add(job.id)
-
-    # Wait for job to finish
-    while job.is_running():
-        sleep(10)
-
-    # Process output
-    if job.state != 'Success':
-        logger.error('There was an error: {}'.format(job.state))
-
-    logger.info('Cerise log stored at: {}'.format(
-        cerise_config['log']))
-
-    with open(cerise_config['log'], 'w') as f:
-        json.dump(job.log, f)
-
-    return job, cerise_config
+    return srv
 
 
 def create_service(config, cerise_collection):
     """
     Create a Cerise service if one is not already running.
     """
-    srv_data = {u"name": u"cerise-mdstudio-das5-myuser", u"port": 29593}
-    # srv_data = config.get('service_dict', None)
-    if srv_data is not None:
-        srv = cc.service_from_dict(srv_data)
-    else:
-        srv = cc.require_managed_service(
+    srv = cc.require_managed_service(
             config['docker_name'],
             config.get('port', 29593),
             config['docker_image'],
-            config['user_name'],
+            config['username'],
             config['password'])
-
-        # Update config
-        # Save the service in the database
+    logger.info("Created a new Cerise-client service")
 
     return srv
+
+
+def submit_new_job(srv, gromacs_config, cerise_config, cerise_collection):
+    """
+    Create a new job and regiter it.
+    """
+    logger.info("Creating Cerise-client job")
+    job = create_lie_job(srv, gromacs_config, cerise_config)
+
+    # Associate a CWL workflow with the job
+    job.set_workflow(cerise_config['cwl_workflow'])
+    logger.info("CWL worflow is: {}".format(cerise_config['cwl_workflow']))
+
+    # run the job in the remote
+    msg = "Running the job in a remote machine using docker: {}".format(
+        cerise_config['docker_image'])
+    logger.info(msg)
+
+    # submit the job and register it
+    job.run()
+    srv_data = register_srv_job(job, srv, cerise_collection)
+    srv_data['username'] = cerise_config['username']
+
+    return job, srv_data
 
 
 def create_lie_job(srv, gromacs_config, cerise_config):
@@ -160,9 +132,102 @@ def set_input(job, gromacs_config):
     Set input variables
     """
     job.set_input('force_field', gromacs_config['forcefield'])
-    job.set_input('sim_time', gromacs_config['sim_time'])
+    # job.set_input('sim_time', gromacs_config['sim_time'])
+    job.set_input('sim_time', 0.002)
 
     return job
+
+
+def retrieve_service_from_db(config, cerise_collection):
+    """
+    Check if there is an alive service in the database.
+    """
+    query = {
+        'username': config['username'], 'name': config['docker_name']}
+    cursor = cerise_collection.find(query)
+    if cursor.retrieved > 0:
+        return cursor.next()
+    else:
+        return None
+
+
+def register_srv_job(job, srv, cerise_collection):
+    """
+    Once the job is running in the queue system register
+    it in the database.
+    """
+    while job.state == 'Waiting':
+        sleep(2)
+
+    # Save id of the current job in the set
+    srv_data = cc.service_to_dict(srv)
+    srv_data['job_id'] = job.id
+    srv_data['job_state'] = job.state
+
+    # Add srv_dict to database
+    cerise_collection.insert_one(srv_data)
+    logger.info("Added service to mongoDB")
+
+    return srv_data
+
+
+def wait_for_job(job, cerise_log):
+    """
+    Wait until job is done.
+    """
+    # Wait for job to finish
+    while job.is_running():
+        sleep(30)
+
+    # Process output
+    if job.state != 'Success':
+        logger.error('There was an error: {}'.format(job.state))
+
+    logger.info('Cerise log stored at: {}'.format(
+        cerise_log))
+
+    with open(cerise_log, 'w') as f:
+        json.dump(job.log, f, indent=2)
+
+    return job
+
+
+def cleanup(srv, job, cerise_collection):
+    """
+    Clean up the job and the service.
+    """
+    logger.info("Shutting down Cerise-client service")
+    srv.destroy_job(job)
+    cc.destroy_managed_service(srv)
+
+    # Remove job from DB
+    remove_srv_job_from_db(srv, job, cerise_collection)
+
+
+def remove_srv_job_from_db(srv, srv_data, cerise_collection):
+    """
+    Remove the service and job information from DB
+    """
+    job_id = srv_data['job_id']
+    query = {'job_id': job_id}
+    cerise_collection.delete_one(query)
+    logger.info('Remove job: {} from database'.format(job_id))
+
+
+def get_output(job, config):
+    """
+    retrieve output information from the job.
+    """
+    if job.state == 'Success':
+        task_id = config['task_id']
+        workdir = config['workdir']
+        path = join(workdir, 'output_{}.trr'.format(task_id))
+        job.outputs['trajectory'].save_as(path)
+
+        return path
+
+    else:
+        return None
 
 
 def copy_files_to_remote(job, gromacs_config):
