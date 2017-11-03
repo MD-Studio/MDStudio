@@ -1,10 +1,12 @@
 import os
 from autobahn.wamp import PublishOptions
 from mock import mock
+from twisted.internet import reactor
 
 from lie_db import DBWampApi
 from lie_db.db_methods import MongoDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
+from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 from mdstudio.util import WampSchema
@@ -17,6 +19,14 @@ class TestWampService(DBTestCase, APITestCase):
         self.service._extract_namespace = mock.MagicMock(return_value='test.namespace')
         self.db = mock.MagicMock(spec=MongoDatabaseWrapper)
         self.service._client.get_namespace = mock.MagicMock(return_value=self.db)
+
+        if not reactor.getThreadPool().started:
+            reactor.getThreadPool().start()
+
+        wait_for_completion.wait_for_completion = True
+
+    def tearDown(self):
+        wait_for_completion.wait_for_completion = False
 
     def test_preInit(self):
 
@@ -57,9 +67,10 @@ class TestWampService(DBTestCase, APITestCase):
 
         self.service.publish.assert_called_once_with(u'mdstudio.db.endpoint.events.online', True, options=self.service.publish_options)
 
+    @chainable
     def test_more(self):
 
-        self.assertApi(self.service ,'more', {
+        yield self.assertApi(self.service ,'more', {
             'cursorId' : 123456
         }, {})
 
