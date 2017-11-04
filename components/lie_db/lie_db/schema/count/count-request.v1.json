@@ -1,49 +1,49 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "CountRequest",
-    "oneOf": [
-        {
-            "type": "object",
-            "properties": {
-                "collection": {
-                    "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
-                },
-                "filter": {
-                    "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
-                },
-                "skip": {
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "limit": {
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "fields": {
-                    "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
-                }
-            },
-            "required": [
-                "collection"
-            ],
-            "additionalProperties": false
+  "$schema": "http://json-schema.org/schema#",
+  "title": "CountRequest",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "collection": {
+          "$ref": "resource://mdstudio/db/collection/v1"
         },
-        {
-            "type": "object",
-            "properties": {
-                "cursorId": {
-                    "type": "string"
-                },
-                "withLimitAndSkip": {
-                    "type": "boolean",
-                    "default": false
-                }
-            },
-            "required": [
-                "cursorId",
-                "withLimitAndSkip"
-            ],
-            "additionalProperties": false
+        "filter": {
+          "$ref": "resource://mdstudio/db/filter/v1"
+        },
+        "skip": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fields": {
+          "$ref": "resource://mdstudio/db/fields/v1"
         }
-    ]
+      },
+      "required": [
+        "collection"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "cursorId": {
+          "type": "string"
+        },
+        "withLimitAndSkip": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "cursorId",
+        "withLimitAndSkip"
+      ],
+      "additionalProperties": false
+    }
+  ]
 }

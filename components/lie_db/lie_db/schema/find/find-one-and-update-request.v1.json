@@ -1,39 +1,39 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "FindOneAndUpdateRequest",
-    "type": "object",
-    "properties": {
-        "collection": {
-            "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
-        },
-        "filter": {
-            "$ref": "wamp://mdstudio.schema.get/db/filter/filter.v1.json"
-        },
-        "update": {
-            "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
-        },
-        "projection": {
-            "$ref": "wamp://mdstudio.schema.get/db/projection/projection.v1.json"
-        },
-        "returnUpdated": {
-            "type": "boolean",
-            "default": false
-        },
-        "upsert": {
-            "type": "boolean",
-            "default": false
-        },
-        "sort": {
-            "$ref": "wamp://mdstudio.schema.get/db/sort/sort.v1.json"
-        },
-        "fields": {
-            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
-        }
+  "$schema": "http://json-schema.org/schema#",
+  "title": "FindOneAndUpdateRequest",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
     },
-    "required": [
-        "collection",
-        "filter",
-        "update"
-    ],
-    "additionalProperties": false
+    "filter": {
+      "$ref": "resource://mdstudio/db/filter/v1"
+    },
+    "update": {
+      "$ref": "resource://mdstudio/db/document/v1"
+    },
+    "projection": {
+      "$ref": "resource://mdstudio/db/projection/v1"
+    },
+    "returnUpdated": {
+      "type": "boolean",
+      "default": false
+    },
+    "upsert": {
+      "type": "boolean",
+      "default": false
+    },
+    "sort": {
+      "$ref": "resource://mdstudio/db/sort/v1"
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    }
+  },
+  "required": [
+    "collection",
+    "filter",
+    "update"
+  ],
+  "additionalProperties": false
 }

@@ -18,7 +18,7 @@ class Model:
 
     date_time_fields = []
 
-    def __init__(self, wrapper, collection=None):
+    def __init__(self, wrapper=None, collection=None):
         # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
         if isinstance(wrapper, ApplicationSession):
             self.wrapper = SessionDatabaseWrapper(wrapper)

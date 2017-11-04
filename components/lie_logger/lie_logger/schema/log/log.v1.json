@@ -1,50 +1,50 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "LogRequest",
-    "type": "object",
-    "properties": {
-        "logs": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "level": {
-                        "type": "string",
-                        "enum": [
-                            "debug",
-                            "info",
-                            "warn",
-                            "error",
-                            "critical"
-                        ]
-                    },
-                    "namespace": {
-                        "type": "string",
-                        "pattern": "^[a-zA-Z0-9_\\.]+$"
-                    },
-                    "user": {
-                        "oneOf": [
-                            {
-                                "type": "string",
-                                "pattern": "^[a-zA-Z0-9_\\.]+$"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null
-                    },
-                    "time": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "message": {
-                        "type": "string"
-                    }
-                },
-                "additionalProperties": false
-            }
-        }
-    },
-    "additionalProperties": false
+  "$schema": "http://json-schema.org/schema#",
+  "title": "LogRequest",
+  "type": "object",
+  "properties": {
+    "logs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "debug",
+              "info",
+              "warn",
+              "error",
+              "critical"
+            ]
+          },
+          "namespace": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_\\.]+$"
+          },
+          "user": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_\\.]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
 }

@@ -1,29 +1,29 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "ReplaceOneRequest",
-    "type": "object",
-    "properties": {
-        "collection": {
-            "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
-        },
-        "filter": {
-            "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
-        },
-        "replacement": {
-            "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
-        },
-        "fields": {
-            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
-        },
-        "upsert": {
-            "type": "boolean",
-            "default": false
-        }
+  "$schema": "http://json-schema.org/schema#",
+  "title": "ReplaceOneRequest",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
     },
-    "required": [
-        "collection",
-        "filter",
-        "replacement"
-    ],
-    "additionalProperties": false
+    "filter": {
+      "$ref": "resource://mdstudio/db/document/v1"
+    },
+    "replacement": {
+      "$ref": "resource://mdstudio/db/document/v1"
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    },
+    "upsert": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "collection",
+    "filter",
+    "replacement"
+  ],
+  "additionalProperties": false
 }

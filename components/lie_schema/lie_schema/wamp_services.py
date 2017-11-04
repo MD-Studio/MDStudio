@@ -1,11 +1,13 @@
 import re
+from autobahn.wamp import PublishOptions
 
-from twisted.internet.defer import DeferredLock
-from autobahn import wamp
-from twisted.internet.defer import inlineCallbacks, returnValue
 
+from mdstudio.api.register import register
+from mdstudio.api.schema import WampSchema
 from mdstudio.application_session import BaseApplicationSession
-from mdstudio.util import register, WampSchema
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.lock import Lock
+
 
 class SchemaWampApi(BaseApplicationSession):
     """
@@ -14,20 +16,21 @@ class SchemaWampApi(BaseApplicationSession):
     
     def preInit(self, **kwargs):
         self._schemas = {}
-        self.lock = DeferredLock()
+        self.lock = Lock()
         self.session_config_template = {}
         self.session_config['loggernamespace'] = 'schema'
 
     def onInit(self, **kwargs):
         self.autolog = False
 
-    @inlineCallbacks
+    @chainable
     def onRun(self, details):
-        yield self.publish(u'mdstudio.schema.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
+        self.publish_options = PublishOptions(acknowledge=True)
+        yield self.publish(u'mdstudio.schema.endpoint.events.online', True, options=self.publish_options)
 
-    @register(u'mdstudio.schema.endpoint.register', WampSchema('schema', 'register/register'), {}, match='prefix')
+    @register(u'mdstudio.schema.endpoint.register', 'register/register/v1', {}, match='prefix')
     def schema_register(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+        group, component = self._extract_namespace(details.procedure)
 
         res = False
 
@@ -57,9 +60,11 @@ class SchemaWampApi(BaseApplicationSession):
 
         return res
         
-    @register(u'mdstudio.schema.endpoint.get', WampSchema('schema', 'get/get'), {})
+    @register(u'mdstudio.schema.endpoint.get', 'get/get/v1', {})
     def schema_get(self, request):
-        namespace = request['namespace']
+
+        group = request['group']
+        component = request['component']
         path = request['path']
 
         # Lock schema's resource
@@ -82,4 +87,5 @@ class SchemaWampApi(BaseApplicationSession):
         return res
 
     def _extract_namespace(self, uri):
-        return re.match('mdstudio.schema.endpoint.\\w+\\.(.*)', uri).group(1)
+        match = re.match('mdstudio.schema.endpoint.\\w+\\.(.*)\\.(.*)', uri)
+        return match.group(1), match.group(2)

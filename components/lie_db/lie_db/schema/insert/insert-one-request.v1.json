@@ -1,21 +1,21 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "InsertOneRequest",
-    "type": "object",
-    "properties": {
-        "collection": {
-            "$ref": "wamp://mdstudio.schema.get/db/collection/collection.v1.json"
-        },
-        "insert": {
-            "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
-        },
-        "fields": {
-            "$ref": "wamp://mdstudio.schema.get/db/fields/fields.v1.json"
-        }
+  "$schema": "http://json-schema.org/schema#",
+  "title": "InsertOneRequest",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
     },
-    "required": [
-        "collection",
-        "insert"
-    ],
-    "additionalProperties": false
+    "insert": {
+      "$ref": "resource://mdstudio/db/document/v1"
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    }
+  },
+  "required": [
+    "collection",
+    "insert"
+  ],
+  "additionalProperties": false
 }

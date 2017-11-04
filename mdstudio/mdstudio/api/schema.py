@@ -1,0 +1,185 @@
+import re
+
+import jsonschema
+
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
+from mdstudio.logging import block_on
+
+
+class ISchema:
+    def __str__(self):
+        raise NotImplementedError('Subclass should implement this')
+
+    def schemas(self):
+        raise NotImplementedError('Subclass should implement this')
+
+
+class WampSchema(ISchema):
+    def __init__(self, uri, version='^1.0.0'):
+        # type: (str, str) -> None
+
+        self.uri = uri
+        self.version = version
+
+        self.url_format = 'wamp://mdstudio.schema.get/{}/{}'
+        #def __init__(self, url, transport='http'):
+        #self.schema_uri = '{}://{}'.format(transport, url)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.uri == other.uri and \
+                   self.versions == other.versions and \
+                   self.url_format == other.url_format
+        return False
+
+    def __str__(self):
+        return self.url_format.format('{}', '{}.{}') \
+            .format(self.namespace, self.uri, ['v{}'.format(v) for v in self.versions])
+
+    def uris(self):
+        for version in self.versions:
+            yield '{}.v{}'.format(self.uri, int(version))
+
+    def uris(self):
+        for uri in self.uris():
+            yield self.url_format.format(self.namespace, uri)
+
+    def schemas(self):
+        for uri in self.uris():
+            yield {'$ref': uri}
+
+class InlineSchema(ISchema):
+    def __init__(self, schema):
+        self.schema = schema
+
+    def __str__(self):
+        return str(self.schema.items())
+
+    def schemas(self):
+        yield self.schema
+
+def validate_output(output_schema):
+    if not isinstance(output_schema, ISchema):
+        # If the schema is not a subclass of ISchema, try to create an inline schema
+        output_schema = InlineSchema(output_schema)
+
+    def wrap_f(f):
+        @chainable
+        def wrapped_f(self, request, **kwargs):
+            res = yield f(self, request, **kwargs)
+
+            validate_json_schema(self, output_schema, res)
+
+            return_value(res)
+
+        return wrapped_f
+
+    return wrap_f
+
+
+def validate_input(input_schema, strict=True):
+    if not isinstance(input_schema, ISchema):
+        # If the schema is not a subclass of ISchema, try to create an inline schema
+        input_schema = InlineSchema(input_schema)
+
+    def wrap_f(f):
+        @chainable
+        def wrapped_f(self, request, **kwargs):
+            valid = validate_json_schema(self, input_schema, request)
+
+            if strict and not valid:
+                return_value({})
+            else:
+                res = yield f(self, request, **kwargs)
+
+                return_value(res)
+
+        return wrapped_f
+
+    return wrap_f
+
+
+class WampSchemaHandler:
+    def __init__(self, session):
+        self.mdstudio_lib_path = session.component_info.get('mdstudio_lib_path')
+        self.package_name = session.component_info.get('package_name')
+        self.session = session
+        self.cache = {}
+
+    def handler(self, uri):
+        if uri not in self.cache.keys():
+            res = block_on(self.resolve(uri))
+            self.cache[uri] = res
+        else:
+            res = self.cache[uri]
+
+        return res
+
+    @chainable
+    def resolve(self, uri):
+        schema_path_match = re.match('wamp://mdstudio\.schema\.get/([a-z_]+)/(.+)', uri)
+        if not schema_path_match:
+            self.session.log.error("Not a proper wamp uri")
+
+        schema_namespace = schema_path_match.group(1)
+        schema_path = schema_path_match.group(2)
+
+        if 'lie_{}'.format(schema_namespace) == self.package_name:
+            res = self.session.get_schema(schema_path)
+        elif schema_namespace == 'mdstudio':
+            res = self.session.get_schema(schema_path, self.mdstudio_lib_path)
+        else:
+            res = yield self.session.call(u'mdstudio.schema.endpoint.get',
+                                          {'namespace': schema_namespace, 'path': schema_path})
+
+        if res is None:
+            self.session.log.warn('WARNING: could not retrieve a valid schema')
+            res = {}
+
+        return_value(res)
+
+
+def validate_json_schema(session, schema_def, request):
+    if not isinstance(schema_def, ISchema):
+        schema_def = InlineSchema(schema_def)
+
+    valid = False
+
+    for schema in schema_def.schemas():
+        resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': session.wamp_schema_handler.handler})
+
+        DefaultValidatingDraft4Validator = extend_with_default(jsonschema.Draft4Validator, session)
+        validator = DefaultValidatingDraft4Validator(schema, resolver=resolver)
+
+        errors = sorted(validator.iter_errors(request), key=lambda x: x.path)
+
+        if len(errors) == 0:
+            valid = True
+            break
+        else:
+            for error in errors:
+                session.log.error('Error validating json schema: {error}', error=error)
+
+    return valid
+
+
+def extend_with_default(validator_class, session):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for prperty, subschema in properties.items():
+            if "default" in subschema and prperty not in instance.keys():
+                session.log.warn(
+                    'WARNING: during json schema validation, {} was not present in the instance, setting to default'.format(
+                        prperty))
+                instance.setdefault(prperty, subschema["default"])
+
+        for error in validate_properties(
+                validator, properties, instance, schema,
+        ):
+            yield error
+
+    return jsonschema.validators.extend(
+        validator_class, {"properties": set_defaults},
+    )

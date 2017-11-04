@@ -1,18 +1,18 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "InsertManyResponse",
-    "type": "object",
-    "properties": {
-        "ids": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "additionalItems": false
-        }
-    },
-    "required": [
-        "ids"
-    ],
-    "additionalProperties": false
+  "$schema": "http://json-schema.org/schema#",
+  "title": "InsertManyResponse",
+  "type": "object",
+  "properties": {
+    "ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "additionalItems": false
+    }
+  },
+  "required": [
+    "ids"
+  ],
+  "additionalProperties": false
 }

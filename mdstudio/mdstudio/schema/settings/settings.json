@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Settings",
+  "type": "object",
+  "properties": {
+    "log_level": {
+      "type": "string",
+      "description": "Log level for the microservice task",
+      "default": "info",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "critical"
+      ]
+    }
+  }
+}

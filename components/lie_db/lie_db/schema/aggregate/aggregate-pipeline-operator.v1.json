@@ -1,6 +1,0 @@
-{
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "name": "AggregatePipelineOperator",
-    "description": "A valid aggregation pipeline operator.",
-    "type": "object"
-}

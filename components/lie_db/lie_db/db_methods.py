@@ -17,7 +17,7 @@ from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFi
     ProjectionOperators, AggregationOperator
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
-from .cache_dict import CacheDict
+from lie_db.cache_dict import CacheDict
 
 logger = Logger(namespace='db')
 

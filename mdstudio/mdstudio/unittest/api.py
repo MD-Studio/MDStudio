@@ -1,6 +1,4 @@
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.make_deferred import make_deferred
-from mdstudio.util import validate_input, validate_output
 
 
 class TestSession:

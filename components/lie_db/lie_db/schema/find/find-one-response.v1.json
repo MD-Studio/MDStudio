@@ -1,21 +1,21 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "FindOneResponse",
-    "type": "object",
-    "properties": {
-        "result": {
-            "oneOf": [
-                {
-                    "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
-                },
-                {
-                    "type": "null"
-                }
-            ]
+  "$schema": "http://json-schema.org/schema#",
+  "title": "FindOneResponse",
+  "type": "object",
+  "properties": {
+    "result": {
+      "oneOf": [
+        {
+          "$ref": "resource://mdstudio/db/document/v1"
+        },
+        {
+          "type": "null"
         }
-    },
-    "required": [
-        "result"
-    ],
-    "additionalProperties": false
+      ]
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "additionalProperties": false
 }

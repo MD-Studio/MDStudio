@@ -1,17 +1,15 @@
 import os
-from autobahn.wamp import PublishOptions
+from faker import Faker
 from mock import mock
 from mongomock import ObjectId
 from twisted.internet import reactor
 
 from lie_db import DBWampApi
-from lie_db.db_methods import MongoDatabaseWrapper
+from mdstudio.api.schema import WampSchema
 from mdstudio.deferred.chainable import chainable
 from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
-from mdstudio.util import WampSchema
-from faker import Faker
 
 
 class TestWampService(DBTestCase, APITestCase):
@@ -22,7 +20,6 @@ class TestWampService(DBTestCase, APITestCase):
         self.collection = 'coll'
         self.fake = Faker()
         self.fake.seed(4321)
-        # self.service._client.get_namespace = mock.MagicMock(return_value=self.service._client._client['test.namespace'])
 
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()

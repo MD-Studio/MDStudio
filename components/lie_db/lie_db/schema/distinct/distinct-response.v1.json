@@ -1,23 +1,23 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "CountResponse",
-    "type": "object",
-    "properties": {
-        "results": {
-            "type": "array",
-            "items": {
-                "$ref": "wamp://mdstudio.schema.get/db/document/document.v1.json"
-            },
-            "additionalItems": false
-        },
-        "total": {
-            "type": "integer",
-            "min": 0
-        }
+  "$schema": "http://json-schema.org/schema#",
+  "title": "CountResponse",
+  "type": "object",
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "resource://mdstudio/db/document/v1"
+      },
+      "additionalItems": false
     },
-    "required": [
-        "results",
-        "total"
-    ],
-    "additionalProperties": false
+    "total": {
+      "type": "integer",
+      "min": 0
+    }
+  },
+  "required": [
+    "results",
+    "total"
+  ],
+  "additionalProperties": false
 }

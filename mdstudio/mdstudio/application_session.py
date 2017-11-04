@@ -17,13 +17,9 @@ from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from mdstudio import is_python3
+from mdstudio.api.schema import WampSchema, WampSchemaHandler, validate_json_schema
 from mdstudio.logging import WampLogObserver, PrintingObserver
-from mdstudio.util import resolve_config, WampSchema, WampSchemaHandler, validate_json_schema, MDStudioHelper
-
-if is_python3:
-    pass
-
-mdhelper = MDStudioHelper()
+from mdstudio.util import resolve_config
 
 
 class BaseApplicationSession(ApplicationSession):
@@ -144,15 +140,15 @@ class BaseApplicationSession(ApplicationSession):
         # Scan for input/output schemas on registrations
         for key, f in self.__class__.__dict__.items():
             try:
-                self.json_schemas.append(f._lie_input_schema)
-                self.json_schemas.append(f._lie_output_schema)
+                self.json_schemas.append(f.input_schema)
+                self.json_schemas.append(f.output_schema)
             except AttributeError:
                 pass
 
             try:
                 self.function_scopes.append({
-                    'scope': f._lie_scope,
-                    'uri': f._lie_uri
+                    'scope': f.scope,
+                    'uri': f.uri
                 })
             except AttributeError:
                 pass
@@ -164,7 +160,7 @@ class BaseApplicationSession(ApplicationSession):
             'package_name': self.__module__.split('.')[0],
             'class_name': type(self).__name__,
             'module_path': os.path.dirname(inspect.getfile(self.__class__)),
-            'corelib_path': os.path.dirname(__file__)
+            'mdstudio_lib_path': os.path.dirname(__file__)
         }
 
         # self.session_config = ConfigHandler()

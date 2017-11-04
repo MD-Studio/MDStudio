@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "SessionConfig",
+  "type": "object",
+  "properties": {
+    "authmethod": {
+      "type": "string",
+      "default": "ticket"
+    },
+    "password": {
+      "type": "string",
+      "default": "liepw@#"
+    },
+    "authid": {
+      "type": "string",
+      "default": "lieadmin"
+    },
+    "realm": {
+      "type": "string",
+      "default": "mdstudio"
+    }
+  }
+}
