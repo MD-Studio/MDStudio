@@ -4,6 +4,7 @@
 from collections import defaultdict
 from twisted.logger import Logger
 import cerise_client.service as cc
+import hashlib
 import json
 import os
 from os.path import join
@@ -45,20 +46,23 @@ def call_cerise_gromacs(
     :param cerise_collection: MongoDB collection to keep the information
     related to the Cerise services and jobs.
     """
-    srv_data = retrieve_service_from_db(cerise_config, cerise_collection)
+    srv_data = retrieve_service_from_db(
+        cerise_config, gromacs_config['ligand_pdb'], cerise_collection)
 
     if srv_data is None:
         srv = create_service(cerise_config, cerise_collection)
         job, srv_data = submit_new_job(
             srv, gromacs_config, cerise_config, cerise_collection)
     else:
+        logger.info("MD already running for {}".format(
+            gromacs_config['ligand_pdb']))
         srv = restart_service(srv_data)
         job = srv.get_job_by_id(srv_data['job_id'])
 
     # Wait, extract and clean
     job = wait_for_job(job, cerise_config['log'])
     output = get_output(job, cerise_config)
-    cleanup(srv, srv_data, cerise_collection)
+    cleanup(job, srv, cerise_collection)
 
     return output
 
@@ -67,8 +71,6 @@ def restart_service(srv_data):
     """
     use a dictionary to restart a service
     """
-    logger.info(
-        "There is already a service in the database, restarting it!")
     srv = cc.service_from_dict(srv_data)
     cc.start_managed_service(srv)
 
@@ -108,10 +110,29 @@ def submit_new_job(srv, gromacs_config, cerise_config, cerise_collection):
 
     # submit the job and register it
     job.run()
-    srv_data = register_srv_job(job, srv, cerise_collection)
-    srv_data['username'] = cerise_config['username']
+
+    # Store data in the DB
+    srv_data = collect_srv_data(
+            job.id, cc.service_to_dict(srv), gromacs_config)
+
+    register_srv_job(
+        job, srv_data, cerise_collection)
 
     return job, srv_data
+
+
+def collect_srv_data(job_id, srv_data, gromacs_config):
+    """
+    """
+    # Save id of the current job in the dict
+    srv_data['job_id'] = job_id
+
+    # create a unique ID for the ligand
+    ligand_pdb = gromacs_config['ligand_pdb']
+
+    srv_data['ligand_md5'] = compute_md5(ligand_pdb)
+
+    return srv_data
 
 
 def create_lie_job(srv, gromacs_config, cerise_config):
@@ -132,26 +153,23 @@ def set_input(job, gromacs_config):
     Set input variables
     """
     job.set_input('force_field', gromacs_config['forcefield'])
-    # job.set_input('sim_time', gromacs_config['sim_time'])
-    job.set_input('sim_time', 0.002)
+    job.set_input('sim_time', gromacs_config['sim_time'])
 
     return job
 
 
-def retrieve_service_from_db(config, cerise_collection):
+def retrieve_service_from_db(config, ligand_pdb, cerise_collection):
     """
     Check if there is an alive service in the database.
     """
     query = {
-        'username': config['username'], 'name': config['docker_name']}
-    cursor = cerise_collection.find(query)
-    if cursor.retrieved > 0:
-        return cursor.next()
-    else:
-        return None
+        'ligand_md5': compute_md5(ligand_pdb),
+        'name': config['docker_name']}
+
+    return cerise_collection.find_one(query)
 
 
-def register_srv_job(job, srv, cerise_collection):
+def register_srv_job(job, srv_data, cerise_collection):
     """
     Once the job is running in the queue system register
     it in the database.
@@ -159,16 +177,9 @@ def register_srv_job(job, srv, cerise_collection):
     while job.state == 'Waiting':
         sleep(2)
 
-    # Save id of the current job in the set
-    srv_data = cc.service_to_dict(srv)
-    srv_data['job_id'] = job.id
-    srv_data['job_state'] = job.state
-
     # Add srv_dict to database
     cerise_collection.insert_one(srv_data)
     logger.info("Added service to mongoDB")
-
-    return srv_data
 
 
 def wait_for_job(job, cerise_log):
@@ -192,7 +203,7 @@ def wait_for_job(job, cerise_log):
     return job
 
 
-def cleanup(srv, job, cerise_collection):
+def cleanup(job, srv, cerise_collection):
     """
     Clean up the job and the service.
     """
@@ -201,17 +212,16 @@ def cleanup(srv, job, cerise_collection):
     cc.destroy_managed_service(srv)
 
     # Remove job from DB
-    remove_srv_job_from_db(srv, job, cerise_collection)
+    remove_srv_job_from_db(srv, job.id, cerise_collection)
 
 
-def remove_srv_job_from_db(srv, srv_data, cerise_collection):
+def remove_srv_job_from_db(srv, job_id, cerise_collection):
     """
     Remove the service and job information from DB
     """
-    job_id = srv_data['job_id']
     query = {'job_id': job_id}
     cerise_collection.delete_one(query)
-    logger.info('Remove job: {} from database'.format(job_id))
+    logger.info('Removed job: {} from database'.format(job_id))
 
 
 def get_output(job, config):
@@ -228,6 +238,16 @@ def get_output(job, config):
 
     else:
         return None
+
+
+def compute_md5(file_name):
+    """
+    Compute the md5 for a given file name
+    """
+    with open(file_name) as f:
+        xs = f.read()
+
+    return hashlib.md5(xs).hexdigest()
 
 
 def copy_files_to_remote(job, gromacs_config):

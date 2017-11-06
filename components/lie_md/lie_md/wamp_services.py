@@ -49,8 +49,6 @@ class MDWampApi(LieApplicationSession):
             * ligand_itp
         """
         workdir = kwargs['workdir']
-        self.logger.info("Workdir is: {}".format(workdir))
-        # self.logger.info("ligand file is: {}".format(ligand_file))
 
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
