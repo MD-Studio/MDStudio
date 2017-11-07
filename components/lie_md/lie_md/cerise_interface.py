@@ -145,6 +145,7 @@ def restart_srv_job(srv_data):
 
 def wait_extract_clean(job, srv, cerise_config, cerise_db):
     """
+    Wait for the job to finish, extract the output and cleanup.
     """
     job = wait_for_job(job, cerise_config['log'])
     output = get_output(job, cerise_config)
