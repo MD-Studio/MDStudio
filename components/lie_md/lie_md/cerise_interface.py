@@ -34,7 +34,7 @@ def create_cerise_config(
 
 
 def call_cerise_gromacs(
-        gromacs_config, cerise_config, cerise_collection):
+        gromacs_config, cerise_config, cerise_db):
     """
     Use cerise to run gromacs in a remote cluster, see:
     http://cerise-client.readthedocs.io/en/latest/
@@ -43,41 +43,54 @@ def call_cerise_gromacs(
     for the simulation.
     :param cerise_config: dict containing the settings to create
     and call a cerise-client process.
-    :param cerise_collection: MongoDB collection to keep the information
+    :param cerise_db: MongoDB collection to keep the information
     related to the Cerise services and jobs.
     """
     srv_data = retrieve_service_from_db(
-        cerise_config, gromacs_config['ligand_pdb'], cerise_collection)
+        cerise_config, gromacs_config['ligand_pdb'], cerise_db)
 
     if srv_data is None:
-        srv = create_service(cerise_config, cerise_collection)
-        job, srv_data = submit_new_job(
-            srv, gromacs_config, cerise_config, cerise_collection)
-    else:
-        logger.info("MD already running for {}".format(
-            gromacs_config['ligand_pdb']))
-        srv = restart_service(srv_data)
-        job = srv.get_job_by_id(srv_data['job_id'])
+        srv_data = create_new_srv_job(
+            gromacs_config, cerise_config, cerise_db)
 
-    # Wait, extract and clean
-    job = wait_for_job(job, cerise_config['log'])
-    output = get_output(job, cerise_config)
-    cleanup(job, srv, cerise_collection)
+    # is the job still running?
+    elif srv_data['job_state'] == 'Running':
+        restart_srv_job(srv_data)
 
-    return output
+    # Simulation information including cerise data
+    sim_dict = extract_simulation_info(
+        srv_data, cerise_config, cerise_db)
+
+    # Shutdown Service if there are no other jobs running
+    try_to_close_service(srv_data, cerise_db)
+
+    return sim_dict
 
 
-def restart_service(srv_data):
+def retrieve_service_from_db(config, ligand_pdb, cerise_db):
     """
-    use a dictionary to restart a service
+    Check if there is an alive service in the database.
     """
-    srv = cc.service_from_dict(srv_data)
-    cc.start_managed_service(srv)
+    query = {
+        'ligand_md5': compute_md5(ligand_pdb),
+        'name': config['docker_name']}
 
-    return srv
+    return cerise_db.find_one(query)
 
 
-def create_service(config, cerise_collection):
+def create_new_srv_job(gromacs_config, cerise_config, cerise_db):
+    """
+    Create a new service if one is not already running
+    and initialize a job
+    """
+    srv = create_service(cerise_config)
+    srv_data = submit_new_job(
+        srv, gromacs_config, cerise_config, cerise_db)
+
+    return srv_data
+
+
+def create_service(config):
     """
     Create a Cerise service if one is not already running.
     """
@@ -92,7 +105,7 @@ def create_service(config, cerise_collection):
     return srv
 
 
-def submit_new_job(srv, gromacs_config, cerise_config, cerise_collection):
+def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
     """
     Create a new job and regiter it.
     """
@@ -113,16 +126,80 @@ def submit_new_job(srv, gromacs_config, cerise_config, cerise_collection):
 
     # Store data in the DB
     srv_data = collect_srv_data(
-            job.id, cc.service_to_dict(srv), gromacs_config)
+        job.id, cc.service_to_dict(srv), gromacs_config,
+        cerise_config['username'])
 
-    register_srv_job(
-        job, srv_data, cerise_collection)
-
-    return job, srv_data
+    return register_srv_job(
+        job, srv_data, cerise_db)
 
 
-def collect_srv_data(job_id, srv_data, gromacs_config):
+def restart_srv_job(srv_data):
+    """ use a dictionary to restart a service """
+    srv = cc.service_from_dict(srv_data)
+    cc.start_managed_service(srv)
+
+    job = srv.get_job_by_id(srv_data['job_id'])
+
+    logger.info("Job {} already running".format(job.id))
+
+
+def wait_extract_clean(job, srv, cerise_config, cerise_db):
     """
+    """
+    job = wait_for_job(job, cerise_config['log'])
+    output = get_output(job, cerise_config)
+    cleanup(job, srv, cerise_db)
+
+    return output
+
+
+def extract_simulation_info(
+        srv_data, cerise_config, cerise_db):
+    """
+    Wait for a job to finish if the job is already done
+    return the information retrieve from the db.
+    """
+    logger.info("Extracting output from: {}".format(
+        cerise_config['workdir']))
+
+    if not is_output_available(srv_data):
+        srv = cc.service_from_dict(srv_data)
+        job = srv.get_job_by_id(srv_data['job_id'])
+        output = wait_extract_clean(
+            job, srv, cerise_config, cerise_db)
+
+        # Update data in the repo
+        srv_data.update(output)
+        srv_data['job_state'] = job.state
+        update_srv_info_at_db(srv_data, cerise_db)
+
+    # remove mongoDB object id
+    srv_data.pop('_id', None)
+
+    return srv_data
+
+
+def is_output_available(srv_data):
+    """
+    Check if there are some output files.
+    """
+    outputs = ['gromiterr', 'gromitout', 'gromacslog', 'trajectory']
+    return any(x in srv_data for x in outputs)
+
+
+def update_srv_info_at_db(srv_data, cerise_db):
+    """
+    Update the service-job data store in the db
+    """
+    query = {'ligand_md5': srv_data['ligand_md5']}
+    cerise_db.update_one(query, {"$set": srv_data})
+
+
+def collect_srv_data(
+        job_id, srv_data, gromacs_config, username):
+    """
+    Add all the relevant information for the job and
+    service to the service dictionary
     """
     # Save id of the current job in the dict
     srv_data['job_id'] = job_id
@@ -131,6 +208,7 @@ def collect_srv_data(job_id, srv_data, gromacs_config):
     ligand_pdb = gromacs_config['ligand_pdb']
 
     srv_data['ligand_md5'] = compute_md5(ligand_pdb)
+    srv_data['username'] = username
 
     return srv_data
 
@@ -158,18 +236,7 @@ def set_input(job, gromacs_config):
     return job
 
 
-def retrieve_service_from_db(config, ligand_pdb, cerise_collection):
-    """
-    Check if there is an alive service in the database.
-    """
-    query = {
-        'ligand_md5': compute_md5(ligand_pdb),
-        'name': config['docker_name']}
-
-    return cerise_collection.find_one(query)
-
-
-def register_srv_job(job, srv_data, cerise_collection):
+def register_srv_job(job, srv_data, cerise_db):
     """
     Once the job is running in the queue system register
     it in the database.
@@ -178,8 +245,11 @@ def register_srv_job(job, srv_data, cerise_collection):
         sleep(2)
 
     # Add srv_dict to database
-    cerise_collection.insert_one(srv_data)
+    srv_data['job_state'] = 'Running'
+    cerise_db.insert_one(srv_data)
     logger.info("Added service to mongoDB")
+
+    return srv_data
 
 
 def wait_for_job(job, cerise_log):
@@ -203,41 +273,77 @@ def wait_for_job(job, cerise_log):
     return job
 
 
-def cleanup(job, srv, cerise_collection):
+def cleanup(job, srv, cerise_db, remove_job_from_db=False):
     """
     Clean up the job and the service.
     """
-    logger.info("Shutting down Cerise-client service")
+    logger.info("removing job: {} from Cerise-client".format(job.id))
     srv.destroy_job(job)
-    cc.destroy_managed_service(srv)
 
     # Remove job from DB
-    remove_srv_job_from_db(srv, job.id, cerise_collection)
+    if remove_job_from_db:
+        remove_srv_job_from_db(srv, job.id, cerise_db)
 
 
-def remove_srv_job_from_db(srv, job_id, cerise_collection):
+def remove_srv_job_from_db(srv, job_id, cerise_db):
     """
     Remove the service and job information from DB
     """
     query = {'job_id': job_id}
-    cerise_collection.delete_one(query)
+    cerise_db.delete_one(query)
     logger.info('Removed job: {} from database'.format(job_id))
+
+
+def try_to_close_service(srv_data, cerise_db):
+    """
+    Close service it There are no more jobs and
+    the service is still running.
+    """
+    try:
+        srv = cc.service_from_dict(srv_data)
+
+        # Search for other running jobs
+        query = {'username': srv_data['username'], 'job_state': 'Running'}
+        counts = cerise_db.find(query).count()
+
+        if counts == 0:
+            logger.info("Shutting down Cerise-client service")
+            cc.stop_managed_service(srv)
+            cc.destroy_managed_service(srv)
+
+    except cc.errors.ServiceNotFound:
+        logger.info("There is not Cerise Service running")
+        pass
 
 
 def get_output(job, config):
     """
     retrieve output information from the job.
     """
-    if job.state == 'Success':
-        task_id = config['task_id']
-        workdir = config['workdir']
-        path = join(workdir, 'output_{}.trr'.format(task_id))
-        job.outputs['trajectory'].save_as(path)
+    output_dict = {
+        'gromitout': 'gromit_{}.out', 'gromiterr': 'gromit_{}.err',
+        'gromacslog': 'gromacs_{}.log', 'trajectory': 'traj_{}.trr'}
 
-        return path
+    if job.state == 'Success':
+        return {
+            key: copy_output_from_remote(val, config, output_dict[key])
+            for key, val in job.outputs.items()}
 
     else:
         return None
+
+
+def copy_output_from_remote(val, config, fmt):
+    """
+    Copy output files to the localhost.
+    """
+    task_id = config['task_id']
+    workdir = config['workdir']
+
+    path = join(workdir, fmt.format(task_id))
+    val.save_as(path)
+
+    return path
 
 
 def compute_md5(file_name):

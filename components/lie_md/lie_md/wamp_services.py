@@ -8,7 +8,7 @@ WAMP service methods the module exposes.
 
 from autobahn import wamp
 from cerise_interface import (
-    call_cerise_gromacs, create_cerise_config, retrieve_energies)
+    call_cerise_gromacs, create_cerise_config)
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_md.settings import SETTINGS
 from md_config import set_gromacs_input
@@ -63,12 +63,13 @@ class MDWampApi(LieApplicationSession):
             path_cerise_config, session, cwl_workflow)
 
         # Run the MD and retrieve the energies
-        call_cerise_gromacs(gromacs_config, cerise_config, self.db['cerise'])
+        output = call_cerise_gromacs(
+            gromacs_config, cerise_config, self.db['cerise'])
         # retrieve_energies(workdir)
 
         session['status'] = 'completed'
 
-        return {'session': session, 'output': 'nothing'}
+        return {'session': session, 'output': output}
 
 
 def make(config):
