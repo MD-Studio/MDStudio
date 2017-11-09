@@ -20,14 +20,14 @@
                                     "uri": "mdstudio.auth.endpoint",
                                     "match": "prefix",
                                     "allow": {
-                                        "call": false,
+                                        "call": true,
                                         "register": true,
                                         "publish": false,
                                         "subscribe": false
                                     },
                                     "disclose": {
-                                        "caller": false,
-                                        "publisher": false
+                                        "caller": true,
+                                        "publisher": true
                                     },
                                     "cache": true
                                 },

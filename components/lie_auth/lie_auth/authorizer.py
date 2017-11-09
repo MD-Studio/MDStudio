@@ -40,8 +40,9 @@ class Authorizer:
             PrefixRule('mdstudio.auth.endpoint.oauth.registerscopes.{role}'),
             RegexRule('mdstudio\\.\\w+\\.endpoint\\.events\\.\\w+', ['subscribe']),
             RegexRule('mdstudio\\.db\\.endpoint\\.\\w+\\.{role}'),
-            # ExactRule('mdstudio.auth.endpoint.namespaces'),
             ExactRule('mdstudio.auth.endpoint.oauth.client.getusername'),
+            ExactRule('mdstudio.auth.endpoint.sign'),
+            ExactRule('mdstudio.auth.endpoint.verify'),
             ExactRule('mdstudio.schema.endpoint.register.{role}'),
             ExactRule('mdstudio.schema.endpoint.get'),
             ExactRule('mdstudio.logger.endpoint.log.{role}', ['publish'])
@@ -49,7 +50,7 @@ class Authorizer:
     
     def authorize_ring0(self, uri, action, role):
         if any(rule.match(uri, action, role=role) for rule in self.ring0_rules):
-            return {'allow': True}
+            return {'allow': True, 'disclose': True}
 
         return False
 

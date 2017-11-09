@@ -4,6 +4,7 @@ from autobahn import wamp
 from autobahn.wamp import RegisterOptions
 
 from mdstudio.api.schema import ISchema, validate_input, validate_output
+from mdstudio.application_session import BaseApplicationSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
@@ -51,8 +52,23 @@ def register(uri, input_schema, output_schema, match=None, options=None, scope=N
         @validate_input(input_schema)
         @validate_output(output_schema)
         @chainable
-        def wrapped_f(self, request, *args, **kwargs):
-            res = yield f(self, request, *args, **kwargs)
+        def wrapped_f(self, request, *args, signed_meta=None, **kwargs):
+            auth_meta = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.verify', signed_meta)
+
+            if 'error' in auth_meta:
+                res = {'error': auth_meta['error']}
+            elif 'expired' in auth_meta:
+                res = {'expired': auth_meta['expired']}
+            else:
+                auth_meta = auth_meta['authMeta']
+
+                if not self.authorize_request(uri, auth_meta):
+                    self.log.warn("Unauthorized call to {uri}", uri=uri)
+                    res = {'error': 'Unauthorized call to {}'.format(uri)}
+                else:
+                    # @todo: catch exceptions and add error
+                    # @todo: support warnings
+                    res = {'result': (yield f(self, request, *args, **kwargs))}
 
             return_value(res)
 

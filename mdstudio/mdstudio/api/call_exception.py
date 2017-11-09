@@ -1,0 +1,2 @@
+class CallException(Exception):
+    pass

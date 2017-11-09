@@ -3,9 +3,9 @@
 import inspect
 import itertools
 import json
-
 import os
 import re
+
 import twisted
 from autobahn import wamp
 from autobahn.twisted.wamp import ApplicationSession
@@ -16,9 +16,10 @@ from twisted.logger import Logger
 from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
-from mdstudio import is_python3
+from mdstudio.api.call_exception import CallException
 from mdstudio.api.schema import WampSchema, WampSchemaHandler, validate_json_schema
-from mdstudio.deferred.chainable import Chainable
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 from mdstudio.logging import WampLogObserver, PrintingObserver
 from mdstudio.util import resolve_config
 
@@ -642,6 +643,34 @@ class BaseApplicationSession(ApplicationSession):
 
             self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
                           package=self.component_info['package_name'])
-            
-    def call(self, procedure, *args, **kwargs):
-        return Chainable(super(BaseApplicationSession, self).call(procedure, *args, **kwargs))
+
+    @chainable
+    def call(self, procedure, *args, auth_meta=None, **kwargs):
+        if auth_meta is None:
+            auth_meta = {}
+
+        signed_meta = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.sign', auth_meta)
+
+        result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_meta=signed_meta, **kwargs)
+
+        if 'expired' in result:
+            signed_meta = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.sign', auth_meta)
+
+            result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_meta=signed_meta, **kwargs)
+
+        if 'expired' in result:
+            raise CallException(result['expired'])
+
+        if 'error' in result:
+            raise CallException(result['error'])
+
+        if 'warning' in result:
+            self.log.warn(result['warning'])
+
+        # @todo: refresh jwt if invalid
+        return_value(result['result'])
+
+    def authorize_request(self, uri, auth_meta):
+        self.log.warn("This should be implemented in the component")
+
+        return False
