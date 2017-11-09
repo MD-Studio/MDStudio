@@ -165,6 +165,11 @@ class BaseApplicationSession(ApplicationSession):
             'mdstudio_lib_path': os.path.dirname(__file__)
         }
 
+        self.component_config = {
+            'session': {},
+            'settings': {}
+        }
+
         # self.session_config = ConfigHandler()
         self.session_config = {}
         if namespace:
@@ -649,14 +654,14 @@ class BaseApplicationSession(ApplicationSession):
         if auth_meta is None:
             auth_meta = {}
 
-        signed_meta = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.sign', auth_meta)
+        signed_meta = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', auth_meta)
 
         result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_meta=signed_meta, **kwargs)
 
         if 'expired' in result:
-            signed_meta = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.sign', auth_meta)
+            signed_meta = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', auth_meta)
 
-            result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_meta=signed_meta, **kwargs)
+            result = yield super(BaseApplicationSession, self).call(u'{}'.format(procedure), *args, signed_meta=signed_meta, **kwargs)
 
         if 'expired' in result:
             raise CallException(result['expired'])

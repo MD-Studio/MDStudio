@@ -39,7 +39,7 @@ class Authorizer:
             PrefixRule('mdstudio.{role}.', ['*']),
             PrefixRule('mdstudio.auth.endpoint.oauth.registerscopes.{role}'),
             RegexRule('mdstudio\\.\\w+\\.endpoint\\.events\\.\\w+', ['subscribe']),
-            RegexRule('mdstudio\\.db\\.endpoint\\.\\w+\\.{role}'),
+            RegexRule('mdstudio\\.db\\.endpoint\\.\\w+'),
             ExactRule('mdstudio.auth.endpoint.oauth.client.getusername'),
             ExactRule('mdstudio.auth.endpoint.sign'),
             ExactRule('mdstudio.auth.endpoint.verify'),

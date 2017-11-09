@@ -5,6 +5,7 @@ from autobahn.twisted import ApplicationSession
 from twisted.internet.defer import Deferred
 
 from mdstudio.db.collection import Collection
+from mdstudio.db.connection import ConnectionType
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import DocumentType, DateFieldsType, ProjectionOperators, SortOperators, IDatabase, \
     AggregationOperator
@@ -16,12 +17,16 @@ class Model:
     # type: IDatabase
     wrapper = None
 
+    # type: ConnectionType
+    connection_type = ConnectionType.User
+
     date_time_fields = []
 
+    # @todo: global connection
     def __init__(self, wrapper=None, collection=None):
         # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
         if isinstance(wrapper, ApplicationSession):
-            self.wrapper = SessionDatabaseWrapper(wrapper)
+            self.wrapper = SessionDatabaseWrapper(wrapper, self.connection_type)
         else:
             self.wrapper = wrapper
 

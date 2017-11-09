@@ -8,17 +8,17 @@ class MongoClientWrapper:
         self._host = host
         self._port = port
         self._client = self.create_mongo_client(host, port)
-        self._namespaces = {}
+        self._databases = {}
 
-    def get_namespace(self, namespace):
-        if namespace not in self._namespaces.keys():
-            if namespace not in self._client.database_names():
-                logger.info('Creating database for {namespace}', namespace=namespace)
+    def get_database(self, database_name):
+        if database_name not in self._databases:
+            if database_name not in self._client.database_names():
+                logger.info('Creating database "{database}"', database=database_name)
 
-            database = MongoDatabaseWrapper(namespace, self._client[namespace])
-            self._namespaces[namespace] = database
+            database = MongoDatabaseWrapper(database_name, self._client[database_name])
+            self._databases[database_name] = database
         else:
-            database = self._namespaces[namespace]
+            database = self._databases[database_name]
 
         return database
 

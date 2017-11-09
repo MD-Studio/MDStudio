@@ -68,7 +68,7 @@ def register(uri, input_schema, output_schema, match=None, options=None, scope=N
                 else:
                     # @todo: catch exceptions and add error
                     # @todo: support warnings
-                    res = {'result': (yield f(self, request, *args, **kwargs))}
+                    res = {'result': (yield f(self, request, *args, auth_meta=auth_meta, **kwargs))}
 
             return_value(res)
 

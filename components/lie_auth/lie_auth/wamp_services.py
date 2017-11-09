@@ -184,7 +184,7 @@ class AuthWampApi(BaseApplicationSession):
 
         if role in ['db', 'schema', 'auth', 'logger']:
             auth_meta['group'] = 'mdstudio'
-            auth_meta['user'] = role
+            auth_meta['username'] = role
         else:
             raise NotImplementedError("Implement this")
 

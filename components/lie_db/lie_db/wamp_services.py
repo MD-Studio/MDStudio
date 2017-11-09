@@ -6,6 +6,7 @@ from autobahn.wamp import PublishOptions
 from mdstudio.api.register import register
 from mdstudio.api.schema import WampSchema
 from mdstudio.application_session import BaseApplicationSession
+from mdstudio.db.connection import ConnectionType
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from .mongo_client_wrapper import MongoClientWrapper
@@ -33,64 +34,64 @@ class DBWampApi(BaseApplicationSession):
         self.publish_options = PublishOptions(acknowledge=True)
         yield self.publish(u'mdstudio.db.endpoint.events.online', True, options=self.publish_options)
 
-    @register(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', match='prefix', scope='write')
-    def more(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    @register(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', scope='write')
+    def more(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
-        return self._client.get_namespace(namespace).more(request['cursorId'])
+        return database.more(request['cursorId'])
 
     @register(u'mdstudio.db.endpoint.rewind',
               WampSchema('db', 'cursor/rewind-request'),
-              WampSchema('db', 'cursor/rewind-response'), match='prefix', scope='write')
-    def rewind(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+              WampSchema('db', 'cursor/rewind-response'), scope='write')
+    def rewind(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
-        return self._client.get_namespace(namespace).rewind(request['cursorId'])
+        return database.rewind(request['cursorId'])
 
     @register(u'mdstudio.db.endpoint.insert_one',
               WampSchema('db', 'insert/insert-one-request'),
-              WampSchema('db', 'insert/insert-one-response'), match='prefix',
+              WampSchema('db', 'insert/insert-one-response'),
               scope='write')
-    def insert_one(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def insert_one(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).insert_one(request['collection'], request['insert'], **kwargs)
+        return database.insert_one(request['collection'], request['insert'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.insert_many',
               WampSchema('db', 'insert/insert-many-request'),
-              WampSchema('db', 'insert/insert-many-response'), match='prefix',
+              WampSchema('db', 'insert/insert-many-response'),
               scope='write')
-    def insert_many(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def insert_many(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).insert_many(request['collection'], request['insert'], **kwargs)
+        return database.insert_many(request['collection'], request['insert'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.replace_one',
               WampSchema('db', 'replace/replace-one-request'),
-              WampSchema('db', 'replace/replace-one-response'), match='prefix',
+              WampSchema('db', 'replace/replace-one-response'),
               scope='write')
-    def replace_one(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def replace_one(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
         kwargs = {}
         if 'upsert' in request :
             kwargs['upsert'] = request['upsert']
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).replace_one(request['collection'], request['filter'],
+        return database.replace_one(request['collection'], request['filter'],
                                                                  request['replacement'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.count',
               WampSchema('db', 'count/count-request'),
-              WampSchema('db', 'count/count-response'), match='prefix', scope='read')
-    def count(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+              WampSchema('db', 'count/count-response'), scope='read')
+    def count(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         if 'cursorId' in request:
             kwargs = {
@@ -110,14 +111,14 @@ class DBWampApi(BaseApplicationSession):
             if 'fields' in request and 'datetime' in request['fields']:
                 kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).count(**kwargs)
+        return database.count(**kwargs)
 
     @register(u'mdstudio.db.endpoint.update_one',
               WampSchema('db', 'update/update-one-request'),
-              WampSchema('db', 'update/update-one-response'), match='prefix',
+              WampSchema('db', 'update/update-one-response'),
               scope='write')
-    def update_one(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def update_one(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -125,15 +126,15 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).update_one(request['collection'], request['filter'],
+        return database.update_one(request['collection'], request['filter'],
                                                                 request['update'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.update_many',
               WampSchema('db', 'update/update-many-request'),
-              WampSchema('db', 'update/update-many-response'), match='prefix',
+              WampSchema('db', 'update/update-many-response'),
               scope='write')
-    def update_many(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def update_many(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -141,14 +142,14 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).update_many(request['collection'], request['filter'],
+        return database.update_many(request['collection'], request['filter'],
                                                                  request['update'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_one',
               WampSchema('db', 'find/find-one-request'),
-              WampSchema('db', 'find/find-one-response'), match='prefix', scope='read')
-    def find_one(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+              WampSchema('db', 'find/find-one-response'), scope='read')
+    def find_one(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'projection' in request:
@@ -160,13 +161,13 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).find_one(request['collection'], request['filter'], **kwargs)
+        return database.find_one(request['collection'], request['filter'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_many',
               WampSchema('db', 'find/find-many-request'),
-              WampSchema('db', 'find/find-many-response'), match='prefix', scope='read')
-    def find_many(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+              WampSchema('db', 'find/find-many-response'), scope='read')
+    def find_many(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'projection' in request:
@@ -180,14 +181,14 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).find_many(request['collection'], request['filter'], **kwargs)
+        return database.find_many(request['collection'], request['filter'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_one_and_update',
               WampSchema('db', 'find/find-one-and-update-request'),
-              WampSchema('db', 'find/find-one-and-update-response'), match='prefix',
+              WampSchema('db', 'find/find-one-and-update-response'),
               scope='read')
-    def find_one_and_update(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def find_one_and_update(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -201,15 +202,15 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).find_one_and_update(request['collection'], request['filter'],
+        return database.find_one_and_update(request['collection'], request['filter'],
                                                               request['update'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_one_and_replace',
               WampSchema('db', 'find/find-one-and-replace-request'),
-              WampSchema('db', 'find/find-one-and-replace-response'), match='prefix',
+              WampSchema('db', 'find/find-one-and-replace-response'),
               scope='read')
-    def find_one_and_replace(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def find_one_and_replace(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -223,16 +224,15 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).find_one_and_replace(request['collection'], request['filter'],
+        return database.find_one_and_replace(request['collection'], request['filter'],
                                                               request['replacement'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_one_and_delete',
               WampSchema('db', 'find/find-one-and-delete-request'),
               WampSchema('db', 'find/find-one-and-delete-response'),
-              match='prefix',
               scope='read')
-    def find_one_and_delete(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def find_one_and_delete(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'projection' in request:
@@ -242,15 +242,14 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).find_one_and_delete(request['collection'], request['filter'], **kwargs)
+        return database.find_one_and_delete(request['collection'], request['filter'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.distinct',
               WampSchema('db', 'distinct/distinct-request'),
               WampSchema('db', 'distinct/distinct-response'),
-              match='prefix',
               scope='read')
-    def distinct(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def distinct(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'filter' in request:
@@ -258,43 +257,57 @@ class DBWampApi(BaseApplicationSession):
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).distinct(request['collection'], request['field'], **kwargs)
+        return database.distinct(request['collection'], request['field'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.aggregate',
               WampSchema('db', 'aggregate/aggregate-request'),
               WampSchema('db', 'aggregate/aggregate-response'),
-              match='prefix',
               scope='read')
-    def aggregate(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
-        return self._client.get_namespace(namespace).aggregate(request['collection'], request['pipeline'])
+    def aggregate(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
+        return database.aggregate(request['collection'], request['pipeline'])
 
 
     @register(u'mdstudio.db.endpoint.delete_one',
               WampSchema('db', 'delete/delete-one'),
-              WampSchema('db', 'delete/delete-response'), match='prefix',
+              WampSchema('db', 'delete/delete-response'),
               scope='delete')
-    def delete_one(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def delete_one(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).delete_one(request['collection'], request['filter'], **kwargs)
+        return database.delete_one(request['collection'], request['filter'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.delete_many',
               WampSchema('db', 'delete/delete-many'),
-              WampSchema('db', 'delete/delete-response'), match='prefix',
+              WampSchema('db', 'delete/delete-response'),
               scope='delete')
-    def delete_many(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    def delete_many(self, request, details=None, auth_meta=None):
+        database = self._get_database(auth_meta)
 
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
-        return self._client.get_namespace(namespace).delete_many(request['collection'], request['filter'], **kwargs)
+        return database.delete_many(request['collection'], request['filter'], **kwargs)
 
-    def _extract_namespace(self, uri):
-        return re.match('mdstudio.db.endpoint.\\w+\\.(.*)', uri).group(1)
+    def _get_database(self, auth_meta):
+        connection_type = ConnectionType.from_string(auth_meta['connectionType'])
+
+        if connection_type == ConnectionType.User:
+            return self._client.get_database(auth_meta['username'])
+
+    def authorize_request(self, uri, auth_meta):
+        connection_type = ConnectionType.from_string(auth_meta['connectionType'])
+
+        print((auth_meta, uri))
+
+        # @todo: solve this using jsonschema
+        # @todo: authorize cursor
+        if connection_type == ConnectionType.User and 'username' in auth_meta:
+            return True
+
+        return False
