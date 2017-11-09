@@ -14,7 +14,8 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn import wamp
 
 from mdstudio.application_session import BaseApplicationSession
-from mdstudio.util import register, WampSchema, validate_input
+from mdstudio.api.register import register
+from mdstudio.api.schema import WampSchema, validate_input
 from mdstudio.db.model import Model
 
 from twisted.python import log, logfile

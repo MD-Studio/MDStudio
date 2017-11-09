@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 werkzeug = "*"
+pyjwt = "*"
 
 [dev-packages]
 mdstudio = {path = "../../mdstudio/", editable = true}

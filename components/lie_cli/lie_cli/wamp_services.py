@@ -7,7 +7,7 @@ from autobahn.wamp import SubscribeOptions, PublishOptions
 from autobahn import wamp
 
 from mdstudio.application_session import BaseApplicationSession
-from mdstudio.util import register, WampSchema
+from mdstudio.api.register import register, WampSchema
 
 from mdstudio.config.io import config_from_dotenv, config_to_dotenv
 

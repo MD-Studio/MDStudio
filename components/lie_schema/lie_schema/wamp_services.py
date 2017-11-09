@@ -30,7 +30,7 @@ class SchemaWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.schema.endpoint.register', 'register/register/v1', {}, match='prefix')
     def schema_register(self, request, details=None):
-        group, component = self._extract_namespace(details.procedure)
+        namespace = self._extract_namespace(details.procedure)
 
         res = False
 
@@ -63,8 +63,7 @@ class SchemaWampApi(BaseApplicationSession):
     @register(u'mdstudio.schema.endpoint.get', 'get/get/v1', {})
     def schema_get(self, request):
 
-        group = request['group']
-        component = request['component']
+        namespace = request['namespace']
         path = request['path']
 
         # Lock schema's resource
@@ -87,5 +86,5 @@ class SchemaWampApi(BaseApplicationSession):
         return res
 
     def _extract_namespace(self, uri):
-        match = re.match('mdstudio.schema.endpoint.\\w+\\.(.*)\\.(.*)', uri)
-        return match.group(1), match.group(2)
+        match = re.match('mdstudio.schema.endpoint.\\w+\\.(.*)', uri)
+        return match.group(1)#, match.group(2)

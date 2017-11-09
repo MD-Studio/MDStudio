@@ -23,13 +23,16 @@ from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock, Deferred
 from oauthlib import oauth2
 from oauthlib.common import Request as OAuthRequest, generate_client_id as generate_secret
+
+from mdstudio.api.schema import WampSchema
+
 try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
 
-from mdstudio.application_session import BaseApplicationSession, mdhelper
-from mdstudio.util import register, WampSchema
+from mdstudio.application_session import BaseApplicationSession
+from mdstudio.api.register import register
 from mdstudio.db.model import Model
 from .util import check_password, hash_password, ip_domain_based_access, generate_password
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
@@ -109,7 +112,8 @@ class AuthWampApi(BaseApplicationSession):
         # for id in itertools.chain(regs['exact'], regs['prefix'], regs['wildcard']):
         #     yield reg_info(id)
 
-        
+
+    # @todo: remove this
     @inlineCallbacks        
     def init_admin_user(self, event=None):
         # Acquire lock before initializing the database
@@ -166,6 +170,11 @@ class AuthWampApi(BaseApplicationSession):
         :return:         successful exit sequence
         :rtype:          bool
         """
+        pass
+
+    @wamp.register('mdstudio.auth.endpoint.sign-header', options=wamp.RegisterOptions(details_arg='details'))
+    def sign_header(self, header, details = None):
+        print(details)
 
     @wamp.register(u'mdstudio.auth.endpoint.sso')
     @inlineCallbacks
@@ -304,6 +313,7 @@ class AuthWampApi(BaseApplicationSession):
     @wamp.register(u'mdstudio.auth.endpoint.authorize.admin')
     def authorize_admin(self, session, uri, action, options):
         role = session.get('authrole')
+        authid = session.get('authid')
         
         authorization = False
 
@@ -450,72 +460,72 @@ class AuthWampApi(BaseApplicationSession):
 
         raise Exception
 
-    # TODO: improve and register this method, with json schemas
-    @inlineCallbacks
-    def create_user(self, userdata, required=['username', 'email']):
-        """
-        Create new user and add to database
-        """
+    # # TODO: improve and register this method, with json schemas
+    # @inlineCallbacks
+    # def create_user(self, userdata, required=['username', 'email']):
+    #     """
+    #     Create new user and add to database
+    #     """
+    #
+    #
+    #     # TODO: handle the following section with json schema
+    #     # ----------------------------------------------------------------------------
+    #     user_template = copy.copy(USER_TEMPLATE)
+    #
+    #     # Require at least a valid username and email
+    #     for param in required:
+    #         if not userdata.get(param, None):
+    #             self.log.error('Unable to create new user. Missing "{0}"'.format(param))
+    #             returnValue({})
+    #
+    #     # If no password, create random one
+    #     if not userdata.get('password', None):
+    #         random_pw = generate_password()
+    #         user_template['password'] = hash_password(random_pw)
+    #
+    #     user_template.update(userdata)
+    #     # ----------------------------------------------------------------------------
+    #
+    #     # Username and email should not be in use
+    #     user = yield self._get_user(userdata['username'])
+    #     if user:
+    #         self.log.error('Username {0} already in use'.format(userdata['username']))
+    #         returnValue({})
+    #
+    #     user = yield self._get_user({'email': userdata['email']})
+    #     if user:
+    #         self.log.error('Email {0} already in use'.format(userdata['email']))
+    #         returnValue({})
+    #
+    #     # Add the new user to the database
+    #     result = yield Model(self, 'users').insert_one(user_template)
+    #     if result:
+    #         self.log.debug('Added new user. user: {username}, id: {id}', id=result, **user_template)
+    #     else:
+    #         self.log.error('Unable to add new user to database')
+    #         returnValue({})
+    #
+    #     returnValue(user_template)
 
-
-        # TODO: handle the following section with json schema
-        # ----------------------------------------------------------------------------
-        user_template = copy.copy(USER_TEMPLATE)
-
-        # Require at least a valid username and email
-        for param in required:
-            if not userdata.get(param, None):
-                self.log.error('Unable to create new user. Missing "{0}"'.format(param))
-                returnValue({})
-
-        # If no password, create random one
-        if not userdata.get('password', None):
-            random_pw = generate_password()
-            user_template['password'] = hash_password(random_pw)
-
-        user_template.update(userdata)
-        # ----------------------------------------------------------------------------
-
-        # Username and email should not be in use
-        user = yield self._get_user(userdata['username'])
-        if user:
-            self.log.error('Username {0} already in use'.format(userdata['username']))
-            returnValue({})
-        
-        user = yield self._get_user({'email': userdata['email']})
-        if user:
-            self.log.error('Email {0} already in use'.format(userdata['email']))
-            returnValue({})
-
-        # Add the new user to the database
-        result = yield Model(self, 'users').insert_one(user_template)
-        if result:
-            self.log.debug('Added new user. user: {username}, id: {id}', id=result, **user_template)
-        else:
-            self.log.error('Unable to add new user to database')
-            returnValue({})
-
-        returnValue(user_template)
-
-    # TODO: expose and secure this
-    def remove_user(self, userdata):
-        """
-        Remove a user from the database
-
-        :param userdata: PyMongo style database query
-        :type userdata:  :py:class:`dict`
-        """
-
-        user = self.get_user(userdata)
-        if not user:
-            logging.error('No such user to remove: {0}'.format(
-                ' '.join(['{0},{1}'.format(*item) for item in userdata.items()])))
-            return False
-        else:
-            logging.info('Removing user "{username}", with uid {uid} from database'.format(**user))
-            db['users'].delete_one(user)
-
-        return True
+    # # TODO: expose and secure this
+    # def remove_user(self, userdata):
+    #     """
+    #     Remove a user from the database
+    #
+    #     :param userdata: PyMongo style database query
+    #     :type userdata:  :py:class:`dict`
+    #     """
+    #
+    #     user = self.get_user(userdata)
+    #     if not user:
+    #         self.log.error('No such user to remove: {0}'.format(
+    #             ' '.join(['{0},{1}'.format(*item) for item in userdata.items()])))
+    #         return False
+    #     else:
+    #         self.log.info('Removing user "{username}", with uid {uid} from database'.format(**user))
+    #         db['users'].delete_one(user)
+    #
+    #     return True
 
     def _validate_user_login(self, user, username, password):
         """
@@ -595,43 +605,43 @@ class AuthWampApi(BaseApplicationSession):
         
         return user
 
-    @inlineCallbacks
-    def _retrieve_password(self, email):
-        """
-        Retrieve password by email
-        
-        The email message template for user account password retrieval
-        is stored in the self._password_retrieval_message_template variable.
-        
-        * Locates the user in the database by email which should be a 
-          unique and persistent identifier.
-        * Generate a new random password
-        * Send the new password to the users email once. If the email
-          could not be send, abort the procedure
-        * Save the new password in the database.
-        
-        :param email: email address to search user for
-        :type email:  string
-        """
-
-        user = yield self._get_user({'email': email})
-        if not user:
-          self.log.info('No user with email {0}'.format(email))
-          return
-
-        new_password = generate_password()
-        user['password'] = hash_password(new_password)
-        self.log.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
-
-        with Email() as email:
-          email.send(
-            email,
-            self._password_retrieval_message_template.format(password=new_password, user=user['username']),
-            'Password retrieval request for LIEStudio'
-          )
-          res = yield Model(self, 'users').update_one({'_id': user['_id']}, {'password': new_password})
-
-        returnValue(user)
+    # @inlineCallbacks
+    # def _retrieve_password(self, email):
+    #     """
+    #     Retrieve password by email
+    #
+    #     The email message template for user account password retrieval
+    #     is stored in the self._password_retrieval_message_template variable.
+    #
+    #     * Locates the user in the database by email which should be a
+    #       unique and persistent identifier.
+    #     * Generate a new random password
+    #     * Send the new password to the users email once. If the email
+    #       could not be send, abort the procedure
+    #     * Save the new password in the database.
+    #
+    #     :param email: email address to search user for
+    #     :type email:  string
+    #     """
+    #
+    #     user = yield self._get_user({'email': email})
+    #     if not user:
+    #       self.log.info('No user with email {0}'.format(email))
+    #       return
+    #
+    #     new_password = generate_password()
+    #     user['password'] = hash_password(new_password)
+    #     self.log.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
+    #
+    #     with Email() as email:
+    #       email.send(
+    #         email,
+    #         self._password_retrieval_message_template.format(password=new_password, user=user['username']),
+    #         'Password retrieval request for LIEStudio'
+    #       )
+    #       res = yield Model(self, 'users').update_one({'_id': user['_id']}, {'password': new_password})
+    #
+    #     returnValue(user)
 
     def _store_action(self, uri, action, options):
         registration = Model(self, 'registration_info')

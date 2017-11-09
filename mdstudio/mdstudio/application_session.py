@@ -18,6 +18,7 @@ from twisted.python.logfile import DailyLogFile
 
 from mdstudio import is_python3
 from mdstudio.api.schema import WampSchema, WampSchemaHandler, validate_json_schema
+from mdstudio.deferred.chainable import Chainable
 from mdstudio.logging import WampLogObserver, PrintingObserver
 from mdstudio.util import resolve_config
 
@@ -301,7 +302,7 @@ class BaseApplicationSession(ApplicationSession):
         extra = {}
 
         # Define authentication method
-        authmethod = self.session_config['authmethod']
+        authmethod = self.session_config.get('authmethod')
         if authmethod and u'cryptosign' in authmethod:
 
             # create a proxy signing key with the private key being held in SSH agent
@@ -641,3 +642,6 @@ class BaseApplicationSession(ApplicationSession):
 
             self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
                           package=self.component_info['package_name'])
+            
+    def call(self, procedure, *args, **kwargs):
+        return Chainable(super(BaseApplicationSession, self).call(procedure, *args, **kwargs))

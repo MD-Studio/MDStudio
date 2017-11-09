@@ -16,34 +16,36 @@ class ISchema:
 
 
 class WampSchema(ISchema):
-    def __init__(self, uri, version='^1.0.0'):
-        # type: (str, str) -> None
+    def __init__(self, namespace, path, versions=None):
+        # type: (str, str, Optional[Union[List[int],Set[int]]]) -> None
+        if versions is None:
+            versions = [1]
 
-        self.uri = uri
-        self.version = version
+        self.namespace = namespace
+        self.path = path
+        self.versions = [int(v) for v in versions]
 
         self.url_format = 'wamp://mdstudio.schema.get/{}/{}'
-        #def __init__(self, url, transport='http'):
-        #self.schema_uri = '{}://{}'.format(transport, url)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.uri == other.uri and \
+            return self.namespace == other.namespace and \
+                   self.path == other.path and \
                    self.versions == other.versions and \
                    self.url_format == other.url_format
         return False
 
     def __str__(self):
         return self.url_format.format('{}', '{}.{}') \
-            .format(self.namespace, self.uri, ['v{}'.format(v) for v in self.versions])
+            .format(self.namespace, self.path, ['v{}'.format(v) for v in self.versions])
 
-    def uris(self):
+    def paths(self):
         for version in self.versions:
-            yield '{}.v{}'.format(self.uri, int(version))
+            yield '{}.v{}'.format(self.path, int(version))
 
     def uris(self):
-        for uri in self.uris():
-            yield self.url_format.format(self.namespace, uri)
+        for path in self.paths():
+            yield self.url_format.format(self.namespace, path)
 
     def schemas(self):
         for uri in self.uris():
@@ -59,6 +61,7 @@ class InlineSchema(ISchema):
     def schemas(self):
         yield self.schema
 
+# @todo: enable validation
 def validate_output(output_schema):
     if not isinstance(output_schema, ISchema):
         # If the schema is not a subclass of ISchema, try to create an inline schema
@@ -69,7 +72,7 @@ def validate_output(output_schema):
         def wrapped_f(self, request, **kwargs):
             res = yield f(self, request, **kwargs)
 
-            validate_json_schema(self, output_schema, res)
+            # validate_json_schema(self, output_schema, res)
 
             return_value(res)
 
@@ -86,7 +89,7 @@ def validate_input(input_schema, strict=True):
     def wrap_f(f):
         @chainable
         def wrapped_f(self, request, **kwargs):
-            valid = validate_json_schema(self, input_schema, request)
+            valid = True # validate_json_schema(self, input_schema, request)
 
             if strict and not valid:
                 return_value({})
@@ -141,6 +144,7 @@ class WampSchemaHandler:
 
 
 def validate_json_schema(session, schema_def, request):
+    return True
     if not isinstance(schema_def, ISchema):
         schema_def = InlineSchema(schema_def)
 
