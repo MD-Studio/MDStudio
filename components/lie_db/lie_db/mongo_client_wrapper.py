@@ -1,7 +1,8 @@
 from pymongo import MongoClient
 
 import mdstudio.unittest.db as db
-from .db_methods import logger, MongoDatabaseWrapper
+from lie_db.mongo_database_wrapper import logger, MongoDatabaseWrapper
+
 
 class MongoClientWrapper:
     def __init__(self, host, port):
