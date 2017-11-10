@@ -136,17 +136,10 @@ class BaseApplicationSession(ApplicationSession):
         self.package_config_template = WampSchema('mdstudio', 'settings/settings')
         self.session_config_template = WampSchema('mdstudio', 'session_config/session_config')
 
-        self.json_schemas = []
         self.function_scopes = []
 
         # Scan for input/output schemas on registrations
         for key, f in self.__class__.__dict__.items():
-            try:
-                self.json_schemas.append(f.input_schema)
-                self.json_schemas.append(f.output_schema)
-            except AttributeError:
-                pass
-
             try:
                 self.function_scopes.append({
                     'scope': f.scope,
@@ -468,10 +461,10 @@ class BaseApplicationSession(ApplicationSession):
             self.logger_subscription = yield self.subscribe(logger_event, u'mdstudio.logger.endpoint.events.online')
 
         if self.autoschema:
-            self._register_schemas(self.json_schemas)
+            self._upload_schemas()
         else:
             def schema_event(event):
-                self._register_schemas(self.json_schemas)
+                self._upload_schemas()
                 self.schema_subscription.unsubscribe()
                 self.schema_subscription = None
 
@@ -595,49 +588,34 @@ class BaseApplicationSession(ApplicationSession):
 
         returnValue({})
 
-    @inlineCallbacks
-    def _register_schemas(self, schemas):
-        schema_list = []
+    @chainable
+    def _upload_schemas(self):
+        schemas = {
+            'endpoint': self._collect_schemas('schema', 'endpoint'),
+            'resource': self._collect_schemas('schema', 'resource')
+        }
 
-        self._filter_schemas(schemas, schema_list)
-
-        if schema_list:
-            yield self.call(u'mdstudio.schema.endpoint.register.{}'.format(self.component_info.get('namespace')),
-                            {'schemas': schema_list})
+        yield self.call(u'mdstudio.schema.endpoint.upload', {
+            'component': self.component_info['namespace'],
+            'schemas': schemas
+        }, auth_meta={'vendor': 'mdstudio'})
 
         self.log.info('Registered schemas for {package}', package=self.component_info['package_name'])
 
-    def _filter_schemas(self, schemas, schema_list):
-        subschemas = []
+    def _collect_schemas(self, *sub_paths):
+        schemas = {}
+        root_dir = os.path.join(self.component_info['module_path'], *sub_paths)
 
-        for schema in schemas:
-            if isinstance(schema, WampSchema) and schema.namespace == self.component_info.get('namespace'):
-                for schema_path in schema.paths():
-                    if not any(s['path'] == schema_path for s in schema_list):
-                        schema_def = self.get_schema(schema_path)
-                        if schema_def:
-                            schema_list.append({'path': schema_path, 'schema': schema_def})
-                            self._collect_subschemas(schema_def, subschemas)
-                        else:
-                            self.log.error(
-                                'ERROR: could not register json schema {path} for {namespace}, because the file does not exist',
-                                namespace=schema.namespace, path=schema_path)
-        if subschemas:
-            self._filter_schemas(itertools.chain(s['schema'] for s in subschemas), schema_list)
+        if os.path.isdir(root_dir):
+            for root, dirs, files in os.walk(root_dir):
+                if files:
+                    for file in files:
+                        path = os.path.join(root, file)
+                        rel_path = os.path.relpath(path, root_dir).replace('\\', '/')
+                        with open(path, 'r') as f:
+                            schemas[rel_path] = json.load(f)
 
-    def _collect_subschemas(self, schema_def, subschemas):
-        if isinstance(schema_def, dict):
-            for k, v in schema_def.items():
-                if k == u"$ref":
-                    if v.startswith('wamp://') and not any(s['uri'] == v for s in subschemas):
-                        match = re.match('wamp://mdstudio\.schema\.get/([a-z_]+)/(.+)\\.v([0-9]+)(.json)?', v)
-                        subschemas.append(
-                            {'uri': v, 'schema': WampSchema(match.group(1), match.group(2), match.group(3))})
-                else:
-                    self._collect_subschemas(v, subschemas)
-        elif isinstance(schema_def, list):
-            for v in schema_def:
-                self._collect_subschemas(v, subschemas)
+        return schemas
 
     @inlineCallbacks
     def _register_scopes(self):

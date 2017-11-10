@@ -183,7 +183,7 @@ class AuthWampApi(BaseApplicationSession):
             raise TypeError()
 
         if role in ['db', 'schema', 'auth', 'logger']:
-            auth_meta['group'] = 'mdstudio'
+            auth_meta['groups'] = ['mdstudio']
             auth_meta['username'] = role
         else:
             raise NotImplementedError("Implement this")

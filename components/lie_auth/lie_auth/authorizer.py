@@ -43,7 +43,7 @@ class Authorizer:
             ExactRule('mdstudio.auth.endpoint.oauth.client.getusername'),
             ExactRule('mdstudio.auth.endpoint.sign'),
             ExactRule('mdstudio.auth.endpoint.verify'),
-            ExactRule('mdstudio.schema.endpoint.register.{role}'),
+            ExactRule('mdstudio.schema.endpoint.upload'),
             ExactRule('mdstudio.schema.endpoint.get'),
             ExactRule('mdstudio.logger.endpoint.log.{role}', ['publish'])
         ]

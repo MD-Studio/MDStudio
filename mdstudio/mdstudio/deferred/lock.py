@@ -1,3 +1,1 @@
-from twisted.internet.defer import DeferredLock
-
-Lock = DeferredLock
+from twisted.internet.defer import DeferredLock as Lock

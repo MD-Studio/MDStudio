@@ -8,6 +8,7 @@ from mdstudio.api.schema import WampSchema
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.db.connection import ConnectionType
 from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.lock import Lock
 from mdstudio.deferred.return_value import return_value
 from .mongo_client_wrapper import MongoClientWrapper
 
@@ -28,6 +29,8 @@ class DBWampApi(BaseApplicationSession):
         self._client = MongoClientWrapper(db_host, db_port)
         self.autolog = False
         self.autoschema = False
+
+        self.database_lock = Lock()
 
     @chainable
     def onRun(self, details):
@@ -294,16 +297,19 @@ class DBWampApi(BaseApplicationSession):
 
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 
+    @chainable
     def _get_database(self, auth_meta):
         connection_type = ConnectionType.from_string(auth_meta['connectionType'])
+
+        yield self.database_lock.acquire()
 
         if connection_type == ConnectionType.User:
             return self._client.get_database(auth_meta['username'])
 
+        yield self.database_lock.release()
+
     def authorize_request(self, uri, auth_meta):
         connection_type = ConnectionType.from_string(auth_meta['connectionType'])
-
-        print((auth_meta, uri))
 
         # @todo: solve this using jsonschema
         # @todo: authorize cursor
