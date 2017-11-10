@@ -1,6 +1,7 @@
 import re
 from autobahn.wamp import PublishOptions
-
+from asq.initiators import query
+from mdstudio.deferred.return_value import return_value
 
 from mdstudio.api.register import register
 from mdstudio.api.schema import WampSchema
@@ -45,16 +46,17 @@ class SchemaWampApi(BaseApplicationSession):
 
         if component not in self._schemas[vendor]:
             self._schemas[vendor][component] = {
-                'resource': {},
-                'endpoint': {}
+                'resource': [],
+                'endpoint': []
             }
 
         schema_storage = self._schemas[vendor][component]
 
         for schema_type, schemas in request['schemas'].items():
-            for schema_path, schema in schemas.items():
-                if schema_path not in schema_storage:
-                    schema_storage[schema_type][schema_path] = schema
+            for schema in schemas:
+                schema_path = '{}.{}'.format(schema['name'], schema['version']) if 'version' in schema else schema['name']
+                if not query(schema_storage[schema_type]).any(lambda x: x['version'] == schema['version'] and x['name'] == schema['name']):
+                    schema_storage[schema_type].append(schema)
 
                     self.log.info('Stored {path} for component {component} of {vendor}', path=schema_path, component=component, vendor=vendor)
 
@@ -68,31 +70,33 @@ class SchemaWampApi(BaseApplicationSession):
         # Done with schema's resource, release
         yield self.lock.release()
 
-        return res
+        return_value(res)
 
     # @todo: validate using json schema draft
     @register(u'mdstudio.schema.endpoint.get', 'get/v1', {})
     @chainable
     def schema_get(self, request, auth_meta=None):
-
         vendor = auth_meta['vendor']
         component = request['component']
-
-        path = request['path']
+        schema_type = request['type']
+        schema_name = request['name']
+        version = request['version'] if 'version' in request else 'v1'
 
         # Lock schema's resource
         yield self.lock.acquire()
 
-        if vendor not in self._schemas or component not in self._schemas[vendor] or path not in self._schemas[vendor][component]:
+        if vendor in self._schemas and component in self._schemas[vendor]:
             self.log.error('No schema found for component {} in vendor "{}" for path "{}"'.format(component, vendor, path))
-            res = {}
+            schema_storage = self._schemas[vendor][component][schema_type]
+            res = query(schema_storage).where(lambda x: x['name'] == schema_name and x['version'] == version).first()
         else:
-            res = self._schemas[vendor][component][path]
+            # @todo: add warning
+            res = {}
             
         # Done with schema's resource, release
         yield self.lock.release()
 
-        return res
+        return_value(res)
 
     def authorize_request(self, uri, auth_meta):
         # @todo: check if user is part of group (in usermode)
