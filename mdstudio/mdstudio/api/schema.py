@@ -1,78 +1,176 @@
 import re
+import os
 
 import jsonschema
+import json
 
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
-from mdstudio.logging import block_on
 
 
-class ISchema:
-    def __str__(self):
-        raise NotImplementedError('Subclass should implement this')
+class Schema:
+    def __init__(self, uri, versions=None):
+        # type: (str, Optional[List[Union[int, str]]]) -> None
+        schema_uri_match = re.match('(\\w+)://(.+)(\\.json)?', uri)
+        transport = schema_uri_match.group(1)
+        schema_path = schema_uri_match.group(2)
 
-    def schemas(self):
-        raise NotImplementedError('Subclass should implement this')
+        if not versions:
+            versions = []
+
+        self.uri = uri
+        self.transport = transport
+        self.versions = []
+        self.cached = {}
+
+        if transport.startswith('http'):
+            self.cached = {'v1': {'$ref': uri}}
+
+        for version in versions:
+            if isinstance(version, int):
+                self.versions.append('v{}'.format(version))
+            elif isinstance(version, str):
+                self.versions.append(version)
+            else:
+                raise TypeError
+
+        versions_match = re.match('(.*)/((v[0-9]+,?)+)', schema_path)
+        if versions_match:
+            self.schema_path = versions_match.group(1)
+            self.versions.extend(versions_match.group(2).split(','))
+        else:
+            self.schema_path = schema_path
+
+        if len(self.versions) == 0 and not (transport.startswith('http') or transport == 'mdstudio'):
+            self.versions.append('v1')
+
+    @chainable
+    def flatten(self, session):
+        # type: (BaseApplicationSession) -> None
+        if self.cached:
+            return_value(True)
+
+        if self.transport == 'mdstudio':
+            self._retrieve_local(os.path.join(session.component_info['mdstudio_lib_path'], 'schema'))
+        elif self.transport == 'endpoint':
+            self._retrieve_local(os.path.join(session.component_info['module_path'], 'schema', 'endpoints'))
+        elif self.transport == 'resource':
+            self._retrieve_local(os.path.join(session.component_info['module_path'], 'schema', 'resources'))
+        elif self.transport == 'local':
+            self._retrieve_local(os.path.join(session.component_info['module_path'], 'schema', 'local'))
+        elif self.transport == 'wamp':
+            yield self._retrieve_wamp(session)
+        elif self.transport.startswith('http'):
+            yield self._retrieve_http()
+        else:
+            return_value(False)
+
+        success = True
+
+        for version, schema in self.cached.items():
+            flattened = yield self._recurse_subschemas(schema, session)
+            self.cached[version] = flattened['schema']
+
+            success = success and flattened['success']
+            if not success:
+                break;
+
+        return_value(success)
+
+    @chainable
+    def _recurse_subschemas(self, schema, session):
+        success = True
+
+        if isinstance(schema, dict):
+            ref = schema.pop('$ref', None)
+
+            if ref:
+                subschema = Schema(ref)
+
+                if (yield subschema.flatten(session)):
+                    schema.update(subschema.to_schema())
+                else:
+                    success = False
+
+            if success:
+                for k, v in schema.items():
+                    recursed = yield self._recurse_subschemas(v, session)
+
+                    if not recursed['success']:
+                        success = False
+                        break
+
+                    schema[k] = recursed['schema']
+        elif isinstance(schema, list):
+            for v in schema:
+                success = success and (yield self._recurse_subschemas(v, session))['success']
+
+        return_value({
+            'schema': schema,
+            'success': success
+        })
 
 
-class WampSchema(ISchema):
-    def __init__(self, namespace, path, versions=None):
-        # type: (str, str, Optional[Union[List[int],Set[int]]]) -> None
-        if versions is None:
-            versions = [1]
 
-        self.namespace = namespace
-        self.path = path
-        self.versions = [int(v) for v in versions]
+    def _retrieve_local(self, base_path):
+        if self.versions:
+            for version in self.versions:
+                path = os.path.join(base_path, '{}.{}.json'.format(self.schema_path, version))
+                with open(path, 'r') as f:
+                    self.cached[version] = json.load(f)
+        else:
+            path = os.path.join(base_path, '{}.json'.format(self.schema_path))
+            with open(path, 'r') as f:
+                self.cached['v1'] = json.load(f)
 
-        self.url_format = 'wamp://mdstudio.schema.get/{}/{}'
+    @chainable
+    def _retrieve_wamp(self, session):
+        schema_path_match = re.match('(.*?)\\.(.*?)\\.(.*?)\\.(.*?)', self.schema_path)
+        vendor = schema_path_match.group(1)
+        component = schema_path_match.group(2)
+        schema_type = schema_path_match.group(3)
+        schema_path = schema_path_match.group(4)
 
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.namespace == other.namespace and \
-                   self.path == other.path and \
-                   self.versions == other.versions and \
-                   self.url_format == other.url_format
-        return False
-
-    def __str__(self):
-        return self.url_format.format('{}', '{}.{}') \
-            .format(self.namespace, self.path, ['v{}'.format(v) for v in self.versions])
-
-    def paths(self):
         for version in self.versions:
-            yield '{}.v{}'.format(self.path, int(version))
+            self.cached[version] = yield session.call('mdstudio.schema.get', {
+                'name': schema_path,
+                'version': version,
+                'component': component,
+                'type': schema_type
+            }, {
+                'vendor': vendor
+            })
 
-    def uris(self):
-        for path in self.paths():
-            yield self.url_format.format(self.namespace, path)
+    def _retrieve_http(self):
+        # @todo: possibly cache this
+        self.cached['v1'] = {'$ref': self.uri}
 
-    def schemas(self):
-        for uri in self.uris():
-            yield {'$ref': uri}
+    def to_schema(self):
+        if not self.cached:
+            raise NotImplementedError("This schema has not been or could not be retrieved.")
 
-class InlineSchema(ISchema):
-    def __init__(self, schema):
-        self.schema = schema
-
-    def __str__(self):
-        return str(self.schema.items())
-
-    def schemas(self):
-        yield self.schema
+        if len(self.cached.items()) > 1:
+            return {
+                'oneOf': self.cached.values()
+            }
+        else:
+            for k, v in self.cached.items():
+                return v
 
 # @todo: enable validation
 def validate_output(output_schema):
-    if not isinstance(output_schema, ISchema):
-        # If the schema is not a subclass of ISchema, try to create an inline schema
-        output_schema = InlineSchema(output_schema)
-
     def wrap_f(f):
         @chainable
         def wrapped_f(self, request, **kwargs):
+            if isinstance(output_schema, Schema):
+                yield output_schema.flatten()
+                schema = output_schema.to_schema()
+            else:
+                schema = output_schema
+
             res = yield f(self, request, **kwargs)
 
-            # validate_json_schema(self, output_schema, res)
+            validate_json_schema(self, schema, res)
 
             return_value(res)
 
@@ -82,17 +180,19 @@ def validate_output(output_schema):
 
 
 def validate_input(input_schema, strict=True):
-    if not isinstance(input_schema, ISchema):
-        # If the schema is not a subclass of ISchema, try to create an inline schema
-        input_schema = InlineSchema(input_schema)
-
     def wrap_f(f):
         @chainable
         def wrapped_f(self, request, **kwargs):
-            valid = True # validate_json_schema(self, input_schema, request)
+            if isinstance(input_schema, Schema):
+                yield input_schema.flatten()
+                schema = input_schema.to_schema()
+            else:
+                schema = input_schema
+
+            valid = validate_json_schema(self, schema, request)
 
             if strict and not valid:
-                return_value({})
+                return_value({'error': 'Input not matching schema'})
             else:
                 res = yield f(self, request, **kwargs)
 
@@ -103,87 +203,11 @@ def validate_input(input_schema, strict=True):
     return wrap_f
 
 
-class WampSchemaHandler:
-    def __init__(self, session):
-        self.mdstudio_lib_path = session.component_info.get('mdstudio_lib_path')
-        self.package_name = session.component_info.get('package_name')
-        self.session = session
-        self.cache = {}
-
-    def handler(self, uri):
-        if uri not in self.cache.keys():
-            res = block_on(self.resolve(uri))
-            self.cache[uri] = res
-        else:
-            res = self.cache[uri]
-
-        return res
-
-    @chainable
-    def resolve(self, uri):
-        schema_path_match = re.match('wamp://mdstudio\.schema\.get/([a-z_]+)/(.+)', uri)
-        if not schema_path_match:
-            self.session.log.error("Not a proper wamp uri")
-
-        schema_namespace = schema_path_match.group(1)
-        schema_path = schema_path_match.group(2)
-
-        if 'lie_{}'.format(schema_namespace) == self.package_name:
-            res = self.session.get_schema(schema_path)
-        elif schema_namespace == 'mdstudio':
-            res = self.session.get_schema(schema_path, self.mdstudio_lib_path)
-        else:
-            res = yield self.session.call(u'mdstudio.schema.endpoint.get',
-                                          {'namespace': schema_namespace, 'path': schema_path})
-
-        if res is None:
-            self.session.log.warn('WARNING: could not retrieve a valid schema')
-            res = {}
-
-        return_value(res)
-
-
 def validate_json_schema(session, schema_def, request):
+    # try:
+    jsonschema.validate(request, schema_def)
+    # except Exception as e:
+    #     session.log.error('Error validating json schema: {error}', error=error)
+    #     return False
+
     return True
-    if not isinstance(schema_def, ISchema):
-        schema_def = InlineSchema(schema_def)
-
-    valid = False
-
-    for schema in schema_def.schemas():
-        resolver = jsonschema.RefResolver.from_schema(schema, handlers={'wamp': session.wamp_schema_handler.handler})
-
-        DefaultValidatingDraft4Validator = extend_with_default(jsonschema.Draft4Validator, session)
-        validator = DefaultValidatingDraft4Validator(schema, resolver=resolver)
-
-        errors = sorted(validator.iter_errors(request), key=lambda x: x.path)
-
-        if len(errors) == 0:
-            valid = True
-            break
-        else:
-            for error in errors:
-                session.log.error('Error validating json schema: {error}', error=error)
-
-    return valid
-
-
-def extend_with_default(validator_class, session):
-    validate_properties = validator_class.VALIDATORS["properties"]
-
-    def set_defaults(validator, properties, instance, schema):
-        for prperty, subschema in properties.items():
-            if "default" in subschema and prperty not in instance.keys():
-                session.log.warn(
-                    'WARNING: during json schema validation, {} was not present in the instance, setting to default'.format(
-                        prperty))
-                instance.setdefault(prperty, subschema["default"])
-
-        for error in validate_properties(
-                validator, properties, instance, schema,
-        ):
-            yield error
-
-    return jsonschema.validators.extend(
-        validator_class, {"properties": set_defaults},
-    )

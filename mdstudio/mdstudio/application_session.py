@@ -17,7 +17,7 @@ from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from mdstudio.api.call_exception import CallException
-from mdstudio.api.schema import WampSchema, WampSchemaHandler, validate_json_schema
+from mdstudio.api.schema import Schema, validate_json_schema
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.logging import WampLogObserver, PrintingObserver
@@ -133,9 +133,6 @@ class BaseApplicationSession(ApplicationSession):
             'loggernamespace': 'MD_LOGGER_NAMESPACE'
         }
 
-        self.package_config_template = WampSchema('mdstudio', 'settings/settings')
-        self.session_config_template = WampSchema('mdstudio', 'session_config/session_config')
-
         self.function_scopes = []
 
         # Scan for input/output schemas on registrations
@@ -157,6 +154,13 @@ class BaseApplicationSession(ApplicationSession):
             'module_path': os.path.dirname(inspect.getfile(self.__class__)),
             'mdstudio_lib_path': os.path.dirname(__file__)
         }
+
+        self.package_config_template = Schema('mdstudio://settings/settings')
+        self.package_config_template.flatten(self)
+        self.package_config_template = self.package_config_template.to_schema()
+        self.session_config_template = Schema('mdstudio://session_config/session_config')
+        self.session_config_template.flatten(self)
+        self.session_config_template = self.session_config_template.to_schema()
 
         self.component_config = {
             'session': {},
@@ -183,8 +187,6 @@ class BaseApplicationSession(ApplicationSession):
 
         # replace default logger to support proper namespace
         self.log = Logger(namespace=self.component_info.get('namespace'))
-
-        self.wamp_schema_handler = WampSchemaHandler(self)
 
         # Init toplevel ApplicationSession
         super(BaseApplicationSession, self).__init__(config)

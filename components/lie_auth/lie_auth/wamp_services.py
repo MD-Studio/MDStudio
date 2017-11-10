@@ -24,8 +24,9 @@ from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock, D
 from oauthlib import oauth2
 from oauthlib.common import Request as OAuthRequest, generate_client_id as generate_secret
 
-from mdstudio.api.schema import WampSchema
 from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError, InvalidTokenError
+
+from mdstudio.api.schema import Schema
 
 try:
     import urlparse
@@ -48,8 +49,8 @@ class AuthWampApi(BaseApplicationSession):
     log = Logger()
 
     def preInit(self, **kwargs):
-        self.session_config_template = WampSchema('auth', 'session_config/session_config')
-        self.package_config_template = WampSchema('auth', 'settings/settings')
+        # self.session_config_template = WampSchema('auth', 'session_config/session_config')
+        # self.package_config_template = WampSchema('auth', 'settings/settings')
         
         self.session_config_environment_variables.update({
             'admin_username': 'MD_AUTH_USERNAME',
@@ -425,7 +426,7 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(authorization)
 
-    @register(u'mdstudio.auth.endpoint.oauth.client.create', WampSchema('auth', 'oauth/client/client-request'), WampSchema('auth', 'oauth/client/client-response'))
+    @register(u'mdstudio.auth.endpoint.oauth.client.create', 'oauth/client/client-request', 'oauth/client/client-response')
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)

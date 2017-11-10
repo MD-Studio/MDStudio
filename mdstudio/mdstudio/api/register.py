@@ -1,14 +1,16 @@
+import re
 from typing import Union, Optional, Callable
 
 from autobahn import wamp
 from autobahn.wamp import RegisterOptions
 
-from mdstudio.api.schema import ISchema, validate_input, validate_output
+from mdstudio.api.schema import Schema, validate_input, validate_output
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
-SchemaType = Union[str, dict, ISchema]
+SchemaType = Union[str, dict, Schema]
+
 
 def register(uri, input_schema, output_schema, meta_schema=None, match=None, options=None, scope=None):
     # type: (str, SchemaType, SchemaType, bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
@@ -46,6 +48,18 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
 
     if match:
         options.match = match
+
+    if isinstance(input_schema, str):
+        if not re.match('\\w+://.*', input_schema):
+            input_schema = 'endpoint://{}'.format(input_schema)
+
+        input_schema = Schema(input_schema)
+
+    if isinstance(output_schema, str):
+        if not re.match('\\w+://.*', output_schema):
+            output_schema = 'endpoint://{}'.format(input_schema)
+
+        output_schema = Schema(output_schema)
 
     def wrap_f(f):
         @wamp.register(uri, options)
