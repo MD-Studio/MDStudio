@@ -603,7 +603,7 @@ class BaseApplicationSession(ApplicationSession):
         self.log.info('Registered schemas for {package}', package=self.component_info['package_name'])
 
     def _collect_schemas(self, *sub_paths):
-        schemas = {}
+        schemas = []
         root_dir = os.path.join(self.component_info['module_path'], *sub_paths)
 
         if os.path.isdir(root_dir):
@@ -612,8 +612,18 @@ class BaseApplicationSession(ApplicationSession):
                     for file in files:
                         path = os.path.join(root, file)
                         rel_path = os.path.relpath(path, root_dir).replace('\\', '/')
+                        path_decomposition = re.match('(.*?)\\.?(v\\d+)?\\.json', rel_path)
+
                         with open(path, 'r') as f:
-                            schemas[rel_path] = json.load(f)
+                            schema_entry = {
+                                'schema': json.load(f),
+                                'name': path_decomposition.group(1)
+                            }
+
+                        if path_decomposition.group(2):
+                            schema_entry['version'] = int(path_decomposition.group(2).strip('v'))
+
+                        schemas.append(schema_entry)
 
         return schemas
 
