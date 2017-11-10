@@ -4,9 +4,9 @@ from enum import Enum
 
 
 class ConnectionType(Enum):
-    User = 0, "user"
-    Group = 1, "group"
-    GroupRole = 2, "groupRole"
+    User = 0, 'user'
+    Group = 1, 'group'
+    GroupRole = 2, 'groupRole'
 
     def __new__(cls, value, name):
         member = object.__new__(cls)

@@ -24,7 +24,7 @@ twisted.internet.base.DelayedCall.debug = True
 
 class TestMongoDatabaseWrapper(DBTestCase):
     def setUp(self):
-        self.db = MongoClientWrapper("localhost", 27127).get_database('userNameDatabase')
+        self.db = MongoClientWrapper("localhost", 27127).get_database('users.userNameDatabase')
         self.auth_meta = {
             'connectionType': 'user',
             'username': 'userNameDatabase'
@@ -469,7 +469,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
             logger.info.assert_called_once_with('Creating collection {collection} in {database}',
-                                                collection='test_collection', database='userNameDatabase')
+                                                collection='test_collection', database='users.userNameDatabase')
 
     def test_get_collection_str(self):
 
@@ -485,7 +485,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
             logger.info.assert_called_once_with('Creating collection {collection} in {database}',
-                                                collection='test_collection', database='userNameDatabase')
+                                                collection='test_collection', database='users.userNameDatabase')
 
     def test_get_collection_exists(self):
 
@@ -495,7 +495,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
             self.assertIsInstance(col, mongomock.collection.Collection)
 
             logger.info.assert_called_once_with('Creating collection {collection} in {database}',
-                                                collection='test_collection', database='userNameDatabase')
+                                                collection='test_collection', database='users.userNameDatabase')
 
             self.assertIs(self.db._get_collection(collection), col)
 

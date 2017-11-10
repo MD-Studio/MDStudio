@@ -15,7 +15,7 @@ from mdstudio.unittest.db import DBTestCase
 class TestWampService(DBTestCase, APITestCase):
     def setUp(self):
         self.service = DBWampApi()
-        self.db = self.service._client.get_database('userNameDatabase')
+        self.db = self.service._client.get_database('users.userNameDatabase')
         self.auth_meta = {
             'connectionType': 'user',
             'username': 'userNameDatabase'
