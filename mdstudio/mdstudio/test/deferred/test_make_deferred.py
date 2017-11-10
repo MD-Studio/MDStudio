@@ -63,3 +63,16 @@ class TestMakeDeferred(TestCase):
         self.assertEqual((yield test_add), 15)
 
         return_value({})
+
+    def test_exception(self):
+        class Test:
+            @make_deferred
+            def add(self):
+                raise ValueError()
+
+        test = Test()
+
+        test_add = test.add()
+        self.assertFailure(test_add, ValueError)
+
+        return test_add

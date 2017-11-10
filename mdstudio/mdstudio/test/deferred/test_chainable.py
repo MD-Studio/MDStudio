@@ -41,6 +41,15 @@ class ChainableTestClass:
         return self.call2()
 
     @chainable
+    def call_exception(self):
+        raise ValueError()
+
+    @chainable
+    def call_exception2(self):
+        value = yield self.call_exception()
+        return_value(value)
+
+    @chainable
     def initial_call(self, deferred):
         res = yield deferred.chained_call()['test']
 
@@ -85,3 +94,14 @@ class TestChainable(TestCase):
         d.callback(ChainedObject(d2))
         d2.callback(42)
         self.assertEqual((yield result), 42)
+
+    def test_exception(self):
+        test = ChainableTestClass(self)
+        self.assertRaises(ValueError, test.call_exception)
+
+    def test_exception2(self):
+        test = ChainableTestClass(self)
+        d = test.call_exception2()
+        self.assertFailure(d, ValueError)
+
+        return d
