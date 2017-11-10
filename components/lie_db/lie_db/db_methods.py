@@ -23,14 +23,14 @@ logger = Logger(namespace='db')
 
 
 class MongoDatabaseWrapper(IDatabase):
-    _namespace = None
+    _database_name = None
     _db = None
 
     # type: CacheDict
     _cursors = None
 
-    def __init__(self, namespace, db):
-        self._namespace = namespace
+    def __init__(self, database_name, db):
+        self._database_name = database_name
         self._db = db
 
         # store the cursors for 10 minutes as described here
@@ -425,8 +425,8 @@ class MongoDatabaseWrapper(IDatabase):
 
         if collection_name not in self._db.collection_names():
             if create:
-                logger.info('Creating collection {collection} in {namespace}', collection=collection_name,
-                            namespace=self._namespace)
+                logger.info('Creating collection {collection} in {database}', collection=collection_name,
+                            database=self._database_name)
                 return self._db.create_collection(collection_name)
             else:
                 return None

@@ -25,7 +25,11 @@ twisted.internet.base.DelayedCall.debug = True
 
 class TestMongoDatabaseWrapper(DBTestCase):
     def setUp(self):
-        self.db = MongoClientWrapper("localhost", 27127).get_namespace('testns')
+        self.db = MongoClientWrapper("localhost", 27127).get_database('userNameDatabase')
+        self.auth_meta = {
+            'connectionType': 'user',
+            'username': 'userNameDatabase'
+        }
         self.d = Model(self.db, 'test_collection')
 
         if not reactor.getThreadPool().started:
@@ -457,8 +461,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
             }
             self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
-            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}',
-                                                collection='test_collection', namespace='testns')
+            logger.info.assert_called_once_with('Creating collection {collection} in {database}',
+                                                collection='test_collection', database='userNameDatabase')
 
     def test_get_collection_str(self):
 
@@ -473,8 +477,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
             collection = 'test_collection'
             self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
-            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}',
-                                                collection='test_collection', namespace='testns')
+            logger.info.assert_called_once_with('Creating collection {collection} in {database}',
+                                                collection='test_collection', database='userNameDatabase')
 
     def test_get_collection_exists(self):
 
@@ -483,8 +487,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
             col = self.db._get_collection(collection, create=True)
             self.assertIsInstance(col, mongomock.collection.Collection)
 
-            logger.info.assert_called_once_with('Creating collection {collection} in {namespace}',
-                                                collection='test_collection', namespace='testns')
+            logger.info.assert_called_once_with('Creating collection {collection} in {database}',
+                                                collection='test_collection', database='userNameDatabase')
 
             self.assertIs(self.db._get_collection(collection), col)
 
