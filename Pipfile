@@ -9,12 +9,11 @@ verify_ssl = true
 crossbar = ">=16.10.1"
 pipenv = "*"
 mdstudio = {path = "mdstudio/", editable = true}
-"lie-auth" = {path = "components/lie_auth/", editable = true}
-"lie-db" = {path = "components/lie_db/", editable = true}
-"lie-schema" = {path = "components/lie_schema/", editable = true}
-"lie-logger" = {path = "components/lie_logger/", editable = true}
+lie-auth = {path = "components/lie_auth/", editable = true}
+lie-db = {path = "components/lie_db/", editable = true}
+lie-schema = {path = "components/lie_schema/", editable = true}
+lie-logger = {path = "components/lie_logger/", editable = true}
 twisted = "*"
-"pypiwin32" = "*"
 
 
 [dev-packages]
@@ -22,8 +21,8 @@ twisted = "*"
 bandit = "*"
 future = "*"
 sphinx = "*"
-"sphinx-rtd-theme" = ">=0.1.9"
-"sphinx-autobuild" = ">=0.6.0"
+sphinx-rtd-theme = ">=0.1.9"
+sphinx-autobuild = ">=0.6.0"
 coverage = "*"
 "flake8" = "*"
 "flake8-docstrings" = "*"

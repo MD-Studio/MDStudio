@@ -14,7 +14,7 @@ from mdstudio.deferred.return_value import return_value
 
 class SessionDatabaseWrapper(IDatabase):
 
-    def __init__(self, session, connection_type):
+    def __init__(self, session, connection_type=ConnectionType.User):
         # type: (BaseApplicationSession, ConnectionType) -> None
         self.session = session
 

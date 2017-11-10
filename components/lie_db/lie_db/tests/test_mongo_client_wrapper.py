@@ -17,32 +17,32 @@ class TestMongoClientWrapper(DBTestCase):
 
         self.assertEqual(self.d._host, "localhost")
         self.assertEqual(self.d._port, 27127)
-        self.assertEqual(self.d._namespaces, {})
+        self.assertEqual(self.d._databases, {})
         self.assertIsInstance(self.d._client, mongomock.MongoClient)
 
-    def test_get_namespace_not_exists(self):
+    def test_get_database_not_exists(self):
 
         with mock.patch('lie_db.db_methods.logger.info'):
 
-            db = self.d.get_namespace('ns1')
+            db = self.d.get_database('database_name')
 
-            logger.info.assert_called_once_with('Creating database for {namespace}', namespace='ns1')
+            logger.info.assert_called_once_with('Creating database "{database}"', database='database_name')
 
             self.assertIsInstance(db, MongoDatabaseWrapper)
-            self.assertEqual(db, self.d.get_namespace('ns1'))
+            self.assertEqual(db, self.d.get_database('database_name'))
 
-    def test_get_namespace_exists(self):
+    def test_get_database_exists(self):
 
-        self.d._client.get_database('ns1')
+        self.d._client.get_database('database_name')
 
         with mock.patch('lie_db.db_methods.logger.info'):
 
-            db = self.d.get_namespace('ns1')
+            db = self.d.get_database('database_name')
 
             logger.info.assert_not_called()
 
             self.assertIsInstance(db, MongoDatabaseWrapper)
-            self.assertEqual(db, self.d.get_namespace('ns1'))
+            self.assertEqual(db, self.d.get_database('database_name'))
 
     def test_create_mongo_client(self):
         db.create_mock_client = False

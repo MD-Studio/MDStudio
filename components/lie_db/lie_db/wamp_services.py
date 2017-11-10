@@ -303,8 +303,6 @@ class DBWampApi(BaseApplicationSession):
     def authorize_request(self, uri, auth_meta):
         connection_type = ConnectionType.from_string(auth_meta['connectionType'])
 
-        print((auth_meta, uri))
-
         # @todo: solve this using jsonschema
         # @todo: authorize cursor
         if connection_type == ConnectionType.User and 'username' in auth_meta:
