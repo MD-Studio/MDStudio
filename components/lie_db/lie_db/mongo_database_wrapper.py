@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
-import copy
 import datetime
 from typing import Optional, Dict, Any, List
 
+import copy
 import hashlib
 import pytz
 import random
 from bson import ObjectId
 from dateutil.parser import parse as parsedate
-from pymongo import MongoClient, ReturnDocument
+from pymongo import ReturnDocument
 from pymongo.cursor import Cursor
-from twisted.logger import Logger
 
+from lie_db.cache_dict import CacheDict
 from lie_db.exception import DatabaseException
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, SortOperators, \
     ProjectionOperators, AggregationOperator
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
-from lie_db.cache_dict import CacheDict
+from mdstudio.logging import Logger
 
 logger = Logger(namespace='db')
 
@@ -478,7 +478,7 @@ class MongoDatabaseWrapper(IDatabase):
             elif isinstance(val, datetime.datetime):
                 return val
             else:
-                raise DatabaseException("Failed to parse datetime field '{}'", val)
+                raise DatabaseException("Failed to parse datetime field '{}'".format(val))
 
         # if we have a list of objects we support just indexing those
         if isinstance(subdoc, list):

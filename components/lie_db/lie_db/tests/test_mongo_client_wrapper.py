@@ -2,8 +2,8 @@ from mock import mock
 import pymongo
 import mongomock
 
-from lie_db.db_methods import logger, MongoDatabaseWrapper
 from lie_db.mongo_client_wrapper import MongoClientWrapper
+from lie_db.mongo_database_wrapper import MongoDatabaseWrapper, logger
 from mdstudio.unittest import db
 from mdstudio.unittest.db import DBTestCase
 
@@ -22,7 +22,7 @@ class TestMongoClientWrapper(DBTestCase):
 
     def test_get_database_not_exists(self):
 
-        with mock.patch('lie_db.db_methods.logger.info'):
+        with mock.patch('lie_db.mongo_client_wrapper.logger.info'):
 
             db = self.d.get_database('database_name')
 
@@ -35,7 +35,7 @@ class TestMongoClientWrapper(DBTestCase):
 
         self.d._client.get_database('database_name')
 
-        with mock.patch('lie_db.db_methods.logger.info'):
+        with mock.patch('lie_db.mongo_client_wrapper.logger.info'):
 
             db = self.d.get_database('database_name')
 
