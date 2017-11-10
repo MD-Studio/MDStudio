@@ -10,7 +10,7 @@ from mdstudio.deferred.return_value import return_value
 
 SchemaType = Union[str, dict, ISchema]
 
-def register(uri, input_schema, output_schema, match=None, options=None, scope=None):
+def register(uri, input_schema, output_schema, meta_schema=None, match=None, options=None, scope=None):
     # type: (str, SchemaType, SchemaType, bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
     """
     Decorator for more complete WAMP uri registration
@@ -61,6 +61,8 @@ def register(uri, input_schema, output_schema, match=None, options=None, scope=N
                 res = {'expired': auth_meta['expired']}
             else:
                 auth_meta = auth_meta['authMeta']
+
+                # @todo: check auth_meta using schema
 
                 if not self.authorize_request(uri, auth_meta):
                     self.log.warn("Unauthorized call to {uri}", uri=uri)

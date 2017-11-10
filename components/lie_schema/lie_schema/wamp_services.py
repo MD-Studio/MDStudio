@@ -28,63 +28,77 @@ class SchemaWampApi(BaseApplicationSession):
         self.publish_options = PublishOptions(acknowledge=True)
         yield self.publish(u'mdstudio.schema.endpoint.events.online', True, options=self.publish_options)
 
-    @register(u'mdstudio.schema.endpoint.register', 'register/register/v1', {}, match='prefix')
-    def schema_register(self, request, details=None):
-        namespace = self._extract_namespace(details.procedure)
+    @register(u'mdstudio.schema.endpoint.upload', 'upload/v1', {})
+    @chainable
+    def schema_upload(self, request, auth_meta=None, **kwargs):
+        vendor = auth_meta['vendor']
+        component = request['component']
 
         res = False
 
         # Lock schema's resource
-        self.lock.acquire()
+        yield self.lock.acquire()
 
-        if namespace not in self._schemas.keys():
-            self._schemas[namespace] = {}
+        # @todo: hash and store in DB
+        if vendor not in self._schemas:
+            self._schemas[vendor] = {}
 
-        schemas = self._schemas[namespace]
+        if component not in self._schemas[vendor]:
+            self._schemas[vendor][component] = {
+                'resource': {},
+                'endpoint': {}
+            }
 
-        for schema in request['schemas']:
-            if schema['path'] not in schemas.keys():
-                schemas[schema['path']] = schema['schema']
+        schema_storage = self._schemas[vendor][component]
 
-                self.log.info('Stored {path} for {namespace}', path=schema['path'], namespace=namespace)
+        for schema_type, schemas in request['schemas'].items():
+            for schema_path, schema in schemas.items():
+                if schema_path not in schema_storage:
+                    schema_storage[schema_type][schema_path] = schema
 
-                res = True
-            else:
-                self.log.info('Already stored {path} for {namespace}, checking equality', path=schema['path'], namespace=namespace)
+                    self.log.info('Stored {path} for component {component} of {vendor}', path=schema_path, component=component, vendor=vendor)
 
-                # TODO: implement equality check
-                res = True
+                    res = True
+                else:
+                    self.log.info('Already stored {path} for component {component} of {vendor}, checking equality', path=schema_path, component=component, vendor=vendor)
+
+                    # @todo: implement equality check
+                    res = True
             
         # Done with schema's resource, release
-        self.lock.release()
+        yield self.lock.release()
 
         return res
-        
-    @register(u'mdstudio.schema.endpoint.get', 'get/get/v1', {})
-    def schema_get(self, request):
 
-        namespace = request['namespace']
+    # @todo: validate using json schema draft
+    @register(u'mdstudio.schema.endpoint.get', 'get/v1', {})
+    @chainable
+    def schema_get(self, request, auth_meta=None):
+
+        vendor = auth_meta['vendor']
+        component = request['component']
+
         path = request['path']
 
         # Lock schema's resource
-        self.lock.acquire()
+        yield self.lock.acquire()
 
-        if namespace not in self._schemas.keys():
-            self._schemas[namespace] = {}
-
-        schemas = self._schemas[namespace]
-
-        if path in schemas.keys():
-            res = schemas['path']
-        else:
-            self.log.error('No schema found in namespace "{}" for path "{}"'.format(namespace, path))
+        if vendor not in self._schemas or component not in self._schemas[vendor] or path not in self._schemas[vendor][component]:
+            self.log.error('No schema found for component {} in vendor "{}" for path "{}"'.format(component, vendor, path))
             res = {}
+        else:
+            res = self._schemas[vendor][component][path]
             
         # Done with schema's resource, release
-        self.lock.release()
+        yield self.lock.release()
 
         return res
 
-    def _extract_namespace(self, uri):
-        match = re.match('mdstudio.schema.endpoint.\\w+\\.(.*)', uri)
-        return match.group(1)#, match.group(2)
+    def authorize_request(self, uri, auth_meta):
+        # @todo: check if user is part of group (in usermode)
+        if auth_meta['vendor'] in auth_meta['groups']:
+            return True
+
+        # @todo: allow group/user specific access
+
+        return False
