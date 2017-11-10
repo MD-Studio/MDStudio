@@ -196,6 +196,14 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.db._transform_to_datetime(cdocument, None)
         self.assertEqual(cdocument, document)
 
+    def test_transform_to_datetime_other(self):
+        document = {
+            'date': 200,
+            'f': '2017-10-26T09:15:00+00:00'
+        }
+        cdocument = deepcopy(document)
+        self.assertRaisesRegex(DatabaseException, "Failed to parse datetime field '200'", self.db._transform_to_datetime, cdocument, 'date')
+
     def test_transform_to_datetime_nonexisting_key(self):
         document = {
             'date': '2017-10-26T09:16:00+00:00'
