@@ -1,6 +1,7 @@
 import os
 from autobahn.wamp import PublishOptions
 
+from lie_db.exception import DatabaseException
 from lie_db.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.api.register import register
 from mdstudio.api.schema import WampSchema
@@ -300,10 +301,17 @@ class DBWampApi(BaseApplicationSession):
 
         yield self.database_lock.acquire()
 
+        result = None
         if connection_type == ConnectionType.User:
-            return self._client.get_database(auth_meta['username'])
+            result = self._client.get_database(auth_meta['username'])
+        elif connection_type == ConnectionType.Group:
+            raise NotImplemented()
+        elif connection_type == ConnectionType.GroupRole:
+            raise NotImplemented()
 
         yield self.database_lock.release()
+
+        return result
 
     def authorize_request(self, uri, auth_meta):
         connection_type = ConnectionType.from_string(auth_meta['connectionType'])

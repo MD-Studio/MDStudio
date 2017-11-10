@@ -117,7 +117,6 @@ class TestWampService(DBTestCase, APITestCase):
             obj = self.fake.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
             id = str(ObjectId())
             obj['_id'] = id
-            print(i)
             output = yield self.assertApi(self.service, 'insert_one', {
                 'collection': self.collection,
                 'insert': obj,
@@ -125,12 +124,8 @@ class TestWampService(DBTestCase, APITestCase):
             self.assertEqual(output, {
                 'id': id
             })
-            print(i)
             found = yield self.db.find_one(self.collection, {'_id': id})
             self.assertEqual(obj, found['result'])
-            print(i)
-
-        print("Weweeee")
 
     @chainable
     def test_insert_one_fields_datetime(self):
