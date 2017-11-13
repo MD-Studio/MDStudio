@@ -4,8 +4,8 @@ from enum import Enum
 
 
 class SortMode(Enum):
-    Asc = 1, "asc"
-    Desc = -1, "desc"
+    Asc = 1, 'asc'
+    Desc = -1, 'desc'
 
     def __new__(cls, value, name):
         member = object.__new__(cls)

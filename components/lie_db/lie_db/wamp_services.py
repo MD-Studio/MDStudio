@@ -37,7 +37,7 @@ class DBWampApi(BaseApplicationSession):
 
     @register(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', scope='write')
     def more(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         return database.more(request['cursorId'])
 
@@ -45,7 +45,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'cursor/rewind-request'),
               WampSchema('db', 'cursor/rewind-response'), scope='write')
     def rewind(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         return database.rewind(request['cursorId'])
 
@@ -54,7 +54,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'insert/insert-one-response'),
               scope='write')
     def insert_one(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
@@ -66,7 +66,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'insert/insert-many-response'),
               scope='write')
     def insert_many(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
@@ -78,21 +78,21 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'replace/replace-one-response'),
               scope='write')
     def replace_one(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
         kwargs = {}
-        if 'upsert' in request :
+        if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
         if 'fields' in request and 'datetime' in request['fields']:
             kwargs['date_fields'] = request['fields']['datetime']
 
         return database.replace_one(request['collection'], request['filter'],
-                                                                 request['replacement'], **kwargs)
+                                    request['replacement'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.count',
               WampSchema('db', 'count/count-request'),
               WampSchema('db', 'count/count-response'), scope='read')
     def count(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         if 'cursorId' in request:
             kwargs = {
@@ -119,7 +119,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'update/update-one-response'),
               scope='write')
     def update_one(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -128,14 +128,14 @@ class DBWampApi(BaseApplicationSession):
             kwargs['date_fields'] = request['fields']['datetime']
 
         return database.update_one(request['collection'], request['filter'],
-                                                                request['update'], **kwargs)
+                                   request['update'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.update_many',
               WampSchema('db', 'update/update-many-request'),
               WampSchema('db', 'update/update-many-response'),
               scope='write')
     def update_many(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -144,13 +144,13 @@ class DBWampApi(BaseApplicationSession):
             kwargs['date_fields'] = request['fields']['datetime']
 
         return database.update_many(request['collection'], request['filter'],
-                                                                 request['update'], **kwargs)
+                                    request['update'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_one',
               WampSchema('db', 'find/find-one-request'),
               WampSchema('db', 'find/find-one-response'), scope='read')
     def find_one(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'projection' in request:
@@ -168,7 +168,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'find/find-many-request'),
               WampSchema('db', 'find/find-many-response'), scope='read')
     def find_many(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'projection' in request:
@@ -189,7 +189,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'find/find-one-and-update-response'),
               scope='read')
     def find_one_and_update(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -204,14 +204,14 @@ class DBWampApi(BaseApplicationSession):
             kwargs['date_fields'] = request['fields']['datetime']
 
         return database.find_one_and_update(request['collection'], request['filter'],
-                                                              request['update'], **kwargs)
+                                            request['update'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_one_and_replace',
               WampSchema('db', 'find/find-one-and-replace-request'),
               WampSchema('db', 'find/find-one-and-replace-response'),
               scope='read')
     def find_one_and_replace(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'upsert' in request:
@@ -226,14 +226,14 @@ class DBWampApi(BaseApplicationSession):
             kwargs['date_fields'] = request['fields']['datetime']
 
         return database.find_one_and_replace(request['collection'], request['filter'],
-                                                              request['replacement'], **kwargs)
+                                             request['replacement'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_one_and_delete',
               WampSchema('db', 'find/find-one-and-delete-request'),
               WampSchema('db', 'find/find-one-and-delete-response'),
               scope='read')
     def find_one_and_delete(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'projection' in request:
@@ -250,7 +250,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'distinct/distinct-response'),
               scope='read')
     def distinct(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'filter' in request:
@@ -265,16 +265,15 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'aggregate/aggregate-response'),
               scope='read')
     def aggregate(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
         return database.aggregate(request['collection'], request['pipeline'])
-
 
     @register(u'mdstudio.db.endpoint.delete_one',
               WampSchema('db', 'delete/delete-one'),
               WampSchema('db', 'delete/delete-response'),
               scope='delete')
     def delete_one(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
@@ -287,7 +286,7 @@ class DBWampApi(BaseApplicationSession):
               WampSchema('db', 'delete/delete-response'),
               scope='delete')
     def delete_many(self, request, details=None, auth_meta=None):
-        database = self._get_database(auth_meta)
+        database = self.get_database(auth_meta)
 
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
@@ -296,20 +295,23 @@ class DBWampApi(BaseApplicationSession):
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 
     @chainable
-    def _get_database(self, auth_meta):
+    def get_database(self, auth_meta):
         connection_type = ConnectionType.from_string(auth_meta['connectionType'])
 
-        yield self.database_lock.acquire()
+        if connection_type == ConnectionType.User:
+            database_name = 'users.{user}'.format(user=auth_meta['username'])
+        elif connection_type == ConnectionType.Group:
+            database_name = 'groups.{group}'.format(group=auth_meta['group'])
+        elif connection_type == ConnectionType.GroupRole:
+            database_name = 'grouproles.{group}.{group_role}'.format(group=auth_meta['group'], group_role=auth_meta['groupRole'])
+        else:
+            raise NotImplemented('This distinction does not exist')
 
         result = None
-        if connection_type == ConnectionType.User:
-            result = self._client.get_database(auth_meta['username'])
-        elif connection_type == ConnectionType.Group:
-            raise NotImplemented()
-        elif connection_type == ConnectionType.GroupRole:
-            raise NotImplemented()
-
-        yield self.database_lock.release()
+        if database_name:
+            yield self.database_lock.acquire()
+            result = self._client.get_database(database_name)
+            yield self.database_lock.release()
 
         return result
 
@@ -318,7 +320,11 @@ class DBWampApi(BaseApplicationSession):
 
         # @todo: solve this using jsonschema
         # @todo: authorize cursor
-        if connection_type == ConnectionType.User and 'username' in auth_meta:
-            return True
+        if connection_type == ConnectionType.User:
+            return ('username' in auth_meta) == True
+        elif connection_type == ConnectionType.Group:
+            raise NotImplemented()
+        elif connection_type == ConnectionType.GroupRole:
+            raise NotImplemented()
 
         return False
