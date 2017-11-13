@@ -299,11 +299,11 @@ class DBWampApi(BaseApplicationSession):
         connection_type = ConnectionType.from_string(auth_meta['connectionType'])
 
         if connection_type == ConnectionType.User:
-            database_name = 'users.{user}'.format(user=auth_meta['username'])
+            database_name = 'users~{user}'.format(user=auth_meta['username'])
         elif connection_type == ConnectionType.Group:
-            database_name = 'groups.{group}'.format(group=auth_meta['group'])
+            database_name = 'groups~{group}'.format(group=auth_meta['group'])
         elif connection_type == ConnectionType.GroupRole:
-            database_name = 'grouproles.{group}.{group_role}'.format(group=auth_meta['group'], group_role=auth_meta['groupRole'])
+            database_name = 'grouproles~{group}~{group_role}'.format(group=auth_meta['group'], group_role=auth_meta['groupRole'])
         else:
             raise NotImplemented('This distinction does not exist')
 
