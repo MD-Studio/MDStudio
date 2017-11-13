@@ -1,14 +1,16 @@
+import re
 from typing import Union, Optional, Callable
 
 from autobahn import wamp
 from autobahn.wamp import RegisterOptions
 
-from mdstudio.api.schema import ISchema, validate_input, validate_output
+from mdstudio.api.schema import Schema, validate_input, validate_output
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
-SchemaType = Union[str, dict, ISchema]
+SchemaType = Union[str, dict, Schema]
+
 
 def register(uri, input_schema, output_schema, meta_schema=None, match=None, options=None, scope=None):
     # type: (str, SchemaType, SchemaType, bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
@@ -47,30 +49,46 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
     if match:
         options.match = match
 
+    if not input_schema:
+        print('Input on {uri} is not checked'.format(uri=uri))
+    elif isinstance(input_schema, str):
+        if not re.match('\\w+://.*', input_schema):
+            input_schema = 'endpoint://{}'.format(input_schema)
+
+        input_schema = Schema(input_schema)
+
+    if not output_schema:
+        print('Output on {uri} is not checked'.format(uri=uri))
+    if isinstance(output_schema, str):
+        if not re.match('\\w+://.*', output_schema):
+            output_schema = 'endpoint://{}'.format(output_schema)
+
+        output_schema = Schema(output_schema)
+
     def wrap_f(f):
         @wamp.register(uri, options)
         @validate_input(input_schema)
         @validate_output(output_schema)
         @chainable
-        def wrapped_f(self, request, *args, signed_meta=None, **kwargs):
-            auth_meta = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.verify', signed_meta)
+        def wrapped_f(self, request, *args, signed_claims=None, **kwargs):
+            claims = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.verify', signed_claims)
 
-            if 'error' in auth_meta:
-                res = {'error': auth_meta['error']}
-            elif 'expired' in auth_meta:
-                res = {'expired': auth_meta['expired']}
+            if 'error' in claims:
+                res = {'error': claims['error']}
+            elif 'expired' in claims:
+                res = {'expired': claims['expired']}
             else:
-                auth_meta = auth_meta['authMeta']
+                claims = claims['authMeta']
 
-                # @todo: check auth_meta using schema
+                # @todo: check claims using schema
 
-                if not self.authorize_request(uri, auth_meta):
+                if not self.authorize_request(uri, claims):
                     self.log.warn("Unauthorized call to {uri}", uri=uri)
                     res = {'error': 'Unauthorized call to {}'.format(uri)}
                 else:
                     # @todo: catch exceptions and add error
                     # @todo: support warnings
-                    res = {'result': (yield f(self, request, *args, auth_meta=auth_meta, **kwargs))}
+                    res = {'result': (yield f(self, request, *args, claims=claims, **kwargs))}
 
             return_value(res)
 

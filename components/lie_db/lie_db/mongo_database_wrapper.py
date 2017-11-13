@@ -427,7 +427,6 @@ class MongoDatabaseWrapper(IDatabase):
             if create:
                 logger.info('Creating collection {collection} in {database}', collection=collection_name,
                             database=self._database_name)
-                return self._db.create_collection(collection_name)
             else:
                 return None
 

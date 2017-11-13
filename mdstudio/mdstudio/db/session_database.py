@@ -18,7 +18,7 @@ class SessionDatabaseWrapper(IDatabase):
         # type: (BaseApplicationSession, ConnectionType) -> None
         self.session = session
 
-        self.auth_meta = {
+        self.claims = {
             'connectionType': str(connection_type),
         }
 
@@ -292,4 +292,4 @@ class SessionDatabaseWrapper(IDatabase):
         return_value(Cursor(self, res))
 
     def _call(self, uri, request):
-        return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request, auth_meta=self.auth_meta)
+        return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request, claims=self.claims)

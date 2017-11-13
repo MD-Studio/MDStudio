@@ -17,7 +17,7 @@ from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from mdstudio.api.call_exception import CallException
-from mdstudio.api.schema import WampSchema, WampSchemaHandler, validate_json_schema
+from mdstudio.api.schema import Schema, validate_json_schema
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.logging import WampLogObserver, PrintingObserver
@@ -133,9 +133,6 @@ class BaseApplicationSession(ApplicationSession):
             'loggernamespace': 'MD_LOGGER_NAMESPACE'
         }
 
-        self.package_config_template = WampSchema('mdstudio', 'settings/settings')
-        self.session_config_template = WampSchema('mdstudio', 'session_config/session_config')
-
         self.function_scopes = []
 
         # Scan for input/output schemas on registrations
@@ -157,6 +154,13 @@ class BaseApplicationSession(ApplicationSession):
             'module_path': os.path.dirname(inspect.getfile(self.__class__)),
             'mdstudio_lib_path': os.path.dirname(__file__)
         }
+
+        self.package_config_template = Schema('mdstudio://settings/settings')
+        self.package_config_template.flatten(self)
+        self.package_config_template = self.package_config_template.to_schema()
+        self.session_config_template = Schema('mdstudio://session_config/session_config')
+        self.session_config_template.flatten(self)
+        self.session_config_template = self.session_config_template.to_schema()
 
         self.component_config = {
             'session': {},
@@ -183,8 +187,6 @@ class BaseApplicationSession(ApplicationSession):
 
         # replace default logger to support proper namespace
         self.log = Logger(namespace=self.component_info.get('namespace'))
-
-        self.wamp_schema_handler = WampSchemaHandler(self)
 
         # Init toplevel ApplicationSession
         super(BaseApplicationSession, self).__init__(config)
@@ -591,16 +593,16 @@ class BaseApplicationSession(ApplicationSession):
     @chainable
     def _upload_schemas(self):
         schemas = {
-            'endpoints': self._collect_schemas('schema', 'endpoint'),
-            'resources': self._collect_schemas('schema', 'resource')
+            'endpoints': self._collect_schemas('schemas', 'endpoints'),
+            'resources': self._collect_schemas('schemas', 'resources')
         }
 
         yield self.call(u'mdstudio.schema.endpoint.upload', {
             'component': self.component_info['namespace'],
             'schemas': schemas
-        }, auth_meta={'vendor': 'mdstudio'})
+        }, claims={'vendor': 'mdstudio'})
 
-        self.log.info('Registered schemas for {package}', package=self.component_info['package_name'])
+        self.log.info('Uploaded schemas for {package}', package=self.component_info['package_name'])
 
     def _collect_schemas(self, *sub_paths):
         schemas = []
@@ -629,6 +631,7 @@ class BaseApplicationSession(ApplicationSession):
 
     @inlineCallbacks
     def _register_scopes(self):
+        return_value(True)
         if self.function_scopes:
             res = yield self.call(
                 'mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
@@ -638,18 +641,18 @@ class BaseApplicationSession(ApplicationSession):
                           package=self.component_info['package_name'])
 
     @chainable
-    def call(self, procedure, *args, auth_meta=None, **kwargs):
-        if auth_meta is None:
-            auth_meta = {}
+    def call(self, procedure, *args, claims=None, **kwargs):
+        if claims is None:
+            claims = {}
 
-        signed_meta = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', auth_meta)
+        signed_claims = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-        result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_meta=signed_meta, **kwargs)
+        result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_claims=signed_claims, **kwargs)
 
         if 'expired' in result:
-            signed_meta = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', auth_meta)
+            signed_claims = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-            result = yield super(BaseApplicationSession, self).call(u'{}'.format(procedure), *args, signed_meta=signed_meta, **kwargs)
+            result = yield super(BaseApplicationSession, self).call(u'{}'.format(procedure), *args, signed_claims=signed_claims, **kwargs)
 
         if 'expired' in result:
             raise CallException(result['expired'])
@@ -663,7 +666,7 @@ class BaseApplicationSession(ApplicationSession):
         # @todo: refresh jwt if invalid
         return_value(result['result'])
 
-    def authorize_request(self, uri, auth_meta):
-        self.log.warn("This should be implemented in the component")
+    def authorize_request(self, uri, claims):
+        self.log.warn("Authorization for {uri} should be implemented in the component", uri=uri)
 
         return False

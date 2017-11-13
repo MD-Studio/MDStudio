@@ -15,7 +15,7 @@ from autobahn import wamp
 
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.api.register import register
-from mdstudio.api.schema import WampSchema, validate_input
+from mdstudio.api.schema import Schema, validate_input
 from mdstudio.db.model import Model
 
 from twisted.python import log, logfile
@@ -41,7 +41,7 @@ class LoggerWampApi(BaseApplicationSession):
         yield self.publish(u'mdstudio.logger.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
         returnValue({})
 
-    @validate_input(WampSchema('logger', 'log/log'))
+    @validate_input(Schema('endpoint://log/log'))
     @inlineCallbacks
     def log_event(self, request, details=None):
         """

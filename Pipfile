@@ -14,6 +14,7 @@ lie-db = {path = "components/lie_db/", editable = true}
 lie-schema = {path = "components/lie_schema/", editable = true}
 lie-logger = {path = "components/lie_logger/", editable = true}
 twisted = "*"
+pypiwin32 = {version = "*", os_name = "== 'windows'"}
 
 
 [dev-packages]
