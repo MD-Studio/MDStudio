@@ -30,7 +30,7 @@ class Model:
         else:
             self.wrapper = wrapper
 
-        if issubclass(self.__class__, Model) and self.__class__ != Model:
+        if issubclass(self.__class__, Model) and self.__class__ != Model and collection is None:
             self.collection = self.__class__.__name__.lower()
         else:
             assert collection, "No collection name was given!"

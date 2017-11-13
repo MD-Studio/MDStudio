@@ -77,6 +77,14 @@ class ModelTests(TestCase):
 
         self.assertEqual(self.model.collection, 'users')
 
+    def test_construction_class_override(self):
+        class Users(Model):
+            pass
+
+        self.model = Users(self.wrapper, self.collection)
+
+        self.assertEqual(self.model.collection, self.collection)
+
     def test_insert_one(self):
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
@@ -105,7 +113,7 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
-        self.model = Users(self.wrapper, self.collection)
+        self.model = Users(self.wrapper)
         result = self.model.insert_one(self.document, ['test'])
 
         self.assertEqual(result, '12345')
@@ -120,7 +128,7 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
-        self.model = Users(self.wrapper, self.collection)
+        self.model = Users(self.wrapper)
         result = self.model.insert_one(self.document)
 
         self.assertEqual(result, '12345')
@@ -157,7 +165,7 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_many.return_value = {'ids': ['12345', '456789']}
         self.wrapper.extract = IDatabase.extract
-        self.model = Users(self.wrapper, self.collection)
+        self.model = Users(self.wrapper)
         result = self.model.insert_many(self.documents, ['test'])
 
         self.assertEqual(result, ['12345', '456789'])
@@ -172,7 +180,7 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_many.return_value = {'ids': ['12345', '456789']}
         self.wrapper.extract = IDatabase.extract
-        self.model = Users(self.wrapper, self.collection)
+        self.model = Users(self.wrapper)
         result = self.model.insert_many(self.documents)
 
         self.assertEqual(result, ['12345', '456789'])
@@ -252,7 +260,7 @@ class ModelTests(TestCase):
             'modified': 1
         }
         self.wrapper.transform = IDatabase.transform
-        self.model = Users(self.wrapper, self.collection)
+        self.model = Users(self.wrapper)
         result = yield self.model.replace_one({'_id': 'test_id'}, self.document, date_fields=['test'])
 
         self.assertIsInstance(result, ReplaceOneResponse)
@@ -276,7 +284,7 @@ class ModelTests(TestCase):
             'modified': 1
         }
         self.wrapper.transform = IDatabase.transform
-        self.model = Users(self.wrapper, self.collection)
+        self.model = Users(self.wrapper)
         result = yield self.model.replace_one({'_id': 'test_id'}, self.document)
 
         self.assertIsInstance(result, ReplaceOneResponse)

@@ -593,8 +593,8 @@ class BaseApplicationSession(ApplicationSession):
     @chainable
     def _upload_schemas(self):
         schemas = {
-            'endpoint': self._collect_schemas('schema', 'endpoint'),
-            'resource': self._collect_schemas('schema', 'resource')
+            'endpoints': self._collect_schemas('schema', 'endpoint'),
+            'resources': self._collect_schemas('schema', 'resource')
         }
 
         yield self.call(u'mdstudio.schema.endpoint.upload', {
