@@ -9,11 +9,12 @@ from mdstudio.unittest.db import DBTestCase
 
 
 class TestWampServiceAuthorize(DBTestCase, APITestCase):
+
+    fake = Faker()
+
     def setUp(self):
         self.service = DBWampApi()
         self.service._client.get_database = mock.MagicMock(wraps=lambda x: x)
-        self.fake = Faker()
-        self.fake.seed(4321)
 
     @chainable
     def test_get_database_user(self):

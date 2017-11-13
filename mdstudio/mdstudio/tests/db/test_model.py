@@ -18,6 +18,9 @@ from mdstudio.deferred.chainable import chainable
 
 
 class ModelTests(TestCase):
+
+    faker = Faker()
+
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
         self.wrapper.transform_to_datetime = mock.MagicMock(wraps=IDatabase.transform_to_datetime)
@@ -25,14 +28,12 @@ class ModelTests(TestCase):
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
         self.collection = 'coll'
         self.model = Model(self.wrapper, self.collection)
-
-        self.faker = Faker()
-        self.faker.seed(4321)
         self.time = self.faker.date_time(pytz.utc)
+        self.time2 = self.faker.date_time(pytz.utc)
         self.document = {
             '_id': 'test_id',
             'test': 1234,
-            'updatedAt': self.time,
+            'updatedAt': self.time.isoformat(),
             'foo': {
                 'bar': False
             }
@@ -40,7 +41,7 @@ class ModelTests(TestCase):
         self.document2 = {
             '_id': 'test_id',
             'test': 1235,
-            'updatedAt': self.time,
+            'updatedAt': self.time2.isoformat(),
             'foo': {
                 'bar': True
             }
@@ -802,6 +803,44 @@ class ModelTests(TestCase):
                                                        limit=None,
                                                        sort=None,
                                                        date_fields=['test2', 'test'])
+
+    @chainable
+    def test_find_many_model_date_fields(self):
+        class TestModel(Model):
+            date_time_fields = ['updatedAt']
+
+        self.wrapper.find_many.return_value = {
+            'cursorId': 1234,
+            'alive': False,
+            'results': self.documents
+        }
+        self.model = TestModel(self.wrapper, self.collection)
+        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        results = yield self.model.find_many({'_id': 'test_id'})
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = yield results.to_list()
+        self.assertEqual(lresults[0], {
+            '_id': 'test_id',
+            'foo': {'bar': False},
+            'test': 1234,
+            'updatedAt': self.time
+        })
+        self.assertEqual(lresults[1], {
+            '_id': 'test_id',
+            'foo': {'bar': True},
+            'test': 1235,
+            'updatedAt': self.time
+        })
+
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection=None,
+                                                       skip=None,
+                                                       limit=None,
+                                                       sort=None,
+                                                       date_fields=['updatedAt'])
 
     @chainable
     def test_find_one_and_update(self):

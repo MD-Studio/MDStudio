@@ -13,6 +13,9 @@ from mdstudio.unittest.db import DBTestCase
 
 
 class TestWampService(DBTestCase, APITestCase):
+
+    fake = Faker()
+
     def setUp(self):
         self.service = DBWampApi()
         self.db = self.service._client.get_database('users~userNameDatabase')
@@ -21,8 +24,6 @@ class TestWampService(DBTestCase, APITestCase):
             'username': 'userNameDatabase'
         }
         self.collection = 'coll'
-        self.fake = Faker()
-        self.fake.seed(4321)
 
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()

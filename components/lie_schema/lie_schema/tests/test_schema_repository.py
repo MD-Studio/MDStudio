@@ -12,11 +12,11 @@ from mdstudio.unittest.db import DBTestCase
 
 
 class TestSchemaRepository(DBTestCase):
+    fake = Faker()
+
     def setUp(self):
 
         self.service = SchemaWampApi()
-        self.fake = Faker()
-        self.fake.seed(4321)
         self.type = self.fake.word()
         self.db = MongoClientWrapper("localhost", 27127).get_database('users~schemaTest')
         self.rep = SchemaRepository(self.service, self.type, self.db)
