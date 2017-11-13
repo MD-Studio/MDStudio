@@ -1,7 +1,3 @@
-import json
-
-import hashlib
-from asq.initiators import query
 from autobahn.wamp import PublishOptions
 
 from lie_schema.exception import SchemaException
@@ -17,7 +13,7 @@ class SchemaWampApi(BaseApplicationSession):
     """
     Database management WAMP methods.
     """
-    
+
     def preInit(self, **kwargs):
         self._schemas = {}
         self.lock = Lock()
@@ -75,7 +71,9 @@ class SchemaWampApi(BaseApplicationSession):
             raise SchemaException('Schema type "{}" is not known'.format(schema_type))
 
         if not res:
-            raise SchemaException('Schema name "{}" with type "{}", and version "{}" on "{}/{}" was not found'.format(vendor, component, schema_type, schema_name, version))
+            error = 'Schema name "{}" with type "{}", and '\
+                    'version "{}" on "{}/{}" was not found'.format(vendor, component,schema_type,schema_name, version)
+            raise SchemaException(error)
 
         return_value(res)
 

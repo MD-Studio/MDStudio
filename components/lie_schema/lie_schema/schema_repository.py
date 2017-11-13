@@ -99,11 +99,10 @@ class SchemaRepository:
                     }
                 }
             })
-            if not found:
 
-                # if the changes found are not compatible with the latest stored version
-                # this call will throw an exception
-                yield from self._check_stored_compatibility(component, name, schema, vendor, version)
+            if not found:
+                old = yield self.find_latest(vendor, component, name, version)
+                self._check_stored_compatibility(old, schema)
 
                 updated = yield self.history.find_one_and_update({
                     'vendor': vendor,
@@ -161,18 +160,12 @@ class SchemaRepository:
     def schema_to_string(self, schema):
         return json.dumps(schema, sort_keys=True)
 
-    @staticmethod
-    def check_compatible(original, new):
+    def _check_stored_compatibility(self, old, schema):
         changeable_keywords = ['title', 'description', 'examples']
-        difference = list(itertools.islice(dictdiffer.diff(original, new, ignore=changeable_keywords, expand=True), 5))
-        return len(difference) == 0, difference
-
-    @chainable
-    def _check_stored_compatibility(self, component, name, schema, vendor, version):
-        old = yield self.find_latest(vendor, component, name, version)
         if old:
             old_schema = json.loads(old['schema'])
-            compatible, changes = SchemaRepository.check_compatible(old_schema, schema['schema'])
+            changes = list(itertools.islice(dictdiffer.diff(old_schema, schema, ignore=changeable_keywords, expand=True), 5))
+            compatible, changes = len(changes) == 0
         else:
             compatible = True
             changes = None
@@ -189,4 +182,6 @@ class SchemaRepository:
                         err_str += '\t- Removed "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
 
             raise SchemaException(err_str)
+
+
 
