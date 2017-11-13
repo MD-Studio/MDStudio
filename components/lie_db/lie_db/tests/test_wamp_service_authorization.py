@@ -27,8 +27,8 @@ class TestWampServiceAuthorize(DBTestCase, APITestCase):
                 'username': username,
                 'connectionType': str(ConnectionType.User)
             })
-            self.service._client.get_database.assert_called_once_with('users.{}'.format(username))
-            self.assertEqual(db, 'users.{}'.format(username))
+            self.service._client.get_database.assert_called_once_with('users~{}'.format(username))
+            self.assertEqual(db, 'users~{}'.format(username))
 
     @chainable
     def test_get_database_group(self):
@@ -40,8 +40,8 @@ class TestWampServiceAuthorize(DBTestCase, APITestCase):
                 'connectionType': str(ConnectionType.Group),
                 'group': group
             })
-            self.service._client.get_database.assert_called_once_with('groups.{}'.format(group))
-            self.assertEqual(db, 'groups.{}'.format(group))
+            self.service._client.get_database.assert_called_once_with('groups~{}'.format(group))
+            self.assertEqual(db, 'groups~{}'.format(group))
 
     @chainable
     def test_get_database_group_role(self):
@@ -55,8 +55,8 @@ class TestWampServiceAuthorize(DBTestCase, APITestCase):
                 'group': group,
                 'groupRole': group_role
             })
-            self.service._client.get_database.assert_called_once_with('grouproles.{}.{}'.format(group, group_role))
-            self.assertEqual(db, 'grouproles.{}.{}'.format(group, group_role))
+            self.service._client.get_database.assert_called_once_with('grouproles~{}~{}'.format(group, group_role))
+            self.assertEqual(db, 'grouproles~{}~{}'.format(group, group_role))
 
     def test_get_database_other(self):
 
