@@ -99,31 +99,11 @@ class SchemaRepository:
                     }
                 }
             })
-
             if not found:
 
-                old = yield self.find_latest(vendor, component, name, version)
-                if old:
-                    old_schema = json.loads(old['schema'])
-                    compatible, changes = SchemaRepository.check_compatible(old_schema, schema['schema'])
-                else:
-                    compatible = True
-                    changes = None
-
-                if not compatible:
-                    err_str = "The new schema is not compatible with the old version that was already registered."
-                    if changes:
-                        err_str += " Incompatible changes were:\n"
-                        for c in changes:
-                            if c[0] == 'change':
-                                err_str += '\t- Changed value "{}" from "{}" to "{}"\n'.format(c[1], c[2][0], c[2][1])
-                            if c[0] == 'add':
-                                err_str += '\t- Added "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
-                            if c[0] == 'remove':
-                                err_str += '\t- Removed "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
-
-                    raise SchemaException(err_str)
-
+                # if the changes found are not compatible with the latest stored version
+                # this call will throw an exception
+                yield from self._check_stored_compatibility(component, name, schema, vendor, version)
 
                 updated = yield self.history.find_one_and_update({
                     'vendor': vendor,
@@ -150,25 +130,22 @@ class SchemaRepository:
                     }
                 }, upsert=True, return_updated=True)
 
-                if updated:
-                    self.schemas.replace_one({
-                        'vendor': vendor,
-                        'component': component,
-                        'version': version,
-                        'name': name,
-                    }, {
-                        'vendor': vendor,
-                        'component': component,
-                        'version': version,
-                        'name': name,
-                        'hash': hash,
-                        'major': version,
-                        'build': len(updated['builds']),
-                        'schema': schema_str,
-                        'updatedAt': datetime.utcnow()
-                    }, upsert=True)
-                else:
-                    raise NotImplemented()
+                self.schemas.replace_one({
+                    'vendor': vendor,
+                    'component': component,
+                    'version': version,
+                    'name': name,
+                }, {
+                    'vendor': vendor,
+                    'component': component,
+                    'version': version,
+                    'name': name,
+                    'hash': hash,
+                    'major': version,
+                    'build': len(updated['builds']),
+                    'schema': schema_str,
+                    'updatedAt': datetime.utcnow()
+                }, upsert=True)
 
     @property
     def schemas(self):
@@ -190,5 +167,26 @@ class SchemaRepository:
         difference = list(itertools.islice(dictdiffer.diff(original, new, ignore=changeable_keywords, expand=True), 5))
         return len(difference) == 0, difference
 
+    @chainable
+    def _check_stored_compatibility(self, component, name, schema, vendor, version):
+        old = yield self.find_latest(vendor, component, name, version)
+        if old:
+            old_schema = json.loads(old['schema'])
+            compatible, changes = SchemaRepository.check_compatible(old_schema, schema['schema'])
+        else:
+            compatible = True
+            changes = None
+        if not compatible:
+            err_str = "The new schema is not compatible with the old version that was already registered."
+            if changes:
+                err_str += " Incompatible changes were:\n"
+                for c in changes:
+                    if c[0] == 'change':
+                        err_str += '\t- Changed value "{}" from "{}" to "{}"\n'.format(c[1], c[2][0], c[2][1])
+                    if c[0] == 'add':
+                        err_str += '\t- Added "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
+                    if c[0] == 'remove':
+                        err_str += '\t- Removed "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
 
+            raise SchemaException(err_str)
 
