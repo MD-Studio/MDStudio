@@ -12,6 +12,7 @@ from lie_schema.exception import SchemaException
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 
 
 class SchemaRepository:
@@ -62,8 +63,9 @@ class SchemaRepository:
         def __init__(self, wrapper=None, collection=None):
             super().__init__(wrapper=wrapper, collection=collection)
 
-    def __init__(self, session, type):
+    def __init__(self, session, type, db_wrapper=None):
         # type: (SchemaWampApi, str) -> None
+        self.wrapper = db_wrapper if db_wrapper else session
         self.session = session
         self.type = type
 
@@ -88,71 +90,15 @@ class SchemaRepository:
         latest = yield self.find_latest(vendor, component, name, version, schema_str)
 
         if not latest:
-            found = yield self.history.find_one({
-                'vendor': vendor,
-                'component': component,
-                'version': version,
-                'name': name,
-                'builds': {
-                    '$elemMatch': {
-                        'hash': hash
-                    }
-                }
-            })
-
-            if not found:
-                old = yield self.find_latest(vendor, component, name, version)
-                self._check_stored_compatibility(old, schema)
-
-                updated = yield self.history.find_one_and_update({
-                    'vendor': vendor,
-                    'component': component,
-                    'version': version,
-                    'name': name,
-                }, {
-                    '$setOnInsert': {
-                        'vendor': vendor,
-                        'component': component,
-                        'version': version,
-                        'name': name
-                    },
-                    '$addToSet': {
-                        'builds': {
-                            'hash': hash,
-                            'schema': schema_str,
-                            'createdAt': datetime.utcnow(),
-                            'createdBy': {
-                                'username': claims.get('username'),
-                                'groups': claims.get('groups')
-                            }
-                        }
-                    }
-                }, upsert=True, return_updated=True)
-
-                self.schemas.replace_one({
-                    'vendor': vendor,
-                    'component': component,
-                    'version': version,
-                    'name': name,
-                }, {
-                    'vendor': vendor,
-                    'component': component,
-                    'version': version,
-                    'name': name,
-                    'hash': hash,
-                    'major': version,
-                    'build': len(updated['builds']),
-                    'schema': schema_str,
-                    'updatedAt': datetime.utcnow()
-                }, upsert=True)
+            yield from self._upload_new_schema(claims, component, hash, name, schema, schema_str, vendor, version)
 
     @property
     def schemas(self):
-        return SchemaRepository.Schemas(self.session, '{}.schema'.format(self.type))
+        return SchemaRepository.Schemas(self.wrapper, '{}.schema'.format(self.type))
 
     @property
     def history(self):
-        return SchemaRepository.History(self.session, '{}.history'.format(self.type))
+        return SchemaRepository.History(self.wrapper, '{}.history'.format(self.type))
 
     def hash_schema(self, schema):
         return hashlib.sha256(self.schema_to_string(schema).encode()).hexdigest()
@@ -183,5 +129,61 @@ class SchemaRepository:
 
             raise SchemaException(err_str)
 
+    @chainable
+    def _upload_new_schema(self, claims, component, hash, name, schema, schema_str, vendor, version):
+        found = yield self.history.find_one({
+            'vendor': vendor,
+            'component': component,
+            'version': version,
+            'name': name,
+            'builds': {
+                '$elemMatch': {
+                    'hash': hash
+                }
+            }
+        })
+        if not found:
+            old = yield self.find_latest(vendor, component, name, version)
+            self._check_stored_compatibility(old, schema)
 
+            updated = yield self.history.find_one_and_update({
+                'vendor': vendor,
+                'component': component,
+                'version': version,
+                'name': name,
+            }, {
+                '$setOnInsert': {
+                    'vendor': vendor,
+                    'component': component,
+                    'version': version,
+                    'name': name
+                },
+                '$addToSet': {
+                    'builds': {
+                        'hash': hash,
+                        'schema': schema_str,
+                        'createdAt': datetime.utcnow(),
+                        'createdBy': {
+                            'username': claims.get('username'),
+                            'groups': claims.get('groups')
+                        }
+                    }
+                }
+            }, upsert=True, return_updated=True)
 
+            self.schemas.replace_one({
+                'vendor': vendor,
+                'component': component,
+                'version': version,
+                'name': name,
+            }, {
+                'vendor': vendor,
+                'component': component,
+                'version': version,
+                'name': name,
+                'hash': hash,
+                'major': version,
+                'build': len(updated['builds']),
+                'schema': schema_str,
+                'updatedAt': datetime.utcnow()
+            }, upsert=True)

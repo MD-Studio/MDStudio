@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 
 import mdstudio.unittest.db as db
-from lie_db.mongo_database_wrapper import logger, MongoDatabaseWrapper
+from mdstudio.db.mongo_database_wrapper import MongoDatabaseWrapper
 
 
 class MongoClientWrapper:
@@ -14,7 +14,9 @@ class MongoClientWrapper:
     def get_database(self, database_name):
         if database_name not in self._databases:
             if database_name not in self._client.database_names():
-                logger.info('Creating database "{database}"', database=database_name)
+                # @todo: fix logging
+                #logger.info('Creating database "{database}"', database=database_name)
+                pass
 
             database = MongoDatabaseWrapper(database_name, self._client[database_name])
             self._databases[database_name] = database

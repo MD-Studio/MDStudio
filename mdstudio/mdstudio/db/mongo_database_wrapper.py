@@ -11,16 +11,12 @@ from dateutil.parser import parse as parsedate
 from pymongo import ReturnDocument
 from pymongo.cursor import Cursor
 
-from lie_db.cache_dict import CacheDict
-from lie_db.exception import DatabaseException
+from mdstudio.db.cache_dict import CacheDict
+from mdstudio.db.exception import DatabaseException
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, SortOperators, \
     ProjectionOperators, AggregationOperator
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
-from mdstudio.logging import Logger
-
-logger = Logger(namespace='db')
-
 
 class MongoDatabaseWrapper(IDatabase):
     _database_name = None
@@ -425,8 +421,10 @@ class MongoDatabaseWrapper(IDatabase):
 
         if collection_name not in self._db.collection_names():
             if create:
-                logger.info('Creating collection {collection} in {database}', collection=collection_name,
-                            database=self._database_name)
+                # @todo
+                #logger.info('Creating collection {collection} in {database}', collection=collection_name,
+                #            database=self._database_name)
+                pass
             else:
                 return None
 

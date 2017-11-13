@@ -1,11 +1,9 @@
 from faker import Faker
 from mock import mock
-from twisted.internet import reactor
+
 from lie_db import DBWampApi
-from mdstudio.api.schema import WampSchema
 from mdstudio.db.connection import ConnectionType
 from mdstudio.deferred.chainable import chainable
-from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 

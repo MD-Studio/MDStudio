@@ -46,6 +46,9 @@ class Schema:
         if len(self.versions) == 0 and not (transport.startswith('http') or transport == 'mdstudio'):
             self.versions.append(1)
 
+    def __eq__(self, other):
+        return self.uri == other.uri and self.versions == other.versions
+
     @chainable
     def flatten(self, session):
         # type: (BaseApplicationSession) -> None
@@ -161,7 +164,7 @@ class Schema:
 def validate_output(output_schema):
     def wrap_f(f):
         if not output_schema:
-            print("Output is not checked because schema is {}".format(output_schema))
+            #print("Output is not checked because schema is {}".format(output_schema))
             return f
 
         @chainable
@@ -187,7 +190,7 @@ def validate_output(output_schema):
 def validate_input(input_schema, strict=True):
     def wrap_f(f):
         if not input_schema:
-            print("Input is not checked because schema is {}".format(input_schema))
+            #print("Input is not checked because schema is {}".format(input_schema))
             return f
 
         @chainable

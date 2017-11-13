@@ -1,14 +1,18 @@
+from logging import Logger
+
 import os
 from autobahn.wamp import PublishOptions
 
-from lie_db.exception import DatabaseException
-from lie_db.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.api.register import register
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.db.connection import ConnectionType
+from mdstudio.db.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
+from mdstudio.logging import Logger
 
+
+logger = Logger(namespace='db')
 
 class DBWampApi(BaseApplicationSession):
     """

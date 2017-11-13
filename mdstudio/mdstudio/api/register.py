@@ -50,7 +50,8 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
         options.match = match
 
     if not input_schema:
-        print('Input on {uri} is not checked'.format(uri=uri))
+        #print('Input on {uri} is not checked'.format(uri=uri))
+        pass
     elif isinstance(input_schema, str):
         if not re.match('\\w+://.*', input_schema):
             input_schema = 'endpoint://{}'.format(input_schema)
@@ -58,7 +59,8 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
         input_schema = Schema(input_schema)
 
     if not output_schema:
-        print('Output on {uri} is not checked'.format(uri=uri))
+        #print('Output on {uri} is not checked'.format(uri=uri))
+        pass
     if isinstance(output_schema, str):
         if not re.match('\\w+://.*', output_schema):
             output_schema = 'endpoint://{}'.format(output_schema)

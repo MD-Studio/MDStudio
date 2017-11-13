@@ -2,7 +2,7 @@ from time import sleep
 
 from twisted.trial.unittest import TestCase
 
-from lie_db.cache_dict import CacheDict
+from mdstudio.db.cache_dict import CacheDict
 
 
 class TestCacheDict(TestCase):
