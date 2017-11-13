@@ -12,7 +12,7 @@ import jsonschema
 
 from autobahn import wamp
 from autobahn.wamp.types import RegisterOptions
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from lie_plants_docking import settings, plants_docking_schema
 from lie_plants_docking.plants_docking import PlantsDocking
@@ -87,9 +87,6 @@ class DockingWampApi(LieApplicationSession):
         
         # Validate against JSON schema
         jsonschema.validate(plants_config, PLANTS_DOCKING_SCHEMA)
-        
-        # Run the docking
-        #self.logger.info('Initiate PLANTS docking', **session)
 
         # Prepaire docking directory
         if not 'workdir' in plants_config:
@@ -110,8 +107,6 @@ class DockingWampApi(LieApplicationSession):
             self.logger.error('PLANTS docking not successful', **session)
             docking.delete()
 
-        #self.logger.info('Finished PLANTS docking', **session)
-        
         return {'session': session, 'output': results}
 
 
