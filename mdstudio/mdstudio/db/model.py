@@ -11,6 +11,9 @@ from mdstudio.db.database import DocumentType, DateFieldsType, ProjectionOperato
     AggregationOperator
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
+
 
 class Model:
 
@@ -88,15 +91,19 @@ class Model:
                                                date_fields=self._inject_date_fields(date_fields))
         return self.wrapper.transform(update_many, UpdateManyResponse)
 
+    @chainable
     def find_one(self, filter, projection=None, skip=None, sort=None, date_fields=None):
         # type: (DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        date_fields = self._inject_date_fields(date_fields)
         result = self.wrapper.find_one(self.collection,
                                        filter=filter,
                                        projection=projection,
                                        skip=skip,
                                        sort=sort,
-                                       date_fields=self._inject_date_fields(date_fields))
-        return self.wrapper.extract(result, 'result')
+                                       date_fields=date_fields)
+        result = yield self.wrapper.extract(result, 'result')
+        self.wrapper.transform_to_datetime(result, date_fields)
+        return_value(result)
 
     def find_many(self, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
         # type: (DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[DateFieldsType]) -> Cursor
@@ -110,8 +117,10 @@ class Model:
 
         return self.wrapper.make_cursor(results)
 
+    @chainable
     def find_one_and_update(self, filter, update, upsert=False, projection=None, sort=None, return_updated=False, date_fields=None):
         # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        date_fields = self._inject_date_fields(date_fields)
         result = self.wrapper.find_one_and_update(self.collection,
                                                   filter=filter,
                                                   update=update,
@@ -119,11 +128,15 @@ class Model:
                                                   projection=projection,
                                                   sort=sort,
                                                   return_updated=return_updated,
-                                                  date_fields=self._inject_date_fields(date_fields))
-        return self.wrapper.extract(result, 'result')
+                                                  date_fields=date_fields)
+        result = yield self.wrapper.extract(result, 'result')
+        self.wrapper.transform_to_datetime(result, date_fields)
+        return_value(result)
 
+    @chainable
     def find_one_and_replace(self, filter, replacement, upsert=False, projection=None, sort=None, return_updated=False, date_fields=None):
         # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        date_fields = self._inject_date_fields(date_fields)
         result = self.wrapper.find_one_and_replace(self.collection,
                                                    filter=filter,
                                                    replacement=replacement,
@@ -131,17 +144,25 @@ class Model:
                                                    projection=projection,
                                                    sort=sort,
                                                    return_updated=return_updated,
-                                                   date_fields=self._inject_date_fields(date_fields))
-        return self.wrapper.extract(result, 'result')
+                                                   date_fields=date_fields)
 
+        result = yield self.wrapper.extract(result, 'result')
+        self.wrapper.transform_to_datetime(result, date_fields)
+        return_value(result)
+
+    @chainable
     def find_one_and_delete(self, filter, projection=None, sort=None, date_fields=None):
         # type: (DocumentType, Optional[ProjectionOperators], SortOperators, Optional[DateFieldsType]) -> Union[Optional[dict], Deferred]
+        date_fields = self._inject_date_fields(date_fields)
         result = self.wrapper.find_one_and_delete(self.collection,
                                                   filter=filter,
                                                   projection=projection,
                                                   sort=sort,
-                                                  date_fields=self._inject_date_fields(date_fields))
-        return self.wrapper.extract(result, 'result')
+                                                  date_fields=date_fields)
+
+        result = yield self.wrapper.extract(result, 'result')
+        self.wrapper.transform_to_datetime(result, date_fields)
+        return_value(result)
 
     def distinct(self, field, filter=None, date_fields=None):
         # type: (str, Optional[DocumentType], Optional[DateFieldsType]) -> Union[List[dict], Deferred]

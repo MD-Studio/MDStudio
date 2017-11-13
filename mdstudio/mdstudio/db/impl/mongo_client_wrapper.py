@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 
 import mdstudio.unittest.db as db
-from mdstudio.db.mongo_database_wrapper import MongoDatabaseWrapper
+from mdstudio.db.impl.mongo_database_wrapper import MongoDatabaseWrapper
 
 
 class MongoClientWrapper:

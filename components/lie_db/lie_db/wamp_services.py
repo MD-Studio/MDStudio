@@ -6,7 +6,7 @@ from autobahn.wamp import PublishOptions
 from mdstudio.api.register import register
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.db.connection import ConnectionType
-from mdstudio.db.mongo_client_wrapper import MongoClientWrapper
+from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
 from mdstudio.logging import Logger

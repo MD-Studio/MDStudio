@@ -528,12 +528,13 @@ class ModelTests(TestCase):
                                                          upsert=False,
                                                          date_fields=['test', 'test2'])
 
+    @chainable
     def test_find_one(self):
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one({'_id': 'test_id'})
+        result = yield self.model.find_one({'_id': 'test_id'})
 
         self.assertEqual(result, self.document)
 
@@ -544,12 +545,13 @@ class ModelTests(TestCase):
                                                       sort=None,
                                                       date_fields=None)
 
+    @chainable
     def test_find_one_projection(self):
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one({'_id': 'test_id'}, {'_id': 'id'})
+        result = yield self.model.find_one({'_id': 'test_id'}, {'_id': 'id'})
 
         self.assertEqual(result, self.document)
 
@@ -560,12 +562,13 @@ class ModelTests(TestCase):
                                                       sort=None,
                                                       date_fields=None)
 
+    @chainable
     def test_find_one_skip(self):
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one({'_id': 'test_id'}, skip=10)
+        result = yield self.model.find_one({'_id': 'test_id'}, skip=10)
 
         self.assertEqual(result, self.document)
 
@@ -576,12 +579,13 @@ class ModelTests(TestCase):
                                                       sort=None,
                                                       date_fields=None)
 
+    @chainable
     def test_find_one_sort(self):
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
+        result = yield self.model.find_one({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
 
         self.assertEqual(result, self.document)
 
@@ -592,13 +596,14 @@ class ModelTests(TestCase):
                                                       sort=[('_id', SortMode.Desc)],
                                                       date_fields=None)
 
+    @chainable
     def test_find_one_date_field(self):
         self.wrapper.find_one.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.find_one({'_id': 'test_id'}, date_fields=['test2'])
+        result = yield self.model.find_one({'_id': 'test_id'}, date_fields=['test2'])
 
         self.assertEqual(result, self.document)
 
@@ -755,12 +760,13 @@ class ModelTests(TestCase):
                                                        sort=None,
                                                        date_fields=['test2', 'test'])
 
+    @chainable
     def test_find_one_and_update(self):
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2)
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2)
 
         self.assertEqual(result, self.document)
 
@@ -773,12 +779,13 @@ class ModelTests(TestCase):
                                                                  return_updated=False,
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_update_projection(self):
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
 
         self.assertEqual(result, self.document)
 
@@ -791,12 +798,13 @@ class ModelTests(TestCase):
                                                                  return_updated=False,
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_update_upsert(self):
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, upsert=True)
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, upsert=True)
 
         self.assertEqual(result, self.document)
 
@@ -809,12 +817,13 @@ class ModelTests(TestCase):
                                                                  return_updated=False,
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_update_sort(self):
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
 
         self.assertEqual(result, self.document)
 
@@ -827,12 +836,13 @@ class ModelTests(TestCase):
                                                                  return_updated=False,
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_update_return_updated(self):
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, return_updated=True)
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, return_updated=True)
 
         self.assertEqual(result, self.document)
 
@@ -845,13 +855,14 @@ class ModelTests(TestCase):
                                                                  return_updated=True,
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_update_date_field(self):
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.find_one_and_update({'_id': 'test_id'}, self.document2, date_fields=['test2'])
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, date_fields=['test2'])
 
         self.assertEqual(result, self.document)
 
@@ -864,12 +875,13 @@ class ModelTests(TestCase):
                                                                  return_updated=False,
                                                                  date_fields=['test2', 'test'])
 
+    @chainable
     def test_find_one_and_replace(self):
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2)
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2)
 
         self.assertEqual(result, self.document)
 
@@ -882,12 +894,13 @@ class ModelTests(TestCase):
                                                                   return_updated=False,
                                                                   date_fields=None)
 
+    @chainable
     def test_find_one_and_replace_projection(self):
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, projection={'_id': 'id'})
 
         self.assertEqual(result, self.document)
 
@@ -900,12 +913,13 @@ class ModelTests(TestCase):
                                                                   return_updated=False,
                                                                   date_fields=None)
 
+    @chainable
     def test_find_one_and_replace_upsert(self):
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, upsert=True)
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, upsert=True)
 
         self.assertEqual(result, self.document)
 
@@ -918,12 +932,13 @@ class ModelTests(TestCase):
                                                                   return_updated=False,
                                                                   date_fields=None)
 
+    @chainable
     def test_find_one_and_replace_sort(self):
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, sort=[('_id', SortMode.Desc)])
 
         self.assertEqual(result, self.document)
 
@@ -936,12 +951,13 @@ class ModelTests(TestCase):
                                                                   return_updated=False,
                                                                   date_fields=None)
 
+    @chainable
     def test_find_one_and_replace_return_updated(self):
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, return_updated=True)
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, return_updated=True)
 
         self.assertEqual(result, self.document)
 
@@ -954,13 +970,14 @@ class ModelTests(TestCase):
                                                                   return_updated=True,
                                                                   date_fields=None)
 
+    @chainable
     def test_find_one_and_replace_date_field(self):
         self.wrapper.find_one_and_replace.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, date_fields=['test2'])
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, date_fields=['test2'])
 
         self.assertEqual(result, self.document)
 
@@ -973,12 +990,13 @@ class ModelTests(TestCase):
                                                                   return_updated=False,
                                                                   date_fields=['test2', 'test'])
 
+    @chainable
     def test_find_one_and_delete(self):
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_delete({'_id': 'test_id'}, self.document2)
+        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, self.document2)
 
         self.assertEqual(result, self.document)
 
@@ -988,12 +1006,13 @@ class ModelTests(TestCase):
                                                                  sort=None,
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_delete_projection(self):
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_delete({'_id': 'test_id'}, projection={'_id': 'id'})
+        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, projection={'_id': 'id'})
 
         self.assertEqual(result, self.document)
 
@@ -1003,12 +1022,13 @@ class ModelTests(TestCase):
                                                                  sort=None,
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_delete_sort(self):
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.find_one_and_delete({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
+        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
 
         self.assertEqual(result, self.document)
 
@@ -1018,13 +1038,14 @@ class ModelTests(TestCase):
                                                                  sort=[('_id', SortMode.Desc)],
                                                                  date_fields=None)
 
+    @chainable
     def test_find_one_and_delete_date_field(self):
         self.wrapper.find_one_and_delete.return_value = {
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.find_one_and_delete({'_id': 'test_id'}, date_fields=['test2'])
+        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, date_fields=['test2'])
 
         self.assertEqual(result, self.document)
 

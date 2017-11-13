@@ -29,12 +29,13 @@ class Cursor:
     # type: int
     _returned = None
 
-    def __init__(self, wrapper, response):
+    def __init__(self, wrapper, response, date_fields=[]):
         self.wrapper = wrapper
         self._id = response.get('cursorId', None)
         self._alive = self._id is not None and response['alive']
         self._data = deque(response['results'])
         self._refreshing = False
+        self._date_fields = date_fields
 
     def __iter__(self):
         return self

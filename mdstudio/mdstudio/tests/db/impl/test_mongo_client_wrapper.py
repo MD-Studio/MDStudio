@@ -2,8 +2,8 @@ from mock import mock
 import pymongo
 import mongomock
 
-from mdstudio.db.mongo_client_wrapper import MongoClientWrapper
-from mdstudio.db.mongo_database_wrapper import MongoDatabaseWrapper
+from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
+from mdstudio.db.impl.mongo_database_wrapper import MongoDatabaseWrapper
 from mdstudio.unittest import db
 from mdstudio.unittest.db import DBTestCase
 

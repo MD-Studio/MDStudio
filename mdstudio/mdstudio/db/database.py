@@ -1,13 +1,18 @@
 # coding=utf-8
+import datetime
 from typing import *
 
 import abc
 import six
 
 from mdstudio.db.cursor import Cursor
+from mdstudio.db.exception import DatabaseException
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
+
+import pytz
+from dateutil.parser import parse as parsedate
 
 try:
     from pymongo.collection import Collection
@@ -127,3 +132,66 @@ class IDatabase:
     def transform(result, transformed):
         res = yield result
         return_value(None if res is None else transformed(res))
+
+    @staticmethod
+    def transform_to_datetime(document, fields, prefixes=None):
+        if fields is None:
+            return
+
+        if not isinstance(fields, list):
+            fields = [fields]
+        if prefixes is None:
+            prefixes = ['']
+
+        nfields = []
+        for f in fields:
+            if all(not f.startswith(p) for p in prefixes):
+                for p in prefixes:
+                    nfields.append('{}.{}'.format(p, f))
+            else:
+                nfields.append(f)
+
+        for field in nfields:
+            split_fields = field.split('.')
+            IDatabase.transform_docfield_to_datetime(document, split_fields)
+
+    @staticmethod
+    def transform_docfield_to_datetime(doc, field):
+        subdoc = doc
+
+        for level in field[:-1]:
+            if isinstance(subdoc, dict) and level in subdoc:
+                subdoc = subdoc[level]
+            else:
+                if isinstance(subdoc, list):
+                    for d in subdoc:
+                        IDatabase.transform_docfield_to_datetime(d, field[1:])
+                subdoc = None
+                break
+
+        if subdoc is None:
+            return
+
+        key = field[-1]
+
+        def _parse_value(val):
+            if isinstance(val, str):
+                return parsedate(val).astimezone(pytz.utc)
+            elif isinstance(val, datetime.datetime):
+                return val
+            else:
+                raise DatabaseException("Failed to parse datetime field '{}'".format(val))
+
+        # if we have a list of objects we support just indexing those
+        if isinstance(subdoc, list):
+            for d in subdoc:
+                if key in d:
+                    d[key] = _parse_value(d[key])
+        else:
+            # either we indexed a normal datetime field, or a list with datetimes
+            if key in subdoc:
+                if isinstance(subdoc[key], list):
+                    for i, e in enumerate(subdoc[key]):
+                        subdoc[key][i] = _parse_value(e)
+                else:
+                    subdoc[key] = _parse_value(subdoc[key])

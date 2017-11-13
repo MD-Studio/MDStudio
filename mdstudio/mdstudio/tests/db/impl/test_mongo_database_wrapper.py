@@ -11,7 +11,7 @@ from mock import mock, call
 from twisted.internet import reactor
 
 from mdstudio.db.exception import DatabaseException
-from mdstudio.db.mongo_client_wrapper import MongoClientWrapper
+from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.db.cursor import Cursor, query
 from mdstudio.db.model import Model
 from mdstudio.db.sort_mode import SortMode
@@ -38,248 +38,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def tearDown(self):
         wait_for_completion.wait_for_completion = False
 
-    def test_transform_to_datetime(self):
-        document = {
-            'date': '2017-10-26T09:16:00+00:00'
-        }
-        self.db._transform_to_datetime(document, ['date'])
-        self.assertEqual(document, {
-            'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-        })
-
-    def test_transform_to_datetime_nested(self):
-        document = {
-            'date': '2017-10-26T09:16:00+00:00',
-            'o': {
-                'date2': '2017-9-26T09:16:00+00:00'
-            }
-        }
-        self.db._transform_to_datetime(document, ['date', 'o.date2'])
-        self.assertEqual(document, {
-            'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
-            'o': {
-                'date2': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
-            }
-        })
-
-    def test_transform_to_datetime_overnested(self):
-        document = {
-            'date': '2017-10-26T09:16:00+00:00',
-            'o': {
-                'date2': '2017-9-26T09:16:00+00:00'
-            }
-        }
-        self.db._transform_to_datetime(document, ['o.o.date2'])
-        self.assertEqual(document, {
-            'date': '2017-10-26T09:16:00+00:00',
-            'o': {
-                'date2': '2017-9-26T09:16:00+00:00'
-            }
-        })
-
-    def test_transform_to_datetime_no_conversion(self):
-        document = {
-            'date': '2017-10-26T09:16:00+00:00',
-            'f': '2017-10-26T09:15:00+00:00'
-        }
-        self.db._transform_to_datetime(document, ['date'])
-        self.assertEqual(document, {
-            'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
-            'f': '2017-10-26T09:15:00+00:00'
-        })
-
-    def test_transform_to_datetime_list(self):
-        document = {
-            'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00']
-        }
-        self.db._transform_to_datetime(document, ['date'])
-        self.assertEqual(document, {
-            'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
-                     datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)]
-        })
-
-    def test_transform_to_datetime_no_list(self):
-        document = {
-            'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00']
-        }
-        self.db._transform_to_datetime(document, 'date')
-        self.assertEqual(document, {
-            'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
-                     datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)]
-        })
-
-    def test_transform_to_datetime_object_list(self):
-        document = {
-            'dates': [
-                {
-                    'date': '2017-10-26T09:16:00+00:00'
-                },
-                {
-                    'date': '2017-10-26T09:15:00+00:00'
-                }
-            ]
-        }
-        self.db._transform_to_datetime(document, ['dates.date'])
-        self.assertEqual(document, {
-            'dates': [
-                {
-                    'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-                },
-                {
-                    'date': datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)
-                }
-            ]
-        })
-
-    def test_transform_to_datetime_object_list2(self):
-        document = {
-            'dates': [
-                {
-                    'date': {
-                        'o': '2017-10-26T09:16:00+00:00'
-                    }
-                },
-                {
-                    'date': {
-                        'o': '2017-10-26T09:15:00+00:00'
-                    }
-                }
-            ]
-        }
-        self.db._transform_to_datetime(document, ['dates.date.o'])
-        self.assertEqual(document, {
-            'dates': [
-                {
-                    'date': {
-                        'o': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-                    }
-                },
-                {
-                    'date': {
-                        'o': datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)
-                    }
-                }
-            ]
-        })
-
-    def test_transform_to_datetime_object_list_nonexisting(self):
-        document = {
-            'dates': [
-                {
-                    'date': '2017-10-26T09:16:00+00:00'
-                },
-                {
-                    'date2': '2017-10-26T09:15:00+00:00'
-                }
-            ]
-        }
-        self.db._transform_to_datetime(document, ['dates.date'])
-        self.assertEqual(document, {
-            'dates': [
-                {
-                    'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-                },
-                {
-                    'date2': '2017-10-26T09:15:00+00:00'
-                }
-            ]
-        })
-
-    def test_transform_to_datetime_none(self):
-        document = {
-            'date': '2017-10-26T09:16:00+00:00',
-            'f': '2017-10-26T09:15:00+00:00'
-        }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, None)
-        self.assertEqual(cdocument, document)
-
-    def test_transform_to_datetime_other(self):
-        document = {
-            'date': 200,
-            'f': '2017-10-26T09:15:00+00:00'
-        }
-        cdocument = deepcopy(document)
-        self.assertRaisesRegex(DatabaseException, "Failed to parse datetime field '200'", self.db._transform_to_datetime, cdocument, 'date')
-
-    def test_transform_to_datetime_nonexisting_key(self):
-        document = {
-            'date': '2017-10-26T09:16:00+00:00'
-        }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date2'])
-        self.assertEqual(cdocument, document)
-
-    def test_transform_to_datetime_prefixes_none(self):
-        document = {
-            'date': '2017-10-26T09:16:00+00:00'
-        }
-        cdocument = deepcopy(document)
-        self.db._transform_to_datetime(cdocument, ['date'], ['insert'])
-        self.assertEqual(cdocument, document)
-
-    def test_transform_to_datetime_prefixes(self):
-        document = {
-            'insert': {
-                'date': '2017-10-26T09:16:00+00:00'
-            }
-        }
-        self.db._transform_to_datetime(document, ['date'], ['insert'])
-        self.assertEqual(document, {
-            'insert': {
-                'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-            }
-        })
-
-    def test_transform_to_datetime_prefixes2(self):
-        document = {
-            'insert': {
-                'date': '2017-10-26T09:16:00+00:00'
-            },
-            'inserts': {
-                'date': '2017-10-26T09:16:00+00:00'
-            },
-            'insert2': {
-                'date': '2017-10-26T09:16:00+00:00'
-            }
-        }
-        self.db._transform_to_datetime(document, ['date'], ['insert', 'inserts'])
-        self.assertEqual(document, {
-            'insert': {
-                'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-            },
-            'inserts': {
-                'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-            },
-            'insert2': {
-                'date': '2017-10-26T09:16:00+00:00'
-            }
-        })
-
-    def test_transform_to_datetime_prefixes_existing(self):
-        document = {
-            'insert': {
-                'date': '2017-10-26T09:16:00+00:00'
-            },
-            'inserts': {
-                'date': '2017-10-26T09:16:00+00:00'
-            },
-            'insert2': {
-                'date': '2017-10-26T09:16:00+00:00'
-            }
-        }
-        self.db._transform_to_datetime(document, ['insert.date'], ['insert', 'inserts'])
-        self.assertEqual(document, {
-            'insert': {
-                'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
-            },
-            'inserts': {
-                'date': '2017-10-26T09:16:00+00:00'
-            },
-            'insert2': {
-                'date': '2017-10-26T09:16:00+00:00'
-            }
-        })
 
     def test_transform_datetime_to_isostring(self):
         document = {
@@ -530,11 +288,11 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
     @chainable
     def test_insert_one_date_fields(self):
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
 
         id = yield self.d.insert_one({'test': 2}, date_fields=['date'])
 
-        self.db._transform_to_datetime.assert_called_once_with({'insert': {'test': 2, '_id': ObjectId(id)}}, ['date'],
+        self.db.transform_to_datetime.assert_called_once_with({'insert': {'test': 2, '_id': ObjectId(id)}}, ['date'],
                                                                ['insert'])
 
     @chainable
@@ -594,13 +352,13 @@ class TestMongoDatabaseWrapper(DBTestCase):
     @chainable
     def test_insert_many_date_fields(self):
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         ids = yield self.d.insert_many([
             {'test': 2},
             {'test': 3}
         ], ['date'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
+        self.db.transform_to_datetime.assert_called_once_with({
             'insert': [
                 {'test': 2, '_id': ObjectId(ids[0])},
                 {'test': 3, '_id': ObjectId(ids[1])}
@@ -676,10 +434,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.replace_one({'_id': '666f6f2d6261722d71757578'}, {'test': 6}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
+        self.db.transform_to_datetime.assert_called_once_with({
             'filter': {
                 '_id': ObjectId('666f6f2d6261722d71757578')
             },
@@ -781,10 +539,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.update_one({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
+        self.db.transform_to_datetime.assert_called_once_with({
             'filter': {
                 '_id': ObjectId('666f6f2d6261722d71757578')
             },
@@ -888,10 +646,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.update_many({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
+        self.db.transform_to_datetime.assert_called_once_with({
             'filter': {
                 '_id': ObjectId('666f6f2d6261722d71757578')
             },
@@ -980,14 +738,18 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.find_one({'_id': '666f6f2d6261722d71757578'}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
-            'filter': {
-                '_id': ObjectId('666f6f2d6261722d71757578')
-            }
-        }, ['test'], ['filter'])
+        self.db.transform_to_datetime.assert_has_calls([
+            call({
+                    'filter': {
+                        '_id': ObjectId('666f6f2d6261722d71757578')
+                    }
+                }, ['test'], ['filter']
+            ),
+            call(None, ['test'])
+        ])
 
     @chainable
     def test_find_one_no_collection(self):
@@ -1077,10 +839,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.find_many({}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
+        self.db.transform_to_datetime.assert_called_once_with({
             'filter': {}
         }, ['test'], ['filter'])
 
@@ -1202,10 +964,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
             obs.append({'test': i, '_id': str(ObjectId())})
         yield self.d.insert_many(obs)
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.count({'test': {'$gt': 50}}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
+        self.db.transform_to_datetime.assert_called_once_with({
             'filter': {
                 'test': {
                     '$gt': 50
@@ -1352,20 +1114,23 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.find_one_and_update({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test2': 99}},
                                          date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
-            'filter': {
-                '_id': ObjectId('666f6f2d6261722d71757578')
-            },
-            'update': {
-                '$set': {
-                    'test2': 99
+        self.db.transform_to_datetime.assert_has_calls([
+            call({
+                'filter': {
+                    '_id': ObjectId('666f6f2d6261722d71757578')
+                },
+                'update': {
+                    '$set': {
+                        'test2': 99
+                    }
                 }
-            }
-        }, ['test'], ['filter', 'update'])
+            }, ['test'], ['filter', 'update']),
+            call(None, ['test'])
+        ])
 
     @chainable
     def test_find_one_and_update_collection(self):
@@ -1528,17 +1293,20 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.find_one_and_replace({'_id': '666f6f2d6261722d71757578'}, {'test2': 99}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
-            'filter': {
-                '_id': ObjectId('666f6f2d6261722d71757578')
-            },
-            'replacement': {
-                'test2': 99
-            }
-        }, ['test'], ['filter', 'replacement'])
+        self.db.transform_to_datetime.assert_has_calls([
+            call({
+                'filter': {
+                    '_id': ObjectId('666f6f2d6261722d71757578')
+                },
+                'replacement': {
+                    'test2': 99
+                }
+            }, ['test'], ['filter', 'replacement']),
+            call(None, ['test'])
+        ])
 
     @chainable
     def test_find_one_and_replace_collection(self):
@@ -1628,14 +1396,17 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.find_one_and_delete({'_id': '666f6f2d6261722d71757578'}, {'test2': 99}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
-            'filter': {
-                '_id': ObjectId('666f6f2d6261722d71757578')
-            }
-        }, ['test'], ['filter'])
+        self.db.transform_to_datetime.assert_has_calls([
+            call({
+                'filter': {
+                    '_id': ObjectId('666f6f2d6261722d71757578')
+                }
+            }, ['test'], ['filter']),
+            call(None, ['test'])
+        ])
 
     @chainable
     def test_find_one_and_delete_collection(self):
@@ -1710,10 +1481,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.distinct('test', date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({
+        self.db.transform_to_datetime.assert_called_once_with({
             'filter': None
         }, ['test'], ['filter'])
 
@@ -1835,10 +1606,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.delete_one({'test': 2}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, ['test'], ['filter'])
+        self.db.transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, ['test'], ['filter'])
 
     @chainable
     def test_delete_one_no_collection(self):
@@ -1875,10 +1646,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ])
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        self.db._transform_to_datetime = mock.MagicMock()
+        self.db.transform_to_datetime = mock.MagicMock()
         yield self.d.delete_many({'test': 2}, date_fields=['test'])
 
-        self.db._transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, ['test'], ['filter'])
+        self.db.transform_to_datetime.assert_called_once_with({'filter': {'test': 2}}, ['test'], ['filter'])
 
     @chainable
     def test_delete_many_no_collection(self):

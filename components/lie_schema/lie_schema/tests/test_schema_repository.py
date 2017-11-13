@@ -1,10 +1,12 @@
+from datetime import datetime
 from faker import Faker
 from twisted.internet import reactor
 
-from mdstudio.db.mongo_client_wrapper import MongoClientWrapper
+from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from lie_schema import SchemaWampApi
 
 from lie_schema.schema_repository import SchemaRepository
+from mdstudio.deferred.chainable import chainable
 from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.db import DBTestCase
 
@@ -35,6 +37,7 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(self.service, self.rep.session)
         self.assertEqual(self.type, self.rep.type)
 
+    @chainable
     def test_upsert(self):
 
         vendor = self.fake.word()
@@ -45,6 +48,17 @@ class TestSchemaRepository(DBTestCase):
             'name': name,
             'version': version,
             'schema': {
-
             }
         }, self.claims)
+
+        uploaded = yield self.rep.find_latest(vendor, component, name, version)
+        self.assertIsInstance(uploaded['updatedAt'], datetime)
+        self.assertEqual(uploaded, {
+            'name': name,
+            'version': version,
+            'vendor': vendor,
+            'component': component,
+            'build': 1,
+            'schema': '{}',
+            'hash': self.rep.hash_schema({})
+        })

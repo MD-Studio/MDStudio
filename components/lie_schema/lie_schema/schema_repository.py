@@ -32,6 +32,7 @@ class SchemaRepository:
         }
         """
         connection_type = ConnectionType.User
+        date_time_fields = ['updatedAt']
 
         def __init__(self, wrapper=None, collection=None):
             super().__init__(wrapper=wrapper, collection=collection)
@@ -59,6 +60,7 @@ class SchemaRepository:
         }
         """
         connection_type = ConnectionType.User
+        date_time_fields = ['builds.createdAt']
 
         def __init__(self, wrapper=None, collection=None):
             super().__init__(wrapper=wrapper, collection=collection)
@@ -78,7 +80,9 @@ class SchemaRepository:
         }
         if schema_str:
             key['hash'] = self.hash_schema(schema_str)
-        return self.schemas.find_one(key)
+        return self.schemas.find_one(key, projection={
+            '_id': False
+        })
 
     @chainable
     def upsert(self, vendor, component, schema, claims):
@@ -90,7 +94,7 @@ class SchemaRepository:
         latest = yield self.find_latest(vendor, component, name, version, schema_str)
 
         if not latest:
-            yield from self._upload_new_schema(claims, component, hash, name, schema, schema_str, vendor, version)
+            yield self._upload_new_schema(claims, component, hash, name, schema, schema_str, vendor, version)
 
     @property
     def schemas(self):
@@ -131,6 +135,7 @@ class SchemaRepository:
 
     @chainable
     def _upload_new_schema(self, claims, component, hash, name, schema, schema_str, vendor, version):
+
         found = yield self.history.find_one({
             'vendor': vendor,
             'component': component,
@@ -182,7 +187,6 @@ class SchemaRepository:
                 'version': version,
                 'name': name,
                 'hash': hash,
-                'major': version,
                 'build': len(updated['builds']),
                 'schema': schema_str,
                 'updatedAt': datetime.utcnow()

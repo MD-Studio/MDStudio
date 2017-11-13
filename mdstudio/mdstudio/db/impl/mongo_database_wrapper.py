@@ -18,6 +18,7 @@ from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFi
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
 
+
 class MongoDatabaseWrapper(IDatabase):
     _database_name = None
     _db = None
@@ -56,7 +57,7 @@ class MongoDatabaseWrapper(IDatabase):
         db_collection = self._get_collection(collection, True)
 
         insert = self._prepare_for_mongo(insert)
-        self._transform_to_datetime({'insert': insert}, date_fields, ['insert'])
+        self.transform_to_datetime({'insert': insert}, date_fields, ['insert'])
 
         return {
             'id': str(db_collection.insert_one(insert).inserted_id)
@@ -69,7 +70,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         insert = self._prepare_for_mongo(insert)
 
-        self._transform_to_datetime({'insert': insert}, date_fields, ['insert'])
+        self.transform_to_datetime({'insert': insert}, date_fields, ['insert'])
 
         return {
             'ids': [str(oid) for oid in db_collection.insert_many(insert).inserted_ids]
@@ -85,14 +86,16 @@ class MongoDatabaseWrapper(IDatabase):
 
         filter = self._prepare_for_mongo(filter)
         replacement = self._prepare_for_mongo(replacement)
-        self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields, ['filter', 'replacement'])
+        self.transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields,
+                                    ['filter', 'replacement'])
 
         replace_result = db_collection.replace_one(filter, replacement, upsert)
 
         return self._update_response(upsert, result=replace_result)
 
     @make_deferred
-    def count(self, collection=None, filter=None, skip=None, limit=None, date_fields=None, cursor_id=None, with_limit_and_skip=False):
+    def count(self, collection=None, filter=None, skip=None, limit=None, date_fields=None, cursor_id=None,
+              with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[DateFieldsType], Optional[str]) -> Dict[str, Any]
         total = 0
         if cursor_id:
@@ -105,7 +108,7 @@ class MongoDatabaseWrapper(IDatabase):
 
             if db_collection:
                 filter = self._prepare_for_mongo(filter)
-                self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+                self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
 
                 total = db_collection.count(filter, skip=skip, limit=limit)
 
@@ -123,7 +126,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         filter = self._prepare_for_mongo(filter)
         update = self._prepare_for_mongo(update)
-        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
+        self.transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
 
         result = db_collection.update_one(filter, update, upsert)
 
@@ -139,7 +142,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         filter = self._prepare_for_mongo(filter)
         update = self._prepare_for_mongo(update)
-        self._transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
+        self.transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
 
         result = db_collection.update_many(filter, update, upsert)
 
@@ -155,7 +158,7 @@ class MongoDatabaseWrapper(IDatabase):
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             result = db_collection.find_one(filter, projection, skip=skip, sort=self._prepare_sortmode(sort))
 
             self._prepare_for_json(result)
@@ -180,7 +183,7 @@ class MongoDatabaseWrapper(IDatabase):
             }
 
         filter = self._prepare_for_mongo(filter)
-        self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+        self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
 
         cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
 
@@ -196,10 +199,11 @@ class MongoDatabaseWrapper(IDatabase):
         if db_collection:
             filter = self._prepare_for_mongo(filter)
             update = self._prepare_for_mongo(update)
-            self._transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
+            self.transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
-            result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort), upsert=upsert,return_document=return_document)
+            result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort),
+                                                       upsert=upsert, return_document=return_document)
             self._prepare_for_json(result)
 
         return {
@@ -216,10 +220,13 @@ class MongoDatabaseWrapper(IDatabase):
         if db_collection:
             filter = self._prepare_for_mongo(filter)
             replacement = self._prepare_for_mongo(replacement)
-            self._transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields, ['filter', 'replacement'])
+            self.transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields,
+                                        ['filter', 'replacement'])
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
-            result = db_collection.find_one_and_replace(filter, replacement, projection, sort=self._prepare_sortmode(sort), upsert=upsert, return_document=return_document)
+            result = db_collection.find_one_and_replace(filter, replacement, projection,
+                                                        sort=self._prepare_sortmode(sort), upsert=upsert,
+                                                        return_document=return_document)
             self._prepare_for_json(result)
 
         return {
@@ -234,7 +241,7 @@ class MongoDatabaseWrapper(IDatabase):
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             result = db_collection.find_one_and_delete(filter, projection, sort=self._prepare_sortmode(sort))
             self._prepare_for_json(result)
 
@@ -250,7 +257,7 @@ class MongoDatabaseWrapper(IDatabase):
         results = []
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             results = db_collection.distinct(field, filter)
             for result in results:
                 self._prepare_for_json(result)
@@ -284,7 +291,7 @@ class MongoDatabaseWrapper(IDatabase):
         count = 0
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             count = db_collection.delete_one(filter).deleted_count
         return {
             'count': count
@@ -298,7 +305,7 @@ class MongoDatabaseWrapper(IDatabase):
         count = 0
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self._transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
             count = db_collection.delete_many(filter).deleted_count
         return {
             'count': count
@@ -372,7 +379,7 @@ class MongoDatabaseWrapper(IDatabase):
         # by default it will be available for 10 minutes we also
         # hash the cursor id to make random guessing a lot harder
         id = getattr(cursor, '_id', getattr(cursor, 'cursor_id', random.randint(1, 999999999)))
-        cursor_hash = hashlib.sha256('{}{}'.format(id,random.randint(1, 999999999)).encode()).hexdigest()
+        cursor_hash = hashlib.sha256('{}{}'.format(id, random.randint(1, 999999999)).encode()).hexdigest()
         self._cursors[cursor_hash] = cursor
 
         return {
@@ -422,74 +429,13 @@ class MongoDatabaseWrapper(IDatabase):
         if collection_name not in self._db.collection_names():
             if create:
                 # @todo
-                #logger.info('Creating collection {collection} in {database}', collection=collection_name,
+                # logger.info('Creating collection {collection} in {database}', collection=collection_name,
                 #            database=self._database_name)
                 pass
             else:
                 return None
 
         return self._db[collection_name]
-
-    def _transform_to_datetime(self, document, fields, prefixes=None):
-        if fields is None:
-            return
-
-        if not isinstance(fields, list):
-            fields = [fields]
-        if prefixes is None:
-            prefixes = ['']
-
-        nfields = []
-        for f in fields:
-            if all(not f.startswith(p) for p in prefixes):
-                for p in prefixes:
-                    nfields.append('{}.{}'.format(p, f))
-            else:
-                nfields.append(f)
-
-        for field in nfields:
-            split_fields = field.split('.')
-            self._transform_docfield_to_datetime(document, split_fields)
-
-    def _transform_docfield_to_datetime(self, doc, field):
-        subdoc = doc
-
-        for level in field[:-1]:
-            if isinstance(subdoc, dict) and level in subdoc:
-                subdoc = subdoc[level]
-            else:
-                if isinstance(subdoc, list):
-                    for d in subdoc:
-                        self._transform_docfield_to_datetime(d, field[1:])
-                subdoc = None
-                break
-
-        if subdoc is None:
-            return
-
-        key = field[-1]
-
-        def _parse_value(val):
-            if isinstance(val, str):
-                return parsedate(val).astimezone(pytz.utc)
-            elif isinstance(val, datetime.datetime):
-                return val
-            else:
-                raise DatabaseException("Failed to parse datetime field '{}'".format(val))
-
-        # if we have a list of objects we support just indexing those
-        if isinstance(subdoc, list):
-            for d in subdoc:
-                if key in d:
-                    d[key] = _parse_value(d[key])
-        else:
-            # either we indexed a normal datetime field, or a list with datetimes
-            if key in subdoc:
-                if isinstance(subdoc[key], list):
-                    for i, e in enumerate(subdoc[key]):
-                        subdoc[key][i] = _parse_value(e)
-                else:
-                    subdoc[key] = _parse_value(subdoc[key])
 
     def _transform_datetime_to_isostring(self, document):
         if isinstance(document, dict):
