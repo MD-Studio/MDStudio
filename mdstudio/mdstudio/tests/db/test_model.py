@@ -1,6 +1,8 @@
 # coding=utf-8
 import mock
+import pytz
 from autobahn.twisted import ApplicationSession
+from faker import Faker
 from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor
@@ -18,13 +20,19 @@ from mdstudio.deferred.chainable import chainable
 class ModelTests(TestCase):
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
+        self.wrapper.transform_to_datetime = mock.MagicMock(wraps=IDatabase.transform_to_datetime)
         self.wrapper.component_info = mock.MagicMock()
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
         self.collection = 'coll'
         self.model = Model(self.wrapper, self.collection)
+
+        self.faker = Faker()
+        self.faker.seed(4321)
+        self.time = self.faker.date_time(pytz.utc)
         self.document = {
             '_id': 'test_id',
             'test': 1234,
+            'updatedAt': self.time,
             'foo': {
                 'bar': False
             }
@@ -32,6 +40,7 @@ class ModelTests(TestCase):
         self.document2 = {
             '_id': 'test_id',
             'test': 1235,
+            'updatedAt': self.time,
             'foo': {
                 'bar': True
             }
@@ -602,8 +611,8 @@ class ModelTests(TestCase):
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        self.model.date_time_fields = ['test']
-        result = yield self.model.find_one({'_id': 'test_id'}, date_fields=['test2'])
+        self.model.date_time_fields = ['updatedAt']
+        result = yield self.model.find_one({'_id': 'test_id'}, date_fields=['updatedAt'])
 
         self.assertEqual(result, self.document)
 
@@ -612,7 +621,41 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       skip=None,
                                                       sort=None,
-                                                      date_fields=['test2', 'test'])
+                                                      date_fields=['updatedAt', 'updatedAt'])
+
+    @chainable
+    def test_find_one_model_date_field(self):
+        class TestModel(Model):
+            date_time_fields = ['createdAt']
+
+        self.model = TestModel(self.wrapper, self.collection)
+        time = self.faker.date_time(tzinfo=pytz.utc)
+        self.wrapper.find_one.return_value = {
+            'result': {
+                'createdAt': time.isoformat(),
+                'value': 123456
+            }
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = yield self.model.find_one({'_id': 'test_id'})
+
+        self.assertEqual(result, {
+            'value': 123456,
+            'createdAt': time
+        })
+
+        self.wrapper.find_one.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      projection=None,
+                                                      skip=None,
+                                                      sort=None,
+                                                      date_fields=['createdAt'])
+
+        self.wrapper.transform_to_datetime.assert_called_once_with({
+            'createdAt': time, # was modified as reference
+            'value': 123456
+        }, ['createdAt'])
+
 
     # noinspection PyCallByClass
     @chainable
@@ -861,8 +904,8 @@ class ModelTests(TestCase):
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        self.model.date_time_fields = ['test']
-        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, date_fields=['test2'])
+        self.model.date_time_fields = ['updatedAt']
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, date_fields=['updatedAt'])
 
         self.assertEqual(result, self.document)
 
@@ -873,7 +916,42 @@ class ModelTests(TestCase):
                                                                  projection=None,
                                                                  sort=None,
                                                                  return_updated=False,
-                                                                 date_fields=['test2', 'test'])
+                                                                 date_fields=['updatedAt', 'updatedAt'])
+
+    @chainable
+    def test_find_one_and_update_model_date_field(self):
+        class TestModel(Model):
+            date_time_fields = ['createdAt']
+
+        self.model = TestModel(self.wrapper, self.collection)
+        time = self.faker.date_time(tzinfo=pytz.utc)
+        self.wrapper.find_one_and_update.return_value = {
+            'result': {
+                'createdAt': time.isoformat(),
+                'value': 123456
+            }
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2)
+
+        self.assertEqual(result, {
+            'value': 123456,
+            'createdAt': time
+        })
+
+        self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      update=self.document2,
+                                                      upsert=False,
+                                                      projection=None,
+                                                      sort=None,
+                                                      return_updated=False,
+                                                      date_fields=['createdAt'])
+
+        self.wrapper.transform_to_datetime.assert_called_once_with({
+            'createdAt': time, # was modified as reference
+            'value': 123456
+        }, ['createdAt'])
 
     @chainable
     def test_find_one_and_replace(self):
@@ -976,8 +1054,8 @@ class ModelTests(TestCase):
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        self.model.date_time_fields = ['test']
-        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, date_fields=['test2'])
+        self.model.date_time_fields = ['updatedAt']
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, date_fields=['updatedAt'])
 
         self.assertEqual(result, self.document)
 
@@ -988,7 +1066,42 @@ class ModelTests(TestCase):
                                                                   projection=None,
                                                                   sort=None,
                                                                   return_updated=False,
-                                                                  date_fields=['test2', 'test'])
+                                                                  date_fields=['updatedAt', 'updatedAt'])
+
+    @chainable
+    def test_find_one_model_and_replace_date_field(self):
+        class TestModel(Model):
+            date_time_fields = ['createdAt']
+
+        self.model = TestModel(self.wrapper, self.collection)
+        time = self.faker.date_time(tzinfo=pytz.utc)
+        self.wrapper.find_one_and_replace.return_value = {
+            'result': {
+                'createdAt': time.isoformat(),
+                'value': 123456
+            }
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2)
+
+        self.assertEqual(result, {
+            'value': 123456,
+            'createdAt': time
+        })
+
+        self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      replacement=self.document2,
+                                                      upsert=False,
+                                                      projection=None,
+                                                      sort=None,
+                                                      return_updated=False,
+                                                      date_fields=['createdAt'])
+
+        self.wrapper.transform_to_datetime.assert_called_once_with({
+            'createdAt': time, # was modified as reference
+            'value': 123456
+        }, ['createdAt'])
 
     @chainable
     def test_find_one_and_delete(self):
@@ -1044,8 +1157,8 @@ class ModelTests(TestCase):
             'result': self.document
         }
         self.wrapper.extract = IDatabase.extract
-        self.model.date_time_fields = ['test']
-        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, date_fields=['test2'])
+        self.model.date_time_fields = ['updatedAt']
+        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, date_fields=['updatedAt'])
 
         self.assertEqual(result, self.document)
 
@@ -1053,7 +1166,39 @@ class ModelTests(TestCase):
                                                                  filter={'_id': 'test_id'},
                                                                  projection=None,
                                                                  sort=None,
-                                                                 date_fields=['test2', 'test'])
+                                                                 date_fields=['updatedAt', 'updatedAt'])
+
+    @chainable
+    def test_find_one_and_delete_model_date_field(self):
+        class TestModel(Model):
+            date_time_fields = ['createdAt']
+
+        self.model = TestModel(self.wrapper, self.collection)
+        time = self.faker.date_time(tzinfo=pytz.utc)
+        self.wrapper.find_one_and_delete.return_value = {
+            'result': {
+                'createdAt': time.isoformat(),
+                'value': 123456
+            }
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = yield self.model.find_one_and_delete({'_id': 'test_id'})
+
+        self.assertEqual(result, {
+            'value': 123456,
+            'createdAt': time
+        })
+
+        self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
+                                                      filter={'_id': 'test_id'},
+                                                      projection=None,
+                                                      sort=None,
+                                                      date_fields=['createdAt'])
+
+        self.wrapper.transform_to_datetime.assert_called_once_with({
+            'createdAt': time, # was modified as reference
+            'value': 123456
+        }, ['createdAt'])
 
     def test_distinct(self):
         self.wrapper.distinct.return_value = {

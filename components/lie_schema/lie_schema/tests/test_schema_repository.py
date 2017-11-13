@@ -60,5 +60,7 @@ class TestSchemaRepository(DBTestCase):
             'component': component,
             'build': 1,
             'schema': '{}',
-            'hash': self.rep.hash_schema({})
+            'hash': self.rep.hash_schema({
+
+            })
         })
