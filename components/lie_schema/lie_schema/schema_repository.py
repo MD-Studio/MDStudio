@@ -1,14 +1,17 @@
-import datetime
 import json
+from collections import OrderedDict
 from pprint import pprint
 
+import dictdiffer
 import hashlib
-from autobahn.util import utcnow
+from datetime import datetime
 
+import itertools
+
+from lie_schema.exception import SchemaException
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.lock import Lock
 
 
 class SchemaRepository:
@@ -98,6 +101,30 @@ class SchemaRepository:
             })
 
             if not found:
+
+                old = yield self.find_latest(vendor, component, name, version)
+                if old:
+                    old_schema = json.loads(old['schema'])
+                    compatible, changes = SchemaRepository.check_compatible(old_schema, schema['schema'])
+                else:
+                    compatible = True
+                    changes = None
+
+                if not compatible:
+                    err_str = "The new schema is not compatible with the old version that was already registered."
+                    if changes:
+                        err_str += " Incompatible changes were:\n"
+                        for c in changes:
+                            if c[0] == 'change':
+                                err_str += '\t- Changed value "{}" from "{}" to "{}"\n'.format(c[1], c[2][0], c[2][1])
+                            if c[0] == 'add':
+                                err_str += '\t- Added "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
+                            if c[0] == 'remove':
+                                err_str += '\t- Removed "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
+
+                    raise SchemaException(err_str)
+
+
                 updated = yield self.history.find_one_and_update({
                     'vendor': vendor,
                     'component': component,
@@ -114,7 +141,7 @@ class SchemaRepository:
                         'builds': {
                             'hash': hash,
                             'schema': schema_str,
-                            'createdAt': utcnow(),
+                            'createdAt': datetime.utcnow(),
                             'createdBy': {
                                 'username': claims.get('username'),
                                 'groups': claims.get('groups')
@@ -138,7 +165,7 @@ class SchemaRepository:
                         'major': version,
                         'build': len(updated['builds']),
                         'schema': schema_str,
-                        'updatedAt': utcnow()
+                        'updatedAt': datetime.utcnow()
                     }, upsert=True)
                 else:
                     raise NotImplemented()
@@ -156,4 +183,12 @@ class SchemaRepository:
 
     def schema_to_string(self, schema):
         return json.dumps(schema, sort_keys=True)
+
+    @staticmethod
+    def check_compatible(original, new):
+        changeable_keywords = ['title', 'description', 'examples']
+        difference = list(itertools.islice(dictdiffer.diff(original, new, ignore=changeable_keywords, expand=True), 5))
+        return len(difference) == 0, difference
+
+
 

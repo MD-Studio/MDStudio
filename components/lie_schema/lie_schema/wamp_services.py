@@ -72,7 +72,7 @@ class SchemaWampApi(BaseApplicationSession):
         elif schema_type == "claims":
             res = yield self.claims.find_latest(vendor, component, schema_name, version)
         else:
-            raise ValueError('Schema type "{} is not known"'.format(schema_type))
+            raise SchemaException('Schema type "{}" is not known'.format(schema_type))
 
         if not res:
             raise SchemaException('Schema name "{}" with type "{}", and version "{}" on "{}/{}" was not found'.format(vendor, component, schema_type, schema_name, version))

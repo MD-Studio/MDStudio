@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+dictdiffer = "*"
 
 [dev-packages]
 mdstudio = {path = "../../mdstudio/", editable = true}
