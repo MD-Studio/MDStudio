@@ -593,16 +593,16 @@ class BaseApplicationSession(ApplicationSession):
     @chainable
     def _upload_schemas(self):
         schemas = {
-            'endpoints': self._collect_schemas('schema', 'endpoint'),
-            'resources': self._collect_schemas('schema', 'resource')
+            'endpoints': self._collect_schemas('schemas', 'endpoints'),
+            'resources': self._collect_schemas('schemas', 'resources')
         }
 
         yield self.call(u'mdstudio.schema.endpoint.upload', {
             'component': self.component_info['namespace'],
             'schemas': schemas
-        }, auth_meta={'vendor': 'mdstudio'})
+        }, claims={'vendor': 'mdstudio'})
 
-        self.log.info('Registered schemas for {package}', package=self.component_info['package_name'])
+        self.log.info('Uploaded schemas for {package}', package=self.component_info['package_name'])
 
     def _collect_schemas(self, *sub_paths):
         schemas = []
@@ -631,6 +631,7 @@ class BaseApplicationSession(ApplicationSession):
 
     @inlineCallbacks
     def _register_scopes(self):
+        return_value(True)
         if self.function_scopes:
             res = yield self.call(
                 'mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
@@ -640,18 +641,18 @@ class BaseApplicationSession(ApplicationSession):
                           package=self.component_info['package_name'])
 
     @chainable
-    def call(self, procedure, *args, auth_meta=None, **kwargs):
-        if auth_meta is None:
-            auth_meta = {}
+    def call(self, procedure, *args, claims=None, **kwargs):
+        if claims is None:
+            claims = {}
 
-        signed_meta = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', auth_meta)
+        signed_claims = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-        result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_meta=signed_meta, **kwargs)
+        result = yield super(BaseApplicationSession, self).call(procedure, *args, signed_claims=signed_claims, **kwargs)
 
         if 'expired' in result:
-            signed_meta = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', auth_meta)
+            signed_claims = yield super(BaseApplicationSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-            result = yield super(BaseApplicationSession, self).call(u'{}'.format(procedure), *args, signed_meta=signed_meta, **kwargs)
+            result = yield super(BaseApplicationSession, self).call(u'{}'.format(procedure), *args, signed_claims=signed_claims, **kwargs)
 
         if 'expired' in result:
             raise CallException(result['expired'])
@@ -665,7 +666,7 @@ class BaseApplicationSession(ApplicationSession):
         # @todo: refresh jwt if invalid
         return_value(result['result'])
 
-    def authorize_request(self, uri, auth_meta):
-        self.log.warn("This should be implemented in the component")
+    def authorize_request(self, uri, claims):
+        self.log.warn("Authorization for {uri} should be implemented in the component", uri=uri)
 
         return False

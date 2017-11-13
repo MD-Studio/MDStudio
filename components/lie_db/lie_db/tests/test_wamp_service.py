@@ -16,7 +16,7 @@ class TestWampService(DBTestCase, APITestCase):
     def setUp(self):
         self.service = DBWampApi()
         self.db = self.service._client.get_database('users~userNameDatabase')
-        self.auth_meta = {
+        self.claims = {
             'connectionType': 'user',
             'username': 'userNameDatabase'
         }
@@ -82,7 +82,7 @@ class TestWampService(DBTestCase, APITestCase):
 
         output = yield self.assertApi(self.service, 'more', {
             'cursorId': cursor['cursorId']
-        }, self.auth_meta)
+        }, self.claims)
         self.assertNotEqual(output['cursorId'], cursor['cursorId'])
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -100,7 +100,7 @@ class TestWampService(DBTestCase, APITestCase):
 
         output = yield self.assertApi(self.service, 'rewind', {
             'cursorId': cursor['cursorId']
-        }, self.auth_meta)
+        }, self.claims)
         self.assertNotEqual(output['cursorId'], cursor['cursorId'])
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -120,7 +120,7 @@ class TestWampService(DBTestCase, APITestCase):
             output = yield self.assertApi(self.service, 'insert_one', {
                 'collection': self.collection,
                 'insert': obj,
-            }, self.auth_meta)
+            }, self.claims)
             self.assertEqual(output, {
                 'id': id
             })
@@ -142,7 +142,7 @@ class TestWampService(DBTestCase, APITestCase):
                 'fields': {
                     'datetime': 'datetimeField'
                 }
-            }, self.auth_meta)
+            }, self.claims)
             self.assertEqual(output, {
                 'id': id
             })
@@ -164,7 +164,7 @@ class TestWampService(DBTestCase, APITestCase):
                 'fields': {
                     'datetime': 'datetimeField'
                 }
-            }, self.auth_meta)
+            }, self.claims)
             self.assertEqual(output, {
                 'id': id
             })
@@ -187,7 +187,7 @@ class TestWampService(DBTestCase, APITestCase):
             output = yield self.assertApi(self.service, 'insert_many', {
                 'collection': self.collection,
                 'insert': objs
-            }, self.auth_meta)
+            }, self.claims)
             self.assertEqual(output, {
                 'ids': ids
             })
@@ -215,7 +215,7 @@ class TestWampService(DBTestCase, APITestCase):
                 'fields': {
                     'datetime': 'datetimeField'
                 }
-            }, self.auth_meta)
+            }, self.claims)
             self.assertEqual(output, {
                 'ids': ids
             })
@@ -236,7 +236,7 @@ class TestWampService(DBTestCase, APITestCase):
             'replacement': {
                 'test2': 3
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -256,7 +256,7 @@ class TestWampService(DBTestCase, APITestCase):
             'replacement': {
                 'test2': 3
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, {'test2': 3, '_id': cursor['results'][1]['_id']}])
         self.assertEqual(output, {
@@ -285,7 +285,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -302,7 +302,7 @@ class TestWampService(DBTestCase, APITestCase):
             'collection': self.collection,
             'cursorId': cursor['cursorId'],
             'withLimitAndSkip': True
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {'total': 2})
 
@@ -313,7 +313,7 @@ class TestWampService(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'filter': {'test': {'$gt': 1}},
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {'total': 1})
 
@@ -324,7 +324,7 @@ class TestWampService(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'skip': 1
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {'total': 1})
 
@@ -335,7 +335,7 @@ class TestWampService(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'limit': 1
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {'total': 1})
 
@@ -350,7 +350,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {'total': 1})
 
@@ -369,7 +369,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -391,7 +391,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, {'test2': 3, 'test': 2, '_id': cursor['results'][1]['_id']}])
         self.assertEqual(output, {
@@ -422,7 +422,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -445,7 +445,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -467,7 +467,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, {'test2': 3, 'test': 2, '_id': cursor['results'][1]['_id']}])
         self.assertEqual(output, {
@@ -498,7 +498,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -519,7 +519,7 @@ class TestWampService(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
             'filter': {'test': 1}
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'result': objs[1]
@@ -539,7 +539,7 @@ class TestWampService(DBTestCase, APITestCase):
             'collection': self.collection,
             'filter': {'test': 1},
             'projection': {'_id': 0}
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'result': {'test': 1}
@@ -562,7 +562,7 @@ class TestWampService(DBTestCase, APITestCase):
             'collection': self.collection,
             'filter': {'test': 1},
             'skip': 1
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'result': objs[2]
@@ -587,7 +587,7 @@ class TestWampService(DBTestCase, APITestCase):
             'sort': [
                 ['_id', 'desc']
             ]
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'result': objs[2]
@@ -610,7 +610,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'result': objs[1]
@@ -629,7 +629,7 @@ class TestWampService(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
             'filter': {'test': 1}
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -653,7 +653,7 @@ class TestWampService(DBTestCase, APITestCase):
             'collection': self.collection,
             'filter': {'test': 1},
             'projection': {'_id': 0}
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -680,7 +680,7 @@ class TestWampService(DBTestCase, APITestCase):
             'collection': self.collection,
             'filter': {'test': 1},
             'skip': 1
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -707,7 +707,7 @@ class TestWampService(DBTestCase, APITestCase):
             'collection': self.collection,
             'filter': {'test': 1},
             'limit': 1
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -736,7 +736,7 @@ class TestWampService(DBTestCase, APITestCase):
             'sort': [
                 ['_id', 'desc']
             ]
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -763,7 +763,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
@@ -787,7 +787,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -811,7 +811,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -835,7 +835,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         self.assertEqual(output, {
             'result': o3
         })
@@ -858,7 +858,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -878,7 +878,7 @@ class TestWampService(DBTestCase, APITestCase):
                     'test2': 3
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'],
                                  [o1, {'test2': 3, 'test': 2, '_id': cursor['results'][1]['_id']}])
@@ -907,7 +907,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -926,7 +926,7 @@ class TestWampService(DBTestCase, APITestCase):
             'replacement': {
                 'test2': 3
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -948,7 +948,7 @@ class TestWampService(DBTestCase, APITestCase):
             'replacement': {
                 'test2': 3
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -970,7 +970,7 @@ class TestWampService(DBTestCase, APITestCase):
             'replacement': {
                 'test2': 3
             }
-        }, self.auth_meta)
+        }, self.claims)
         self.assertEqual(output, {
             'result': o3
         })
@@ -991,7 +991,7 @@ class TestWampService(DBTestCase, APITestCase):
             'replacement': {
                 'test2': 3
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -1009,7 +1009,7 @@ class TestWampService(DBTestCase, APITestCase):
             'replacement': {
                 'test2': 3
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'],
                                  [o1, {'test2': 3, '_id': cursor['results'][1]['_id']}])
@@ -1034,7 +1034,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
@@ -1049,7 +1049,7 @@ class TestWampService(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
             'filter': {'test': 2}
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1])
         self.assertEqual(output, {
@@ -1067,7 +1067,7 @@ class TestWampService(DBTestCase, APITestCase):
             'projection': {
                 '_id': 0
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1])
         self.assertEqual(output, {
@@ -1086,7 +1086,7 @@ class TestWampService(DBTestCase, APITestCase):
             'sort': [
                 ['_id', "desc"]
             ]
-        }, self.auth_meta)
+        }, self.claims)
         self.assertEqual(output, {
             'result': o3
         })
@@ -1107,7 +1107,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1])
         self.assertEqual(output, {
@@ -1121,7 +1121,7 @@ class TestWampService(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'distinct', {
             'collection': self.collection,
             'field': 'test'
-        }, self.auth_meta)
+        }, self.claims)
         self.assertEqual(output, {
             'results': [1, 2, 3],
             'total': 3
@@ -1139,7 +1139,7 @@ class TestWampService(DBTestCase, APITestCase):
                     '$gt': 1
                 }
             }
-        }, self.auth_meta)
+        }, self.claims)
         self.assertEqual(output, {
             'results': [2, 3],
             'total': 2
@@ -1159,7 +1159,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
         self.assertEqual(output, {
             'results': [1, 2, 3],
             'total': 3
@@ -1181,7 +1181,7 @@ class TestWampService(DBTestCase, APITestCase):
                     '$match': {'test': {'$gt': 1}}
                 }
             ]
-        }, self.auth_meta)
+        }, self.claims)
         self.assertIsInstance(output['cursorId'], str)
         del output['cursorId']
         self.assertEqual(output, {
@@ -1204,7 +1204,7 @@ class TestWampService(DBTestCase, APITestCase):
             'filter': {
                 'test': 2
             }
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'count': 1
@@ -1236,7 +1236,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'count': 1
@@ -1265,7 +1265,7 @@ class TestWampService(DBTestCase, APITestCase):
             'filter': {
                 'test': 2
             }
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'count': 2
@@ -1297,7 +1297,7 @@ class TestWampService(DBTestCase, APITestCase):
             'fields': {
                 'datetime': ['date']
             }
-        }, self.auth_meta)
+        }, self.claims)
 
         self.assertEqual(output, {
             'count': 2

@@ -49,15 +49,19 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
     if match:
         options.match = match
 
-    if isinstance(input_schema, str):
+    if not input_schema:
+        print('Input on {uri} is not checked'.format(uri=uri))
+    elif isinstance(input_schema, str):
         if not re.match('\\w+://.*', input_schema):
             input_schema = 'endpoint://{}'.format(input_schema)
 
         input_schema = Schema(input_schema)
 
+    if not output_schema:
+        print('Output on {uri} is not checked'.format(uri=uri))
     if isinstance(output_schema, str):
         if not re.match('\\w+://.*', output_schema):
-            output_schema = 'endpoint://{}'.format(input_schema)
+            output_schema = 'endpoint://{}'.format(output_schema)
 
         output_schema = Schema(output_schema)
 
@@ -66,25 +70,25 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
         @validate_input(input_schema)
         @validate_output(output_schema)
         @chainable
-        def wrapped_f(self, request, *args, signed_meta=None, **kwargs):
-            auth_meta = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.verify', signed_meta)
+        def wrapped_f(self, request, *args, signed_claims=None, **kwargs):
+            claims = yield super(BaseApplicationSession, self).call('mdstudio.auth.endpoint.verify', signed_claims)
 
-            if 'error' in auth_meta:
-                res = {'error': auth_meta['error']}
-            elif 'expired' in auth_meta:
-                res = {'expired': auth_meta['expired']}
+            if 'error' in claims:
+                res = {'error': claims['error']}
+            elif 'expired' in claims:
+                res = {'expired': claims['expired']}
             else:
-                auth_meta = auth_meta['authMeta']
+                claims = claims['authMeta']
 
-                # @todo: check auth_meta using schema
+                # @todo: check claims using schema
 
-                if not self.authorize_request(uri, auth_meta):
+                if not self.authorize_request(uri, claims):
                     self.log.warn("Unauthorized call to {uri}", uri=uri)
                     res = {'error': 'Unauthorized call to {}'.format(uri)}
                 else:
                     # @todo: catch exceptions and add error
                     # @todo: support warnings
-                    res = {'result': (yield f(self, request, *args, auth_meta=auth_meta, **kwargs))}
+                    res = {'result': (yield f(self, request, *args, claims=claims, **kwargs))}
 
             return_value(res)
 

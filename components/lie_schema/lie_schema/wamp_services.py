@@ -36,30 +36,30 @@ class SchemaWampApi(BaseApplicationSession):
         self.publish_options = PublishOptions(acknowledge=True)
         yield self.publish(u'mdstudio.schema.endpoint.events.online', True, options=self.publish_options)
 
-    @register(u'mdstudio.schema.endpoint.upload', 'upload/v1', {})
+    @register(u'mdstudio.schema.endpoint.upload', {}, {})
     @chainable
-    def schema_upload(self, request, auth_meta=None, **kwargs):
-        vendor = auth_meta['vendor']
+    def schema_upload(self, request, claims=None, **kwargs):
+        vendor = claims['vendor']
         component = request['component']
 
         endpoint_schemas = request['schemas'].get('endpoints')
         if endpoint_schemas:
             for schema in endpoint_schemas:
-                yield self.endpoints.upsert(vendor, component, schema, auth_meta)
+                yield self.endpoints.upsert(vendor, component, schema, claims)
         resource_schemas = request['schemas'].get('resources')
         if resource_schemas:
             for schema in resource_schemas:
-                yield self.resources.upsert(vendor, component, schema, auth_meta)
+                yield self.resources.upsert(vendor, component, schema, claims)
         claim_schemas = request['schemas'].get('claims')
         if claim_schemas:
             for schema in claim_schemas:
-                yield self.claims.upsert(vendor, component, schema, auth_meta)
+                yield self.claims.upsert(vendor, component, schema, claims)
 
     # @todo: validate using json schema draft
-    @register(u'mdstudio.schema.endpoint.get', 'get/v1', {})
+    @register(u'mdstudio.schema.endpoint.get', {}, {})
     @chainable
-    def schema_get(self, request, auth_meta=None):
-        vendor = auth_meta['vendor']
+    def schema_get(self, request, claims=None, **kwargs):
+        vendor = claims['vendor']
         component = request['component']
         schema_type = request['type']
         schema_name = request['name']
@@ -79,9 +79,9 @@ class SchemaWampApi(BaseApplicationSession):
 
         return_value(res)
 
-    def authorize_request(self, uri, auth_meta):
+    def authorize_request(self, uri, claims):
         # @todo: check if user is part of group (in usermode)
-        if auth_meta['vendor'] in auth_meta['groups']:
+        if claims['vendor'] in claims['groups']:
             return True
 
         # @todo: allow group/user specific access

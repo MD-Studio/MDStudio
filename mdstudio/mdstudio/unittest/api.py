@@ -8,7 +8,7 @@ class TestSession:
 class APITestCase:
 
     @chainable
-    def assertApi(self, object, method, input, auth_meta):
+    def assertApi(self, object, method, input, claims):
         registered_callable = getattr(object, method)
-        result = yield registered_callable.wrapped(object, input, TestSession(), auth_meta)
+        result = yield registered_callable.wrapped(object, input, TestSession(), claims)
         return_value(result)

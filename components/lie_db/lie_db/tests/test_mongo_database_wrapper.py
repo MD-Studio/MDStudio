@@ -25,7 +25,7 @@ twisted.internet.base.DelayedCall.debug = True
 class TestMongoDatabaseWrapper(DBTestCase):
     def setUp(self):
         self.db = MongoClientWrapper("localhost", 27127).get_database('users~userNameDatabase')
-        self.auth_meta = {
+        self.claims = {
             'connectionType': 'user',
             'username': 'userNameDatabase'
         }
@@ -486,18 +486,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
             logger.info.assert_called_once_with('Creating collection {collection} in {database}',
                                                 collection='test_collection', database='users~userNameDatabase')
-
-    def test_get_collection_exists(self):
-
-        with mock.patch('lie_db.mongo_client_wrapper.logger.info'):
-            collection = 'test_collection'
-            col = self.db._get_collection(collection, create=True)
-            self.assertIsInstance(col, mongomock.collection.Collection)
-
-            logger.info.assert_called_once_with('Creating collection {collection} in {database}',
-                                                collection='test_collection', database='users~userNameDatabase')
-
-            self.assertIs(self.db._get_collection(collection), col)
 
     @chainable
     def test_insert_one(self):

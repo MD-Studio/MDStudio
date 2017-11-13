@@ -27,6 +27,7 @@ from oauthlib.common import Request as OAuthRequest, generate_client_id as gener
 from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError, InvalidTokenError
 
 from mdstudio.api.schema import Schema
+from mdstudio.deferred.chainable import chainable
 
 try:
     import urlparse
@@ -118,7 +119,7 @@ class AuthWampApi(BaseApplicationSession):
 
 
     # @todo: remove this
-    @inlineCallbacks        
+    @chainable
     def init_admin_user(self, event=None):
         # Acquire lock before initializing the database
         try:
@@ -177,32 +178,32 @@ class AuthWampApi(BaseApplicationSession):
         pass
 
     @wamp.register('mdstudio.auth.endpoint.sign', options=wamp.RegisterOptions(details_arg='details'))
-    def sign_auth_meta(self, auth_meta, details=None):
+    def sign_claims(self, claims, details=None):
         role = details.caller_authrole
 
-        if not isinstance(auth_meta, dict):
+        if not isinstance(claims, dict):
             raise TypeError()
 
         if role in ['db', 'schema', 'auth', 'logger']:
-            auth_meta['groups'] = ['mdstudio']
-            auth_meta['username'] = role
+            claims['groups'] = ['mdstudio']
+            claims['username'] = role
         else:
             raise NotImplementedError("Implement this")
 
-        auth_meta['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+        claims['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
 
-        return jwt_encode(auth_meta, self.jwt_key)
+        return jwt_encode(claims, self.jwt_key)
 
     @wamp.register('mdstudio.auth.endpoint.verify')
-    def verify_auth_meta(self, signed_meta):
+    def verify_claims(self, signed_claims):
         try:
-            auth_meta = jwt_decode(signed_meta, self.jwt_key)
+            claims = jwt_decode(signed_claims, self.jwt_key)
         except DecodeError:
             return {'error': 'Could not verify user'}
         except ExpiredSignatureError:
             return {'expired': 'Request token has expired'}
 
-        return {'authMeta': auth_meta}
+        return {'authMeta': claims}
 
 
     @wamp.register(u'mdstudio.auth.endpoint.sso')
@@ -330,14 +331,14 @@ class AuthWampApi(BaseApplicationSession):
 
         returnValue(auth_ticket)
 
-    @register(u'mdstudio.auth.endpoint.oauth.registerscopes', {}, {}, match='prefix')
-    @inlineCallbacks
-    def register_scopes(self, request, **kwargs):
-        for scope in request['scopes']:
-            # update/insert the uri scope
-            yield Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
-
-        returnValue(None)
+    # @register(u'mdstudio.auth.endpoint.oauth.registerscopes', {}, {}, match='prefix')
+    # @inlineCallbacks
+    # def register_scopes(self, request, **kwargs):
+    #     for scope in request['scopes']:
+    #         # update/insert the uri scope
+    #         yield Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
+    #
+    #     returnValue(None)
             
     @wamp.register(u'mdstudio.auth.endpoint.authorize.admin')
     def authorize_admin(self, session, uri, action, options):
