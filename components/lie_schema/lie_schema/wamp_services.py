@@ -63,7 +63,7 @@ class SchemaWampApi(BaseApplicationSession):
         component = request['component']
         schema_type = request['type']
         schema_name = request['name']
-        version = request['version'] if 'version' in request else 'v1'
+        version = request.get('version', 1)
 
         if schema_type == "endpoints":
             res = yield self.endpoints.find_latest(vendor, component, schema_name, version)
