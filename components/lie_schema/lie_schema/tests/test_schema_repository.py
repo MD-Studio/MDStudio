@@ -735,3 +735,12 @@ class TestSchemaRepository(DBTestCase):
                 }
             ]
         })
+
+    @chainable
+    def test_get_non_existing(self):
+        vendor = self.fake.word()
+        component = self.fake.word()
+        name = self.fake.word()
+        version = self.fake.random_number(3)
+        uploaded = yield self.rep.find_latest(vendor, component, name, version)
+        self.assertEqual(uploaded, None)
