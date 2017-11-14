@@ -28,6 +28,7 @@ from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, Expired
 
 from mdstudio.api.schema import Schema
 from mdstudio.deferred.chainable import chainable
+from mdstudio.time import utcnow
 
 try:
     import urlparse
@@ -676,7 +677,7 @@ class AuthWampApi(BaseApplicationSession):
     def _store_action(self, uri, action, options):
         registration = Model(self, 'registration_info')
 
-        now = datetime.datetime.now(pytz.utc).isoformat()
+        now = utcnow().isoformat()
 
         if action == 'register':
             match = options.get('match', 'exact')

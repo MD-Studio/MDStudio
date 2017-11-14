@@ -15,8 +15,6 @@ class SchemaWampApi(BaseApplicationSession):
     """
 
     def preInit(self, **kwargs):
-        self._schemas = {}
-        self.lock = Lock()
         self.session_config_template = {}
         self.session_config['loggernamespace'] = 'schema'
 
@@ -61,11 +59,11 @@ class SchemaWampApi(BaseApplicationSession):
         schema_name = request['name']
         version = request.get('version', 1)
 
-        if schema_type == "endpoints":
+        if schema_type == "endpoint":
             res = yield self.endpoints.find_latest(vendor, component, schema_name, version)
-        elif schema_type == "resources":
+        elif schema_type == "resource":
             res = yield self.resources.find_latest(vendor, component, schema_name, version)
-        elif schema_type == "claims":
+        elif schema_type == "claim":
             res = yield self.claims.find_latest(vendor, component, schema_name, version)
         else:
             raise SchemaException('Schema type "{}" is not known'.format(schema_type))
@@ -75,7 +73,7 @@ class SchemaWampApi(BaseApplicationSession):
                     'version "{}" on "{}/{}" was not found'.format(vendor, component,schema_type,schema_name, version)
             raise SchemaException(error)
 
-        return_value(res)
+        return_value(res['schema'])
 
     def authorize_request(self, uri, claims):
         # @todo: check if user is part of group (in usermode)

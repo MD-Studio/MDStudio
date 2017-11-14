@@ -5,6 +5,7 @@ import jsonschema
 import json
 
 from asq.initiators import query
+from jsonschema import FormatChecker
 
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
@@ -217,7 +218,7 @@ def validate_input(input_schema, strict=True):
 
 def validate_json_schema(session, schema_def, request):
     # try:
-    jsonschema.validate(request, schema_def)
+    jsonschema.validate(request, schema_def, format_checker=FormatChecker())
     # except Exception as e:
     #     session.log.error('Error validating json schema: {error}', error=error)
     #     return False

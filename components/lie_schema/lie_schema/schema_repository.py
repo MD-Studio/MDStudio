@@ -1,6 +1,6 @@
 import json
 from collections import OrderedDict
-from pprint import pprint
+from pprint import pprint, pformat
 
 import dictdiffer
 import hashlib
@@ -8,11 +8,15 @@ from datetime import datetime
 
 import itertools
 
+import pytz
+from jsonschema import Draft4Validator, FormatChecker, SchemaError
+
 from lie_schema.exception import SchemaException
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
+import mdstudio.utc as utc
 
 
 class SchemaRepository:
@@ -87,6 +91,13 @@ class SchemaRepository:
     @chainable
     def upsert(self, vendor, component, schema, claims):
 
+        try:
+            Draft4Validator.check_schema(schema['schema'])
+        except SchemaError as e:
+            raise SchemaException('Schema does not conform to jsonschema draft 4, '\
+                'see http://json-schema.org/ for more info:\n{}\n\n{}'.format(pformat(schema['schema']), e.message))
+
+
         schema_str = self.schema_to_string(schema['schema'])
         hash = self.hash_schema(schema_str)
         name = schema['name']
@@ -104,32 +115,39 @@ class SchemaRepository:
     def history(self):
         return SchemaRepository.History(self.wrapper, '{}.history'.format(self.type))
 
+    @property
+    def ignored_keywords(self):
+        return ['title', 'description', 'examples']
+
     def hash_schema(self, schema):
+        # type: (str) -> str
         return hashlib.sha256(self.schema_to_string(schema).encode()).hexdigest()
 
     def schema_to_string(self, schema):
+        # type: (dict) -> str
         return json.dumps(schema, sort_keys=True)
 
     def _check_stored_compatibility(self, old, schema):
-        changeable_keywords = ['title', 'description', 'examples']
+        changeable_keywords = self.ignored_keywords
         if old:
             old_schema = json.loads(old['schema'])
-            changes = list(itertools.islice(dictdiffer.diff(old_schema, schema, ignore=changeable_keywords, expand=True), 5))
-            compatible, changes = len(changes) == 0
+            changes = list(itertools.islice(dictdiffer.diff(old_schema, schema['schema'], ignore=changeable_keywords, expand=True), 5))
+            compatible = len(changes) == 0
         else:
             compatible = True
             changes = None
         if not compatible:
             err_str = "The new schema is not compatible with the old version that was already registered."
-            if changes:
-                err_str += " Incompatible changes were:\n"
-                for c in changes:
-                    if c[0] == 'change':
-                        err_str += '\t- Changed value "{}" from "{}" to "{}"\n'.format(c[1], c[2][0], c[2][1])
-                    if c[0] == 'add':
-                        err_str += '\t- Added "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
-                    if c[0] == 'remove':
-                        err_str += '\t- Removed "{}.{}" with value "{}"\n'.format(c[1], c[2][0][0], c[2][0][1])
+            err_str += " Incompatible changes were:\n"
+            for c in changes:
+                if c[0] == 'change':
+                    err_str += '\t- Changed value "{}" from "{}" to "{}"\n'.format(c[1], c[2][0], c[2][1])
+                if c[0] == 'add':
+                    from_str = '.{}'.format(c[2][0][0]) if c[1] else c[2][0][0]
+                    err_str += '\t- Added "{}{}" with value "{}"\n'.format(c[1], from_str, c[2][0][1])
+                if c[0] == 'remove':
+                    from_str = '.{}'.format(c[2][0][0]) if c[1] else c[2][0][0]
+                    err_str += '\t- Removed "{}{}" with value "{}"\n'.format(c[1], from_str, c[2][0][1])
 
             raise SchemaException(err_str)
 
@@ -167,7 +185,7 @@ class SchemaRepository:
                     'builds': {
                         'hash': hash,
                         'schema': schema_str,
-                        'createdAt': datetime.utcnow(),
+                        'createdAt': utc.now(),
                         'createdBy': {
                             'username': claims.get('username'),
                             'groups': claims.get('groups')
@@ -189,5 +207,5 @@ class SchemaRepository:
                 'hash': hash,
                 'build': len(updated['builds']),
                 'schema': schema_str,
-                'updatedAt': datetime.utcnow()
+                'updatedAt': utc.now()
             }, upsert=True)

@@ -12,7 +12,8 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 import pytz
-from dateutil.parser import parse as parsedate
+
+from mdstudio.utc import from_utc_string
 
 try:
     from pymongo.collection import Collection
@@ -176,8 +177,10 @@ class IDatabase:
 
         def _parse_value(val):
             if isinstance(val, str):
-                return parsedate(val).astimezone(pytz.utc)
+                return from_utc_string(val)
             elif isinstance(val, datetime.datetime):
+                if val.tzinfo != pytz.utc:
+                    raise DatabaseException("All datetime info should be stored in UTC format, please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
                 return val
             else:
                 raise DatabaseException("Failed to parse datetime field '{}'".format(val))
