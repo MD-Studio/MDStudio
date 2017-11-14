@@ -36,10 +36,11 @@ setup(
     keywords='MDStudio LIE statistics modelling',
     platforms=['Any'],
     packages=find_packages(),
+    package_data={'': ['*.json']},
     py_modules=[distribution_name],
     test_suite="tests",
     test_requirements=test_requirements,
-    install_requires=['numpy','pandas','statsmodels'] + test_requirements,
+    install_requires=['numpy', 'pandas', 'statsmodels', 'jsonschema'] + test_requirements,
     include_package_data=True,
     zip_safe=True,
     entry_points={
