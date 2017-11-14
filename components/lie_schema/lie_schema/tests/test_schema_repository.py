@@ -744,3 +744,6 @@ class TestSchemaRepository(DBTestCase):
         version = self.fake.random_number(3)
         uploaded = yield self.rep.find_latest(vendor, component, name, version)
         self.assertEqual(uploaded, None)
+
+    def test_ignored_keywords(self):
+        self.assertEqual(self.rep.ignored_keywords, ['title', 'description', 'examples'])
