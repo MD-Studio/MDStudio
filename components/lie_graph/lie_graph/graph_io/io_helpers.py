@@ -5,6 +5,8 @@ import os
 import collections
 import logging as logger
 
+from .. import __version__
+
 if sys.version_info[0] < 3:
     import StringIO
     import urlparse
@@ -12,9 +14,6 @@ if sys.version_info[0] < 3:
 else:
     from io import StringIO
     from urllib import parse as urlparse
-
-from .. import __version__
-
 
 def _coarse_type(n):
 
