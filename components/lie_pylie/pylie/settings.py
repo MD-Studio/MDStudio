@@ -48,6 +48,9 @@ PYLIE_MASTER_CONFIG = {
 
     # LIEMDFrame:
     'LIEMDFrame.inlierFilterMethod': 'pair',
+    'LIEMDFrame.filetype': 'gromacs',
+    'LIEMDFrame.lie_vdw_header': 'vdwLIE',
+    'LIEMDFrame.lie_ele_header': 'EleLIE',
 
     # FilterSplines class: FFT based spline filtering of MD (energy) trajectories
     'FilterSplines.fftfreq': 15,  # Filter frequencies higher than X. The higher the number, the more bumps.
