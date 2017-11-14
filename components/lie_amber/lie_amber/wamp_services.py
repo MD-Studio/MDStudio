@@ -11,7 +11,7 @@ import json
 import jsonschema
 import tempfile
 
-from autobahn               import wamp
+from autobahn import wamp
 
 from lie_amber.settings import SETTINGS, AMBER_SCHEMA
 from lie_amber.ambertools import amber_acpype, amber_reduce
@@ -28,7 +28,7 @@ class AmberWampApi(LieApplicationSession):
     require_config = ['system']
     
     @wamp.register(u'liestudio.amber.acpype')
-    def run_amber_acpype(self, structure=None, session={}, **kwargs):
+    def run_amber_acpype(self, structure=None, session=None, **kwargs):
         
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
@@ -57,7 +57,7 @@ class AmberWampApi(LieApplicationSession):
         return {'session':session, 'path':output}
     
     @wamp.register(u'liestudio.amber.reduce')
-    def run_amber_reduce(self, structure=None, session={}, **kwargs):
+    def run_amber_reduce(self, structure=None, session=None, **kwargs):
         
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
