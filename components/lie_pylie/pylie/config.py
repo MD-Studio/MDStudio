@@ -164,6 +164,10 @@ class ConfigHandler(object):
         for key, value in indict.items():
             self._set(key, value, strict=strict)
 
+    def dict(self):
+
+        return self._config or {}
+
 
 class MetaConfigHandler(object):
     """
