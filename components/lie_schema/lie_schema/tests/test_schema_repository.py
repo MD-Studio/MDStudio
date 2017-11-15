@@ -71,7 +71,7 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})['result']
@@ -131,7 +131,7 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})['result']
@@ -197,7 +197,7 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})['result']
@@ -289,7 +289,7 @@ class TestSchemaRepository(DBTestCase):
             self.assertEqual(uploaded, expected)
 
             found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-            expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+            expected['updatedAt'] = to_utc_string(expected['updatedAt'])
             self.assertEqual(found, expected)
 
             found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
@@ -357,7 +357,7 @@ class TestSchemaRepository(DBTestCase):
             self.assertEqual(uploaded, expected)
 
             found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-            expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+            expected['updatedAt'] = to_utc_string(expected['updatedAt'])
             self.assertEqual(found, expected)
 
             found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
@@ -427,7 +427,7 @@ class TestSchemaRepository(DBTestCase):
             self.assertEqual(uploaded, expected)
 
             found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-            expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+            expected['updatedAt'] = to_utc_string(expected['updatedAt'])
             self.assertEqual(found, expected)
 
             found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
@@ -493,7 +493,7 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
@@ -575,7 +575,7 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
@@ -657,7 +657,7 @@ class TestSchemaRepository(DBTestCase):
             'vendor': vendor,
             'component': component
         }, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'].replace(tzinfo=None))
+        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {
@@ -707,7 +707,7 @@ class TestSchemaRepository(DBTestCase):
             'vendor': vendor,
             'component': component
         }, projection={'_id': False})['result']
-        expected2['updatedAt'] = to_utc_string(expected2['updatedAt'].replace(tzinfo=None))
+        expected2['updatedAt'] = to_utc_string(expected2['updatedAt'])
         self.assertEqual(found2, expected2)
 
         found_history2 = yield self.db.find_one('{}.history'.format(self.type), {

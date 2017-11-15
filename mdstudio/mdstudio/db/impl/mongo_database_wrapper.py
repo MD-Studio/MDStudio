@@ -17,6 +17,7 @@ from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFi
     ProjectionOperators, AggregationOperator
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
+from mdstudio.utc import to_utc_string
 
 
 class MongoDatabaseWrapper(IDatabase):
@@ -447,6 +448,6 @@ class MongoDatabaseWrapper(IDatabase):
 
         for key, value in iter:
             if isinstance(value, datetime.datetime):
-                document[key] = value.isoformat()
+                document[key] = to_utc_string(value.astimezone(pytz.utc))
             else:
                 self._transform_datetime_to_isostring(value)

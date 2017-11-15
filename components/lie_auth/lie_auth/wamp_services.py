@@ -28,7 +28,7 @@ from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, Expired
 
 from mdstudio.api.schema import Schema
 from mdstudio.deferred.chainable import chainable
-from mdstudio.time import utcnow
+from mdstudio.utc import now
 
 try:
     import urlparse
@@ -135,7 +135,7 @@ class AuthWampApi(BaseApplicationSession):
                                 'role': 'admin'}
 
                     admin = yield Model(self, 'users').insert_one(userdata)
-                    
+
                     if not admin:
                         self.log.error('Unable to create default admin account')
                         self.leave('Unable to create default admin account, could not properly start.')

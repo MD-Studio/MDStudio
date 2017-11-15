@@ -10,6 +10,7 @@ from twisted.trial.unittest import TestCase
 from mdstudio.db.database import IDatabase
 from mdstudio.db.exception import DatabaseException
 from mdstudio.deferred.chainable import chainable
+from mdstudio.utc import now
 
 
 class DatabaseTests(TestCase):
@@ -279,3 +280,19 @@ class DatabaseTests(TestCase):
                 'date': '2017-10-26T09:16:00+00:00'
             }
         })
+
+    def test_datetime_conversion(self):
+        tz = pytz.timezone('Pacific/Johnston')
+
+        now_tz = datetime.datetime.now(tz)
+        doc = {'createdAt': now_tz}
+        IDatabase.transform_to_datetime(doc, ['createdAt'])
+
+        self.assertEqual(doc['createdAt'], now_tz)
+        self.assertLess(now() - doc['createdAt'], datetime.timedelta(seconds=1))
+
+    def test_datetime_without_tzinfo(self):
+        now_tzless = datetime.datetime.now()
+        doc = {'createdAt': now_tzless}
+
+        self.assertRaises(DatabaseException, lambda: IDatabase.transform_to_datetime(doc, ['createdAt']))

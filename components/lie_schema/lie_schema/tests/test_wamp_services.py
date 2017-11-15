@@ -1,3 +1,5 @@
+import json
+
 from faker import Faker
 from mock import mock, call
 
@@ -195,7 +197,7 @@ class TestWampService(DBTestCase, APITestCase):
 
         self.service.claims = mock.MagicMock()
         for _ in range(50):
-            self.service.endpoints.find_latest = mock.MagicMock(return_value={'schema': 'test_schema'})
+            self.service.endpoints.find_latest = mock.MagicMock(return_value={'schema': json.dumps({'test': 'schema'})})
             component = self.faker.word()
             name = self.faker.word()
             version = self.faker.random_number(3)
@@ -206,7 +208,7 @@ class TestWampService(DBTestCase, APITestCase):
                 'version': version
             }
             output = yield self.assertApi(self.service, 'schema_get', obj, self.claims)
-            self.assertEqual(output, 'test_schema')
+            self.assertEqual(output, {'test': 'schema'})
             self.service.endpoints.find_latest.assert_called_once_with(self.vendor, component, name, version)
 
     @chainable
@@ -214,7 +216,7 @@ class TestWampService(DBTestCase, APITestCase):
 
         self.service.claims = mock.MagicMock()
         for _ in range(50):
-            self.service.resources.find_latest = mock.MagicMock(return_value={'schema': 'test_schema'})
+            self.service.resources.find_latest = mock.MagicMock(return_value={'schema': json.dumps({'test': 'schema'})})
             component = self.faker.word()
             name = self.faker.word()
             version = self.faker.random_number(3)
@@ -225,7 +227,7 @@ class TestWampService(DBTestCase, APITestCase):
                 'version': version
             }
             output = yield self.assertApi(self.service, 'schema_get', obj, self.claims)
-            self.assertEqual(output, 'test_schema')
+            self.assertEqual(output, {'test': 'schema'})
             self.service.resources.find_latest.assert_called_once_with(self.vendor, component, name, version)
 
     @chainable
@@ -233,7 +235,7 @@ class TestWampService(DBTestCase, APITestCase):
 
         self.service.claims = mock.MagicMock()
         for _ in range(50):
-            self.service.claims.find_latest = mock.MagicMock(return_value={'schema': 'test_schema'})
+            self.service.claims.find_latest = mock.MagicMock(return_value={'schema': json.dumps({'test': 'schema'})})
             component = self.faker.word()
             name = self.faker.word()
             version = self.faker.random_number(3)
@@ -244,7 +246,7 @@ class TestWampService(DBTestCase, APITestCase):
                 'version': version
             }
             output = yield self.assertApi(self.service, 'schema_get', obj, self.claims)
-            self.assertEqual(output, 'test_schema')
+            self.assertEqual(output, {'test': 'schema'})
             self.service.claims.find_latest.assert_called_once_with(self.vendor, component, name, version)
 
     @chainable
@@ -252,7 +254,7 @@ class TestWampService(DBTestCase, APITestCase):
 
         self.service.claims = mock.MagicMock()
         for _ in range(50):
-            self.service.claims.find_latest = mock.MagicMock(return_value={'schema': 'test_schema'})
+            self.service.claims.find_latest = mock.MagicMock(return_value={'schema': json.dumps({'test': 'schema'})})
             component = self.faker.word()
             name = self.faker.word()
             type = self.faker.word()
@@ -293,5 +295,5 @@ class TestWampService(DBTestCase, APITestCase):
                 yield self.assertApi(self.service, 'schema_get', obj, self.claims)
                 completed = True
             except SchemaException as e:
-                self.assertRegex(str(e), 'Schema name "{}" with type "{}", and version "{}" on "{}/{}" was not found'.format(self.vendor, component, 'claim', name, version))
+                self.assertRegex(str(e), 'Schema name "{}" with type "{}", and version "{}" on "{}/{}" was not found'.format(name, 'claim', version, self.vendor, component))
             self.assertFalse(completed)

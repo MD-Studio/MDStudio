@@ -66,7 +66,7 @@ class Schema:
             component = path_decomposition.group(2)
             schema_path = path_decomposition.group(3)
 
-            if True: # @todo: check if vendor/component is local
+            if vendor == session.component_info['vendor'] and component == session.component_info['namespace']:
                 self._retrieve_local(os.path.join(session.component_info['module_path'], 'schemas', 'resources'), schema_path)
             else:
                 yield self._retrieve_wamp(session, vendor, component, schema_path, 'resources')

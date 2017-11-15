@@ -125,7 +125,7 @@ class WampLogObserver(object):
                 'level': levelName,
                 'namespace': self.session.component_info['namespace'],
                 'user': self.session.session_config.get('authid', self.session.session_config.get('role')),
-                'time': datetime.fromtimestamp(event['log_time'], tz=pytz.utc).isoformat(),
+                'time': datetime.fromtimestamp(event['log_time'], tz=pytz.utc),
                 'message': message
             }
 

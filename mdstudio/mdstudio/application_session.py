@@ -152,7 +152,8 @@ class BaseApplicationSession(ApplicationSession):
             'package_name': self.__module__.split('.')[0],
             'class_name': type(self).__name__,
             'module_path': os.path.dirname(inspect.getfile(self.__class__)),
-            'mdstudio_lib_path': os.path.dirname(__file__)
+            'mdstudio_lib_path': os.path.dirname(__file__),
+            'vendor': 'mdstudio' # @todo: force derived classes to set this property
         }
 
         self.package_config_template = Schema('mdstudio://settings/settings')

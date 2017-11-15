@@ -38,6 +38,16 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def tearDown(self):
         wait_for_completion.wait_for_completion = False
 
+    def test_transform_datetime_to_isostring(self):
+        document = {
+            'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+            'f': '2017-10-26T09:15:00+00:00'
+        }
+        self.db._transform_datetime_to_isostring(document)
+        self.assertEqual(document, {
+            'date': '2017-10-26T09:16:00+00:00',
+            'f': '2017-10-26T09:15:00+00:00'
+        })
 
     def test_transform_datetime_to_isostring(self):
         document = {

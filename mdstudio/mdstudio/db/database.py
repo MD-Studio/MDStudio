@@ -179,8 +179,10 @@ class IDatabase:
             if isinstance(val, str):
                 return from_utc_string(val)
             elif isinstance(val, datetime.datetime):
+                if not val.tzinfo:
+                    raise DatabaseException("No timezone information found. All datetime info should be stored in UTC format, please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
                 if val.tzinfo != pytz.utc:
-                    raise DatabaseException("All datetime info should be stored in UTC format, please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
+                    val = val.astimezone(pytz.utc)
                 return val
             else:
                 raise DatabaseException("Failed to parse datetime field '{}'".format(val))

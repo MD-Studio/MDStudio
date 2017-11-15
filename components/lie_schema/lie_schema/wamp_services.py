@@ -1,8 +1,11 @@
+import json
+
 from autobahn.wamp import PublishOptions
 
 from lie_schema.exception import SchemaException
 from lie_schema.schema_repository import SchemaRepository
 from mdstudio.api.register import register
+from mdstudio.api.schema import Schema
 from mdstudio.application_session import BaseApplicationSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
@@ -70,10 +73,10 @@ class SchemaWampApi(BaseApplicationSession):
 
         if not res:
             error = 'Schema name "{}" with type "{}", and '\
-                    'version "{}" on "{}/{}" was not found'.format(vendor, component,schema_type,schema_name, version)
+                    'version "{}" on "{}/{}" was not found'.format(schema_name, schema_type, version, vendor, component)
             raise SchemaException(error)
 
-        return_value(res['schema'])
+        return_value(json.loads(res['schema']))
 
     def authorize_request(self, uri, claims):
         # @todo: check if user is part of group (in usermode)
