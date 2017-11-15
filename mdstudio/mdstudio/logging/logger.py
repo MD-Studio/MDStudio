@@ -1,6 +1,7 @@
 # coding=utf-8
 import json
 from datetime import datetime
+from json import JSONDecodeError
 
 import os
 import pytz
@@ -103,7 +104,10 @@ class WampLogObserver(object):
         self.shutdown = False
 
         if file:
-            self.log_list = json.load(file)
+            try:
+                self.log_list = json.load(file)
+            except JSONDecodeError:
+                pass
 
     def __call__(self, event):
         if self.namespace and not event['log_namespace'] == self.namespace:
@@ -166,3 +170,4 @@ class WampLogObserver(object):
             self.log_list.append(self.log_queue.get())
 
         json.dump(self.log_list, file)
+        file.flush()
