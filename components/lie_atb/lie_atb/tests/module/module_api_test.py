@@ -7,24 +7,17 @@ Unit tests for the Automated Topology Builder server API
 """
 
 import os
-import sys
-import json
-import re
 import unittest2
-
 import urllib2
-
-# Add modules in package to path so we can import them
-currpath = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(currpath, '..')))
+import re
 
 from lie_atb import ATBServerApi
 from lie_atb.settings import SETTINGS
 
 
 class TestAPI(unittest2.TestCase):
-
-    _files_dir = os.path.join(currpath, 'files')
+    currpath = os.path.dirname(__file__)
+    _files_dir = os.path.join(currpath, '../', 'files')
 
     def setUp(self):
         """
@@ -37,6 +30,7 @@ class TestAPI(unittest2.TestCase):
                                 timeout=SETTINGS['atb_api_timeout'],
                                 debug=SETTINGS['atb_api_debug'],
                                 host=SETTINGS['atb_url'])
+
         self.files_to_delete = []
 
     def tearDown(self):
@@ -135,7 +129,8 @@ class TestAPI(unittest2.TestCase):
 
     def test_molecule_query_atomnumber(self):
         """
-        Test query on minimum and maximum atom number
+        Test query on minimum and maximum atom number.
+        A maximum of 100 records is returned.
         """
 
         # maximum atom number
@@ -145,7 +140,6 @@ class TestAPI(unittest2.TestCase):
 
         # combined
         molecules2 = self.api.Molecules.search(min_atoms=30, max_atoms=40)
-        self.assertTrue(len(molecules2) < len(molecules))
         self.assertTrue(all([30 <= m.atoms <= 40 for m in molecules2]))
 
     def test_molecule_query_combinequery(self):
@@ -163,13 +157,16 @@ class TestAPI(unittest2.TestCase):
 
         Query supports structure files in PDF, SDF, MOL, MOL2 and INCHI formats
         Query includes netcharge as either undefined (*) or from +5 to -5
+
+        16-11-2017: Method only works with HTTP GET
         """
 
         query_file = os.path.join(self._files_dir, '36825_querystructure.pdb')
 
         result = None
         with open(query_file) as pdb:
-            result = self.api.Molecules.structure_search(structure_format='pdb', structure=pdb.read(), netcharge='*')
+            result = self.api.Molecules.structure_search(structure_format='pdb', structure=pdb.read(),
+                                                         netcharge='*', method=u'GET')
 
         if result and isinstance(result, dict):
             self.assertTrue(any([m['molid'] == 36825 for m in result['matches']]))
@@ -184,7 +181,7 @@ class TestAPI(unittest2.TestCase):
 
         valid_atb_url = True
         try:
-            response = api.Molecules.search(any='ethanol')
+            api.Molecules.search(any='ethanol')
         except urllib2.URLError:
             valid_atb_url = False
             print('ATB server URL {0} not known/reachable'.format('http://host.not.exist'))
@@ -204,11 +201,11 @@ class TestAPI(unittest2.TestCase):
 
         valid_atb_token = ''
         try:
-            response = api.Molecules.search(any='ethanol')
+            api.Molecules.search(any='ethanol')
         except urllib2.URLError as e:
-            valid_atb_token = json.load(e)['error_msg']
+            valid_atb_token = u'Could not authenticate account'
         except urllib2.HTTPError as e:
-            valid_atb_token = json.load(e)['error_msg']
+            valid_atb_token = u'Could not authenticate account'
 
         self.assertEqual(valid_atb_token, u'Could not authenticate account')
 
@@ -220,7 +217,8 @@ class TestAPI(unittest2.TestCase):
         molecules = self.api.Molecules.search(any='ethanol')
         for fformat in ('pdb_aa', 'pdb_ua', 'pdb_allatom_unoptimised'):
             for molecule in molecules:
-                pdb_path = os.path.join(self._files_dir, '{0}_{1}.{2}'.format(molecule.molid, fformat, fformat.split('_')[0]))
+                pdb_path = os.path.join(self._files_dir, '{0}_{1}.{2}'.format(molecule.molid,
+                                                                              fformat, fformat.split('_')[0]))
                 self.files_to_delete.append(pdb_path)
 
                 mol = molecule.download_file(atb_format=fformat)
@@ -236,8 +234,10 @@ class TestAPI(unittest2.TestCase):
 
         molecule = self.api.Molecules.molid(molid=36825)
         for ffVersion in ('53A6', '54A7'):
-            for fformat in ('lammps_allatom_optimised.lt', 'lammps_allatom_unoptimised.lt', 'lammps_uniatom_optimised.lt', 'lammps_uniatom_unoptimised.lt'):
-                pdb_path = os.path.join(self._files_dir, '{0}_{1}_{2}.{3}'.format(molecule.molid, fformat.split('.')[0], ffVersion, fformat.split('.')[1]))
+            for fformat in ('lammps_allatom_optimised.lt', 'lammps_allatom_unoptimised.lt',
+                            'lammps_uniatom_optimised.lt', 'lammps_uniatom_unoptimised.lt'):
+                pdb_path = os.path.join(self._files_dir, '{0}_{1}_{2}.{3}'.format(molecule.molid, fformat.split('.')[0],
+                                                                                  ffVersion, fformat.split('.')[1]))
                 self.files_to_delete.append(pdb_path)
 
                 mol = molecule.download_file(file=fformat, outputType='top', ffVersion=ffVersion, hash='HEAD')
@@ -271,7 +271,8 @@ class TestAPI(unittest2.TestCase):
         molecule = self.api.Molecules.molid(molid=36825)
         for ffVersion in ('53A6', '54A7'):
             for fformat in ('mtb_allatom', 'mtb_uniatom'):
-                pdb_path = os.path.join(self._files_dir, '{0}_{1}_{2}.{3}'.format(molecule.molid, fformat, ffVersion, fformat.split('_')[1]))
+                pdb_path = os.path.join(self._files_dir, '{0}_{1}_{2}.{3}'.format(molecule.molid, fformat, ffVersion,
+                                                                                  fformat.split('_')[1]))
                 self.files_to_delete.append(pdb_path)
 
                 mol = molecule.download_file(file=fformat, outputType='top', ffVersion=ffVersion, hash='HEAD')
@@ -321,7 +322,8 @@ class TestAPI(unittest2.TestCase):
 
         molecule = self.api.Molecules.molid(molid=36825)
         for ffVersion in ('53A6', '54A7'):
-            for fformat in ('pqr_allatom_optimised', 'pqr_allatom_unoptimised', 'pqr_uniatom_optimised', 'pqr_uniatom_unoptimised'):
+            for fformat in ('pqr_allatom_optimised', 'pqr_allatom_unoptimised', 'pqr_uniatom_optimised',
+                            'pqr_uniatom_unoptimised'):
                 pdb_path = os.path.join(self._files_dir, '{0}_{1}_{2}.pqr'.format(molecule.molid, fformat, ffVersion))
                 self.files_to_delete.append(pdb_path)
 
@@ -401,4 +403,4 @@ class TestAPI(unittest2.TestCase):
             pdb_0=self.api.Molecules.download_file(atb_format=u'pdb_aa', molid=ethanol_molids[1]),
         )
 
-        self.assertEqual(result2['rmsd'], result3['rmsd'])
+        self.assertAlmostEqual(result2['rmsd'], result3['rmsd'], places=3)
