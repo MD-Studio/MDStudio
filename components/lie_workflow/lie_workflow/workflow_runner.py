@@ -279,8 +279,9 @@ class WorkflowRunner(_WorkflowQueryMethods):
         task.active = False
 
         # If the task returned no output at all, fail it
-        session = WAMPTaskMetaData(metadata=output.get('session', {}))
+        session = WAMPTaskMetaData()
         if output:
+            session = WAMPTaskMetaData(metadata=output.get('session'))
             # Remove when done
             del output['session']
 
