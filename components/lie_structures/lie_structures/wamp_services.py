@@ -9,15 +9,19 @@ WAMP service methods the module exposes.
 import os
 import json
 import jsonschema
+import tempfile
 
 from autobahn import wamp
+from Bio.PDB import PDBList
 
 from lie_system import LieApplicationSession, WAMPTaskMetaData
-from lie_structures import settings, structures_schema
+from lie_structures import settings
+from lie_structures.settings import _schema_to_data, STRUCTURES_SCHEMA, BIOPYTHON_SCHEMA
 from lie_structures.cheminfo_utils import (
      mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write)
 
-STRUCTURES_SCHEMA = json.load(open(structures_schema))
+STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))
+BIOPYTHON_SCHEMA = json.load(open(BIOPYTHON_SCHEMA))
 
 
 class StructuresWampApi(LieApplicationSession):
@@ -27,17 +31,11 @@ class StructuresWampApi(LieApplicationSession):
 
     require_config = ['system']
 
-    # @inlineCallbacks
-    # def onJoin(self, details):
-    #
-    #     yield self.register(self.get_structure, u'liestudio.structures.get_structure', options=RegisterOptions(invoke=u'roundrobin'))
-    #     self.log.info("StructuresWampApi: get_structure() registered!")
-
     @wamp.register(u'liestudio.structures.get_structure')
     def get_structure(self, structure=None, session=None, **kwargs):
 
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session or {})
+        session = WAMPTaskMetaData(metadata=session)
 
         result = ''
         tmpdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/tmp'
@@ -55,6 +53,48 @@ class StructuresWampApi(LieApplicationSession):
         # Pack result in session
         session.status = 'completed'
         return {'session': session.dict(), 'structure': result}
+
+    @wamp.register(u'liestudio.structure.retrieve_rcsb_structure')
+    def fetch_rcsb_structure(self, session=None, **kwargs):
+        """
+        Download a structure file from the RCSB database using a PDB ID
+        """
+
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+
+        # Load configuration and update
+        config = _schema_to_data(BIOPYTHON_SCHEMA)
+        config.update(kwargs)
+
+        # Validate the configuration
+        try:
+            jsonschema.validate(config, BIOPYTHON_SCHEMA)
+        except ValueError, e:
+            self.logger.error('Unvalid function arguments: {0}'.format(e))
+            session['status'] = 'failed'
+            return {'session': session}
+
+        # Create workdir and save file
+        workdir = os.path.join(config.get('workdir', tempfile.gettempdir()))
+        if not os.path.isdir(workdir):
+            os.makedirs(workdir)
+
+        # Retrieve the PDB file
+        pdb_id = config['pdb_id'].upper()
+        pdb = PDBList()
+        dfile = pdb.retrieve_pdb_file(pdb_id,
+                              file_format=config.get('rcsb_file_format', 'pdb'),
+                              pdir=workdir,
+                              overwrite=True)
+
+        if os.path.isfile(dfile):
+            session['status'] = 'completed'
+            return {'session': session, 'rcsb_file': dfile}
+
+        self.logger.error('Unable to download structure: {0}'.format(pdb_id), **session)
+        session['status'] = 'failed'
+        return {'session': session}
 
     @wamp.register(u'liestudio.structure.convert')
     def convert_structures(self, session=None, **kwargs):
