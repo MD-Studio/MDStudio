@@ -5,15 +5,8 @@ Unit tests for the Open Babel methods
 """
 
 import os
-import sys
 import unittest2
-import logging
-import copy
 import filecmp
-
-# Add modules in package to path so we can import them
-__rootpath__ = os.path.dirname(__file__)
-sys.path.append(os.path.abspath(os.path.join(__rootpath__, '..')))
 
 from lie_structures.cheminfo_utils import *
 
@@ -21,8 +14,9 @@ from lie_structures.cheminfo_utils import *
 class CheminfoTests(unittest2.TestCase):
 
     tmp_files = []
-    ligand_file_mol2 = os.path.join(__rootpath__, '../files/ligand.mol2')
-    ligand_file_sdf = os.path.join(__rootpath__, '../files/ligand.sdf')
+    currpath = os.path.dirname(__file__)
+    ligand_file_mol2 = os.path.join(currpath, '../files/ligand.mol2')
+    ligand_file_sdf = os.path.join(currpath, '../files/ligand.sdf')
     
     @classmethod
     def setUpClass(cls):
@@ -50,7 +44,7 @@ class CheminfoTests(unittest2.TestCase):
         Test importing structure file with correct format.
         """
         
-        moldata = {'molwt':467.53898000000027, 'atoms': 62}
+        moldata = {'molwt': 467.53898000000027, 'atoms': 62}
         
         # Explicit import, format defined
         mol = mol_read(self.ligand_file_mol2, mol_format='mol2', from_file=True)
@@ -74,7 +68,7 @@ class CheminfoTests(unittest2.TestCase):
         Test importing structure from string
         """
         
-        moldata = {'molwt':467.53898000000027, 'atoms': 62}
+        moldata = {'molwt': 467.53898000000027, 'atoms': 62}
         
         # Explicit import, format defined
         mol = mol_read(self.ligand, mol_format='mol2')
@@ -97,13 +91,13 @@ class CheminfoTests(unittest2.TestCase):
         Test addition of hydrogens
         """
         
-        mol = mol_read(os.path.join(__rootpath__, '../files/ccncc_3d_noh.mol2'), from_file=True)
+        mol = mol_read(os.path.join(self.currpath, '../files/ccncc_3d_noh.mol2'), from_file=True)
         mol = mol_addh(mol)
         
-        out = os.path.join(__rootpath__, '../files/test_addh.mol2')
-        self.tmp_files.append(out)
+        out = os.path.join(self.currpath, '../files/test_addh.mol2')
+        #self.tmp_files.append(out)
         mol_write(mol, file_path=out, mol_format='mol2')
-        self.assertTrue(filecmp.cmp(out, os.path.join(__rootpath__, '../files/ccncc_3d_noh.mol2')))
+        self.assertTrue(filecmp.cmp(out, os.path.join(self.currpath, '../files/ccncc_3d.mol2')))
     
     def test_make3D(self):
         """
@@ -111,26 +105,26 @@ class CheminfoTests(unittest2.TestCase):
         """
         
         mol = mol_read('CCNCC', mol_format='smi')
-        out = os.path.join(__rootpath__, '../files/test1d.mol2')
+        out = os.path.join(self.currpath, '../files/test1d.mol2')
         self.tmp_files.append(out)
         mol_write(mol, file_path=out, mol_format='mol2')
-        self.assertTrue(filecmp.cmp(out, os.path.join(__rootpath__, '../files/ccncc_1d.mol2')))
+        self.assertTrue(filecmp.cmp(out, os.path.join(self.currpath, '../files/ccncc_1d.mol2')))
         
         mol = mol_read('CCNCC', mol_format='smi')
-        out = os.path.join(__rootpath__, '../files/test3d.mol2')
+        out = os.path.join(self.currpath, '../files/test3d.mol2')
         self.tmp_files.append(out)
         mol_write(mol_make3D(mol, localopt=False), file_path=out, mol_format='mol2')
-        self.assertTrue(filecmp.cmp(out, os.path.join(__rootpath__, '../files/ccncc_3d.mol2')))
+        self.assertTrue(filecmp.cmp(out, os.path.join(self.currpath, '../files/ccncc_3d.mol2')))
         
         mol = mol_read('CCNCC', mol_format='smi')
-        out = os.path.join(__rootpath__, '../files/test3dopt.mol2')
+        out = os.path.join(self.currpath, '../files/test3dopt.mol2')
         self.tmp_files.append(out)
         mol_write(mol_make3D(mol), file_path=out, mol_format='mol2')
-        self.assertTrue(filecmp.cmp(out, os.path.join(__rootpath__, '../files/ccncc_1d.mol2')))
+        self.assertTrue(filecmp.cmp(out, os.path.join(self.currpath, '../files/ccncc_1d.mol2')))
     
     def test_rotation(self):
         
         mol = mol_read(self.ligand, mol_format='mol2')
-        mols = mol_combine_rotations(mol, rotations=[[1,0,0,90],[1,0,0,-90],[0,1,0,90],[0,1,0,-90],[0,0,1,90],[0,0,1,-90]])
-        
-        print(mols)
+        mols = mol_combine_rotations(mol, rotations=[[1, 0, 0, 90], [1, 0, 0, -90], [0, 1, 0, 90],
+                                                     [0, 1, 0, -90], [0, 0, 1, 90], [0, 0, 1, -90]])
+
