@@ -14,10 +14,10 @@ SETTINGS = {
     'atb_forcefield_version': ['53A6', '54A7']
 }
 
-ALLOWED_QUERY_KEYS = ['iupac', 'inchi', 'common_name', 'formula', 'rnme',
+ALLOWED_QUERY_KEYS = ['iupac', 'inchi', 'inchi_key', 'common_name', 'formula', 'rnme',
                       'maximum_qm_level', 'curation_trust', 'is_finished',
                       'user_label', 'tag', 'any', 'match_partial', 'moltype',
-                      'max_atoms', 'min_atoms', 'has_pdb_hetId']
+                      'max_atoms', 'min_atoms', 'has_pdb_hetId', 'smiles']
 
 SUPPORTED_STRUCTURE_FILE_FORMATS = {
     'pqr_allatom_optimised': 'cry',
