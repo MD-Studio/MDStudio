@@ -10,19 +10,6 @@
     "host": {
       "type": "string",
       "default": "localhost"
-    },
-    "log_level": {
-      "type": "string",
-      "description": "Log level for the microservice task",
-      "default": "info",
-      "enum": [
-        "debug",
-        "info",
-        "warn",
-        "error",
-        "critical"
-      ]
     }
-  },
-  "additionalProperties": false
+  }
 }

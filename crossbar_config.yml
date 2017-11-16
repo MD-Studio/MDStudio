@@ -1,0 +1,58 @@
+controller:
+  id: mdstudio01
+  options: {title: mdstudio-controller}
+version: 2
+workers:
+- realms:
+  - name: mdstudio
+    roles:
+    - name: auth
+      permissions:
+      - allow: {call: true, publish: false, register: true, subscribe: false}
+        cache: true
+        disclose: {caller: true, publisher: true}
+        match: prefix
+        uri: mdstudio.auth.endpoint
+      - allow: {call: true, publish: false, register: false, subscribe: true}
+        cache: true
+        disclose: {caller: false, publisher: false}
+        match: prefix
+        uri: mdstudio
+      - allow: {call: false, publish: true, register: false, subscribe: false}
+        cache: true
+        disclose: {caller: false, publisher: false}
+        match: exact
+        uri: mdstudio.logger.endpoint.log.auth
+      - allow: {call: true, subscribe: true}
+        match: prefix
+        uri: wamp
+    - {authorizer: mdstudio.auth.endpoint.authorize.ring0, name: db}
+    - {authorizer: mdstudio.auth.endpoint.authorize.ring0, name: schema}
+    - {authorizer: mdstudio.auth.endpoint.authorize.ring0, name: logger}
+    - {authorizer: mdstudio.auth.endpoint.authorize.public, name: public}
+    - {authorizer: mdstudio.auth.endpoint.authorize.user, name: user}
+    - {authorizer: mdstudio.auth.endpoint.authorize.admin, name: admin}
+    - {authorizer: mdstudio.auth.endpoint.authorize.oauth, name: oauthclient}
+  transports:
+  - endpoint:
+      port: 8080
+      tls: {certificate: data/crossbar/server_cert.pem, ciphers: 'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS',
+        dhparam: data/crossbar/dhparam.pem, key: data/crossbar/server_key.pem}
+      type: tcp
+    paths:
+      /: {directory: ../../app/dist, type: static}
+      bower_components: {directory: ../../app/bower_components, type: static}
+      dashboard: {directory: ../../app/dist/index.html, type: static}
+      docking: {directory: ../../app/dist/index.html, type: static}
+      help: {directory: ../../docs/html, type: static}
+      log: {directory: ../../app/dist/index.html, type: static}
+      login: {directory: ../../app/dist/index.html, type: static}
+      md: {directory: ../../app/dist/index.html, type: static}
+      node_modules: {directory: ../../app/node_modules, type: static}
+      ws:
+        type: websocket
+        auth:
+          anonymous: {role: public, type: static}
+          ticket: {authenticator: mdstudio.auth.endpoint.login, type: dynamic}
+    type: web
+  type: router

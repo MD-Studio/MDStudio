@@ -18,9 +18,3 @@ __licence__ = 'Apache Software License 2.0'
 __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
-
-# Import settings
-from .wamp_services import SchemaWampApi
-
-# Define component public API
-wampapi = SchemaWampApi

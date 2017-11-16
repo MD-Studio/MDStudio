@@ -1,0 +1,95 @@
+# -*- coding: utf-8 -*-
+
+"""
+file: wamp_services.py
+
+WAMP service methods the module exposes.
+"""
+
+import os
+
+from autobahn import wamp
+from mdstudio.api.register import register
+from mdstudio.api.schema import EndpointSchema, validate_input
+from mdstudio.component.impl.core import CoreComponentSession
+from mdstudio.db.model import Model
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
+from mdstudio.logging.log_type import LogType
+from mdstudio.logging.logger import PrintingObserver
+from twisted.python import log, logfile
+
+# Add global observer for daily logs
+# TODO:  make this available without an ugly injection
+if os.getenv('MD_GLOBAL_LOG', 0) != 0:
+    observer = PrintingObserver(logfile.DailyLogFile('daily.log', os.getenv('MD_GLOBAL_LOG_DIR', './data/logs')))
+    log.addObserver(observer)
+
+
+class LoggerComponent(CoreComponentSession):
+    """
+    Logger management WAMP methods.
+    """
+
+    @chainable
+    def on_run(self):
+        self.log_event_subscription = yield self.subscribe(self.log_event, u'mdstudio.logger.endpoint.log')
+        yield self.event(u'mdstudio.logger.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
+
+        yield self.publish(u'mdstudio.logger.endpoint.log', {'foo': 'bar'}, claims={'logType': LogType.User})
+
+    @validate_input(EndpointSchema('endpoint://log/log'))
+    @chainable
+    def log_event(self, request, claims):
+        """
+        Receive structured log events over WAMP and broadcast
+        to local Twisted logger observers.
+
+        :param event: Structured log event
+        :type event:  :py:class:`dict`
+        :return:      standard return
+        :rtype:       :py:class:`dict` to JSON
+        """
+
+        res = yield Model(self, self.get_log_collection_name(claims)).insert_many(request['logs'], date_fields=['insert.time'])
+        return_value(len(res))
+
+    @register(u'mdstudio.logger.endpoint.get', {}, {})
+    def get_log_events(self, user):
+        """
+        Retrieve structured log events from the database
+        """
+
+        posts = []
+        for post in self.log_collection.find({"authid": user}, {'_id': False}):
+            posts.append(post)
+
+        return posts
+
+    def authorize_request(self, uri, claims):
+        connection_type = LogType.from_string(claims['logType'])
+
+        # @todo: solve this using jsonschema
+        if connection_type == LogType.User:
+            return ('username' in claims) == True
+        elif connection_type == LogType.Group:
+            raise NotImplemented()
+        elif connection_type == LogType.GroupRole:
+            raise NotImplemented()
+
+        return False
+
+    @staticmethod
+    def get_log_collection_name(claims):
+        connection_type = LogType.from_string(claims['connectionType'])
+
+        if connection_type == LogType.User:
+            collection_name = 'users~{user}'.format(user=claims['username'])
+        elif connection_type == LogType.Group:
+            collection_name = 'groups~{group}'.format(group=claims['group'])
+        elif connection_type == LogType.GroupRole:
+            collection_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
+        else:
+            raise NotImplemented('This distinction does not exist')
+
+        return collection_name

@@ -1,35 +1,30 @@
 import json
 
 from autobahn.wamp import PublishOptions
-
 from lie_schema.exception import SchemaException
 from lie_schema.schema_repository import SchemaRepository
 from mdstudio.api.register import register
-from mdstudio.api.schema import Schema
-from mdstudio.application_session import BaseApplicationSession
+from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.lock import Lock
 from mdstudio.deferred.return_value import return_value
 
 
-class SchemaWampApi(BaseApplicationSession):
+class SchemaComponent(CoreComponentSession):
     """
     Database management WAMP methods.
     """
 
-    def preInit(self, **kwargs):
-        self.session_config_template = {}
-        self.session_config['loggernamespace'] = 'schema'
+    def pre_init(self):
 
         self.endpoints = SchemaRepository(self, 'endpoints')
         self.resources = SchemaRepository(self, 'resources')
         self.claims = SchemaRepository(self, 'claims')
 
-    def onInit(self, **kwargs):
+    def onInit(self):
         self.autolog = False
 
     @chainable
-    def onRun(self, details):
+    def on_run(self):
         self.publish_options = PublishOptions(acknowledge=True)
         yield self.publish(u'mdstudio.schema.endpoint.events.online', True, options=self.publish_options)
 

@@ -13,27 +13,6 @@ from twisted.python.failure import Failure
 
 from mdstudio import is_python3
 
-if is_python3:
-    # noinspection PyCompatibility
-    from queue import Queue, Empty
-else:
-    # noinspection PyCompatibility
-    from Queue import Queue, Empty
-
-
-def block_on(d, timeout=None):
-    q = Queue()
-    d.addBoth(q.put)
-    try:
-        ret = q.get(timeout is not None, timeout)
-    except Empty:
-        raise TimeoutError
-    if isinstance(ret, Failure):
-        ret.raiseException()
-    else:
-        return ret
-
-
 LOGLEVELS = ['debug', 'info', 'warn', 'error', 'critical']
 
 

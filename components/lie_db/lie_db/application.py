@@ -1,32 +1,25 @@
-from logging import Logger
-
 import os
 from autobahn.wamp import PublishOptions
 
 from mdstudio.api.register import register
-from mdstudio.application_session import BaseApplicationSession
+from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
-from mdstudio.logging import Logger
-
+from twisted.logger import Logger
 
 logger = Logger(namespace='db')
 
-class DBWampApi(BaseApplicationSession):
+
+class DBComponent(CoreComponentSession):
     """
     Database management WAMP methods.
     """
 
-    def preInit(self, **kwargs):
-        self.session_config_template = {}
-        # self.package_config_template = 'settings/settings')
-        self.session_config['loggernamespace'] = 'db'
-
-    def onInit(self, **kwargs):
-        db_host = os.getenv('MD_MONGO_HOST', self.package_config.get('host', 'localhost'))
-        db_port = int(os.getenv('MD_MONGO_PORT', self.package_config.get('port', 27017)))
+    def on_init(self):
+        db_host = os.getenv('MD_MONGO_HOST', self.component_config.settings.get('host', 'localhost'))
+        db_port = int(os.getenv('MD_MONGO_PORT', self.component_config.settings.get('port', 27017)))
         self._client = MongoClientWrapper(db_host, db_port)
         self.autolog = False
         self.autoschema = False
@@ -34,9 +27,9 @@ class DBWampApi(BaseApplicationSession):
         self.database_lock = Lock()
 
     @chainable
-    def onRun(self, details):
+    def on_run(self):
         self.publish_options = PublishOptions(acknowledge=True)
-        yield self.publish(u'mdstudio.db.endpoint.events.online', True, options=self.publish_options)
+        yield self.event(u'mdstudio.db.endpoint.events.online', True, options=self.publish_options)
 
     @register(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', scope='write')
     def more(self, request, details=None, claims=None):

@@ -4,90 +4,31 @@ import os
 import jsonschema
 import json
 
-from asq.initiators import query
-from jsonschema import FormatChecker
+from jsonschema import FormatChecker, ValidationError
 
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
-class Schema:
-    def __init__(self, uri, versions=None):
-        # type: (str, Optional[List[Union[int, str]]]) -> None
-        schema_uri_match = re.match('(\\w+)://(.+)(\\.json)?', uri)
-        transport = schema_uri_match.group(1)
-        schema_path = schema_uri_match.group(2)
-
-        if not versions:
-            versions = []
-
-        self.uri = uri
-        self.transport = transport
-        self.versions = []
+class ISchema:
+    def __init__(self):
         self.cached = {}
 
-        if transport.startswith('http'):
-            self.cached = {'v1': {'$ref': uri}}
+    def _retrieve_local(self, base_path, schema_path, versions=None):
+        if versions:
+            if not isinstance(versions, list):
+                versions = [versions]
 
-        for version in versions:
-            if isinstance(version, int):
-                self.versions.append(version)
-            elif isinstance(version, str):
-                self.versions.append(int(version.replace('v', '')))
-            else:
-                raise TypeError
+            for version in versions:
+                path = os.path.join(base_path, '{}.v{}.json'.format(schema_path, version))
 
-        versions_match = re.match('(.*)/((v[0-9]+,?)+)', schema_path)
-        if versions_match:
-            self.schema_path = versions_match.group(1)
-            self.versions.extend(query(versions_match.group(2).split(',')).select(lambda x: int(x.replace('v', ''))))
+                with open(path, 'r') as f:
+                    self.cached[version] = json.load(f)
         else:
-            self.schema_path = schema_path
+            path = os.path.join(base_path, '{}.json'.format(schema_path))
 
-        if len(self.versions) == 0 and not (transport.startswith('http') or transport == 'mdstudio'):
-            self.versions.append(1)
-
-    def __eq__(self, other):
-        return self.uri == other.uri and self.versions == other.versions
-
-    @chainable
-    def flatten(self, session):
-        # type: (BaseApplicationSession) -> None
-        if self.cached:
-            return_value(True)
-
-        if self.transport == 'mdstudio':
-            self._retrieve_local(os.path.join(session.component_info['mdstudio_lib_path'], 'schemas'), self.schema_path)
-        elif self.transport == 'endpoint':
-            self._retrieve_local(os.path.join(session.component_info['module_path'], 'schemas', 'endpoints'), self.schema_path)
-        elif self.transport == 'resource':
-            path_decomposition = re.match('(\\w+)/(\\w+)/(.*)', self.schema_path)
-            vendor = path_decomposition.group(1)
-            component = path_decomposition.group(2)
-            schema_path = path_decomposition.group(3)
-
-            if vendor == session.component_info['vendor'] and component == session.component_info['namespace']:
-                self._retrieve_local(os.path.join(session.component_info['module_path'], 'schemas', 'resources'), schema_path)
-            else:
-                yield self._retrieve_wamp(session, vendor, component, schema_path, 'resources')
-        elif self.transport == 'local':
-            self._retrieve_local(os.path.join(session.component_info['module_path'], 'schemas', 'local'), self.schema_path)
-        elif self.transport.startswith('http'):
-            yield self._retrieve_http()
-        else:
-            return_value(False)
-
-        success = True
-
-        for version, schema in self.cached.items():
-            flattened = yield self._recurse_subschemas(schema, session)
-            self.cached[version] = flattened['schema']
-
-            success = success and flattened['success']
-            if not success:
-                break
-
-        return_value(success)
+            with open(path, 'r') as f:
+                self.cached[0] = json.load(f)
 
     @chainable
     def _recurse_subschemas(self, schema, session):
@@ -97,7 +38,8 @@ class Schema:
             ref = schema.pop('$ref', None)
 
             if ref:
-                subschema = Schema(ref)
+                ref_decomposition = re.match(r'(\w+)://(.+)', ref)
+                subschema = self._schema_factory(ref_decomposition.group(1), ref_decomposition.group(2))
 
                 if (yield subschema.flatten(session)):
                     schema.update(subschema.to_schema())
@@ -122,32 +64,16 @@ class Schema:
             'success': success
         })
 
-    def _retrieve_local(self, base_path, schema_path):
-        if self.versions:
-            for version in self.versions:
-                path = os.path.join(base_path, '{}.v{}.json'.format(schema_path, version))
-                with open(path, 'r') as f:
-                    self.cached[version] = json.load(f)
-        else:
-            path = os.path.join(base_path, '{}.json'.format(schema_path))
-            with open(path, 'r') as f:
-                self.cached['v1'] = json.load(f)
+    @staticmethod
+    def _schema_factory(schema_type, schema_path):
+        factory_dict = {
+            'resource': lambda p: ResourceSchema(p),
+            'endpoint': lambda p: EndpointSchema(p),
+            'https': lambda p: HttpsSchema('https://{}'.format(p)),
+            'http': lambda p: HttpsSchema('https://{}'.format(p))
+        }
 
-    @chainable
-    def _retrieve_wamp(self, session, vendor, component, schema_path, schema_type):
-        for version in self.versions:
-            self.cached[version] = yield session.call('mdstudio.schema.endpoint.get', {
-                'name': schema_path,
-                'version': version,
-                'component': component,
-                'type': schema_type
-            }, claims={
-                'vendor': vendor
-            })
-
-    def _retrieve_http(self):
-        # @todo: possibly cache this in a single request
-        self.cached['v1'] = {'$ref': self.uri}
+        return factory_dict[schema_type](schema_path)
 
     def to_schema(self):
         if not self.cached:
@@ -161,16 +87,105 @@ class Schema:
             for k, v in self.cached.items():
                 return v
 
+
+class HttpsSchema(ISchema):
+    def __init__(self, uri):
+        super(HttpsSchema, self).__init__()
+        self.uri = uri
+
+    def flatten(self, session=None):
+        return True
+
+    def to_schema(self):
+        return {'$ref': self.uri}
+
+
+class EndpointSchema(ISchema):
+    def __init__(self, uri, versions=None):
+        super(EndpointSchema, self).__init__()
+        uri_decomposition = re.match(r'endpoint://([\w/_\-]+?)/?((v\d+,?)*)', uri)
+        self.schema_path = uri_decomposition.group(1)
+
+        uri_versions = uri_decomposition.group(2)
+        self.versions = versions or ([int(v) for v in uri_versions.replace('v', '').split(',')] if uri_versions else [1])
+
+    @chainable
+    def flatten(self, session=None):
+        # type: (CommonSession) -> bool
+        if self.cached:
+            return_value(True)
+
+        self._retrieve_local(os.path.join(session.component_root_path, 'schemas', 'endpoints'), self.schema_path, self.versions)
+
+        success = True
+
+        for version, schema in self.cached.items():
+            flattened = yield self._recurse_subschemas(schema, session)
+            self.cached[version] = flattened['schema']
+
+            if not flattened['success']:
+                success = False
+                break
+
+        return_value(success)
+
+
+class ResourceSchema(ISchema):
+    def __init__(self, uri, versions=None):
+        super(ResourceSchema, self).__init__()
+        uri_decomposition = re.match(r'resource://([\w\d_\-]+)/([\w\d_\-]+)/([\w/_\-]+?)/?((v\d+,?)*)', uri)
+        self.vendor = uri_decomposition.group(1)
+        self.component = uri_decomposition.group(2)
+        self.schema_path = uri_decomposition.group(3)
+
+        self.versions = versions or [int(v) for v in uri_decomposition.group(4).replace('v', '').split(',')] or [1]
+
+    @chainable
+    def flatten(self, session=None):
+        # type: (CommonSession) -> bool
+        if self.cached:
+            return_value(True)
+
+        if session.component_config.static.vendor == self.vendor and session.component_config.static.component == self.component:
+            self._retrieve_local(os.path.join(session.component_root_path, 'schemas', 'endpoints'), self.schema_path, self.versions)
+        else:
+            yield self._retrieve_wamp(session)
+
+        success = True
+
+        for version, schema in self.cached.items():
+            flattened = yield self._recurse_subschemas(schema, session)
+            self.cached[version] = flattened['schema']
+
+            if not flattened['success']:
+                success = False
+                break
+
+        return_value(success)
+
+    @chainable
+    def _retrieve_wamp(self, session):
+        for version in self.versions:
+            self.cached[version] = yield session.call('mdstudio.schema.endpoint.get', {
+                'name': self.schema_path,
+                'version': version,
+                'component': self.component,
+                'type': 'resource'
+            }, claims={
+                'vendor': self.vendor
+            })
+
+
 # @todo: enable validation
 def validate_output(output_schema):
     def wrap_f(f):
         if not output_schema:
-            #print("Output is not checked because schema is {}".format(output_schema))
+            # print("Output is not checked because schema is {}".format(output_schema))
             return f
 
         @chainable
         def wrapped_f(self, request, **kwargs):
-            if isinstance(output_schema, Schema):
+            if isinstance(output_schema, ISchema):
                 yield output_schema.flatten(self)
                 schema = output_schema.to_schema()
             else:
@@ -179,7 +194,11 @@ def validate_output(output_schema):
             res = yield f(self, request, **kwargs)
 
             if 'result' in res:
-                validate_json_schema(self, schema, res['result'])
+                try:
+                    validate_json_schema(schema, res['result'])
+                except ValidationError as e:
+                    self.log.error(e)
+                    return_value({'error': 'Something went wrong inside the component. Contact the developer.'})
 
             return_value(res)
 
@@ -191,21 +210,22 @@ def validate_output(output_schema):
 def validate_input(input_schema, strict=True):
     def wrap_f(f):
         if not input_schema:
-            #print("Input is not checked because schema is {}".format(input_schema))
+            # print("Input is not checked because schema is {}".format(input_schema))
             return f
 
         @chainable
         def wrapped_f(self, request, **kwargs):
-            if isinstance(input_schema, Schema):
+            if isinstance(input_schema, ISchema):
                 yield input_schema.flatten(self)
                 schema = input_schema.to_schema()
             else:
                 schema = input_schema
 
-            valid = validate_json_schema(self, schema, request)
-
-            if strict and not valid:
-                return_value({'error': 'Input not matching schema'})
+            try:
+                validate_json_schema(schema, request)
+            except ValidationError as e:
+                if strict:
+                    return_value({'error': 'Input not matching schema'})
             else:
                 res = yield f(self, request, **kwargs)
 
@@ -216,11 +236,5 @@ def validate_input(input_schema, strict=True):
     return wrap_f
 
 
-def validate_json_schema(session, schema_def, request):
-    # try:
-    jsonschema.validate(request, schema_def, format_checker=FormatChecker())
-    # except Exception as e:
-    #     session.log.error('Error validating json schema: {error}', error=error)
-    #     return False
-
-    return True
+def validate_json_schema(schema_def, instance):
+    jsonschema.validate(instance, schema_def, format_checker=FormatChecker())

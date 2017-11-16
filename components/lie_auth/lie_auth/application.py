@@ -18,6 +18,7 @@ import itertools
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from autobahn.twisted.util import sleep
+from mdstudio.component.impl.core import CoreComponentSession
 from twisted.logger import Logger
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock, Deferred
@@ -26,7 +27,6 @@ from oauthlib.common import Request as OAuthRequest, generate_client_id as gener
 
 from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError, InvalidTokenError
 
-from mdstudio.api.schema import Schema
 from mdstudio.deferred.chainable import chainable
 from mdstudio.utc import now
 
@@ -35,33 +35,28 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from mdstudio.application_session import BaseApplicationSession
 from mdstudio.api.register import register
+from mdstudio.utc import now, to_utc_string, from_utc_string
 from mdstudio.db.model import Model
-from .util import check_password, hash_password, ip_domain_based_access, generate_password
+from .util import check_password, hash_password, ip_domain_based_access
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
 
-class AuthWampApi(BaseApplicationSession):
+
+class AuthComponent(CoreComponentSession):
     """
     User management WAMP methods.
     """
 
     log = Logger()
 
-    def preInit(self, **kwargs):
-        # self.session_config_template = WampSchema('auth', 'session_config/session_config')
-        # self.package_config_template = WampSchema('auth', 'settings/settings')
-        
-        self.session_config_environment_variables.update({
-            'admin_username': 'MD_AUTH_USERNAME',
-            'admin_email': 'MD_USER_ADMIN_EMAIL',
-            'admin_password': 'MD_AUTH_PASSWORD'
-        })
-
+    def pre_init(self):
         self.oauth_client = oauth2.BackendApplicationClient('auth')
-        self.session_config['loggernamespace'] = 'auth'
+
+    def on_init(self):
+        self.db_initialized = False
+        self.authorizer = Authorizer()
 
     def onInit(self, **kwargs):
         password_retrieval_message_file = os.path.join(self._config_dir, 'password_retrieval.txt')
@@ -77,93 +72,13 @@ class AuthWampApi(BaseApplicationSession):
         self.autoschema = False
 
         # TODO: check this before accessing the DB
-        self.db_initialized = False
 
-        self.authorizer = Authorizer()
-        
+
         # # TODO: make this a dict of  {vendor}.{namespace}: [urilist] for faster lookup
         # self.registrations = []
 
-    @inlineCallbacks
-    def onRun(self, details=None):
-        # Subscribe DB initialization to the DB online event
-        yield DBWaiter(self, self.init_admin_user).run()
-
+    def on_run(self, details=None):
         self.jwt_key = generate_secret()
-
-        # yield sleep(5)
-        # subs = yield self.call(u'wamp.subscription.list')
-        # print(subs)
-
-        # @inlineCallbacks
-        # def sub_info(id):
-        #     sub = yield self.call(u'wamp.subscription.get', id)
-        #     print(sub)
-        #     count = yield self.call(u'wamp.subscription.list_subscribers', id)
-        #     print(count)
-
-        # for id in itertools.chain(subs['exact'], subs['prefix'], subs['wildcard']):
-        #     yield sub_info(id)
-
-        # @inlineCallbacks
-        # def reg_info(id):
-        #     reg = yield self.call(u'wamp.registration.get', id)
-        #     print(reg)
-        #     count = yield self.call(u'wamp.registration.list_callees', id)
-        #     print(count)
-
-        # regs = yield self.call(u'wamp.registration.list')
-        # print(regs)
-
-        # for id in itertools.chain(regs['exact'], regs['prefix'], regs['wildcard']):
-        #     yield reg_info(id)
-
-
-    # @todo: remove this
-    @chainable
-    def init_admin_user(self, event=None):
-        # Acquire lock before initializing the database
-        try:
-            if not self.db_initialized:
-                admin = yield self._get_user({'username': 'lieadmin'})
-                if not admin:
-                    self.log.info('Empty user table. Create default admin account')
-
-                    userdata = {'username': self.session_config.get('admin_username', 'admin'),
-                                'email': self.session_config.get('admin_email', None),
-                                'password': hash_password(self.session_config.get('admin_password', None)),
-                                'role': 'admin'}
-
-                    admin = yield Model(self, 'users').insert_one(userdata)
-
-                    if not admin:
-                        self.log.error('Unable to create default admin account')
-                        self.leave('Unable to create default admin account, could not properly start.')
-
-                    adminId = admin
-
-                    namespaces = yield Model(self, 'namespaces').insert_many([
-                        {'userId': adminId, 'namespace': 'md'},
-                        {'userId': adminId, 'namespace': 'atb'},
-                        {'userId': adminId, 'namespace': 'docking'},
-                        {'userId': adminId, 'namespace': 'structures'},
-                        {'userId': adminId, 'namespace': 'config'}
-                    ])
-
-                # Cleanup previous run
-                # Count number of active user sessions
-                active_session_count = yield Model(self, 'sessions').count()
-                self.log.info('{0} active user sessions'.format(active_session_count))
-
-                # Terminate active sessions
-                if active_session_count:
-                    deleted = yield Model(self, 'sessions').delete_many()
-                    self.log.info('Terminate {0} active user sessions'.format(deleted))
-
-                # Mark the database as initialized and unsubscribe
-                self.db_initialized = True
-        except Exception:
-            pass
 
     def onExit(self, details=None):
         """
@@ -269,7 +184,7 @@ class AuthWampApi(BaseApplicationSession):
             details[u'domain'] = domain
 
         self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
-                       realm=realm, authid=authid, authmethod=authmethod, domain=domain)
+                      realm=realm, authid=authid, authmethod=authmethod, domain=domain)
 
         # Check for essentials (authid)
         if authid is None:
@@ -297,14 +212,14 @@ class AuthWampApi(BaseApplicationSession):
                 if client:
                     client['scope'] = ' '.join(client.pop('scopes'))
                     http_basic = self._http_basic_authentication(username, details['ticket'])
-                    credentials = {u'client': client, 
+                    credentials = {u'client': client,
                                    u'http_basic': self._http_basic_authentication(client[u'clientId'], client[u'secret'])}
 
                     headers, body, status = self.oauth_backend_server.create_token_response(
-                                                                        u'mdstudio.auth.endpoint.login',
-                                                                        headers={u'Authorization': http_basic},
-                                                                        grant_type_for_scope=u'client_credentials',
-                                                                        credentials=credentials)
+                        u'mdstudio.auth.endpoint.login',
+                        headers={u'Authorization': http_basic},
+                        grant_type_for_scope=u'client_credentials',
+                        credentials=credentials)
 
                     if status == 200:
                         user = {u'_id': client[u'_id']}
@@ -317,7 +232,7 @@ class AuthWampApi(BaseApplicationSession):
         # WAMP-CRA authentication
         elif authmethod == u'wampcra':
             if user:
-                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user), 
+                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user),
                                u'secret': user[u'password']}
             else:
                 raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
@@ -326,7 +241,7 @@ class AuthWampApi(BaseApplicationSession):
             raise ApplicationError("No such authentication method known: {0}".format(authmethod))
 
         yield self._start_session(user[u'_id'], details.get(u'session', 0), auth_ticket[u'extra'].get('access_token'))
-        
+
         # Log authorization
         self.log.info('Access granted. user: {user}', user=authid)
 
@@ -340,12 +255,12 @@ class AuthWampApi(BaseApplicationSession):
     #         yield Model(self, 'scopes').update_one(scope, {'$set': scope}, True)
     #
     #     returnValue(None)
-            
+
     @wamp.register(u'mdstudio.auth.endpoint.authorize.admin')
     def authorize_admin(self, session, uri, action, options):
         role = session.get('authrole')
         authid = session.get('authid')
-        
+
         authorization = False
 
         if action in ('call', 'subscribe', 'publish'):
@@ -365,12 +280,12 @@ class AuthWampApi(BaseApplicationSession):
             self._store_action(uri, action, options)
 
         return authorization
-            
+
     @wamp.register(u'mdstudio.auth.endpoint.authorize.ring0')
     def authorize_ring0(self, session, uri, action, options):
         role = session.get('authrole')
-        
-        authorization = self.authorizer.authorize_ring0(uri, action, role)        
+
+        authorization = self.authorizer.authorize_ring0(uri, action, role)
 
         if not authorization:
             self.log.warn('WARNING: {} is not authorized for {} on {}'.format(role, action, uri))
@@ -381,7 +296,7 @@ class AuthWampApi(BaseApplicationSession):
             self._store_action(uri, action, options)
 
         return authorization
-            
+
 
     @wamp.register(u'mdstudio.auth.endpoint.authorize.oauth')
     @inlineCallbacks
@@ -395,7 +310,7 @@ class AuthWampApi(BaseApplicationSession):
         client = yield self._get_client(authid)
         session = yield self._get_session(session.get('session'))
         scopes = self.authorizer.oauthclient_scopes(uri, action, authid)
-        
+
         headers = {'access_token': session['accessToken']}
         valid, r = self.oauth_backend_server.verify_request(uri, headers=headers, scopes=[scope for scope in scopes])
 
@@ -413,14 +328,14 @@ class AuthWampApi(BaseApplicationSession):
             self._store_action(uri, action, options)
 
         returnValue(authorization)
-            
+
     @wamp.register(u'mdstudio.auth.endpoint.authorize.public')
     def authorize_public(self, session, uri, action, options):
         #  TODO: authorize public to view unprotected resources
         authorization = False
 
         returnValue(authorization)
-            
+
     @wamp.register(u'mdstudio.auth.endpoint.authorize.user')
     def authorize_user(self, session, uri, action, options):
         # TODO: authorize users to view (parts of) the web interface and to create OAuth clients on their group/user
@@ -457,7 +372,7 @@ class AuthWampApi(BaseApplicationSession):
             returnValue({'username': user['username']})
         else:
             returnValue({})
-            
+
     @wamp.register(u'mdstudio.auth.endpoint.logout', options=wamp.RegisterOptions(details_arg='details'))
     @inlineCallbacks
     def user_logout(self, details):
@@ -476,7 +391,7 @@ class AuthWampApi(BaseApplicationSession):
             ended = yield self._end_session(user['uid'], details.get('session'))
             if ended:
                 returnValue('{0} you are now logged out'.format(user['username']))
-    
+
         returnValue('Unknown user, unable to logout')
 
     @wamp.register(u'mdstudio.auth.endpoint.retrieve')
@@ -578,7 +493,7 @@ class AuthWampApi(BaseApplicationSession):
             self.log.debug('No such user')
 
         self.log.info('{status} login attempt for user: {user}',
-            status='Correct' if check else 'Incorrect', user=username)
+                      status='Correct' if check else 'Incorrect', user=username)
 
         return check
 
@@ -633,7 +548,7 @@ class AuthWampApi(BaseApplicationSession):
         for entry in self.package_config.get('unsafe_properties'):
             if entry in user:
                 del user[entry]
-        
+
         return user
 
     # @inlineCallbacks
@@ -677,7 +592,7 @@ class AuthWampApi(BaseApplicationSession):
     def _store_action(self, uri, action, options):
         registration = Model(self, 'registration_info')
 
-        now = utcnow().isoformat()
+        n = now().isoformat()
 
         if action == 'register':
             match = options.get('match', 'exact')
@@ -688,24 +603,24 @@ class AuthWampApi(BaseApplicationSession):
                     {
                         'uri': uri,
                         'match': match
-                    }, 
+                    },
                     {
                         '$inc': {
                             'registrationCount': 1
                         },
                         '$set': {
-                            'latestRegistration': now
+                            'latestRegistration': n
                         },
                         '$setOnInsert': {
                             'uri': uri,
-                            'firstRegistration': now,
+                            'firstRegistration': n,
                             'match': match
                         }
-                    }, 
-                    upsert=True, 
+                    },
+                    upsert=True,
                     date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
                 )
-                
+
             # We cannot be sure the DB is already up, possibly wait
             yield DBWaiter(self, update_registration).run()
         elif action == 'call':
@@ -746,7 +661,7 @@ class DBWaiter:
     @inlineCallbacks
     def run(self):
         if not self.session.db_initialized:
-            self.sub = yield self.session.subscribe(self._callback_wrapper, u'mdstudio.db.endpoint.events.online')
+            self.sub = yield self.session.on_event(self._callback_wrapper, u'mdstudio.db.endpoint.events.online')
 
             reactor.callLater(0.25, self._check_called)
         else:

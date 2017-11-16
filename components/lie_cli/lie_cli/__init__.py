@@ -55,18 +55,3 @@ def connect():
 def stop():
     session.leave()
     exit()
-
-def block_on(d):
-    q = Queue()
-    d.addBoth(q.put)
-
-    res = None
-    while 1:
-        try:
-            res = q.get(True, 1)
-        except Empty:
-            time.sleep(0.1)
-        else:
-            break
-
-    return res

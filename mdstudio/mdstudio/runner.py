@@ -2,30 +2,34 @@
 import OpenSSL
 import os
 from autobahn.twisted.wamp import ApplicationRunner
+from mdstudio.component.impl.common import CommonSession
 from twisted.internet import reactor
 from twisted.internet.ssl import CertificateOptions
 
-crossbar_host = os.getenv('CROSSBAR_HOST', 'localhost')
-print('Crossbar host is: {}'.format(crossbar_host))
 
-cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, open('data/crossbar/server_cert.pem').read())
-options = CertificateOptions(caCerts=[cert])
+def main(component, auto_reconnect=True):
+    crossbar_host = os.getenv('CROSSBAR_HOST', 'localhost')
+    print('Crossbar host is: {}'.format(crossbar_host))
 
-runner = ApplicationRunner(
-    u"wss://{}:8080/ws".format(crossbar_host),
-    u"mdstudio",
-    ssl=options
-)
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, open('data/crossbar/server_cert.pem').read())
+    options = CertificateOptions(caCerts=[cert])
 
+    runner = ApplicationRunner(
+        u"wss://{}:8080/ws".format(crossbar_host),
+        u"mdstudio",
+        ssl=options
+    )
 
-def main(component, extra=None, oninit=None, onexit=None, auto_reconnect=True, start_reactor=True):
-    def make(cfg):
-        if extra:
-            cfg.extra.update(extra)
+    def start_component(config):
+        session = component(config) # type: CommonSession
 
-        if callable(component):
-            return component(cfg)
-        else:
-            return component
+        logdir = os.path.join(session.component_root_path, 'logs')
+        if not os.path.isdir(logdir):
+            os.mkdir(logdir)
 
-    return runner.run(make, auto_reconnect=auto_reconnect, start_reactor=(not reactor.running and start_reactor))
+        gitignorepath = os.path.join(logdir, '.gitignore')
+        if not os.path.isfile(gitignorepath):
+            with open(gitignorepath, 'w') as f:
+                f.write('*')
+
+    return runner.run(component, auto_reconnect=auto_reconnect, start_reactor=not reactor.running)

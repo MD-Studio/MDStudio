@@ -1,5 +1,5 @@
+from lie_logger.application import LoggerComponent
 from mdstudio.runner import main
-from . import wampapi
 
 if __name__ == '__main__':
-    main(wampapi)
+    main(LoggerComponent)

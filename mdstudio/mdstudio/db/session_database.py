@@ -1,9 +1,6 @@
 # coding=utf-8
 from typing import Dict, Any, List, Optional
 
-from twisted.internet.defer import inlineCallbacks, returnValue
-
-from mdstudio.application_session import BaseApplicationSession
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, ProjectionOperators, \
@@ -15,7 +12,7 @@ from mdstudio.deferred.return_value import return_value
 class SessionDatabaseWrapper(IDatabase):
 
     def __init__(self, session, connection_type=ConnectionType.User):
-        # type: (BaseApplicationSession, ConnectionType) -> None
+        # type: (CommonSession, ConnectionType) -> None
         self.session = session
 
         self.claims = {
@@ -55,6 +52,7 @@ class SessionDatabaseWrapper(IDatabase):
             'collection': collection,
             'insert': insert
         }
+        print(insert)
         if date_fields:
             request['fields'] = {
                 'datetime': date_fields

@@ -19,7 +19,3 @@ __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 
-from .wamp_services import AuthWampApi
-
-# Define module public API
-wampapi = AuthWampApi

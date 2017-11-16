@@ -164,8 +164,25 @@
                   "authenticator": "mdstudio.auth.endpoint.login"
                 },
                 "wampcra": {
-                  "type": "dynamic",
-                  "authenticator": "mdstudio.auth.endpoint.login"
+                  "type": "static",
+                  "users": {
+                    "db": {
+                      "role": "db",
+                      "secret": "db"
+                    },
+                    "auth": {
+                      "role": "auth",
+                      "secret": "auth"
+                    },
+                    "schema": {
+                      "role": "schema",
+                      "secret": "schema"
+                    },
+                    "logger": {
+                      "role": "logger",
+                      "secret": "logger"
+                    }
+                  }
                 }
               }
             }

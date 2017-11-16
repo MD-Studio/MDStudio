@@ -19,8 +19,3 @@ __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 
-# Import settings
-from .wamp_services import DBWampApi
-
-# Define component public API
-wampapi  = DBWampApi

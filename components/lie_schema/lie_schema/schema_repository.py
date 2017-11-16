@@ -9,7 +9,7 @@ from datetime import datetime
 import itertools
 
 import pytz
-from jsonschema import Draft4Validator, FormatChecker, SchemaError
+from jsonschema import Draft4Validator, SchemaError
 
 from lie_schema.exception import SchemaException
 from mdstudio.db.connection import ConnectionType

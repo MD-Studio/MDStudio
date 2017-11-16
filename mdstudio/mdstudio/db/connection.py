@@ -25,7 +25,7 @@ class ConnectionType(Enum):
         if name == str(ConnectionType.User):
             return ConnectionType.User
         elif name == str(ConnectionType.Group):
-            return  ConnectionType.Group
+            return ConnectionType.Group
         elif name == str(ConnectionType.GroupRole):
             return ConnectionType.GroupRole
         else:
