@@ -89,8 +89,7 @@ def mol_attributes(molobject):
     return attributes
 
 
-def mol_addh(
-        molobject, polaronly=False, correctForPH=False, pH=7.4):
+def mol_addh(molobject, polaronly=False, correctForPH=False, pH=7.4):
 
     if molobject.toolkit == 'pybel':
         logging.info(
@@ -201,4 +200,10 @@ def mol_combine_rotations(molobject, rotations=[]):
         rotated_file.write(rotated_mol)
     rotated_file.close()
 
-    return rotated_mols
+    combined = None
+    if os.path.isfile('multipleSD.mol2'):
+        with open('multipleSD.mol2', 'r') as cf:
+            combined = cf.read()
+        os.remove('multipleSD.mol2')
+
+    return combined
