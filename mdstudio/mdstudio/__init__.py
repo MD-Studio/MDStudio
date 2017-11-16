@@ -19,7 +19,5 @@ __date__ = '15 april 2016'
 __licence__ = 'Apache Software License 2.0'
 __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) 2016, Marc van Dijk, VU University, Amsterdam"
-__rootpath__ = os.path.dirname(__file__)
-__all__ = ['ComponentManager', 'BaseApplicationSession']
 
 is_python3 = (sys.version_info > (3, 0)) and (sys.version_info < (4, 0))
