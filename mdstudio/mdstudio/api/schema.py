@@ -103,7 +103,8 @@ class HttpsSchema(ISchema):
 class EndpointSchema(ISchema):
     def __init__(self, uri, versions=None):
         super(EndpointSchema, self).__init__()
-        uri_decomposition = re.match(r'endpoint://([\w/_\-]+?)/?((v\d+,?)*)', uri)
+        uri_decomposition = re.match(r'endpoint://([\w/_\-]+?)/?((v\d+,?)*)?$', uri)
+        print(uri_decomposition.groups())
         self.schema_path = uri_decomposition.group(1)
 
         uri_versions = uri_decomposition.group(2)
@@ -115,7 +116,7 @@ class EndpointSchema(ISchema):
         if self.cached:
             return_value(True)
 
-        self._retrieve_local(os.path.join(session.component_root_path, 'schemas', 'endpoints'), self.schema_path, self.versions)
+        self._retrieve_local(os.path.join(session.component_schemas_path, 'endpoints'), self.schema_path, self.versions)
 
         success = True
 
@@ -147,7 +148,7 @@ class ResourceSchema(ISchema):
             return_value(True)
 
         if session.component_config.static.vendor == self.vendor and session.component_config.static.component == self.component:
-            self._retrieve_local(os.path.join(session.component_root_path, 'schemas', 'endpoints'), self.schema_path, self.versions)
+            self._retrieve_local(os.path.join(session.component_schemas_path, 'endpoints'), self.schema_path, self.versions)
         else:
             yield self._retrieve_wamp(session)
 

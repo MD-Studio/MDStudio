@@ -4,6 +4,9 @@ import os
 
 import yaml
 from autobahn.twisted.wamp import ApplicationSession
+from autobahn.wamp import PublishOptions
+from autobahn.wamp.request import Publication
+
 from mdstudio.api.call_exception import CallException
 from mdstudio.api.schema import validate_json_schema
 from mdstudio.collection import merge_dicts
@@ -124,47 +127,24 @@ class CommonSession(ApplicationSession):
 
         signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-        result = yield super(CommonSession, self).publish(topic, *args, signed_claims=signed_claims, **kwargs)
+        options = kwargs.pop('options', None) or PublishOptions(acknowledge=True, exclude_me=False)
 
-        if 'expired' in result:
-            signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
+        result = yield super(CommonSession, self).publish(topic, *args, signed_claims=signed_claims, options=options, **kwargs) # type: Publication
 
-            result = yield super(CommonSession, self).publish(u'{}'.format(topic), *args, signed_claims=signed_claims, **kwargs)
-
-        if 'expired' in result:
-            raise CallException(result['expired'])
-
-        if 'error' in result:
-            raise CallException(result['error'])
-
-        if 'warning' in result:
-            self.log.warn(result['warning'])
-
-        return_value(result['result'])
+        return_value(result)
 
     def subscribe(self, handler, topic, options=None):
         @chainable
         def _handler(*args, signed_claims=None, **kwargs):
             claims = yield super(CommonSession, self).call('mdstudio.auth.endpoint.verify', signed_claims)
 
-            if 'error' in claims:
-                res = {'error': claims['error']}
-            elif 'expired' in claims:
-                res = {'expired': claims['expired']}
-            else:
-                claims = claims['authMeta']
-
-                # @todo: check claims using schema
+            if not ('error' in claims or 'expired' in claims):
+                claims = claims['claims']
 
                 if not self.authorize_request(topic, claims):
                     self.log.warn("Unauthorized publish to {topic}", topic=topic)
-                    res = {'error': 'Unauthorized publish to {}'.format(topic)}
                 else:
-                    # @todo: catch exceptions and add error
-                    # @todo: support warnings
-                    res = {'result': (yield handler(*args, **kwargs))}
-
-            return_value(res)
+                    return_value((yield handler(*args, **kwargs)))
 
         return super(CommonSession, self).subscribe(_handler, topic, options)
 

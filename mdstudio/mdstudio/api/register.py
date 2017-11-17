@@ -80,7 +80,7 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
             elif 'expired' in claims:
                 res = {'expired': claims['expired']}
             else:
-                claims = claims['authMeta']
+                claims = claims['claims']
 
                 # @todo: check claims using schema
 

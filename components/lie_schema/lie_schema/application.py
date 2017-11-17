@@ -26,7 +26,7 @@ class SchemaComponent(CoreComponentSession):
     @chainable
     def on_run(self):
         self.publish_options = PublishOptions(acknowledge=True)
-        yield self.publish(u'mdstudio.schema.endpoint.events.online', True, options=self.publish_options)
+        yield self.event(u'mdstudio.schema.endpoint.events.online', True, options=self.publish_options)
 
     @register(u'mdstudio.schema.endpoint.upload', {}, {})
     @chainable

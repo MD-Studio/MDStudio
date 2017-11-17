@@ -119,7 +119,7 @@ class AuthComponent(CoreComponentSession):
         except ExpiredSignatureError:
             return {'expired': 'Request token has expired'}
 
-        return {'authMeta': claims}
+        return {'claims': claims}
 
 
     @wamp.register(u'mdstudio.auth.endpoint.sso')
