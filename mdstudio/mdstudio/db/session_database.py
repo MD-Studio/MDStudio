@@ -16,8 +16,11 @@ class SessionDatabaseWrapper(IDatabase):
         self.session = session
 
         self.claims = {
-            'connectionType': str(connection_type),
+            'connectionType': str(connection_type)
         }
+
+        if connection_type == ConnectionType.Group:
+            self.claims['group'] = session.component_config.static.vendor
 
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]

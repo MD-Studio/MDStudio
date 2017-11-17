@@ -18,11 +18,11 @@ workers:
         disclose: {caller: false, publisher: false}
         match: prefix
         uri: mdstudio
-      - allow: {call: false, publish: true, register: false, subscribe: false}
+      - allow: {call: true, publish: false, register: false, subscribe: false}
         cache: true
         disclose: {caller: false, publisher: false}
         match: exact
-        uri: mdstudio.logger.endpoint.log.auth
+        uri: mdstudio.logger.endpoint.log
       - allow: {call: true, subscribe: true}
         match: prefix
         uri: wamp

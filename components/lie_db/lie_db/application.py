@@ -7,9 +7,6 @@ from mdstudio.db.connection import ConnectionType
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
-from twisted.logger import Logger
-
-logger = Logger(namespace='db')
 
 
 class DBComponent(CoreComponentSession):

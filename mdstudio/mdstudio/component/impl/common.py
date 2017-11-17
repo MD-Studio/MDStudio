@@ -6,7 +6,6 @@ import yaml
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp import PublishOptions
 from autobahn.wamp.request import Publication
-from twisted.logger import Logger
 
 from mdstudio.api.call_exception import CallException
 from mdstudio.api.schema import validate_json_schema
@@ -14,6 +13,9 @@ from mdstudio.collection import merge_dicts
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from twisted.python.failure import Failure
+
+from mdstudio.logging.logger import Logger
+
 
 class CommonSession(ApplicationSession):
     class Config(object):
@@ -109,7 +111,8 @@ class CommonSession(ApplicationSession):
         if 'expired' in result:
             signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-            result = yield super(CommonSession, self).call(u'{}'.format(procedure), *args, signed_claims=signed_claims, **kwargs)
+            result = yield super(CommonSession, self).call(u'{}'.format(procedure), *args, signed_claims=signed_claims,
+                                                           **kwargs)
 
         if 'expired' in result:
             raise CallException(result['expired'])
@@ -131,7 +134,8 @@ class CommonSession(ApplicationSession):
 
         options = kwargs.pop('options', None) or PublishOptions(acknowledge=True, exclude_me=False)
 
-        result = yield super(CommonSession, self).publish(topic, *args, signed_claims=signed_claims, options=options, **kwargs) # type: Publication
+        result = yield super(CommonSession, self).publish(topic, *args, signed_claims=signed_claims, options=options,
+                                                          **kwargs)  # type: Publication
 
         return_value(result)
 
@@ -167,9 +171,11 @@ class CommonSession(ApplicationSession):
                 failures = failures + 1
 
         if failures > 0:
-            self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures, class_name=self.class_name)
+            self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures,
+                          class_name=self.class_name)
 
-        self.log.info("{class_name}: {procedures} procedures successfully registered", procedures=len(registrations) - failures, class_name=self.class_name)
+        self.log.info("{class_name}: {procedures} procedures successfully registered",
+                      procedures=len(registrations) - failures, class_name=self.class_name)
 
         # Update session config, they may have been changed by the application authentication method
         for var, details_var in self.session_update_vars.items():
@@ -181,7 +187,8 @@ class CommonSession(ApplicationSession):
 
     @chainable
     def on_leave(self, details):
-        self.log.info('{class_name} is leaving realm {realm}', class_name=self.class_name, realm=self.component_config.session.realm)
+        self.log.info('{class_name} is leaving realm {realm}', class_name=self.class_name,
+                      realm=self.component_config.session.realm)
 
         yield self.on_exit()
 

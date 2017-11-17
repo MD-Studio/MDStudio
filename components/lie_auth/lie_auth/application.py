@@ -6,29 +6,22 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import os
-import re
-import copy
-import json
-import pytz
 import base64
+import copy
 import datetime
-import itertools
+import json
+import os
 
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
-from autobahn.twisted.util import sleep
-from mdstudio.component.impl.core import CoreComponentSession
-from twisted.logger import Logger
-from twisted.internet import reactor
-from twisted.internet.defer import inlineCallbacks, returnValue, DeferredLock, Deferred
+from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError
 from oauthlib import oauth2
-from oauthlib.common import Request as OAuthRequest, generate_client_id as generate_secret
+from oauthlib.common import generate_client_id as generate_secret
+from twisted.internet import reactor
+from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
+from twisted.logger import Logger
 
-from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError, InvalidTokenError
-
-from mdstudio.deferred.chainable import chainable
-from mdstudio.utc import now
+from mdstudio.component.impl.core import CoreComponentSession
 
 try:
     import urlparse
@@ -36,9 +29,9 @@ except ImportError:
     import urllib.parse as urlparse
 
 from mdstudio.api.register import register
-from mdstudio.utc import now, to_utc_string, from_utc_string
+from mdstudio.utc import now
 from mdstudio.db.model import Model
-from .util import check_password, hash_password, ip_domain_based_access
+from .util import check_password, ip_domain_based_access
 from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
@@ -48,8 +41,6 @@ class AuthComponent(CoreComponentSession):
     """
     User management WAMP methods.
     """
-
-    log = Logger()
 
     def pre_init(self):
         self.oauth_client = oauth2.BackendApplicationClient('auth')
@@ -354,7 +345,7 @@ class AuthComponent(CoreComponentSession):
         clientInfo['clientId'] = generate_secret()
         clientInfo['secret'] = generate_secret()
 
-        res = yield Model(self, 'clients').insert_one(clientInfo)
+        yield Model(self, 'clients').insert_one(clientInfo)
 
         returnValue({
             'id': clientInfo['clientId'],

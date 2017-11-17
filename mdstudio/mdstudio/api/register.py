@@ -12,7 +12,7 @@ from mdstudio.deferred.return_value import return_value
 SchemaType = Union[str, dict, ISchema]
 
 
-def register(uri, input_schema, output_schema, meta_schema=None, match=None, options=None, scope=None):
+def register(uri, input_schema, output_schema, meta_schema=None, options=None, scope=None):
     # type: (str, SchemaType, SchemaType, bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
     """
     Decorator for more complete WAMP uri registration
@@ -38,16 +38,6 @@ def register(uri, input_schema, output_schema, meta_schema=None, match=None, opt
     :return:                Wrapped function with extra attributes
     :rtype:                 function
     """
-
-    if options is None:
-        # If options is not given but required for match or details, create it
-        options = RegisterOptions()
-
-    if not options.details_arg:
-        options.details_arg = 'details'
-
-    if match:
-        options.match = match
 
     if not input_schema:
         #print('Input on {uri} is not checked'.format(uri=uri))

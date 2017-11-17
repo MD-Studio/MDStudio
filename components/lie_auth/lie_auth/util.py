@@ -6,14 +6,14 @@ file: util.py
 Utility functions for authentication and authorization
 """
 
+import fnmatch
+import hashlib
 import os
 import random
-import string
-import copy
-import time
-import hashlib
 import socket
-import fnmatch
+import string
+
+from mdstudio.logging.logger import Logger
 
 try:
     # Python 3
@@ -23,9 +23,6 @@ except ImportError:
     from urlparse import urlparse
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from twisted.logger import Logger
-
-from .sendmail import Email
 
 logging = Logger()
 
