@@ -104,7 +104,6 @@ class EndpointSchema(ISchema):
     def __init__(self, uri, versions=None):
         super(EndpointSchema, self).__init__()
         uri_decomposition = re.match(r'endpoint://([\w/_\-]+?)/?((v\d+,?)*)?$', uri)
-        print(uri_decomposition.groups())
         self.schema_path = uri_decomposition.group(1)
 
         uri_versions = uri_decomposition.group(2)
