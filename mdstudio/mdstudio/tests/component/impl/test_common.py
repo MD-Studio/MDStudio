@@ -1,3 +1,4 @@
+from copy import deepcopy
 from unittest import TestCase
 
 import os
@@ -13,11 +14,12 @@ class TestCommonSession(TestCase):
     faker = Faker()
 
     def setUp(self):
-        app = CommonSession
-        app.load_settings = mock.MagicMock()
-        app.validate_settings = mock.MagicMock()
-        app.extract_custom_scopes = mock.MagicMock(return_value={'scopes': True})
-        self.session = app()
+
+        class TestSession(CommonSession):
+            load_settings = mock.MagicMock()
+            validate_settings = mock.MagicMock()
+            extract_custom_scopes = mock.MagicMock(return_value={'scopes': True})
+        self.session = TestSession()
 
     def test_construction(self):
         self.assertIsInstance(self.session.component_config, CommonSession.Config)
@@ -36,20 +38,20 @@ class TestCommonSession(TestCase):
         self.assertEqual(self.session.function_scopes, {'scopes': True})
 
     def test_construction2(self):
-        app = CommonSession
-        app.load_environment = mock.MagicMock()
-        app.validate_settings = mock.MagicMock()
-        self.session = app()
+        class TestSession(CommonSession):
+            load_environment = mock.MagicMock()
+            validate_settings = mock.MagicMock()
+        self.session = TestSession()
         self.session.load_environment.assert_called_once_with(self.session.session_env_mapping)
 
 
     def test_construction_config(self):
-        app = CommonSession
-        app.validate_settings = mock.MagicMock()
+
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
         config = ComponentConfig()
         self.assertEqual(config.realm, None)
-        self.session = app(config)
-        print(self.session.component_config.to_dict())
+        self.session = TestSession(config)
         self.assertEqual(config.realm, 'mdstudio')
 
     def test_construction_order(self):

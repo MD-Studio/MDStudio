@@ -202,11 +202,9 @@ class CommonSession(ApplicationSession):
 
         if default:
             self.component_config.session[session_var] = default
-            print(session_var, default, self.component_config.to_dict())
 
     def load_environment(self, mapping):
         for session_var, env_vars in mapping.items():
-            print(session_var, env_vars)
             self.add_session_env_var(session_var, env_vars[0], env_vars[1])
 
     def load_settings(self):
