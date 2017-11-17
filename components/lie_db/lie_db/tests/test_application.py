@@ -4,20 +4,19 @@ from mock import mock
 from mongomock import ObjectId
 from twisted.internet import reactor
 
-from lie_db import DBWampApi
-from mdstudio.api.schema import Schema
+from lie_db.application import DBComponent
 from mdstudio.deferred.chainable import chainable
 from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
 
-class TestWampService(DBTestCase, APITestCase):
+class TestDBComponent(DBTestCase, APITestCase):
 
     fake = Faker()
 
     def setUp(self):
-        self.service = DBWampApi()
+        self.service = DBComponent()
         self.db = self.service._client.get_database('users~userNameDatabase')
         self.claims = {
             'connectionType': 'user',

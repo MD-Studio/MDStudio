@@ -1,22 +1,16 @@
+import itertools
 import json
-from collections import OrderedDict
-from pprint import pprint, pformat
+from pprint import pformat
 
 import dictdiffer
 import hashlib
-from datetime import datetime
-
-import itertools
-
-import pytz
 from jsonschema import Draft4Validator, SchemaError
 
+import mdstudio.utc as utc
 from lie_schema.exception import SchemaException
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.return_value import return_value
-import mdstudio.utc as utc
 
 
 class SchemaRepository:

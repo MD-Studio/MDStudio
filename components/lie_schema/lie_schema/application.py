@@ -77,7 +77,6 @@ class SchemaComponent(CoreComponentSession):
         # @todo: check if user is part of group (in usermode)
         if claims['vendor'] in claims['groups']:
             return True
-
         # @todo: allow group/user specific access
 
         return False

@@ -1,19 +1,19 @@
 from faker import Faker
 from mock import mock
 
-from lie_db import DBWampApi
+from lie_db.application import DBComponent
 from mdstudio.db.connection import ConnectionType
 from mdstudio.deferred.chainable import chainable
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
 
-class TestWampServiceAuthorize(DBTestCase, APITestCase):
+class TesDBComponentAuthorize(DBTestCase, APITestCase):
 
     fake = Faker()
 
     def setUp(self):
-        self.service = DBWampApi()
+        self.service = DBComponent()
         self.service._client.get_database = mock.MagicMock(wraps=lambda x: x)
 
     @chainable

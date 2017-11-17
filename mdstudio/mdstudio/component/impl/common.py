@@ -59,7 +59,7 @@ class CommonSession(ApplicationSession):
                 'settings': self.settings
             }
 
-    def __init__(self, config):
+    def __init__(self, config=None):
         self.log = Logger(namespace=self.__class__.__name__)
 
         self.component_config = self.Config()

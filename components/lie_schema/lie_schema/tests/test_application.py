@@ -6,7 +6,7 @@ from mock import mock, call
 from lie_schema.exception import SchemaException
 from lie_schema.schema_repository import SchemaRepository
 
-from lie_schema import SchemaWampApi
+from lie_schema.application import SchemaComponent
 from twisted.internet import reactor
 
 from mdstudio.deferred.chainable import chainable
@@ -20,7 +20,7 @@ class TestWampService(DBTestCase, APITestCase):
     faker = Faker()
 
     def setUp(self):
-        self.service = SchemaWampApi()
+        self.service = SchemaComponent()
         self.vendor = self.faker.word()
         self.username = self.faker.word()
         self.claims = {
