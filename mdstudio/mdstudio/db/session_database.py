@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Optional
 
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.cursor import Cursor
-from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, ProjectionOperators, \
+from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateTimeFieldsType, ProjectionOperators, \
     SortOperators, AggregationOperator
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
@@ -36,47 +36,47 @@ class SessionDatabaseWrapper(IDatabase):
             'cursorId': cursor_id
         })
 
-    def insert_one(self, collection, insert, date_fields=None):
-        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Dict[str, Any]
+    def insert_one(self, collection, insert, date_time_fields=None):
+        # type: (CollectionType, DocumentType, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'insert': insert
         }
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('insert_one', request)
 
-    def insert_many(self, collection, insert, date_fields=None):
-        # type: (CollectionType, List[DocumentType], Optional[DateFieldsType]) -> Dict[str, Any]
+    def insert_many(self, collection, insert, date_time_fields=None):
+        # type: (CollectionType, List[DocumentType], Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'insert': insert
         }
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('insert_many', request)
 
-    def replace_one(self, collection, filter, replacement, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+    def replace_one(self, collection, filter, replacement, upsert=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter,
             'replacement': replacement,
             'upsert': upsert
         }
-        if date_fields:
-            request['fields'] = {'datetime': date_fields}
+        if date_time_fields:
+            request['fields'] = {'datetime': date_time_fields}
 
         return self._call('replace_one', request)
 
-    def count(self, collection, filter=None, skip=None, limit=None, date_fields=None, cursor_id=None, with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[DateFieldsType], Optional[str], bool) -> Dict[str, Any]
+    def count(self, collection, filter=None, skip=None, limit=None, date_time_fields=None, cursor_id=None, with_limit_and_skip=False):
+        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[DateTimeFieldsType], Optional[str], bool) -> Dict[str, Any]
         request = {
             'collection': collection
         }
@@ -92,15 +92,15 @@ class SessionDatabaseWrapper(IDatabase):
                 request['skip'] = skip
             if limit:
                 request['limit'] = limit
-            if date_fields:
+            if date_time_fields:
                 request['fields'] = {
-                    'datetime': date_fields
+                    'datetime': date_time_fields
                 }
 
         return self._call('count', request)
 
-    def update_one(self, collection, filter, update, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+    def update_one(self, collection, filter, update, upsert=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter,
@@ -108,15 +108,15 @@ class SessionDatabaseWrapper(IDatabase):
         }
         if upsert:
             request['upsert'] = upsert
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('update_one', request)
 
-    def update_many(self, collection, filter, update, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+    def update_many(self, collection, filter, update, upsert=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter,
@@ -124,15 +124,15 @@ class SessionDatabaseWrapper(IDatabase):
         }
         if upsert:
             request['upsert'] = upsert
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('update_many', request)
 
-    def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_time_fields=None):
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -144,15 +144,15 @@ class SessionDatabaseWrapper(IDatabase):
             request['skip'] = skip
         if sort:
             request['sort'] = sort
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('find_one', request)
 
-    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_time_fields=None):
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -166,16 +166,16 @@ class SessionDatabaseWrapper(IDatabase):
             request['limit'] = limit
         if sort:
             request['sort'] = sort
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('find_many', request)
 
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
-                            return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+                            return_updated=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter,
@@ -188,16 +188,16 @@ class SessionDatabaseWrapper(IDatabase):
             request['projection'] = projection
         if sort:
             request['sort'] = sort
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('find_one_and_update', request)
 
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
-                             return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+                             return_updated=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter,
@@ -210,15 +210,15 @@ class SessionDatabaseWrapper(IDatabase):
             request['projection'] = projection
         if sort:
             request['sort'] = sort
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('find_one_and_replace', request)
 
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], SortOperators, Optional[DateFieldsType]) -> Dict[str, Any]
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_time_fields=None):
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], SortOperators, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
@@ -228,15 +228,15 @@ class SessionDatabaseWrapper(IDatabase):
             request['projection'] = projection
         if sort:
             request['sort'] = sort
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('find_one_and_delete', request)
 
-    def distinct(self, collection, field, query=None, date_fields=None):
-        # type: (CollectionType, str, Optional[DocumentType], Optional[DateFieldsType]) -> Dict[str, Any]
+    def distinct(self, collection, field, query=None, date_time_fields=None):
+        # type: (CollectionType, str, Optional[DocumentType], Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'field': field
@@ -244,9 +244,9 @@ class SessionDatabaseWrapper(IDatabase):
 
         if query:
             request['query'] = query
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('distinct', request)
@@ -260,28 +260,28 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self._call('aggregate', request)
 
-    def delete_one(self, collection, filter, date_fields=None):
-        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Dict[str, Any]
+    def delete_one(self, collection, filter, date_time_fields=None):
+        # type: (CollectionType, DocumentType, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
         }
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('delete_one', request)
 
-    def delete_many(self, collection, filter, date_fields=None):
-        # type: (CollectionType, DocumentType, Optional[DateFieldsType]) -> Dict[str, Any]
+    def delete_many(self, collection, filter, date_time_fields=None):
+        # type: (CollectionType, DocumentType, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         request = {
             'collection': collection,
             'filter': filter
         }
-        if date_fields:
+        if date_time_fields:
             request['fields'] = {
-                'datetime': date_fields
+                'datetime': date_time_fields
             }
 
         return self._call('delete_many', request)

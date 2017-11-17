@@ -1,4 +1,5 @@
 import os
+import pytz
 from faker import Faker
 from mock import mock
 from mongomock import ObjectId
@@ -32,20 +33,11 @@ class TestDBComponent(DBTestCase, APITestCase):
     def tearDown(self):
         wait_for_completion.wait_for_completion = False
 
-    def test_preInit(self):
-
-        self.service.preInit()
-
-        self.assertEqual(self.service.session_config_template, {})
-        # @todo
-        #self.assertEqual(self.service.package_config_template, None)
-        self.assertEqual(self.service.session_config['loggernamespace'], 'db')
-
-    def test_onInit(self):
+    def test_on_init(self):
         with mock.patch.dict('os.environ'):
             del os.environ['MD_MONGO_HOST']
             del os.environ['MD_MONGO_PORT']
-            self.service.onInit()
+            self.service.on_init()
 
             self.assertEqual(self.service._client._host, "localhost")
             self.assertEqual(self.service._client._port, 27017)
@@ -53,26 +45,26 @@ class TestDBComponent(DBTestCase, APITestCase):
             self.assertEqual(self.service.autoschema, False)
 
     @mock.patch.dict(os.environ, {'MD_MONGO_HOST': 'localhost2'})
-    def test_onInit_host(self):
+    def test_on_init_host(self):
 
-        self.service.onInit()
+        self.service.on_init()
 
         self.assertEqual(self.service._client._host, "localhost2")
 
     @mock.patch.dict(os.environ, {'MD_MONGO_PORT': '31312'})
-    def test_onInit_port(self):
+    def test_on_init_port(self):
 
-        self.service.onInit()
+        self.service.on_init()
 
         self.assertEqual(self.service._client._port, 31312)
 
     @mock.patch.dict(os.environ, {'MD_MONGO_PORT': '31312'})
-    def test_onRun(self):
+    def test_on_run(self):
 
-        self.service.publish = mock.MagicMock()
-        self.service.onRun(None)
+        self.service.event = mock.MagicMock()
+        self.service.on_run()
 
-        self.service.publish.assert_called_once_with(u'mdstudio.db.endpoint.events.online', True,
+        self.service.event.assert_called_once_with(u'mdstudio.db.endpoint.events.online', True,
                                                      options=self.service.publish_options)
 
     @chainable
@@ -134,7 +126,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         for i in range(50):
             obj = self.fake.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
             id = str(ObjectId())
-            date = self.fake.date_time().isoformat()
+            date = self.fake.date_time(tzinfo=pytz.utc).isoformat()
             obj['_id'] = id
             obj['datetimeField'] = date
             output = yield self.assertApi(self.service, 'insert_one', {
@@ -156,7 +148,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         for i in range(50):
             obj = self.fake.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
             id = str(ObjectId())
-            date = self.fake.date_time()
+            date = self.fake.date_time(tzinfo=pytz.utc)
             obj['_id'] = id
             obj['datetimeField'] = date
             output = yield self.assertApi(self.service, 'insert_one', {
@@ -205,7 +197,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             for j in range(self.fake.random_int(min=1, max=100)):
                 obj = self.fake.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
                 id = str(ObjectId())
-                date = self.fake.date_time().isoformat()
+                date = self.fake.date_time(tzinfo=pytz.utc).isoformat()
                 obj['_id'] = id
                 obj['datetimeField'] = date
                 objs.append(obj)
@@ -269,9 +261,9 @@ class TestDBComponent(DBTestCase, APITestCase):
     @chainable
     def test_replace_one_fields_datetime(self):
 
-        date3 = self.fake.date_time().isoformat()
-        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
-        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
+        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
+        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test2': 3, '_id': o2['_id'], 'date': date3}
         self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'replace_one', {
@@ -343,8 +335,8 @@ class TestDBComponent(DBTestCase, APITestCase):
     @chainable
     def test_count_fields_datetime(self):
 
-        self.db.insert_many(self.collection, [{'test': 1, 'date': self.fake.date_time().isoformat()},
-                                              {'test': 2, 'date': self.fake.date_time().isoformat()}])
+        self.db.insert_many(self.collection, [{'test': 1, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+                                              {'test': 2, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}])
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'limit': 1,
@@ -404,9 +396,9 @@ class TestDBComponent(DBTestCase, APITestCase):
     @chainable
     def test_update_one_fields_datetime(self):
 
-        date3 = self.fake.date_time().isoformat()
-        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
-        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
+        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
+        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
         self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_one', {
@@ -480,9 +472,9 @@ class TestDBComponent(DBTestCase, APITestCase):
     @chainable
     def test_update_many_fields_datetime(self):
 
-        date3 = self.fake.date_time().isoformat()
-        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
-        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
+        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
+        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
         self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_many', {
@@ -602,7 +594,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             objs.append({
                 'test': i,
                 '_id': str(ObjectId()),
-                'date': self.fake.date_time().isoformat()
+                'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()
             })
         self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
@@ -755,7 +747,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             objs.append({
                 'test': i,
                 '_id': str(ObjectId()),
-                'date': self.fake.date_time().isoformat()
+                'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()
             })
         self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
@@ -889,9 +881,9 @@ class TestDBComponent(DBTestCase, APITestCase):
 
     @chainable
     def test_find_one_and_update_fields_datetime(self):
-        date3 = self.fake.date_time().isoformat()
-        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
-        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
+        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
+        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
         self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
@@ -1020,8 +1012,8 @@ class TestDBComponent(DBTestCase, APITestCase):
 
     @chainable
     def test_find_one_and_replace_fields_datetime(self):
-        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
-        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
+        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test2': 3, '_id': o2['_id']}
         self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
@@ -1097,8 +1089,8 @@ class TestDBComponent(DBTestCase, APITestCase):
 
     @chainable
     def test_find_one_and_delete_fields_datetime(self):
-        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
-        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
+        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
@@ -1150,10 +1142,10 @@ class TestDBComponent(DBTestCase, APITestCase):
     def test_distinct_field_datetime(self):
 
         self.db.insert_many(self.collection, [
-            {'test': 1, 'date': self.fake.date_time().isoformat()},
-            {'test': 2, 'date': self.fake.date_time().isoformat()},
-            {'test': 3, 'date': self.fake.date_time().isoformat()},
-            {'test': 2, 'date': self.fake.date_time().isoformat()}])
+            {'test': 1, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 2, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 3, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 2, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}])
         output = yield self.assertApi(self.service, 'distinct', {
             'collection': self.collection,
             'field': 'test',
@@ -1223,10 +1215,10 @@ class TestDBComponent(DBTestCase, APITestCase):
     @chainable
     def test_delete_one_date_fields(self):
         objs = [
-            {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()},
-            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()},
-            {'test': 3, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()},
-            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+            {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 3, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         ]
         self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_one', {
@@ -1284,10 +1276,10 @@ class TestDBComponent(DBTestCase, APITestCase):
     @chainable
     def test_delete_many_date_fields(self):
         objs = [
-            {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()},
-            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()},
-            {'test': 3, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()},
-            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time().isoformat()}
+            {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 3, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+            {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         ]
         self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_many', {

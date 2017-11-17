@@ -29,7 +29,7 @@ class DBComponent(CoreComponentSession):
         yield self.event(u'mdstudio.db.endpoint.events.online', True, options=self.publish_options)
 
     @register(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', scope='write')
-    def more(self, request, details=None, claims=None):
+    def more(self, request, claims=None):
         database = self.get_database(claims)
 
         return database.more(request['cursorId'])
@@ -37,7 +37,7 @@ class DBComponent(CoreComponentSession):
     @register(u'mdstudio.db.endpoint.rewind',
               'cursor/rewind-request',
               'cursor/rewind-response', scope='write')
-    def rewind(self, request, details=None, claims=None):
+    def rewind(self, request, claims=None):
         database = self.get_database(claims)
 
         return database.rewind(request['cursorId'])
@@ -46,11 +46,11 @@ class DBComponent(CoreComponentSession):
               'insert/insert-one-request',
               'insert/insert-one-response',
               scope='write')
-    def insert_one(self, request, details=None, claims=None):
+    def insert_one(self, request, claims=None):
         database = self.get_database(claims)
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.insert_one(request['collection'], request['insert'], **kwargs)
 
@@ -58,11 +58,11 @@ class DBComponent(CoreComponentSession):
               'insert/insert-many-request',
               'insert/insert-many-response',
               scope='write')
-    def insert_many(self, request, details=None, claims=None):
+    def insert_many(self, request, claims=None):
         database = self.get_database(claims)
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.insert_many(request['collection'], request['insert'], **kwargs)
 
@@ -70,13 +70,13 @@ class DBComponent(CoreComponentSession):
               'replace/replace-one-request',
               'replace/replace-one-response',
               scope='write')
-    def replace_one(self, request, details=None, claims=None):
+    def replace_one(self, request, claims=None):
         database = self.get_database(claims)
         kwargs = {}
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.replace_one(request['collection'], request['filter'],
                                     request['replacement'], **kwargs)
@@ -84,7 +84,7 @@ class DBComponent(CoreComponentSession):
     @register(u'mdstudio.db.endpoint.count',
               'count/count-request',
               'count/count-response', scope='read')
-    def count(self, request, details=None, claims=None):
+    def count(self, request, claims=None):
         database = self.get_database(claims)
 
         if 'cursorId' in request:
@@ -103,7 +103,7 @@ class DBComponent(CoreComponentSession):
             if 'limit' in request:
                 kwargs['limit'] = request['limit']
             if 'fields' in request and 'datetime' in request['fields']:
-                kwargs['date_fields'] = request['fields']['datetime']
+                kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.count(**kwargs)
 
@@ -111,14 +111,14 @@ class DBComponent(CoreComponentSession):
               'update/update-one-request',
               'update/update-one-response',
               scope='write')
-    def update_one(self, request, details=None, claims=None):
+    def update_one(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.update_one(request['collection'], request['filter'],
                                    request['update'], **kwargs)
@@ -127,14 +127,14 @@ class DBComponent(CoreComponentSession):
               'update/update-many-request',
               'update/update-many-response',
               scope='write')
-    def update_many(self, request, details=None, claims=None):
+    def update_many(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.update_many(request['collection'], request['filter'],
                                     request['update'], **kwargs)
@@ -142,7 +142,7 @@ class DBComponent(CoreComponentSession):
     @register(u'mdstudio.db.endpoint.find_one',
               'find/find-one-request',
               'find/find-one-response', scope='read')
-    def find_one(self, request, details=None, claims=None):
+    def find_one(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
@@ -153,14 +153,14 @@ class DBComponent(CoreComponentSession):
         if 'sort' in request:
             kwargs['sort'] = request['sort']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.find_one(request['collection'], request['filter'], **kwargs)
 
     @register(u'mdstudio.db.endpoint.find_many',
               'find/find-many-request',
               'find/find-many-response', scope='read')
-    def find_many(self, request, details=None, claims=None):
+    def find_many(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
@@ -173,7 +173,7 @@ class DBComponent(CoreComponentSession):
         if 'sort' in request:
             kwargs['sort'] = request['sort']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.find_many(request['collection'], request['filter'], **kwargs)
 
@@ -181,7 +181,7 @@ class DBComponent(CoreComponentSession):
               'find/find-one-and-update-request',
               'find/find-one-and-update-response',
               scope='read')
-    def find_one_and_update(self, request, details=None, claims=None):
+    def find_one_and_update(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
@@ -194,7 +194,7 @@ class DBComponent(CoreComponentSession):
         if 'returnUpdated' in request:
             kwargs['return_updated'] = request['returnUpdated']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.find_one_and_update(request['collection'], request['filter'],
                                             request['update'], **kwargs)
@@ -203,7 +203,7 @@ class DBComponent(CoreComponentSession):
               'find/find-one-and-replace-request',
               'find/find-one-and-replace-response',
               scope='read')
-    def find_one_and_replace(self, request, details=None, claims=None):
+    def find_one_and_replace(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
@@ -216,7 +216,7 @@ class DBComponent(CoreComponentSession):
         if 'returnUpdated' in request:
             kwargs['return_updated'] = request['returnUpdated']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.find_one_and_replace(request['collection'], request['filter'],
                                              request['replacement'], **kwargs)
@@ -225,7 +225,7 @@ class DBComponent(CoreComponentSession):
               'find/find-one-and-delete-request',
               'find/find-one-and-delete-response',
               scope='read')
-    def find_one_and_delete(self, request, details=None, claims=None):
+    def find_one_and_delete(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
@@ -234,7 +234,7 @@ class DBComponent(CoreComponentSession):
         if 'sort' in request:
             kwargs['sort'] = request['sort']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.find_one_and_delete(request['collection'], request['filter'], **kwargs)
 
@@ -242,14 +242,14 @@ class DBComponent(CoreComponentSession):
               'distinct/distinct-request',
               'distinct/distinct-response',
               scope='read')
-    def distinct(self, request, details=None, claims=None):
+    def distinct(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
         if 'filter' in request:
             kwargs['filter'] = request['filter']
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.distinct(request['collection'], request['field'], **kwargs)
 
@@ -257,7 +257,7 @@ class DBComponent(CoreComponentSession):
               'aggregate/aggregate-request',
               'aggregate/aggregate-response',
               scope='read')
-    def aggregate(self, request, details=None, claims=None):
+    def aggregate(self, request, claims=None):
         database = self.get_database(claims)
         return database.aggregate(request['collection'], request['pipeline'])
 
@@ -265,12 +265,12 @@ class DBComponent(CoreComponentSession):
               'delete/delete-one',
               'delete/delete-response',
               scope='delete')
-    def delete_one(self, request, details=None, claims=None):
+    def delete_one(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.delete_one(request['collection'], request['filter'], **kwargs)
 
@@ -278,12 +278,12 @@ class DBComponent(CoreComponentSession):
               'delete/delete-many',
               'delete/delete-response',
               scope='delete')
-    def delete_many(self, request, details=None, claims=None):
+    def delete_many(self, request, claims=None):
         database = self.get_database(claims)
 
         kwargs = {}
         if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_fields'] = request['fields']['datetime']
+            kwargs['date_time_fields'] = request['fields']['datetime']
 
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 

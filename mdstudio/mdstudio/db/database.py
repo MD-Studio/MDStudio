@@ -22,7 +22,7 @@ try:
 except ImportError:
     CollectionType = Union[str, Dict[str, str]]
 
-DateFieldsType = List[Union[str, List[str]]]
+DateTimeFieldsType = List[Union[str, List[str]]]
 DocumentType = Dict
 AggregationOperator = Dict
 ProjectionOperators = Dict

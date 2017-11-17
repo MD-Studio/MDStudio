@@ -13,7 +13,7 @@ from pymongo.cursor import Cursor
 
 from mdstudio.db.cache_dict import CacheDict
 from mdstudio.db.exception import DatabaseException
-from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateFieldsType, SortOperators, \
+from mdstudio.db.database import IDatabase, CollectionType, DocumentType, DateTimeFieldsType, SortOperators, \
     ProjectionOperators, AggregationOperator
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
@@ -53,33 +53,33 @@ class MongoDatabaseWrapper(IDatabase):
             raise DatabaseException("Cursor with id '{}' is unknown".format(cursor_id))
 
     @make_deferred
-    def insert_one(self, collection, insert, date_fields=None):
-        # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
+    def insert_one(self, collection, insert, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
         insert = self._prepare_for_mongo(insert)
-        self.transform_to_datetime({'insert': insert}, date_fields, ['insert'])
+        self.transform_to_datetime({'insert': insert}, date_time_fields, ['insert'])
 
         return {
             'id': str(db_collection.insert_one(insert).inserted_id)
         }
 
     @make_deferred
-    def insert_many(self, collection, insert, date_fields=None):
-        # type: (CollectionType, List[DocumentType], DateFieldsType) -> Dict[str, Any]
+    def insert_many(self, collection, insert, date_time_fields=None):
+        # type: (CollectionType, List[DocumentType], DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
         insert = self._prepare_for_mongo(insert)
 
-        self.transform_to_datetime({'insert': insert}, date_fields, ['insert'])
+        self.transform_to_datetime({'insert': insert}, date_time_fields, ['insert'])
 
         return {
             'ids': [str(oid) for oid in db_collection.insert_many(insert).inserted_ids]
         }
 
     @make_deferred
-    def replace_one(self, collection, filter, replacement, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
+    def replace_one(self, collection, filter, replacement, upsert=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
@@ -87,7 +87,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         filter = self._prepare_for_mongo(filter)
         replacement = self._prepare_for_mongo(replacement)
-        self.transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields,
+        self.transform_to_datetime({'filter': filter, 'replacement': replacement}, date_time_fields,
                                     ['filter', 'replacement'])
 
         replace_result = db_collection.replace_one(filter, replacement, upsert)
@@ -95,9 +95,9 @@ class MongoDatabaseWrapper(IDatabase):
         return self._update_response(upsert, result=replace_result)
 
     @make_deferred
-    def count(self, collection=None, filter=None, skip=None, limit=None, date_fields=None, cursor_id=None,
+    def count(self, collection=None, filter=None, skip=None, limit=None, date_time_fields=None, cursor_id=None,
               with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[DateFieldsType], Optional[str]) -> Dict[str, Any]
+        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[DateTimeFieldsType], Optional[str]) -> Dict[str, Any]
         total = 0
         if cursor_id:
             total = self._cursors[cursor_id].count(with_limit_and_skip)
@@ -109,7 +109,7 @@ class MongoDatabaseWrapper(IDatabase):
 
             if db_collection:
                 filter = self._prepare_for_mongo(filter)
-                self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+                self.transform_to_datetime({'filter': filter}, date_time_fields, ['filter'])
 
                 total = db_collection.count(filter, skip=skip, limit=limit)
 
@@ -118,8 +118,8 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def update_one(self, collection, filter, update, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateFieldsType]) -> Dict[str, Any]
+    def update_one(self, collection, filter, update, upsert=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[DateTimeFieldsType]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
@@ -127,15 +127,15 @@ class MongoDatabaseWrapper(IDatabase):
 
         filter = self._prepare_for_mongo(filter)
         update = self._prepare_for_mongo(update)
-        self.transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
+        self.transform_to_datetime({'filter': filter, 'update': update}, date_time_fields, ['filter', 'update'])
 
         result = db_collection.update_one(filter, update, upsert)
 
         return self._update_response(upsert, result=result)
 
     @make_deferred
-    def update_many(self, collection, filter, update, upsert=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, DateFieldsType) -> Dict[str, Any]
+    def update_many(self, collection, filter, update, upsert=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
@@ -143,15 +143,15 @@ class MongoDatabaseWrapper(IDatabase):
 
         filter = self._prepare_for_mongo(filter)
         update = self._prepare_for_mongo(update)
-        self.transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
+        self.transform_to_datetime({'filter': filter, 'update': update}, date_time_fields, ['filter', 'update'])
 
         result = db_collection.update_many(filter, update, upsert)
 
         return self._update_response(upsert, result=result)
 
     @make_deferred
-    def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, date_time_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         skip = 0 if not skip else skip
@@ -159,7 +159,7 @@ class MongoDatabaseWrapper(IDatabase):
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_time_fields, ['filter'])
             result = db_collection.find_one(filter, projection, skip=skip, sort=self._prepare_sortmode(sort))
 
             self._prepare_for_json(result)
@@ -169,8 +169,8 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, DateFieldsType) -> Dict[str, Any]
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, date_time_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         skip = 0 if not skip else skip
@@ -184,7 +184,7 @@ class MongoDatabaseWrapper(IDatabase):
             }
 
         filter = self._prepare_for_mongo(filter)
-        self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+        self.transform_to_datetime({'filter': filter}, date_time_fields, ['filter'])
 
         cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
 
@@ -192,15 +192,15 @@ class MongoDatabaseWrapper(IDatabase):
 
     @make_deferred
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
-                            return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
+                            return_updated=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
             update = self._prepare_for_mongo(update)
-            self.transform_to_datetime({'filter': filter, 'update': update}, date_fields, ['filter', 'update'])
+            self.transform_to_datetime({'filter': filter, 'update': update}, date_time_fields, ['filter', 'update'])
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
             result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort),
@@ -213,15 +213,15 @@ class MongoDatabaseWrapper(IDatabase):
 
     @make_deferred
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
-                             return_updated=False, date_fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateFieldsType) -> Dict[str, Any]
+                             return_updated=False, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
             replacement = self._prepare_for_mongo(replacement)
-            self.transform_to_datetime({'filter': filter, 'replacement': replacement}, date_fields,
+            self.transform_to_datetime({'filter': filter, 'replacement': replacement}, date_time_fields,
                                         ['filter', 'replacement'])
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
@@ -235,14 +235,14 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_fields=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, DateFieldsType) -> Dict[str, Any]
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, date_time_fields=None):
+        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         result = None
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_time_fields, ['filter'])
             result = db_collection.find_one_and_delete(filter, projection, sort=self._prepare_sortmode(sort))
             self._prepare_for_json(result)
 
@@ -251,14 +251,14 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def distinct(self, collection, field, filter=None, date_fields=None):
-        # type: (CollectionType, str, Optional[DocumentType], DateFieldsType) -> Dict[str, Any]
+    def distinct(self, collection, field, filter=None, date_time_fields=None):
+        # type: (CollectionType, str, Optional[DocumentType], DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         results = []
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_time_fields, ['filter'])
             results = db_collection.distinct(field, filter)
             for result in results:
                 self._prepare_for_json(result)
@@ -285,28 +285,28 @@ class MongoDatabaseWrapper(IDatabase):
         return self._get_cursor(cursor)
 
     @make_deferred
-    def delete_one(self, collection, filter, date_fields=None):
-        # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
+    def delete_one(self, collection, filter, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_time_fields, ['filter'])
             count = db_collection.delete_one(filter).deleted_count
         return {
             'count': count
         }
 
     @make_deferred
-    def delete_many(self, collection=None, filter=None, date_fields=None):
-        # type: (CollectionType, DocumentType, DateFieldsType) -> Dict[str, Any]
+    def delete_many(self, collection=None, filter=None, date_time_fields=None):
+        # type: (CollectionType, DocumentType, DateTimeFieldsType) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
         if db_collection:
             filter = self._prepare_for_mongo(filter)
-            self.transform_to_datetime({'filter': filter}, date_fields, ['filter'])
+            self.transform_to_datetime({'filter': filter}, date_time_fields, ['filter'])
             count = db_collection.delete_many(filter).deleted_count
         return {
             'count': count
