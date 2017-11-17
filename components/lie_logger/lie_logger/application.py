@@ -6,24 +6,14 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import os
-
 from autobahn import wamp
+
 from mdstudio.api.register import register
-from mdstudio.api.schema import EndpointSchema, validate_input
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.log_type import LogType
-from mdstudio.logging.logger import PrintingObserver
-from twisted.python import log, logfile
-
-# Add global observer for daily logs
-# TODO:  make this available without an ugly injection
-if os.getenv('MD_GLOBAL_LOG', 0) != 0:
-    observer = PrintingObserver(logfile.DailyLogFile('daily.log', os.getenv('MD_GLOBAL_LOG_DIR', './data/logs')))
-    log.addObserver(observer)
 
 
 class LoggerComponent(CoreComponentSession):
@@ -33,14 +23,11 @@ class LoggerComponent(CoreComponentSession):
 
     @chainable
     def on_run(self):
-        self.log_event_subscription = yield self.subscribe(self.log_event, u'mdstudio.logger.endpoint.log')
         yield self.event(u'mdstudio.logger.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
-        yield self.publish(u'mdstudio.logger.endpoint.log', {'foo': 'bar'}, claims={'logType': str(LogType.User)})
-
-    @validate_input(EndpointSchema('endpoint://log/log'))
+    @register('mdstudio.logger.endpoint.log', 'log/log', {})
     @chainable
-    def log_event(self, request, claims):
+    def log_event(self, request, claims=None):
         """
         Receive structured log events over WAMP and broadcast
         to local Twisted logger observers.
@@ -73,7 +60,7 @@ class LoggerComponent(CoreComponentSession):
         if connection_type == LogType.User:
             return ('username' in claims) == True
         elif connection_type == LogType.Group:
-            raise NotImplemented()
+            return ('groups' in claims) == True # @todo: Properly validate group permissions
         elif connection_type == LogType.GroupRole:
             raise NotImplemented()
 
@@ -81,13 +68,13 @@ class LoggerComponent(CoreComponentSession):
 
     @staticmethod
     def get_log_collection_name(claims):
-        connection_type = LogType.from_string(claims['connectionType'])
+        log_type = LogType.from_string(claims['logType'])
 
-        if connection_type == LogType.User:
+        if log_type == LogType.User:
             collection_name = 'users~{user}'.format(user=claims['username'])
-        elif connection_type == LogType.Group:
+        elif log_type == LogType.Group:
             collection_name = 'groups~{group}'.format(group=claims['group'])
-        elif connection_type == LogType.GroupRole:
+        elif log_type == LogType.GroupRole:
             collection_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
         else:
             raise NotImplemented('This distinction does not exist')

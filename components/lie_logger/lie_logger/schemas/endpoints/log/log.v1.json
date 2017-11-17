@@ -18,21 +18,8 @@
               "critical"
             ]
           },
-          "namespace": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_\\.]+$"
-          },
-          "user": {
-            "oneOf": [
-              {
-                "type": "string",
-                "pattern": "^[a-zA-Z0-9_\\.]+$"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null
+          "source": {
+            "type": "string"
           },
           "time": {
             "format": "date-time"
