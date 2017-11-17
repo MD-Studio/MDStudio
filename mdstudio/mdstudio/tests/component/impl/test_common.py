@@ -1,10 +1,12 @@
 from copy import deepcopy
+from jsonschema import ValidationError
+from pyfakefs.fake_filesystem_unittest import Patcher
 from unittest import TestCase
 
 import os
 from autobahn.wamp import ComponentConfig
 from faker import Faker
-from mock import mock
+from mock import mock, call
 
 from mdstudio.component.impl.common import CommonSession
 
@@ -53,6 +55,30 @@ class TestCommonSession(TestCase):
         self.assertEqual(config.realm, None)
         self.session = TestSession(config)
         self.assertEqual(config.realm, 'mdstudio')
+
+    @mock.patch.dict(os.environ, {'MDSTUDIO_USERNAME': 'TEST_VALUE'})
+    def test_construction_username(self):
+
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
+        self.session = TestSession()
+        self.assertEqual(self.session.component_config.session.username, 'TEST_VALUE')
+
+    @mock.patch.dict(os.environ, {'MDSTUDIO_PASSWORD': 'TEST_VALUE'})
+    def test_construction_password(self):
+
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
+        self.session = TestSession()
+        self.assertEqual(self.session.component_config.session.password, 'TEST_VALUE')
+
+    @mock.patch.dict(os.environ, {'MDSTUDIO_REALM': 'TEST_VALUE'})
+    def test_construction_realm(self):
+
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
+        self.session = TestSession()
+        self.assertEqual(self.session.component_config.session.realm, 'TEST_VALUE')
 
     def test_construction_order(self):
 
@@ -148,9 +174,160 @@ class TestCommonSession(TestCase):
             'realm': 'mdstudio'
         })
 
+    def test_load_environment(self):
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
+            add_session_env_var = mock.MagicMock()
 
+        self.session = TestSession()
+        self.session.add_session_env_var.assert_has_calls([
+            call('username', ['MDSTUDIO_USERNAME'], None),
+            call('password', ['MDSTUDIO_PASSWORD'], None),
+            call('realm', ['MDSTUDIO_REALM'], 'mdstudio')
+        ])
 
+    def test_load_settings(self):
 
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
 
+        with Patcher() as patcher:
+            file = os.path.join(self.session.component_root_path, 'settings.yml')
+            patcher.fs.CreateFile(file, contents='{"test": 2}')
+            self.session = TestSession()
 
+            self.assertEqual(self.session.component_config.settings['test'], 2)
 
+    def test_load_settings_yaml_over_json(self):
+
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
+
+        with Patcher() as patcher:
+            file = os.path.join(self.session.component_root_path, 'settings.json')
+            file2 = os.path.join(self.session.component_root_path, 'settings.yml')
+            patcher.fs.CreateFile(file, contents='{"test": 2}')
+            patcher.fs.CreateFile(file2, contents='{"test": 3}')
+            self.session = TestSession()
+
+            self.assertEqual(self.session.component_config.settings['test'], 3)
+
+    def test_load_settings_dot_json_over_yaml(self):
+
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
+
+        with Patcher() as patcher:
+            file = os.path.join(self.session.component_root_path, 'settings.yml')
+            file2 = os.path.join(self.session.component_root_path, '.settings.json')
+            patcher.fs.CreateFile(file, contents='{"test": 2}')
+            patcher.fs.CreateFile(file2, contents='{"test": 3}')
+            self.session = TestSession()
+
+            self.assertEqual(self.session.component_config.settings['test'], 3)
+
+    def test_load_settings_dot_yaml_over_dot_json(self):
+
+        class TestSession(CommonSession):
+            validate_settings = mock.MagicMock()
+
+        with Patcher() as patcher:
+            file = os.path.join(self.session.component_root_path, '.settings.json')
+            file2 = os.path.join(self.session.component_root_path, '.settings.yml')
+            patcher.fs.CreateFile(file, contents='{"test": 2}')
+            patcher.fs.CreateFile(file2, contents='{"test": 3}')
+            self.session = TestSession()
+
+            self.assertEqual(self.session.component_config.settings['test'], 3)
+
+    def test_session_env_mapping(self):
+
+        self.assertEqual(self.session.session_env_mapping, {
+            'password': (['MDSTUDIO_PASSWORD'], None),
+            'realm': (['MDSTUDIO_REALM'], 'mdstudio'),
+            'username': (['MDSTUDIO_USERNAME'], None)
+        })
+
+    def test_session_update_var(self):
+
+        self.assertEqual(self.session.session_update_vars, {
+            'username': 'authid',
+            'role': 'authrole',
+            'session_id': 'session'
+        })
+
+    def test_class_name(self):
+
+        self.assertEqual(self.session.class_name, "TestSession")
+
+    def test_component_root_path(self):
+
+        self.assertEqual(self.session.component_root_path, os.path.realpath(os.path.join(os.path.dirname(__file__), '../')))
+
+    def test_component_schemas_path(self):
+
+        self.assertEqual(self.session.component_schemas_path, os.path.realpath(os.path.join(os.path.dirname(__file__), 'schemas')))
+
+    def test_mdstudio_root_path(self):
+
+        self.assertEqual(self.session.mdstudio_root_path, os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../../')))
+
+    def test_mdstudio_schemas_path(self):
+
+        self.assertEqual(self.session.mdstudio_schemas_path, os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../schemas')))
+
+    def test_settings_files(self):
+
+        self.assertEqual(self.session.settings_files, [
+            'settings.json',
+            'settings.yml',
+            '.settings.json',
+            '.settings.yml'
+        ])
+
+    def test_settings_schemas(self):
+
+        self.assertEqual(self.session.settings_schemas, [
+            os.path.join(self.session.component_schemas_path, 'settings.json'),
+            os.path.join(self.session.mdstudio_schemas_path, 'settings.json')
+        ])
+
+    def test_validate_settings(self):
+        class TestSession(CommonSession):
+            pass
+
+        with Patcher() as patcher:
+            file = os.path.join(self.session.component_schemas_path, 'settings.json')
+            patcher.fs.CreateFile(file, contents='{"type": "object", "properties": {"test": {"type": "string"}}, "required": ["test"]}')
+            self.assertRaisesRegex(ValidationError, '\'test\' is a required property', TestSession)
+
+    def test_validate_settings2(self):
+        class TestSession(CommonSession):
+            pass
+
+        with Patcher() as patcher:
+            file = os.path.join(self.session.component_schemas_path, 'settings.json')
+            file2 = os.path.join(self.session.mdstudio_schemas_path, 'settings.json')
+            patcher.fs.CreateFile(file, contents='{"type": "object", "properties": {"session": {"type": "object"}}, "required": ["session"]}')
+            patcher.fs.CreateFile(file2, contents='{"type": "object", "properties": {"test": {"type": "string"}}, "required": ["test"]}')
+
+            self.assertRaisesRegex(ValidationError, '\'test\' is a required property', TestSession)
+
+    def test_validate_settings3(self):
+        class TestSession(CommonSession):
+            pass
+
+        with Patcher() as patcher:
+            file = os.path.join(self.session.component_schemas_path, 'settings.json')
+            file2 = os.path.join(self.session.mdstudio_schemas_path, 'settings.json')
+            patcher.fs.CreateFile(file2, contents='{"type": "object", "properties": {"session": {"type": "object"}}, "required": ["session"]}')
+            patcher.fs.CreateFile(file, contents='{"type": "object", "properties": {"test": {"type": "string"}}, "required": ["test"]}')
+
+            self.assertRaisesRegex(ValidationError, '\'test\' is a required property', TestSession)
+
+    def test_validate_settings4(self):
+        class TestSession(CommonSession):
+            pass
+
+        with Patcher() as patcher:
+            TestSession()
