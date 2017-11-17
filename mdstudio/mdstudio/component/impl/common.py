@@ -189,12 +189,12 @@ class CommonSession(ApplicationSession):
 
     onLeave = on_leave
 
-    def add_session_env_var(self, session_var, env_vars, default=None):
+    def add_session_env_var(self, session_var, env_vars, default=None, extract=os.getenv):
         if not isinstance(env_vars, list):
             env_vars = [env_vars]
 
         for var in env_vars:
-            env_var = os.getenv(var)
+            env_var = extract(var)
 
             if env_var:
                 self.component_config.session[session_var] = env_var
@@ -202,9 +202,11 @@ class CommonSession(ApplicationSession):
 
         if default:
             self.component_config.session[session_var] = default
+            print(session_var, default, self.component_config.to_dict())
 
     def load_environment(self, mapping):
         for session_var, env_vars in mapping.items():
+            print(session_var, env_vars)
             self.add_session_env_var(session_var, env_vars[0], env_vars[1])
 
     def load_settings(self):
