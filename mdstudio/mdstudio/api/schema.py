@@ -67,8 +67,8 @@ class ISchema:
     @staticmethod
     def _schema_factory(schema_type, schema_path):
         factory_dict = {
-            'resource': lambda p: ResourceSchema(p),
-            'endpoint': lambda p: EndpointSchema(p),
+            'resource': lambda p: ResourceSchema('resource://{}'.format(p)),
+            'endpoint': lambda p: EndpointSchema('endpoint://{}'.format(p)),
             'https': lambda p: HttpsSchema('https://{}'.format(p)),
             'http': lambda p: HttpsSchema('https://{}'.format(p))
         }
@@ -147,7 +147,7 @@ class ResourceSchema(ISchema):
             return_value(True)
 
         if session.component_config.static.vendor == self.vendor and session.component_config.static.component == self.component:
-            self._retrieve_local(os.path.join(session.component_schemas_path, 'endpoints'), self.schema_path, self.versions)
+            self._retrieve_local(os.path.join(session.component_schemas_path, 'resources'), self.schema_path, self.versions)
         else:
             yield self._retrieve_wamp(session)
 

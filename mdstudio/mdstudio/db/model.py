@@ -26,10 +26,10 @@ class Model:
     date_time_fields = []
 
     # @todo: global connection
-    def __init__(self, wrapper=None, collection=None):
+    def __init__(self, wrapper=None, collection=None, connection_type=None):
         # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
         if isinstance(wrapper, ApplicationSession):
-            self.wrapper = SessionDatabaseWrapper(wrapper, self.connection_type)
+            self.wrapper = SessionDatabaseWrapper(wrapper, connection_type or self.connection_type)
         else:
             self.wrapper = wrapper
 

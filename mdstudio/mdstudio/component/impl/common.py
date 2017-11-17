@@ -6,6 +6,7 @@ import yaml
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp import PublishOptions
 from autobahn.wamp.request import Publication
+from twisted.logger import Logger
 
 from mdstudio.api.call_exception import CallException
 from mdstudio.api.schema import validate_json_schema
@@ -13,7 +14,6 @@ from mdstudio.collection import merge_dicts
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from twisted.python.failure import Failure
-
 
 class CommonSession(ApplicationSession):
     class Config(object):
@@ -60,6 +60,8 @@ class CommonSession(ApplicationSession):
             }
 
     def __init__(self, config):
+        self.log = Logger(namespace=self.__class__.__name__)
+
         self.component_config = self.Config()
         self.function_scopes = self.extract_custom_scopes()
         self.load_environment(self.session_env_mapping)
@@ -144,7 +146,7 @@ class CommonSession(ApplicationSession):
                 if not self.authorize_request(topic, claims):
                     self.log.warn("Unauthorized publish to {topic}", topic=topic)
                 else:
-                    return_value((yield handler(*args, **kwargs)))
+                    return_value((yield handler(*args, claims=claims, **kwargs)))
 
         return super(CommonSession, self).subscribe(_handler, topic, options)
 

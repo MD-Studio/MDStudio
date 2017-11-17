@@ -52,7 +52,6 @@ class SessionDatabaseWrapper(IDatabase):
             'collection': collection,
             'insert': insert
         }
-        print(insert)
         if date_fields:
             request['fields'] = {
                 'datetime': date_fields
