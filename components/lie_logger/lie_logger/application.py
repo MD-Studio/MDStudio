@@ -36,7 +36,7 @@ class LoggerComponent(CoreComponentSession):
         self.log_event_subscription = yield self.subscribe(self.log_event, u'mdstudio.logger.endpoint.log')
         yield self.event(u'mdstudio.logger.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
 
-        yield self.publish(u'mdstudio.logger.endpoint.log', {'foo': 'bar'}, claims={'logType': LogType.User})
+        yield self.publish(u'mdstudio.logger.endpoint.log', {'foo': 'bar'}, claims={'logType': str(LogType.User)})
 
     @validate_input(EndpointSchema('endpoint://log/log'))
     @chainable

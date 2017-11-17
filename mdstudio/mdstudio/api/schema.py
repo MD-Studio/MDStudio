@@ -134,7 +134,7 @@ class EndpointSchema(ISchema):
 class ResourceSchema(ISchema):
     def __init__(self, uri, versions=None):
         super(ResourceSchema, self).__init__()
-        uri_decomposition = re.match(r'resource://([\w\d_\-]+)/([\w\d_\-]+)/([\w/_\-]+?)/?((v\d+,?)*)', uri)
+        uri_decomposition = re.match(r'resource://([\w\d_\-]+)/([\w\d_\-]+)/([\w/_\-]+?)/?((v\d+,?)*)?$', uri)
         self.vendor = uri_decomposition.group(1)
         self.component = uri_decomposition.group(2)
         self.schema_path = uri_decomposition.group(3)
