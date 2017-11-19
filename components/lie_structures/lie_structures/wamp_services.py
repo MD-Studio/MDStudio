@@ -88,9 +88,14 @@ class StructuresWampApi(LieApplicationSession):
                               pdir=workdir,
                               overwrite=True)
 
+        # Return file path if workdir in function arguments else return
+        # file content inline.
         if os.path.isfile(dfile):
             session['status'] = 'completed'
-            return {'session': session, 'rcsb_file': dfile}
+            if 'workdir' in config:
+                return {'session': session, 'rcsb_file': dfile}
+            else:
+                return {'session': session, 'rcsb_file': open(dfile).read()}
 
         self.logger.error('Unable to download structure: {0}'.format(pdb_id), **session)
         session['status'] = 'failed'
@@ -112,10 +117,14 @@ class StructuresWampApi(LieApplicationSession):
         # Validate against JSON schema
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
-        molobject = mol_read(
-            config['mol'], mol_format=config.get('input_format'))
-        output = mol_write(
-            molobject,  mol_format=config.get('output_format'))
+        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
+                             from_file=config.get('from_file', False))
+
+        file_path = None
+        if 'workdir' in config:
+            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('output_format')))
+
+        output = mol_write(molobject,  mol_format=config.get('output_format'), file_path=file_path)
 
         # Update session
         session.status = 'completed'
@@ -138,16 +147,19 @@ class StructuresWampApi(LieApplicationSession):
         # Validate against JSON schema
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
-        molobject = mol_read(
-            config['mol'], mol_format=config.get('input_format'))
+        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
+                             from_file=config.get('from_file', False))
         molobject = mol_addh(
             molobject,
             polaronly=config.get('polaronly'),
             correctForPH=config.get('correctForPH'),
             pH=config.get('pH'))
 
-        output = mol_write(
-            molobject, mol_format=config.get('output_format'))
+        file_path = None
+        if 'workdir' in config:
+            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('input_format')))
+
+        output = mol_write(molobject, mol_format=config.get('output_format'), file_path=file_path)
 
         # Update session
         session['status'] = 'completed'
@@ -170,13 +182,15 @@ class StructuresWampApi(LieApplicationSession):
         # Validate against JSON schema
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
-        molobject = mol_read(
-            config['mol'], mol_format=config.get('input_format'))
-        molobject = mol_removeh(
-            molobject)
+        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
+                             from_file=config.get('from_file', False))
+        molobject = mol_removeh(molobject)
 
-        output = mol_write(
-            molobject, mol_format=config.get('output_format'))
+        file_path = None
+        if 'workdir' in config:
+            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('input_format')))
+
+        output = mol_write(molobject, mol_format=config.get('output_format'), file_path=file_path)
 
         # Update session
         session['status'] = 'completed'
@@ -199,17 +213,20 @@ class StructuresWampApi(LieApplicationSession):
         # Validate against JSON schema
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
-        molobject = mol_read(
-            config['mol'], mol_format=config.get('input_format'))
+        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
+                             from_file=config.get('from_file', False))
         molobject = mol_make3D(
             molobject,
             forcefield=config.get('forcefield'),
             localopt=config.get('localopt', True),
             steps=config.get('steps', 50))
 
-        output = mol_write(
-            molobject, mol_format=config.get('output_format'))
-        
+        file_path = None
+        if 'workdir' in config:
+            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('input_format')))
+
+        output = mol_write(molobject, mol_format=config.get('output_format'), file_path=file_path)
+
         # Update session
         session.status = 'completed'
         
@@ -231,8 +248,8 @@ class StructuresWampApi(LieApplicationSession):
         # Validate against JSON schema
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
-        molobject = mol_read(
-            config['mol'], mol_format=config.get('input_format'))
+        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
+                             from_file=config.get('from_file', False))
         attributes = mol_attributes(molobject) or {}
 
         # Update session

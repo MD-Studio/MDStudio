@@ -71,6 +71,10 @@ def mol_write(molobject, mol_format=None, file_path=None, fallback='webel'):
     assert mol_format in toolkit_driver.informats, logging.error('Molecular file format "{0}" not supported by {1}'.format(mol_format, toolkit))
 
     output = molobject.write(mol_format, file_path, overwrite=True)
+
+    if file_path and os.path.isfile(file_path):
+        return file_path
+
     return output
 
 
