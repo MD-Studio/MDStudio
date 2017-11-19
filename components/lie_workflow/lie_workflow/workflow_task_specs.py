@@ -42,7 +42,7 @@ class _TaskBase(object):
     def status(self, status):
         options = (
             "ready", "submitted", "running", "failed", "aborted",
-            "completed", "deactivated")
+            "completed", "disabled")
         status = status.lower()
         if status in options:
             self.nodes[self.nid]['status'] = status
@@ -252,17 +252,44 @@ class StartTask(_TaskBase):
 class Choice(_TaskBase):
 
     def run_task(self, runner, callback=None, errorback=None):
+        """
+        Make a choice for one or more connected task based on
+        criteria using the input data.
 
-        connections = self.children(return_nids=True)
-        gofor = random.choice(connections)
+        :param pos: task to choose when evaluation is positive
+        :type pos:  :py:list
+        :param neg: task to choose when evaluation is negative
+        :type pos:  :py:list
+        """
 
-        print("make a choice between: {0}, go for {1}".format(
-            connections, gofor))
-        for task in [t for t in connections if t != gofor]:
-            self._full_graph.nodes[task]['status'] = 'disabled'
+        session = WAMPTaskMetaData(
+            metadata=self.nodes[self.nid].get('session', {}))
 
-        self.nodes[self.nid]['output_data'] = self.nodes[self.nid].pop('input')
-        self.status = 'failed'
+        finput = self.get_input()
+        try:
+            output = runner(
+                session=session.dict(), **finput)
+        except Exception as e:
+            if errorback:
+                return errorback(e, self.nid)
+            else:
+                logging.error(
+                    'Error in running task {0} ({1})'.format(
+                        self.nid, self.task_name))
+                logging.error(e)
+                return
+
+        # Disable edges to tasks not in choice_nids
+        disabled = []
+        choice_nids = output.get('choice', [])
+        for task in self.children():
+            if not task.nid in choice_nids:
+                task.status = 'disabled'
+                disabled.append(str(task.nid))
+        logging.info('Disabled tasks: {0}'.format(','.join(disabled)))
+
+        output.update(finput)
+        callback(output, self.nid)
 
 
 class Mapper(_TaskBase):
