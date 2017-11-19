@@ -380,8 +380,8 @@ class Molecules(API):
 
         def write_to_file_or_return(response_content, deserializer_fct):
             # Either write response to file 'fnme', or return its content
-            if u'fnme' in kwargs:
-                fnme = unicode(kwargs[u'fnme'])
+            if kwargs.get(u'fnme'):
+                fnme = unicode(kwargs.get(u'fnme'))
                 with open(fnme, u'w' + (u'b' if isinstance(response_content, str) else u't')) as fh:
                     fh.write(response_content)
                 return None

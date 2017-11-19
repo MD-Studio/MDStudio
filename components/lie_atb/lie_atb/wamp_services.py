@@ -6,6 +6,7 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import os
 import sys
 import json
 import re
@@ -80,7 +81,8 @@ class ATBWampApi(LieApplicationSession):
         return api
 
     @wamp.register(u'liestudio.atb.submit')
-    def atb_submit_calculation(self, pdb=None, netcharge=0, moltype='heteromolecule', public=True, session=None):
+    def atb_submit_calculation(self, pdb=None, isfile=True, netcharge=0, moltype='heteromolecule', public=True,
+                               session=None, **kwargs):
         """
         Submit a new calculation to the ATB server
 
@@ -106,6 +108,10 @@ class ATBWampApi(LieApplicationSession):
             session['status'] = 'failed'
             return {'session': session}
 
+        # Open file if needed
+        if isfile and os.path.isfile(pdb):
+            pdb = open(pdb, 'r').read()
+
         response = self._exceute_api_call(api.Molecules.submit, pdb=pdb, netcharge=netcharge, moltype=moltype,
                                           public=public)
         if response and response.get(u'status', None) == u'error':
@@ -128,7 +134,8 @@ class ATBWampApi(LieApplicationSession):
         return session
 
     @wamp.register(u'liestudio.atb.get_structure')
-    def atb_structure_download(self, molid=None, ffversion='54A7', fformat='pdb_allatom_optimised', atb_hash='HEAD', session=None):
+    def atb_structure_download(self, molid=None, ffversion='54A7', fformat='pdb_allatom_optimised', atb_hash='HEAD',
+                               session=None, **kwargs):
         """
         Retrieve a structure file from the ATB server by molid
 
@@ -176,9 +183,14 @@ class ATBWampApi(LieApplicationSession):
 
         # Get the molecule by molid
         molecule = self._exceute_api_call(api.Molecules.molid, molid=molid)
+        filename = None
+        if 'workdir' in kwargs:
+            filename = os.path.join(kwargs['workdir'], '{0}.{1}'.format(fformat, SUPPORTED_FILE_EXTENTIONS.get(fformat, 'txt')))
+
         if molecule and isinstance(molecule, ATB_Mol):
-            structure = self._exceute_api_call(molecule.download_file, file=fformat, 
-                outputType=SUPPORTED_STRUCTURE_FILE_FORMATS.get(fformat, 'cry'), ffVersion=ffversion, hash=atb_hash)
+            structure = self._exceute_api_call(molecule.download_file, file=fformat,
+                                               outputType=SUPPORTED_STRUCTURE_FILE_FORMATS.get(fformat, 'cry'),
+                                               ffVersion=ffversion, hash=atb_hash, fnme=filename)
             session['status'] = 'completed'
             return {'session': session, 'result': structure}
         else:
@@ -187,7 +199,8 @@ class ATBWampApi(LieApplicationSession):
             return {'session': session}
 
     @wamp.register(u'liestudio.atb.get_topology')
-    def atb_topology_download(self, molid=None, ffversion='54A7', fformat='rtp_allatom', atb_hash='HEAD', session=None):
+    def atb_topology_download(self, molid=None, ffversion='54A7', fformat='rtp_allatom', atb_hash='HEAD',
+                              session=None, **kwargs):
         """
         Retrieve a topology and parameter files from the ATB server by molid
 
@@ -238,9 +251,13 @@ class ATBWampApi(LieApplicationSession):
 
         # Get the molecule by molid
         molecule = self._exceute_api_call(api.Molecules.molid, molid=molid)
+        filename = None
+        if 'workdir' in kwargs:
+            filename = os.path.join(kwargs['workdir'], '{0}.{1}'.format(fformat, SUPPORTED_FILE_EXTENTIONS.get(fformat, 'top')))
+
         if molecule and isinstance(molecule, ATB_Mol):
             structure = self._exceute_api_call(molecule.download_file, file=SUPPORTED_TOPOLOGY_FILE_FORMATS[fformat],
-                outputType='top', ffVersion=ffversion, hash=atb_hash)
+                outputType='top', ffVersion=ffversion, hash=atb_hash, fnme=filename)
             session['status'] = 'completed'
             return {'session': session, 'result': structure}
         else:
@@ -249,7 +266,7 @@ class ATBWampApi(LieApplicationSession):
             return {'session': session}
 
     @wamp.register(u'liestudio.atb.structure_query')
-    def atb_structure_query(self, mol=None, session=None, structure_format='pdb', netcharge='*'):
+    def atb_structure_query(self, mol=None, isfile=True, structure_format='pdb', netcharge='*', session=None, **kwargs):
         """
         Query the ATB server database for molecules based on a structure
 
@@ -274,6 +291,10 @@ class ATBWampApi(LieApplicationSession):
             session['status'] = 'failed'
             return {'session': session}
 
+        # Open file if needed
+        if isfile and os.path.isfile(mol):
+            mol = open(mol, 'r').read()
+
         # Init ATBServerApi
         api = self._init_atb_api(api_token=self.package_config.atb_api_token)
         if not api:
@@ -284,8 +305,15 @@ class ATBWampApi(LieApplicationSession):
         result = self._exceute_api_call(api.Molecules.structure_search, structure_format=structure_format,
             structure=mol, netcharge=netcharge, method=u'GET')
 
+        output = {}
         session['status'] = 'completed'
-        return {'session': session, 'result':result.get('matches', [])}
+        output['session'] = session
+        output['matches'] = result.get('matches', [])
+        if 'search_molecule' in result:
+            for key in ('inchi', 'inchi_key'):
+                output['search_{0}'.format(key)] = result['search_molecule'][key]
+
+        return output
 
     @wamp.register(u'liestudio.atb.molecule_query')
     def atb_molecule_query(self, session=None, **kwargs):

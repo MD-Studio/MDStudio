@@ -50,3 +50,28 @@ SUPPORTED_TOPOLOGY_FILE_FORMATS = {
     'rtp_allatom': 'rtp_allatom',
     'rtp_uniatom': 'rtp_uniatom'
 }
+
+SUPPORTED_FILE_EXTENTIONS = {
+    'pqr_allatom_optimised': 'pqr',
+    'pqr_allatom_unoptimised': 'pqr',
+    'pqr_uniatom_optimised': 'pqr',
+    'pqr_uniatom_unoptimised': 'pqr',
+    'pdb_allatom_optimised': 'pdb',
+    'pdb_allatom_unoptimised': 'pdb',
+    'pdb_uniatom_optimised': 'pdb',
+    'pdb_uniatom_unoptimised': 'pdb',
+    'cif_allatom': 'cif',
+    'cif_allatom_extended': 'cif',
+    'cif_uniatom': 'cif',
+    'cif_uniatom_extended': 'cif',
+    'cns_allatom_top': 'top',
+    'cns_allatom_param': 'param',
+    'cns_uniatom_top': 'top',
+    'cns_uniatom_param': 'param',
+    'rtp_allatom': 'rtp',
+    'rtp_uniatom': 'rtp',
+    'mtb96_allatom': 'mtb',
+    'mtb96_uniatom': 'mtb',
+    'mtb_allatom': 'mtb',
+    'mtb_uniatom': 'mtb',
+}
