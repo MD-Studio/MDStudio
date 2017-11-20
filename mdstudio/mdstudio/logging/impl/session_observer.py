@@ -33,18 +33,6 @@ class SessionLogObserver(metaclass=Singleton):
         self.flusher_lock = Lock()
         self.flushing = False
 
-        ascii_brand = [
-            r' __  __ ____      _             _ _',
-            r'|  \/  |  _ \ ___| |_ _   _  __| (_) ___',
-            r'| |\/| | | | / __| __| | | |/ _` | |/ _ \ ',
-            r'| |  | | |_| \__ \ |_| |_| | (_| | | (_) |',
-            r'|_|  |_|____/|___/\__|\__,_|\__,_|_|\___/''',
-            ''
-        ]
-
-        for line in ascii_brand:
-            self.log.info(line)
-
         self.recovery_file_path = os.path.join(session.component_root_path(), 'logs', 'recovery.json')
 
         twisted.python.log.addObserver(self)
