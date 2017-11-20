@@ -17,53 +17,21 @@ if __name__ == '__main__':
         with open('crossbar_config.yml', 'r') as cc:
             config = yaml.load(cc)
 
-        ring0_config = [
-            {
-                "type": "class",
-                "classname": "lie_auth.application.AuthComponent",
-                "realm": "mdstudio",
-                "role": "auth"
-            },
-            {
-                "type": "class",
-                "classname": "lie_db.application.DBComponent",
-                "realm": "mdstudio",
-                "role": "db"
-            },
-            {
-                "type": "class",
-                "classname": "lie_schema.application.SchemaComponent",
-                "realm": "mdstudio",
-                "role": "schema"
-            },
-            {
-                "type": "class",
-                "classname": "lie_logger.application.LoggerComponent",
-                "realm": "mdstudio",
-                "role": "logger"
-            }
-        ]
+        ring0_config = [{
+            "type": "class",
+            "classname": "lie_{role}.application.{component}Component".format(role=role, component=component),
+            "realm": "mdstudio",
+            "role": role
+        } for role, component in {
+            'auth': 'Auth',
+            'db': 'DB',
+            'schema': 'Schema',
+            'logger': 'Logger'
+        }.items()]
 
         wampcra_config = {
             "type": "static",
-            "users": {
-                "db": {
-                    "role": "db",
-                    "secret": "db"
-                },
-                "auth": {
-                    "role": "auth",
-                    "secret": "auth"
-                },
-                "schema": {
-                    "role": "schema",
-                    "secret": "schema"
-                },
-                "logger": {
-                    "role": "logger",
-                    "secret": "logger"
-                }
-            }
+            "users": OrderedDict((role, {'role': role, 'secret': role}) for role in ['auth', 'db', 'schema', 'logger'])
         }
 
         parser = argparse.ArgumentParser(description='MDstudio application startup script')
