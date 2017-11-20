@@ -106,14 +106,10 @@ def renumber_id(graph, start):
         newnodes = {v: graph.nodes[k] for k, v in mapper.items()}
         graph.nodes = GraphDict(newnodes)
 
-    # Update edges. Both edge nids must be present in the mapper
+    # Update edges.
     newedges = {}
     for eid, edge in graph.edges.items():
-        if all([e in mapper for e in eid]):
-            newedges[(mapper[edge[0]], mapper[edge[1]])] = edge
-        else:
-            logger.debug('Unable to renumber edge "{0}". Not all node IDs in edge are renumbered'.format(eid))
-            newedges[eid] = edge
+        newedges[(mapper.get(eid[0], eid[0]), mapper.get(eid[1], eid[1]))] = edge
     graph.edges = GraphDict(newedges)
 
     # Set new auto_nid counter and update adjacency
