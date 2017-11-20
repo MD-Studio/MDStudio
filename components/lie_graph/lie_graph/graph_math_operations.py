@@ -71,7 +71,7 @@ def graph_union(graph1, graph2):
 
     for edge in graph1.edges.union(graph2.edges):
         if edge not in graph1.edges:
-            graph1.add_edge(edge, directed=False)
+            graph1.add_edge(edge)
 
     graph1.auto_nid = auto_nid
 
