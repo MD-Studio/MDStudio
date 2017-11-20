@@ -3,20 +3,12 @@ from autobahn.wamp import auth
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.logging.log_type import LogType
-from mdstudio.logging.log_collector import SessionLogCollector
+from mdstudio.logging.impl.session_observer import SessionLogObserver
 
 
 class CoreComponentSession(CommonSession):
-    def __init__(self, config=None):
-        super(CoreComponentSession, self).__init__(config)
-        self.log_collector = SessionLogCollector(self, LogType.Group)
-
-    @chainable
-    def on_join(self, details):
-        yield super(CoreComponentSession, self).on_join(details)
-        yield self.log_collector.start_flushing()
-
-    onJoin = on_join
+    def pre_init(self):
+        self.log_type = LogType.Group
 
     def on_connect(self):
         auth_methods = [u'wampcra']

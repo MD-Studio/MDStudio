@@ -1,14 +1,23 @@
+from collections import OrderedDict
+from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 import sys
 import argparse
 
 import copy
+
+import pytz
+import twisted
 import yaml
 import json
 import os
 
 from crossbar.controller.cli import run
+from twisted.internet import reactor
+from twisted.python.logfile import DailyLogFile
+
+from mdstudio.logging.impl.printing_observer import PrintingLogObserver
 
 if __name__ == '__main__':
     temp_config = None
@@ -54,17 +63,23 @@ if __name__ == '__main__':
         temp_config.write(json.dumps(config).encode('utf-8'))
         temp_config.close()
 
+        os.makedirs('logs', exist_ok=True)
+        log_file = DailyLogFile('daily.log', 'logs')
+        twisted.python.log.addObserver(PrintingLogObserver(log_file))
+
         run('crossbar', [
             'start',
             '--cbdir',
             '.',
             '--config',
             temp_config.name,
-            '--logdir',
-            './data/logs',
             '--loglevel',
-            'info'
-        ])
+            'info',
+        ], reactor=reactor)
     finally:
         if temp_config:
             os.remove(temp_config.name)
+
+        if log_file:
+            log_file.flush()
+            log_file.close()
