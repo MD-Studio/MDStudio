@@ -319,7 +319,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             for ntask in next_tasks:
                 # Get output from all tasks connected to new task
                 output = self._collect_input(ntask)
-                if output:                
+                if not output is None:
                     if 'input_data' not in ntask.nodes[ntask.nid]:
                         ntask.nodes[ntask.nid]['input_data'] = {}
                 
@@ -531,13 +531,10 @@ class WorkflowRunner(_WorkflowQueryMethods):
         logging.info(
             'Remove breakpoint on task {0} ({1})'.format(tid, task.task_name))
 
-    def input(self, tid=None, **kwargs):
+    def input(self, tid, **kwargs):
         """
         Define task input and configuration data
         """
-
-        if not tid:
-            tid = self.workflow.root
 
         if tid not in self.workflow.nodes:
             logging.warn('No task with ID {0} in workflow'.format(tid))

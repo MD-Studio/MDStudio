@@ -332,7 +332,7 @@ class Mapper(_TaskBase):
 
             # Get task session
             session = WAMPTaskMetaData(
-                metadata=self.nodes[self.nid].get('session', {}))
+                metadata=self.nodes[self.nid].get('session'))
 
             # Get the full descendant lineage from this Mapper task to
             # the Collect task assigned to the mapper
@@ -348,51 +348,50 @@ class Mapper(_TaskBase):
                 maptid = self.descendants(return_nids=True)
 
             # Create sub graph of the mapper tasks lineage.
-            # Call errorback if no task lineage
+            # Call errorback if no task lineage.
+            # A subgraph is a deep copy of the full graph but with all edges.
+            # remove edges not having any link to the mapped tasks.
             if maptid:
-                subgraph = self._full_graph.getnodes(maptid).copy()
+                subgraph = self._full_graph.getnodes(maptid).copy(clean=False)
+                maptidset = set(maptid)
+                for edge in list(subgraph.edges.keys()):
+                    if not set(edge).intersection(maptidset):
+                        subgraph.remove_edge(edge)
             else:
                 errorback(
                     'Task {0} ({1}), no tasks connected to Mapper task'.format(
                         self.nid, self.task_name), self.nid)
                 return
 
-            # Make a copy of the task lineage sub graph for every data item to
-            # be mapped.
             first_task = maptid[0]
             last_task = maptid[-1]
-
-            # Collect additional edges connected to the first task
-            first = self.getnodes(first_task)
             mapper_data_mapping = self._full_graph.edges[(self.nid, first_task)]
-            exclude_links = set(maptid[1:] + [self.nid] + first.descendants(return_nids=True))
-            additional_inputs = []
-            for edge in first.connected_edges():
-                if not set(edge).intersection(exclude_links):
-                    additional_inputs.append((edge[0], self._full_graph.edges[edge]))
-            print(mapper_data_mapping)
+            mapped_children = [first_task]
             for task in range(len(mapped)-1):
 
                 g, tidmap = renumber_id(subgraph, self._full_graph._nodeid)
                 self._full_graph += g
-                self._full_graph.add_edge(self.nid, tidmap[first_task], **mapper_data_mapping)
-
-                # Reconnect other inputs to the first task
-                for inp in additional_inputs:
-                    self._full_graph.add_edge(inp[0], tidmap[first_task], **inp[1])
 
                 if collector_task:
                     self._full_graph.add_edge(
                         tidmap[last_task], collector_task.nid)
+
                 first_task = tidmap[first_task]
                 last_task = tidmap[last_task]
+                mapped_children.append(first_task)
 
-            for i, child in enumerate(
-                    [t for t in self.children() if t.status == 'ready']):
+            for i, child in enumerate(mapped_children):
+
+                child = self._full_graph.getnodes([child])
 
                 # Define input for the copied task
                 if 'input_data' not in child:
                     self._full_graph.nodes[child.nid]['input_data'] = {}
+
+                # Add all other input arguments to
+                for key, value in task_input.items():
+                    if not key == map_argument:
+                        child['input_data'][key] = value
 
                 # List item to dict if needed and perform data mapping
                 tomap = mapped[i]
@@ -401,11 +400,6 @@ class Mapper(_TaskBase):
                     datamap = datamap.get(map_argument, map_argument)
                     tomap = {datamap: tomap}
                 child['input_data'].update(tomap)
-
-                # Add all other input arguments to
-                for key, value in task_input.items():
-                    if not key == map_argument:
-                        child['input_data'][key] = value
 
             session.status = 'completed'
             callback({'session': session.dict()}, self.nid)
