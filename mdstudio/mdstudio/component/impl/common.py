@@ -1,5 +1,7 @@
 import inspect
 import json
+from copy import deepcopy
+
 import os
 
 import yaml
@@ -8,6 +10,7 @@ from autobahn.wamp import PublishOptions
 from autobahn.wamp.request import Publication
 
 from mdstudio.api.call_exception import CallException
+from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.schema import validate_json_schema
 from mdstudio.collection import merge_dicts
 from mdstudio.deferred.chainable import chainable
@@ -99,19 +102,22 @@ class CommonSession(ApplicationSession):
 
         return False
 
+    # noinspection PyMethodOverriding
     @chainable
-    def call(self, procedure, *args, claims=None, **kwargs):
+    def call(self, procedure, request, claims=None, **kwargs):
         if claims is None:
             claims = {}
 
         signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-        result = yield super(CommonSession, self).call(procedure, *args, signed_claims=signed_claims, **kwargs)
+        request = deepcopy(request)
+        convert_obj_to_json(request)
+        result = yield super(CommonSession, self).call(procedure, request, signed_claims=signed_claims, **kwargs)
 
         if 'expired' in result:
             signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-            result = yield super(CommonSession, self).call(u'{}'.format(procedure), *args, signed_claims=signed_claims,
+            result = yield super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims,
                                                            **kwargs)
 
         if 'expired' in result:
@@ -122,6 +128,8 @@ class CommonSession(ApplicationSession):
 
         if 'warning' in result:
             self.log.warn(result['warning'])
+
+        convert_obj_to_json(result)
 
         return_value(result['result'])
 

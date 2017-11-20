@@ -4,6 +4,7 @@ from autobahn.wamp import PublishOptions
 from mdstudio.api.register import register
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.connection import ConnectionType
+from mdstudio.db.fields import Fields
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
@@ -49,8 +50,9 @@ class DBComponent(CoreComponentSession):
     def insert_one(self, request, claims=None):
         database = self.get_database(claims)
         kwargs = {}
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.insert_one(request['collection'], request['insert'], **kwargs)
 
@@ -61,8 +63,9 @@ class DBComponent(CoreComponentSession):
     def insert_many(self, request, claims=None):
         database = self.get_database(claims)
         kwargs = {}
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.insert_many(request['collection'], request['insert'], **kwargs)
 
@@ -75,8 +78,9 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.replace_one(request['collection'], request['filter'],
                                     request['replacement'], **kwargs)
@@ -102,8 +106,8 @@ class DBComponent(CoreComponentSession):
                 kwargs['skip'] = request['skip']
             if 'limit' in request:
                 kwargs['limit'] = request['limit']
-            if 'fields' in request and 'datetime' in request['fields']:
-                kwargs['date_time_fields'] = request['fields']['datetime']
+            if 'fields' in request:
+                kwargs['fields'] = Fields().from_dict(request)
 
         return database.count(**kwargs)
 
@@ -117,8 +121,9 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.update_one(request['collection'], request['filter'],
                                    request['update'], **kwargs)
@@ -133,8 +138,9 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.update_many(request['collection'], request['filter'],
                                     request['update'], **kwargs)
@@ -152,8 +158,9 @@ class DBComponent(CoreComponentSession):
             kwargs['skip'] = request['skip']
         if 'sort' in request:
             kwargs['sort'] = request['sort']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.find_one(request['collection'], request['filter'], **kwargs)
 
@@ -172,8 +179,9 @@ class DBComponent(CoreComponentSession):
             kwargs['limit'] = request['limit']
         if 'sort' in request:
             kwargs['sort'] = request['sort']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.find_many(request['collection'], request['filter'], **kwargs)
 
@@ -193,8 +201,9 @@ class DBComponent(CoreComponentSession):
             kwargs['sort'] = request['sort']
         if 'returnUpdated' in request:
             kwargs['return_updated'] = request['returnUpdated']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.find_one_and_update(request['collection'], request['filter'],
                                             request['update'], **kwargs)
@@ -215,8 +224,9 @@ class DBComponent(CoreComponentSession):
             kwargs['sort'] = request['sort']
         if 'returnUpdated' in request:
             kwargs['return_updated'] = request['returnUpdated']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.find_one_and_replace(request['collection'], request['filter'],
                                              request['replacement'], **kwargs)
@@ -233,8 +243,9 @@ class DBComponent(CoreComponentSession):
             kwargs['projection'] = request['projection']
         if 'sort' in request:
             kwargs['sort'] = request['sort']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.find_one_and_delete(request['collection'], request['filter'], **kwargs)
 
@@ -248,8 +259,9 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
         if 'filter' in request:
             kwargs['filter'] = request['filter']
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.distinct(request['collection'], request['field'], **kwargs)
 
@@ -269,8 +281,9 @@ class DBComponent(CoreComponentSession):
         database = self.get_database(claims)
 
         kwargs = {}
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.delete_one(request['collection'], request['filter'], **kwargs)
 
@@ -282,8 +295,9 @@ class DBComponent(CoreComponentSession):
         database = self.get_database(claims)
 
         kwargs = {}
-        if 'fields' in request and 'datetime' in request['fields']:
-            kwargs['date_time_fields'] = request['fields']['datetime']
+
+        if 'fields' in request:
+            kwargs['fields'] = Fields().from_dict(request)
 
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 

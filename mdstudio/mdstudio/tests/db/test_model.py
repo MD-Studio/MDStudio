@@ -9,6 +9,7 @@ from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase
+from mdstudio.db.fields import Fields
 from mdstudio.db.model import Model
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
@@ -25,7 +26,6 @@ class ModelTests(TestCase):
 
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
-        self.wrapper.transform_to_datetime = mock.MagicMock(wraps=IDatabase.transform_to_datetime)
         self.wrapper.component_info = mock.MagicMock()
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
         self.collection = 'coll'
@@ -106,18 +106,18 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_one.assert_called_once_with(self.collection,
                                                         insert=self.document,
-                                                        date_time_fields=None)
+                                                        fields=None)
 
     def test_insert_one_date_time_fields(self):
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
-        result = self.model.insert_one(self.document, ['test'])
+        result = self.model.insert_one(self.document, fields=Fields(date_times=['test']))
 
         self.assertEqual(result, '12345')
 
         self.wrapper.insert_one.assert_called_once_with(self.collection,
                                                         insert=self.document,
-                                                        date_time_fields=['test'])
+                                                        fields=Fields(date_times=['test']))
 
     def test_insert_one_date_time_fields_inject(self):
         class Users(Model):
@@ -126,13 +126,13 @@ class ModelTests(TestCase):
         self.wrapper.insert_one.return_value = {'id': '12345'}
         self.wrapper.extract = IDatabase.extract
         self.model = Users(self.wrapper)
-        result = self.model.insert_one(self.document, ['test'])
+        result = self.model.insert_one(self.document, fields=Fields(date_times=['test']))
 
         self.assertEqual(result, '12345')
 
         self.wrapper.insert_one.assert_called_once_with('users',
                                                         insert=self.document,
-                                                        date_time_fields=['test', 'datefields'])
+                                                        fields=Fields(date_times=['test', 'datefields']))
 
     def test_insert_one_date_time_fields_only_inject(self):
         class Users(Model):
@@ -147,7 +147,7 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_one.assert_called_once_with('users',
                                                         insert=self.document,
-                                                        date_time_fields=['datefields'])
+                                                        fields=Fields(date_times=['datefields']))
 
     def test_insert_many(self):
         self.wrapper.insert_many.return_value = {'ids': ['12345', '456789']}
@@ -158,18 +158,18 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_many.assert_called_once_with(self.collection,
                                                          insert=self.documents,
-                                                         date_time_fields=None)
+                                                         fields=None)
 
     def test_insert_many_date_time_fields(self):
         self.wrapper.insert_many.return_value = {'ids': ['12345', '456789']}
         self.wrapper.extract = IDatabase.extract
-        result = self.model.insert_many(self.documents, ['test'])
+        result = self.model.insert_many(self.documents, fields=Fields(date_times=['test']))
 
         self.assertEqual(result, ['12345', '456789'])
 
         self.wrapper.insert_many.assert_called_once_with(self.collection,
                                                          insert=self.documents,
-                                                         date_time_fields=['test'])
+                                                         fields=Fields(date_times=['test']))
 
     def test_insert_many_date_time_fields_inject(self):
         class Users(Model):
@@ -178,13 +178,13 @@ class ModelTests(TestCase):
         self.wrapper.insert_many.return_value = {'ids': ['12345', '456789']}
         self.wrapper.extract = IDatabase.extract
         self.model = Users(self.wrapper)
-        result = self.model.insert_many(self.documents, ['test'])
+        result = self.model.insert_many(self.documents, fields=Fields(date_times=['test']))
 
         self.assertEqual(result, ['12345', '456789'])
 
         self.wrapper.insert_many.assert_called_once_with('users',
                                                          insert=self.documents,
-                                                         date_time_fields=['test', 'datefields'])
+                                                         fields=Fields(date_times=['test', 'datefields']))
 
     def test_insert_many_date_time_fields_only_inject(self):
         class Users(Model):
@@ -199,7 +199,7 @@ class ModelTests(TestCase):
 
         self.wrapper.insert_many.assert_called_once_with('users',
                                                          insert=self.documents,
-                                                         date_time_fields=['datefields'])
+                                                         fields=Fields(date_times=['datefields']))
 
     @chainable
     def test_replace_one(self):
@@ -219,7 +219,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          replacement=self.document,
                                                          upsert=False,
-                                                         date_time_fields=None)
+                                                         fields=None)
 
     @chainable
     def test_replace_one_upsert(self):
@@ -240,7 +240,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          replacement=self.document,
                                                          upsert=True,
-                                                         date_time_fields=None)
+                                                         fields=None)
 
     @chainable
     def test_replace_one_date_time_fields(self):
@@ -249,7 +249,7 @@ class ModelTests(TestCase):
             'modified': 1
         }
         self.wrapper.transform = IDatabase.transform
-        result = yield self.model.replace_one({'_id': 'test_id'}, self.document, date_time_fields=['test'])
+        result = yield self.model.replace_one({'_id': 'test_id'}, self.document, fields=Fields(date_times=['test']))
 
         self.assertIsInstance(result, ReplaceOneResponse)
         self.assertEqual(result.matched, 1)
@@ -260,7 +260,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          replacement=self.document,
                                                          upsert=False,
-                                                         date_time_fields=['test'])
+                                                         fields=Fields(date_times=['test']))
 
     @chainable
     def test_replace_one_date_time_fields_inject(self):
@@ -273,7 +273,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.transform = IDatabase.transform
         self.model = Users(self.wrapper)
-        result = yield self.model.replace_one({'_id': 'test_id'}, self.document, date_time_fields=['test'])
+        result = yield self.model.replace_one({'_id': 'test_id'}, self.document, fields=Fields(date_times=['test']))
 
         self.assertIsInstance(result, ReplaceOneResponse)
         self.assertEqual(result.matched, 1)
@@ -284,7 +284,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          replacement=self.document,
                                                          upsert=False,
-                                                         date_time_fields=['test', 'datefields'])
+                                                         fields=Fields(date_times=['test', 'datefields']))
 
     @chainable
     def test_replace_one_date_time_fields_only_inject(self):
@@ -308,7 +308,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          replacement=self.document,
                                                          upsert=False,
-                                                         date_time_fields=['date_time_fields'])
+                                                         fields=Fields(date_times=['date_time_fields']))
 
     def test_count(self):
         self.wrapper.count.return_value = {'total': 12345}
@@ -321,7 +321,7 @@ class ModelTests(TestCase):
                                                    filter=None,
                                                    skip=None,
                                                    limit=None,
-                                                   date_time_fields=None,
+                                                   fields=None,
                                                    cursor_id=None,
                                                    with_limit_and_skip=False)
 
@@ -336,7 +336,7 @@ class ModelTests(TestCase):
                                                    filter={'_id': 'test_id'},
                                                    skip=None,
                                                    limit=None,
-                                                   date_time_fields=None,
+                                                   fields=None,
                                                    cursor_id=None,
                                                    with_limit_and_skip=False)
 
@@ -351,7 +351,7 @@ class ModelTests(TestCase):
                                                    filter=None,
                                                    skip=10,
                                                    limit=None,
-                                                   date_time_fields=None,
+                                                   fields=None,
                                                    cursor_id=None,
                                                    with_limit_and_skip=False)
 
@@ -366,7 +366,7 @@ class ModelTests(TestCase):
                                                    filter=None,
                                                    skip=None,
                                                    limit=10,
-                                                   date_time_fields=None,
+                                                   fields=None,
                                                    cursor_id=None,
                                                    with_limit_and_skip=False)
 
@@ -374,7 +374,7 @@ class ModelTests(TestCase):
         self.wrapper.count.return_value = {'total': 12345}
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test2']
-        result = self.model.count(cursor_id='test_id', date_time_fields=['test'])
+        result = self.model.count(cursor_id='test_id', fields=Fields(date_times=['test']))
 
         self.assertEqual(result, 12345)
 
@@ -382,7 +382,7 @@ class ModelTests(TestCase):
                                                    filter=None,
                                                    skip=None,
                                                    limit=None,
-                                                   date_time_fields=['test', 'test2'],
+                                                   fields=Fields(date_times=['test', 'test2']),
                                                    cursor_id='test_id',
                                                    with_limit_and_skip=False)
 
@@ -397,7 +397,7 @@ class ModelTests(TestCase):
                                                    filter=None,
                                                    skip=None,
                                                    limit=None,
-                                                   date_time_fields=None,
+                                                   fields=None,
                                                    cursor_id='test_id',
                                                    with_limit_and_skip=False)
 
@@ -412,7 +412,7 @@ class ModelTests(TestCase):
                                                    filter=None,
                                                    skip=None,
                                                    limit=None,
-                                                   date_time_fields=None,
+                                                   fields=None,
                                                    cursor_id='test_id',
                                                    with_limit_and_skip=True)
 
@@ -434,7 +434,7 @@ class ModelTests(TestCase):
                                                         filter={'_id': 'test_id'},
                                                         update=self.document,
                                                         upsert=False,
-                                                        date_time_fields=None)
+                                                        fields=None)
 
     @chainable
     def test_update_one_upsert(self):
@@ -455,7 +455,7 @@ class ModelTests(TestCase):
                                                         filter={'_id': 'test_id'},
                                                         update=self.document,
                                                         upsert=True,
-                                                        date_time_fields=None)
+                                                        fields=None)
 
     @chainable
     def test_update_one_date_time_fields(self):
@@ -465,7 +465,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.transform = IDatabase.transform
         self.model.date_time_fields = ['test2']
-        result = yield self.model.update_one({'_id': 'test_id'}, self.document, date_time_fields=['test'])
+        result = yield self.model.update_one({'_id': 'test_id'}, self.document, fields=Fields(date_times=['test']))
 
         self.assertIsInstance(result, UpdateOneResponse)
         self.assertEqual(result.matched, 0)
@@ -476,7 +476,7 @@ class ModelTests(TestCase):
                                                         filter={'_id': 'test_id'},
                                                         update=self.document,
                                                         upsert=False,
-                                                        date_time_fields=['test', 'test2'])
+                                                        fields=Fields(date_times=['test', 'test2']))
 
     @chainable
     def test_update_many(self):
@@ -496,7 +496,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          update=self.document,
                                                          upsert=False,
-                                                         date_time_fields=None)
+                                                         fields=None)
 
     @chainable
     def test_update_many_upsert(self):
@@ -517,7 +517,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          update=self.document,
                                                          upsert=True,
-                                                         date_time_fields=None)
+                                                         fields=None)
 
     @chainable
     def test_update_many_date_time_fields(self):
@@ -527,7 +527,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.transform = IDatabase.transform
         self.model.date_time_fields = ['test2']
-        result = yield self.model.update_many({'_id': 'test_id'}, self.document, date_time_fields=['test'])
+        result = yield self.model.update_many({'_id': 'test_id'}, self.document, fields=Fields(date_times=['test']))
 
         self.assertIsInstance(result, UpdateManyResponse)
         self.assertEqual(result.matched, 0)
@@ -538,7 +538,7 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          update=self.document,
                                                          upsert=False,
-                                                         date_time_fields=['test', 'test2'])
+                                                         fields=Fields(date_times=['test', 'test2']))
 
     @chainable
     def test_find_one(self):
@@ -555,7 +555,7 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       skip=None,
                                                       sort=None,
-                                                      date_time_fields=None)
+                                                      fields=None)
 
     @chainable
     def test_find_one_projection(self):
@@ -572,7 +572,7 @@ class ModelTests(TestCase):
                                                       projection={'_id': 'id'},
                                                       skip=None,
                                                       sort=None,
-                                                      date_time_fields=None)
+                                                      fields=None)
 
     @chainable
     def test_find_one_skip(self):
@@ -589,7 +589,7 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       skip=10,
                                                       sort=None,
-                                                      date_time_fields=None)
+                                                      fields=None)
 
     @chainable
     def test_find_one_sort(self):
@@ -606,7 +606,7 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       skip=None,
                                                       sort=[('_id', SortMode.Desc)],
-                                                      date_time_fields=None)
+                                                      fields=None)
 
     @chainable
     def test_find_one_date_field(self):
@@ -615,7 +615,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['updatedAt']
-        result = yield self.model.find_one({'_id': 'test_id'}, date_time_fields=['updatedAt'])
+        result = yield self.model.find_one({'_id': 'test_id'}, fields=Fields(date_times=['updatedAt']))
 
         self.assertEqual(result, self.document)
 
@@ -624,7 +624,7 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       skip=None,
                                                       sort=None,
-                                                      date_time_fields=['updatedAt', 'updatedAt'])
+                                                      fields=Fields(date_times=['updatedAt', 'updatedAt']))
 
     @chainable
     def test_find_one_model_date_field(self):
@@ -632,6 +632,7 @@ class ModelTests(TestCase):
             date_time_fields = ['createdAt']
 
         self.model = TestModel(self.wrapper, self.collection)
+        self.model.fields = mock.MagicMock(wraps=self.model.fields)
         time = self.faker.date_time(tzinfo=pytz.utc)
         self.wrapper.find_one.return_value = {
             'result': {
@@ -652,12 +653,10 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       skip=None,
                                                       sort=None,
-                                                      date_time_fields=['createdAt'])
+                                                      fields=Fields(date_times=['createdAt']))
 
-        self.wrapper.transform_to_datetime.assert_called_once_with({
-            'createdAt': time, # was modified as reference
-            'value': 123456
-        }, ['createdAt'])
+
+        self.model.fields.assert_called_once_with(None)
 
 
     # noinspection PyCallByClass
@@ -668,7 +667,7 @@ class ModelTests(TestCase):
             'alive': False,
             'results': self.documents
         }
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
         results = yield self.model.find_many({'_id': 'test_id'})
 
         self.assertIsInstance(results, Cursor)
@@ -683,7 +682,7 @@ class ModelTests(TestCase):
                                                        skip=None,
                                                        limit=None,
                                                        sort=None,
-                                                       date_time_fields=None)
+                                                       fields=None)
 
     @chainable
     def test_find_many_projection(self):
@@ -692,7 +691,7 @@ class ModelTests(TestCase):
             'alive': False,
             'results': self.documents
         }
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
         results = yield self.model.find_many({'_id': 'test_id'}, projection={'_id': 'id'})
 
         self.assertIsInstance(results, Cursor)
@@ -707,7 +706,7 @@ class ModelTests(TestCase):
                                                        skip=None,
                                                        limit=None,
                                                        sort=None,
-                                                       date_time_fields=None)
+                                                       fields=None)
 
     @chainable
     def test_find_many_skip(self):
@@ -716,7 +715,7 @@ class ModelTests(TestCase):
             'alive': False,
             'results': self.documents
         }
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
         results = yield self.model.find_many({'_id': 'test_id'}, skip=10)
 
         self.assertIsInstance(results, Cursor)
@@ -731,7 +730,7 @@ class ModelTests(TestCase):
                                                        skip=10,
                                                        limit=None,
                                                        sort=None,
-                                                       date_time_fields=None)
+                                                       fields=None)
 
     @chainable
     def test_find_many_limit(self):
@@ -740,7 +739,7 @@ class ModelTests(TestCase):
             'alive': False,
             'results': self.documents
         }
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
         results = yield self.model.find_many({'_id': 'test_id'}, limit=10)
 
         self.assertIsInstance(results, Cursor)
@@ -755,7 +754,7 @@ class ModelTests(TestCase):
                                                        skip=None,
                                                        limit=10,
                                                        sort=None,
-                                                       date_time_fields=None)
+                                                       fields=None)
 
     @chainable
     def test_find_many_sort(self):
@@ -764,7 +763,7 @@ class ModelTests(TestCase):
             'alive': False,
             'results': self.documents
         }
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
         results = yield self.model.find_many({'_id': 'test_id'}, sort=[('_id', SortMode.Desc)])
 
         self.assertIsInstance(results, Cursor)
@@ -779,7 +778,7 @@ class ModelTests(TestCase):
                                                        skip=None,
                                                        limit=None,
                                                        sort=[('_id', SortMode.Desc)],
-                                                       date_time_fields=None)
+                                                       fields=None)
 
     @chainable
     def test_find_many_date_time_fields(self):
@@ -788,9 +787,9 @@ class ModelTests(TestCase):
             'alive': False,
             'results': self.documents
         }
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
-        self.model.date_time_fields = ['test']
-        results = yield self.model.find_many({'_id': 'test_id'}, date_time_fields=['test2'])
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
+        self.model.date_time_fields = ['updatedAt']
+        results = yield self.model.find_many({'_id': 'test_id'}, fields=Fields(date_times=['updatedAt']))
 
         self.assertIsInstance(results, Cursor)
 
@@ -804,7 +803,7 @@ class ModelTests(TestCase):
                                                        skip=None,
                                                        limit=None,
                                                        sort=None,
-                                                       date_time_fields=['test2', 'test'])
+                                                       fields=Fields(date_times=['updatedAt', 'updatedAt']))
 
     @chainable
     def test_find_many_model_date_time_fields(self):
@@ -817,7 +816,7 @@ class ModelTests(TestCase):
             'results': self.documents
         }
         self.model = TestModel(self.wrapper, self.collection)
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
         results = yield self.model.find_many({'_id': 'test_id'})
 
         self.assertIsInstance(results, Cursor)
@@ -833,7 +832,7 @@ class ModelTests(TestCase):
             '_id': 'test_id',
             'foo': {'bar': True},
             'test': 1235,
-            'updatedAt': self.time
+            'updatedAt': self.time2
         })
 
         self.wrapper.find_many.assert_called_once_with(self.collection,
@@ -842,7 +841,7 @@ class ModelTests(TestCase):
                                                        skip=None,
                                                        limit=None,
                                                        sort=None,
-                                                       date_time_fields=['updatedAt'])
+                                                       fields=Fields(date_times=['updatedAt']))
 
     @chainable
     def test_find_one_and_update(self):
@@ -861,7 +860,7 @@ class ModelTests(TestCase):
                                                                  projection=None,
                                                                  sort=None,
                                                                  return_updated=False,
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_update_projection(self):
@@ -880,7 +879,7 @@ class ModelTests(TestCase):
                                                                  projection={'_id': 'id'},
                                                                  sort=None,
                                                                  return_updated=False,
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_update_upsert(self):
@@ -899,7 +898,7 @@ class ModelTests(TestCase):
                                                                  projection=None,
                                                                  sort=None,
                                                                  return_updated=False,
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_update_sort(self):
@@ -918,7 +917,7 @@ class ModelTests(TestCase):
                                                                  projection=None,
                                                                  sort=[('_id', SortMode.Desc)],
                                                                  return_updated=False,
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_update_return_updated(self):
@@ -937,7 +936,7 @@ class ModelTests(TestCase):
                                                                  projection=None,
                                                                  sort=None,
                                                                  return_updated=True,
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_update_date_field(self):
@@ -946,7 +945,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['updatedAt']
-        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, date_time_fields=['updatedAt'])
+        result = yield self.model.find_one_and_update({'_id': 'test_id'}, self.document2, fields=Fields(date_times=['updatedAt']))
 
         self.assertEqual(result, self.document)
 
@@ -957,7 +956,7 @@ class ModelTests(TestCase):
                                                                  projection=None,
                                                                  sort=None,
                                                                  return_updated=False,
-                                                                 date_time_fields=['updatedAt', 'updatedAt'])
+                                                                 fields=Fields(date_times=['updatedAt', 'updatedAt']))
 
     @chainable
     def test_find_one_and_update_model_date_field(self):
@@ -965,6 +964,7 @@ class ModelTests(TestCase):
             date_time_fields = ['createdAt']
 
         self.model = TestModel(self.wrapper, self.collection)
+        self.model.fields = mock.MagicMock(wraps=self.model.fields)
         time = self.faker.date_time(tzinfo=pytz.utc)
         self.wrapper.find_one_and_update.return_value = {
             'result': {
@@ -987,12 +987,9 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       sort=None,
                                                       return_updated=False,
-                                                      date_time_fields=['createdAt'])
+                                                      fields=Fields(date_times=['createdAt']))
 
-        self.wrapper.transform_to_datetime.assert_called_once_with({
-            'createdAt': time, # was modified as reference
-            'value': 123456
-        }, ['createdAt'])
+        self.model.fields.assert_called_once_with(None)
 
     @chainable
     def test_find_one_and_replace(self):
@@ -1011,7 +1008,7 @@ class ModelTests(TestCase):
                                                                   projection=None,
                                                                   sort=None,
                                                                   return_updated=False,
-                                                                  date_time_fields=None)
+                                                                  fields=None)
 
     @chainable
     def test_find_one_and_replace_projection(self):
@@ -1030,7 +1027,7 @@ class ModelTests(TestCase):
                                                                   projection={'_id': 'id'},
                                                                   sort=None,
                                                                   return_updated=False,
-                                                                  date_time_fields=None)
+                                                                  fields=None)
 
     @chainable
     def test_find_one_and_replace_upsert(self):
@@ -1049,7 +1046,7 @@ class ModelTests(TestCase):
                                                                   projection=None,
                                                                   sort=None,
                                                                   return_updated=False,
-                                                                  date_time_fields=None)
+                                                                  fields=None)
 
     @chainable
     def test_find_one_and_replace_sort(self):
@@ -1068,7 +1065,7 @@ class ModelTests(TestCase):
                                                                   projection=None,
                                                                   sort=[('_id', SortMode.Desc)],
                                                                   return_updated=False,
-                                                                  date_time_fields=None)
+                                                                  fields=None)
 
     @chainable
     def test_find_one_and_replace_return_updated(self):
@@ -1087,7 +1084,7 @@ class ModelTests(TestCase):
                                                                   projection=None,
                                                                   sort=None,
                                                                   return_updated=True,
-                                                                  date_time_fields=None)
+                                                                  fields=None)
 
     @chainable
     def test_find_one_and_replace_date_field(self):
@@ -1096,7 +1093,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['updatedAt']
-        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, date_time_fields=['updatedAt'])
+        result = yield self.model.find_one_and_replace({'_id': 'test_id'}, self.document2, fields=Fields(date_times=['updatedAt']))
 
         self.assertEqual(result, self.document)
 
@@ -1107,7 +1104,7 @@ class ModelTests(TestCase):
                                                                   projection=None,
                                                                   sort=None,
                                                                   return_updated=False,
-                                                                  date_time_fields=['updatedAt', 'updatedAt'])
+                                                                  fields=Fields(date_times=['updatedAt', 'updatedAt']))
 
     @chainable
     def test_find_one_model_and_replace_date_field(self):
@@ -1115,6 +1112,7 @@ class ModelTests(TestCase):
             date_time_fields = ['createdAt']
 
         self.model = TestModel(self.wrapper, self.collection)
+        self.model.fields = mock.MagicMock(wraps=self.model.fields)
         time = self.faker.date_time(tzinfo=pytz.utc)
         self.wrapper.find_one_and_replace.return_value = {
             'result': {
@@ -1137,12 +1135,9 @@ class ModelTests(TestCase):
                                                       projection=None,
                                                       sort=None,
                                                       return_updated=False,
-                                                      date_time_fields=['createdAt'])
+                                                      fields=Fields(date_times=['createdAt']))
 
-        self.wrapper.transform_to_datetime.assert_called_once_with({
-            'createdAt': time, # was modified as reference
-            'value': 123456
-        }, ['createdAt'])
+        self.model.fields.assert_called_once_with(None)
 
     @chainable
     def test_find_one_and_delete(self):
@@ -1158,7 +1153,7 @@ class ModelTests(TestCase):
                                                                  filter={'_id': 'test_id'},
                                                                  projection=self.document2,
                                                                  sort=None,
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_delete_projection(self):
@@ -1174,7 +1169,7 @@ class ModelTests(TestCase):
                                                                  filter={'_id': 'test_id'},
                                                                  projection={'_id': 'id'},
                                                                  sort=None,
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_delete_sort(self):
@@ -1190,7 +1185,7 @@ class ModelTests(TestCase):
                                                                  filter={'_id': 'test_id'},
                                                                  projection=None,
                                                                  sort=[('_id', SortMode.Desc)],
-                                                                 date_time_fields=None)
+                                                                 fields=None)
 
     @chainable
     def test_find_one_and_delete_date_field(self):
@@ -1199,7 +1194,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['updatedAt']
-        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, date_time_fields=['updatedAt'])
+        result = yield self.model.find_one_and_delete({'_id': 'test_id'}, fields=Fields(date_times=['updatedAt']))
 
         self.assertEqual(result, self.document)
 
@@ -1207,7 +1202,7 @@ class ModelTests(TestCase):
                                                                  filter={'_id': 'test_id'},
                                                                  projection=None,
                                                                  sort=None,
-                                                                 date_time_fields=['updatedAt', 'updatedAt'])
+                                                                 fields=Fields(date_times=['updatedAt', 'updatedAt']))
 
     @chainable
     def test_find_one_and_delete_model_date_field(self):
@@ -1215,6 +1210,7 @@ class ModelTests(TestCase):
             date_time_fields = ['createdAt']
 
         self.model = TestModel(self.wrapper, self.collection)
+        self.model.fields = mock.MagicMock(wraps=self.model.fields)
         time = self.faker.date_time(tzinfo=pytz.utc)
         self.wrapper.find_one_and_delete.return_value = {
             'result': {
@@ -1234,12 +1230,9 @@ class ModelTests(TestCase):
                                                       filter={'_id': 'test_id'},
                                                       projection=None,
                                                       sort=None,
-                                                      date_time_fields=['createdAt'])
+                                                      fields=Fields(date_times=['createdAt']))
 
-        self.wrapper.transform_to_datetime.assert_called_once_with({
-            'createdAt': time, # was modified as reference
-            'value': 123456
-        }, ['createdAt'])
+        self.model.fields.assert_called_once_with(None)
 
     def test_distinct(self):
         self.wrapper.distinct.return_value = {
@@ -1253,7 +1246,7 @@ class ModelTests(TestCase):
         self.wrapper.distinct.assert_called_once_with(self.collection,
                                                       field='_id',
                                                       filter=None,
-                                                      date_time_fields=None)
+                                                      fields=None)
 
     def test_distinct_filter(self):
         self.wrapper.distinct.return_value = {
@@ -1267,7 +1260,7 @@ class ModelTests(TestCase):
         self.wrapper.distinct.assert_called_once_with(self.collection,
                                                       field='_id',
                                                       filter={'_id': 'test_id'},
-                                                      date_time_fields=None)
+                                                      fields=None)
 
     def test_distinct_date_time_fields(self):
         self.wrapper.distinct.return_value = {
@@ -1275,14 +1268,14 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test2']
-        result = self.model.distinct('_id', date_time_fields=['test'])
+        result = self.model.distinct('_id', fields=Fields(date_times=['test']))
 
         self.assertEqual(result, self.documents)
 
         self.wrapper.distinct.assert_called_once_with(self.collection,
                                                       field='_id',
                                                       filter=None,
-                                                      date_time_fields=['test', 'test2'])
+                                                      fields=Fields(date_times=['test', 'test2']))
 
     @chainable
     def test_aggregate(self):
@@ -1293,7 +1286,7 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
 
-        self.wrapper.make_cursor = lambda x: IDatabase.make_cursor(self.wrapper, x)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
         results = yield self.model.aggregate([{'_id': 'test_id'}])
 
         self.assertIsInstance(results, Cursor)
@@ -1313,7 +1306,7 @@ class ModelTests(TestCase):
 
         self.wrapper.delete_one.assert_called_once_with(self.collection,
                                                         filter={'_id': 'test_id'},
-                                                        date_time_fields=None)
+                                                        fields=None)
 
     def test_delete_one_date_time_fields(self):
         self.wrapper.delete_one.return_value = {
@@ -1321,13 +1314,13 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.delete_one({'_id': 'test_id'}, date_time_fields=['test2'])
+        result = self.model.delete_one({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
 
         self.assertEqual(result, 1)
 
         self.wrapper.delete_one.assert_called_once_with(self.collection,
                                                         filter={'_id': 'test_id'},
-                                                        date_time_fields=['test2', 'test'])
+                                                        fields=Fields(date_times=['test2', 'test']))
 
     def test_delete_many(self):
         self.wrapper.delete_many.return_value = {
@@ -1340,7 +1333,7 @@ class ModelTests(TestCase):
 
         self.wrapper.delete_many.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
-                                                         date_time_fields=None)
+                                                         fields=None)
 
     def test_delete_many_date_time_fields(self):
         self.wrapper.delete_many.return_value = {
@@ -1348,10 +1341,10 @@ class ModelTests(TestCase):
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.delete_many({'_id': 'test_id'}, date_time_fields=['test2'])
+        result = self.model.delete_many({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
 
         self.assertEqual(result, 2)
 
         self.wrapper.delete_many.assert_called_once_with(self.collection,
                                                          filter={'_id': 'test_id'},
-                                                         date_time_fields=['test2', 'test'])
+                                                         fields=Fields(date_times=['test2', 'test']))

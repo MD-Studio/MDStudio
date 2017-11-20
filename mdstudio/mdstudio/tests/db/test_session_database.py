@@ -5,6 +5,7 @@ from twisted.internet.defer import Deferred
 from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor
+from mdstudio.db.fields import Fields
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
@@ -44,7 +45,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_insert_one_date_time_fields(self):
-        self.wrapper.insert_one('col', {'test': 8}, ['field1', 'field2'])
+        self.wrapper.insert_one('col', {'test': 8}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.insert_one', {
             'collection': 'col',
@@ -63,7 +64,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_insert_many_date_time_fields(self):
-        self.wrapper.insert_many('col', [{'test': 8}, {'test4': 4}], ['field1', 'field2'])
+        self.wrapper.insert_many('col', [{'test': 8}, {'test4': 4}], fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.insert_many', {
             'collection': 'col',
@@ -94,7 +95,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_replace_one_date_time_fields(self):
-        self.wrapper.replace_one('col', {'_id': 5}, {'test': 8}, date_time_fields=['field1', 'field2'])
+        self.wrapper.replace_one('col', {'_id': 5}, {'test': 8}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.replace_one', {
             'collection': 'col',
@@ -162,7 +163,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_count_date_time_fields(self):
-        self.wrapper.count('col', date_time_fields=['field1', 'field2'])
+        self.wrapper.count('col', fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.count', {
             'collection': 'col',
@@ -191,7 +192,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_update_one_date_time_fields(self):
-        self.wrapper.update_one('col', {'_id': 50}, {'test': 11}, date_time_fields=['field1', 'field2'])
+        self.wrapper.update_one('col', {'_id': 50}, {'test': 11}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_one', {
             'collection': 'col',
@@ -222,7 +223,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_update_many_date_time_fields(self):
-        self.wrapper.update_many('col', {'_id': 50}, {'test': 11}, date_time_fields=['field1', 'field2'])
+        self.wrapper.update_many('col', {'_id': 50}, {'test': 11}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.update_many', {
             'collection': 'col',
@@ -269,7 +270,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_find_one_date_time(self):
-        self.wrapper.find_one('col', {'_id': 50}, date_time_fields=['field1', 'field2'])
+        self.wrapper.find_one('col', {'_id': 50}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one', {
             'collection': 'col',
@@ -324,7 +325,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_find_many_date_time(self):
-        self.wrapper.find_many('col', {'_id': 50}, date_time_fields=['field1', 'field2'])
+        self.wrapper.find_many('col', {'_id': 50}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many', {
             'collection': 'col',
@@ -368,7 +369,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_find_one_and_update_date_time_fields(self):
-        self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80}, date_time_fields=['field1', 'field2'])
+        self.wrapper.find_one_and_update('col', {'_id': 50}, {'test': 80}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_update', {
             'collection': 'col',
@@ -439,7 +440,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_find_one_and_replace_date_time_fields(self):
-        self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80}, date_time_fields=['field1', 'field2'])
+        self.wrapper.find_one_and_replace('col', {'_id': 50}, {'test': 80}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_replace', {
             'collection': 'col',
@@ -503,7 +504,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_find_one_and_delete_date_time(self):
-        self.wrapper.find_one_and_delete('col', {'_id': 50}, date_time_fields=['field1', 'field2'])
+        self.wrapper.find_one_and_delete('col', {'_id': 50}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_delete', {
             'collection': 'col',
@@ -531,7 +532,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_distinct_date_time(self):
-        self.wrapper.distinct('col', '_id', date_time_fields=['field1', 'field2'])
+        self.wrapper.distinct('col', '_id', fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.distinct', {
             'collection': 'col',
@@ -558,7 +559,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_delete_one_date_time_fields(self):
-        self.wrapper.delete_one('col', {'test': 10}, date_time_fields=['field1', 'field2'])
+        self.wrapper.delete_one('col', {'test': 10}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.delete_one', {
             'collection': 'col',
@@ -577,7 +578,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
     def test_delete_many_date_time_fields(self):
-        self.wrapper.delete_many('col', {'test': 10}, date_time_fields=['field1', 'field2'])
+        self.wrapper.delete_many('col', {'test': 10}, fields=Fields(date_times=['field1', 'field2']))
 
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.delete_many', {
             'collection': 'col',
@@ -625,9 +626,9 @@ class TestSessionDatabaseWrapperDeferred(TestCase):
         }
 
         db = SessionDatabaseWrapper(mock.MagicMock())
-        db.make_cursor(d).addCallback(self.assertIsInstance, Cursor)
-        self.assertIsInstance(db.make_cursor(d), Deferred)
+        db.make_cursor(d, Fields()).addCallback(self.assertIsInstance, Cursor)
+        self.assertIsInstance(db.make_cursor(d, Fields()), Deferred)
 
-        docs = yield db.make_cursor(d).to_list()
+        docs = yield db.make_cursor(d, Fields()).to_list()
 
         self.assertEqual(docs, documents)

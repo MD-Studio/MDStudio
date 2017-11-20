@@ -6,6 +6,7 @@ from asq.initiators import query
 from asq.queryables import Queryable
 from twisted.internet.defer import succeed
 
+from mdstudio.db.fields import Fields
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
@@ -29,13 +30,16 @@ class Cursor:
     # type: int
     _returned = None
 
-    def __init__(self, wrapper, response, date_time_fields=[]):
+    # type: Fields
+    _fields = None
+
+    def __init__(self, wrapper, response, fields=None):
         self.wrapper = wrapper
         self._id = response.get('cursorId', None)
         self._alive = self._id is not None and response['alive']
         self._data = deque(response['results'])
         self._refreshing = False
-        self._date_time_fields = date_time_fields
+        self._fields = fields
 
     def __iter__(self):
         return self
@@ -46,12 +50,18 @@ class Cursor:
 
         len_data = len(self._data)
         if len_data > 1:
-            return succeed(self._data.popleft())
+            result = self._data.popleft()
+            if self._fields:
+                self._fields.convert_call(result)
+            return succeed(result)
         elif self.alive:
             self._refreshing = True
             return self._refresh()
         elif len_data:
-            return succeed(self._data.popleft())
+            result = self._data.popleft()
+            if self._fields:
+                self._fields.convert_call(result)
+            return succeed(result)
         else:
             raise StopIteration
 
@@ -101,6 +111,8 @@ class Cursor:
         more = yield self.wrapper.more(cursor_id=self._id)
         self._id = more.get('cursorId', None)
         last_entry = self._data.popleft()
+        if self._fields:
+            self._fields.convert_call(last_entry)
         self._data = deque(more['results'])
         self._alive = self._id is not None and more['alive'] and len(self._data) > 0
         self._refreshing = False

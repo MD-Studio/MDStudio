@@ -161,7 +161,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             self.assertEqual(output, {
                 'id': id
             })
-            obj['datetimeField'] = date.isoformat()
+            obj['datetimeField'] = date.replace(tzinfo=None)
             found = yield self.db.find_one(self.collection, {'_id': id})
             self.assertEqual(obj, found['result'])
 
