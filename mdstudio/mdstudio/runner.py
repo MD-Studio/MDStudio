@@ -40,6 +40,18 @@ def main(component, auto_reconnect=True):
         log_file = DailyLogFile('daily.log', logdir)
         twisted.python.log.addObserver(PrintingLogObserver(log_file))
 
+        ascii_brand = [
+            r' __  __ ____      _             _ _',
+            r'|  \/  |  _ \ ___| |_ _   _  __| (_) ___',
+            r'| |\/| | | | / __| __| | | |/ _` | |/ _ \ ',
+            r'| |  | | |_| \__ \ |_| |_| | (_| | | (_) |',
+            r'|_|  |_|____/|___/\__|\__,_|\__,_|_|\___/''',
+            ''
+        ]
+
+        for line in ascii_brand:
+            print(line)
+
         print('Crossbar host is: {}'.format(crossbar_host))
         session = component(config)  # type: CommonSession
         return session

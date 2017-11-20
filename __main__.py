@@ -67,6 +67,18 @@ if __name__ == '__main__':
         log_file = DailyLogFile('daily.log', 'logs')
         twisted.python.log.addObserver(PrintingLogObserver(log_file))
 
+        ascii_brand = [
+            r' __  __ ____      _             _ _',
+            r'|  \/  |  _ \ ___| |_ _   _  __| (_) ___',
+            r'| |\/| | | | / __| __| | | |/ _` | |/ _ \ ',
+            r'| |  | | |_| \__ \ |_| |_| | (_| | | (_) |',
+            r'|_|  |_|____/|___/\__|\__,_|\__,_|_|\___/''',
+            ''
+        ]
+
+        for line in ascii_brand:
+            print(line)
+
         run('crossbar', [
             'start',
             '--cbdir',
