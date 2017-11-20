@@ -844,6 +844,44 @@ class ModelTests(TestCase):
                                                        fields=Fields(date_times=['updatedAt']))
 
     @chainable
+    def test_find_many_model_date_time_fields_2(self):
+        class TestModel(Model):
+            date_time_fields = ['updatedAt']
+
+        self.wrapper.find_many.return_value = {
+            'cursorId': 1234,
+            'alive': True,
+            'results': self.documents
+        }
+        self.model = TestModel(self.wrapper, self.collection)
+        self.wrapper.make_cursor = lambda x, fields: IDatabase.make_cursor(self.wrapper, x, fields)
+        results = yield self.model.find_many({'_id': 'test_id'})
+
+        self.assertIsInstance(results, Cursor)
+
+        lresults = yield results.to_list()
+        self.assertEqual(lresults[0], {
+            '_id': 'test_id',
+            'foo': {'bar': False},
+            'test': 1234,
+            'updatedAt': self.time
+        })
+        self.assertEqual(lresults[1], {
+            '_id': 'test_id',
+            'foo': {'bar': True},
+            'test': 1235,
+            'updatedAt': self.time2
+        })
+
+        self.wrapper.find_many.assert_called_once_with(self.collection,
+                                                       filter={'_id': 'test_id'},
+                                                       projection=None,
+                                                       skip=None,
+                                                       limit=None,
+                                                       sort=None,
+                                                       fields=Fields(date_times=['updatedAt']))
+
+    @chainable
     def test_find_one_and_update(self):
         self.wrapper.find_one_and_update.return_value = {
             'result': self.document
@@ -1295,12 +1333,13 @@ class ModelTests(TestCase):
 
         self.wrapper.aggregate.assert_called_once_with(self.collection, pipeline=[{'_id': 'test_id'}])
 
+    @chainable
     def test_delete_one(self):
         self.wrapper.delete_one.return_value = {
             'count': 1
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.delete_one({'_id': 'test_id'})
+        result = yield self.model.delete_one({'_id': 'test_id'})
 
         self.assertEqual(result, 1)
 
@@ -1308,13 +1347,28 @@ class ModelTests(TestCase):
                                                         filter={'_id': 'test_id'},
                                                         fields=None)
 
+    @chainable
+    def test_delete_one2(self):
+        self.wrapper.delete_one.return_value = {
+            'count': 1
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = yield self.model.delete_one({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
+
+        self.assertEqual(result, 1)
+
+        self.wrapper.delete_one.assert_called_once_with(self.collection,
+                                                        filter={'_id': 'test_id'},
+                                                        fields=Fields(date_times=['test2']))
+
+    @chainable
     def test_delete_one_date_time_fields(self):
         self.wrapper.delete_one.return_value = {
             'count': 1
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.delete_one({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
+        result = yield self.model.delete_one({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
 
         self.assertEqual(result, 1)
 
@@ -1322,12 +1376,13 @@ class ModelTests(TestCase):
                                                         filter={'_id': 'test_id'},
                                                         fields=Fields(date_times=['test2', 'test']))
 
+    @chainable
     def test_delete_many(self):
         self.wrapper.delete_many.return_value = {
             'count': 2
         }
         self.wrapper.extract = IDatabase.extract
-        result = self.model.delete_many({'_id': 'test_id'})
+        result = yield self.model.delete_many({'_id': 'test_id'})
 
         self.assertEqual(result, 2)
 
@@ -1335,13 +1390,28 @@ class ModelTests(TestCase):
                                                          filter={'_id': 'test_id'},
                                                          fields=None)
 
+    @chainable
+    def test_delete_many2(self):
+        self.wrapper.delete_many.return_value = {
+            'count': 2
+        }
+        self.wrapper.extract = IDatabase.extract
+        result = yield self.model.delete_many({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
+
+        self.assertEqual(result, 2)
+
+        self.wrapper.delete_many.assert_called_once_with(self.collection,
+                                                         filter={'_id': 'test_id'},
+                                                         fields=Fields(date_times=['test2']))
+
+    @chainable
     def test_delete_many_date_time_fields(self):
         self.wrapper.delete_many.return_value = {
             'count': 2
         }
         self.wrapper.extract = IDatabase.extract
         self.model.date_time_fields = ['test']
-        result = self.model.delete_many({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
+        result = yield self.model.delete_many({'_id': 'test_id'}, fields=Fields(date_times=['test2']))
 
         self.assertEqual(result, 2)
 

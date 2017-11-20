@@ -51,7 +51,7 @@ class Model:
         return self.wrapper.extract(insert_one, 'id')
 
     def insert_many(self, insert, fields=None):
-        # type: (DocumentType, Optional[Fields]) -> Union[List[str], Deferred]
+        # type: (List[DocumentType], Optional[Fields]) -> Union[List[str], Deferred]
         fields = self.fields(fields)
         insert_many = self.wrapper.insert_many(self.collection,
                                                insert=insert,

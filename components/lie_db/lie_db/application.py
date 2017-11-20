@@ -52,7 +52,7 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.insert_one(request['collection'], request['insert'], **kwargs)
 
@@ -65,7 +65,7 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.insert_many(request['collection'], request['insert'], **kwargs)
 
@@ -80,7 +80,7 @@ class DBComponent(CoreComponentSession):
             kwargs['upsert'] = request['upsert']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.replace_one(request['collection'], request['filter'],
                                     request['replacement'], **kwargs)
@@ -107,7 +107,7 @@ class DBComponent(CoreComponentSession):
             if 'limit' in request:
                 kwargs['limit'] = request['limit']
             if 'fields' in request:
-                kwargs['fields'] = Fields().from_dict(request)
+                kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.count(**kwargs)
 
@@ -123,7 +123,7 @@ class DBComponent(CoreComponentSession):
             kwargs['upsert'] = request['upsert']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.update_one(request['collection'], request['filter'],
                                    request['update'], **kwargs)
@@ -140,7 +140,7 @@ class DBComponent(CoreComponentSession):
             kwargs['upsert'] = request['upsert']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.update_many(request['collection'], request['filter'],
                                     request['update'], **kwargs)
@@ -160,7 +160,7 @@ class DBComponent(CoreComponentSession):
             kwargs['sort'] = request['sort']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.find_one(request['collection'], request['filter'], **kwargs)
 
@@ -181,7 +181,7 @@ class DBComponent(CoreComponentSession):
             kwargs['sort'] = request['sort']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.find_many(request['collection'], request['filter'], **kwargs)
 
@@ -203,7 +203,7 @@ class DBComponent(CoreComponentSession):
             kwargs['return_updated'] = request['returnUpdated']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.find_one_and_update(request['collection'], request['filter'],
                                             request['update'], **kwargs)
@@ -226,7 +226,7 @@ class DBComponent(CoreComponentSession):
             kwargs['return_updated'] = request['returnUpdated']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.find_one_and_replace(request['collection'], request['filter'],
                                              request['replacement'], **kwargs)
@@ -245,7 +245,7 @@ class DBComponent(CoreComponentSession):
             kwargs['sort'] = request['sort']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.find_one_and_delete(request['collection'], request['filter'], **kwargs)
 
@@ -261,7 +261,7 @@ class DBComponent(CoreComponentSession):
             kwargs['filter'] = request['filter']
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.distinct(request['collection'], request['field'], **kwargs)
 
@@ -283,7 +283,7 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.delete_one(request['collection'], request['filter'], **kwargs)
 
@@ -297,7 +297,7 @@ class DBComponent(CoreComponentSession):
         kwargs = {}
 
         if 'fields' in request:
-            kwargs['fields'] = Fields().from_dict(request)
+            kwargs['fields'] = Fields().from_dict(request['fields'])
 
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 

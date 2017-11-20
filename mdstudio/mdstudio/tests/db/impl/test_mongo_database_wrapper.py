@@ -7,6 +7,7 @@ import pytz
 import twisted
 from bson import ObjectId
 from copy import deepcopy
+from faker import Faker
 from mock import mock, call
 from twisted.internet import reactor
 
@@ -19,10 +20,14 @@ from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
 from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.db import DBTestCase
+from mdstudio.utc import from_date_string
 
 twisted.internet.base.DelayedCall.debug = True
 
 class TestMongoDatabaseWrapper(DBTestCase):
+
+    faker = Faker()
+
     def setUp(self):
         self.db = MongoClientWrapper("localhost", 27127).get_database('users~userNameDatabase')
         self.claims = {
@@ -48,6 +53,20 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
     def test_prepare_sortmode_desc(self):
         sort = ('test', SortMode.Desc)
+
+        sort = self.db._prepare_sortmode(sort)
+
+        self.assertEqual(sort, [('test', -1)])
+
+    def test_prepare_sortmode_asc2(self):
+        sort = ('test', "asc")
+
+        sort = self.db._prepare_sortmode(sort)
+
+        self.assertEqual(sort, [('test', 1)])
+
+    def test_prepare_sortmode_desc2(self):
+        sort = ('test', "desc")
 
         sort = self.db._prepare_sortmode(sort)
 
@@ -247,6 +266,29 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.db._get_collection.assert_called_once_with('test_collection', True)
 
     @chainable
+    def test_insert_one_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime}, fields=Fields(date_times=['datetime']))
+        found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'})
+
+        self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime})
+
+    @chainable
+    def test_insert_one_date_fields(self):
+        date = self.faker.date_object()
+        yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab', 'date': date}, fields=Fields(dates=['date']))
+        found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'}, fields=Fields(dates=['date']))
+        self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date})
+
+    @chainable
+    def test_insert_one_date_fields2(self):
+        date = self.faker.date_object()
+        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab', 'date': date}, fields=Fields(dates=['date']))
+        found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'})
+        self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab', 'date': stored})
+
+    @chainable
     def test_insert_many(self):
 
         self.db._prepare_for_mongo = mock.MagicMock(wraps=self.db._prepare_for_mongo)
@@ -299,6 +341,30 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ], fields=Fields(date_times=['date']))
 
         self.db._get_collection.assert_called_once_with('test_collection', True)
+
+    @chainable
+    def test_insert_many_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        yield self.d.insert_many([{'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime}], fields=Fields(date_times=['datetime']))
+        found = yield self.d.find_many({'_id': '0123456789ab0123456789ab'}).to_list()
+
+        self.assertEqual(found[0], {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime})
+
+    @chainable
+    def test_insert_many_date_fields(self):
+        date = self.faker.date_object()
+        yield self.d.insert_many([{'test': 2, '_id': '0123456789ab0123456789ab', 'date': date}], fields=Fields(dates=['date']))
+        found = yield self.d.find_many({'_id': '0123456789ab0123456789ab'}, fields=Fields(dates=['date'])).to_list()
+        self.assertEqual(found[0], {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date})
+
+
+    @chainable
+    def test_insert_many_date_fields2(self):
+        date = self.faker.date_object()
+        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        yield self.d.insert_many([{'test': 2, '_id': '0123456789ab0123456789ab', 'date': date}], fields=Fields(dates=['date']))
+        found = yield self.d.find_many({'_id': '0123456789ab0123456789ab'}).to_list()
+        self.assertEqual(found[0], {'test': 2, '_id': '0123456789ab0123456789ab', 'date': stored})
 
     @chainable
     def test_replace_one(self):
@@ -360,6 +426,52 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(result.matched, 0)
         self.assertEqual(result.modified, 0)
         self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_replace_one_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test': 6, 'datetime': datetime}, fields=Fields(date_times=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime})
+
+    @chainable
+    def test_replace_one_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test': 6, 'date': date}, fields=Fields(dates=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date']))
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date})
+
+    @chainable
+    def test_replace_one_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.replace_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'test': 6, 'date': date})
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored})
 
     @chainable
     def test_update_one(self):
@@ -444,6 +556,53 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(result.matched, 0)
         self.assertEqual(result.modified, 0)
         self.assertEqual(result.upserted_id, None)
+
+    @chainable
+    def test_update_one_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.update_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}}, fields=Fields(date_times=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2})
+
+    @chainable
+    def test_update_one_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.update_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}}, fields=Fields(dates=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date']))
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2})
+
+    @chainable
+    def test_update_one_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.update_one({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}}, fields=Fields(dates=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored})
+
 
     @chainable
     def test_update_many(self):
@@ -532,6 +691,52 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(result.upserted_id, None)
 
     @chainable
+    def test_update_many_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.update_many({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}}, fields=Fields(date_times=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2})
+
+    @chainable
+    def test_update_many_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.update_many({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}}, fields=Fields(dates=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date']))
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2})
+
+    @chainable
+    def test_update_many_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.update_many({'_id': '59f1d9c57dd5d70043e74f8d'}, {'$set': {'test': 6}}, fields=Fields(dates=['date']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored})
+
+    @chainable
     def test_find_one(self):
 
         total = 100
@@ -608,6 +813,43 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.find_one({'_id': '666f6f2d6261722d71757578'})
 
         self.assertEqual(result, None)
+
+    @chainable
+    def test_find_one_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2})
+
+    @chainable
+    def test_find_one_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date']))
+        self.assertEqual(found, {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2})
+
+    @chainable
+    def test_find_one_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored})
 
     @chainable
     def test_find_many(self):
@@ -688,6 +930,43 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         self.assertIsInstance(result, Cursor)
         self.assertSequenceEqual((yield result.to_list()), [])
+
+    @chainable
+    def test_find_many_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_many({'_id': '59f1d9c57dd5d70043e74f8d'}).to_list()
+        self.assertEqual(found[0], {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2})
+
+    @chainable
+    def test_find_many_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_many({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date'])).to_list()
+        self.assertEqual(found[0], {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2})
+
+    @chainable
+    def test_find_many_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_many({'_id': '59f1d9c57dd5d70043e74f8d'}).to_list()
+        self.assertEqual(found[0], {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored})
 
     def test_more_dry(self):
         return self.assertFailure(self.d.wrapper.more("wefwefwef"), DatabaseException)
@@ -803,6 +1082,27 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.count()
         self.assertEqual(result, 0)
 
+    @chainable
+    def test_count_filter_date_time_fields(self):
+
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId()), 'datetime': self.faker.date_time(pytz.utc)})
+        yield self.d.insert_many(obs, fields=Fields(date_times=['datetime']))
+
+        yield self.d.count({'test': {'$gt': 50}}, fields=Fields(date_times=['datetime']))
+
+    @chainable
+    def test_count_filter_date_fields(self):
+
+        total = 200
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId()), 'date': self.faker.date_time(pytz.utc)})
+        yield self.d.insert_many(obs, fields=Fields(dates=['date']))
+
+        yield self.d.count({'test': {'$gt': 50}}, fields=Fields(dates=['date']))
 
     @chainable
     def test_find_one_and_update(self):
@@ -936,6 +1236,59 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.find_one_and_update({'_id': '666f6f2d6261722d71757578'}, {'$set': {'test': 6}})
 
         self.assertEqual(result, None)
+
+    @chainable
+    def test_find_one_and_update_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.find_one_and_update({'_id': '59f1d9c57dd5d70043e74f8d'}, {
+            '$set': {'datetime2': datetime}
+        }, fields=Fields(date_times=['datetime']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(date_times=['datetime', 'datetime2']))
+        self.assertEqual(found, {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2, 'datetime2': datetime})
+
+    @chainable
+    def test_find_one_and_update_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.find_one_and_update({'_id': '59f1d9c57dd5d70043e74f8d'}, {
+            '$set': {'date2': date}
+        }, fields=Fields(dates=['date2']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date', 'date2']))
+        self.assertEqual(found, {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2, 'date2': date})
+
+    @chainable
+    def test_find_one_and_update_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        stored2 = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+
+        yield self.d.find_one_and_update({'_id': '59f1d9c57dd5d70043e74f8d'}, {
+            '$set': {'date2': date}
+        }, fields=Fields(dates=['date2']))
+
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored2, 'date2': stored})
 
     @chainable
     def test_find_one_and_replace(self):
@@ -1090,6 +1443,52 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(result, None)
 
     @chainable
+    def test_find_one_and_replace_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.find_one_and_replace({'_id': '59f1d9c57dd5d70043e74f8d'}, {'datetime2': datetime}, fields=Fields(date_times=['datetime']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(date_times=['datetime', 'datetime2']))
+        self.assertEqual(found, {'_id': '59f1d9c57dd5d70043e74f8d', 'datetime2': datetime})
+
+    @chainable
+    def test_find_one_and_replace_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.find_one_and_replace({'_id': '59f1d9c57dd5d70043e74f8d'}, {'date2': date}, fields=Fields(dates=['date2']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date', 'date2']))
+        self.assertEqual(found, {'_id': '59f1d9c57dd5d70043e74f8d', 'date2': date})
+
+    @chainable
+    def test_find_one_and_replace_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+
+        yield self.d.find_one_and_replace({'_id': '59f1d9c57dd5d70043e74f8d'}, {'date2': date}, fields=Fields(dates=['date2']))
+
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, {'_id': '59f1d9c57dd5d70043e74f8d', 'date2': stored})
+
+    @chainable
     def test_find_one_and_delete(self):
 
         total = 100
@@ -1169,6 +1568,51 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(result, None)
 
     @chainable
+    def test_find_one_and_delete_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.find_one_and_delete({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(date_times=['datetime']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(date_times=['datetime', 'datetime2']))
+        self.assertEqual(found, None)
+
+    @chainable
+    def test_find_one_and_delete_date_fields(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.find_one_and_delete({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date2']))
+
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date', 'date2']))
+        self.assertEqual(found, None)
+
+    @chainable
+    def test_find_one_and_delete_date_fields2(self):
+        date = self.faker.date_object()
+        date2 = self.faker.date_object()
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
+        ], fields=Fields(dates=['date']))
+
+        yield self.d.find_one_and_delete({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(dates=['date2']))
+
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+        found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
+        self.assertEqual(found, None)
+
+    @chainable
     def test_distinct(self):
 
         total = 100
@@ -1231,6 +1675,18 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.distinct('test')
 
         self.assertEqual(result, [])
+
+    @chainable
+    def test_distinct_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.distinct('test', fields=Fields(date_times=['datetime']))
 
     @chainable
     def test_aggregate(self):
@@ -1332,6 +1788,18 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertEqual(result, 0)
 
     @chainable
+    def test_delete_one_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.delete_one({'datetime': datetime}, fields=Fields(date_times=['datetime']))
+
+    @chainable
     def test_delete_many(self):
 
         total = 100
@@ -1356,3 +1824,15 @@ class TestMongoDatabaseWrapper(DBTestCase):
         result = yield self.d.delete_many({})
 
         self.assertEqual(result, 0)
+
+    @chainable
+    def test_delete_many_date_time_fields(self):
+        datetime = self.faker.date_time(pytz.utc)
+        datetime2 = self.faker.date_time(pytz.utc)
+        ids = yield self.d.insert_many([
+            {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+            {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'datetime': datetime2},
+        ], fields=Fields(date_times=['datetime']))
+        self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
+
+        yield self.d.delete_many({'datetime': datetime}, fields=Fields(date_times=['datetime']))

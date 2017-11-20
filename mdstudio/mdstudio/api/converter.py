@@ -12,9 +12,9 @@ def convert_obj_to_json(document):
         return
 
     for key, value in iter:
+        if isinstance(value, date) and not isinstance(value, datetime):
+            document[key] = to_date_string(value)
         if isinstance(value, datetime):
             document[key] = to_utc_string(value)
-        elif isinstance(value, date):
-            document[key] = to_date_string(value)
         else:
             convert_obj_to_json(value)

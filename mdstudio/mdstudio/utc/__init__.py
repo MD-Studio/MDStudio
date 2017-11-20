@@ -9,6 +9,11 @@ def now():
     return datetime.now(tz=pytz.utc)
 
 
+def today():
+    # type: () -> date
+    return datetime.now(tz=pytz.utc).date()
+
+
 def to_utc_string(datetime):
     # type: (datetime) -> str
     return datetime.astimezone(pytz.utc).isoformat()
@@ -26,4 +31,4 @@ def from_utc_string(datetime):
 
 def from_date_string(date):
     # type: (str) -> date
-    return parsedate(datetime).astimezone(pytz.utc).date
+    return parsedate(date).astimezone(pytz.utc).date()

@@ -24,9 +24,6 @@ class Fields(object):
                and set(self.dates) == set(other.dates) \
                and set(self.protected) == set(other.protected)
 
-    def __str__(self):
-        return str(self.to_dict())
-
     def merge(self, other):
         # type: (Fields) -> Fields
         return Fields(date_times=other.date_times + self.date_times,
@@ -51,20 +48,17 @@ class Fields(object):
         return result
 
     def from_dict(self, request):
-        if 'datetime' in request['fields']:
-            self.date_times = request['fields']['datetime']
-        if 'date' in request['fields']:
-            self.date_times = request['fields']['date']
-        if 'protected' in request['fields']:
-            self.date_times = request['fields']['protected']
+        if 'datetime' in request:
+            self.date_times = request['datetime']
+        if 'date' in request:
+            self.dates = request['date']
+        if 'protected' in request:
+            self.protected = request['protected']
+
+        return self
 
     @staticmethod
     def transform_to_object(document, fields, parser, prefixes=None):
-        if fields is None:
-            return
-
-        if not isinstance(fields, list):
-            fields = [fields]
         if prefixes is None:
             prefixes = ['']
 
@@ -130,6 +124,8 @@ class Fields(object):
     def parse_date(val):
         if isinstance(val, str):
             return from_date_string(val)
+        elif isinstance(val, datetime.datetime):
+            return val.date()
         elif isinstance(val, datetime.date):
             return val
         else:

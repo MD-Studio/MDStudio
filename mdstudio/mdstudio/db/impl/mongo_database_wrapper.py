@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import datetime
+from datetime import datetime, date
 from typing import Optional, Dict, Any, List
 
 import copy
@@ -7,18 +7,15 @@ import hashlib
 import pytz
 import random
 from bson import ObjectId
-from dateutil.parser import parse as parsedate
 from pymongo import ReturnDocument
 from pymongo.cursor import Cursor
 
 from mdstudio.db.cache_dict import CacheDict
-from mdstudio.db.exception import DatabaseException
-from mdstudio.db.fields import Fields
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, SortOperators, \
     ProjectionOperators, AggregationOperator
+from mdstudio.db.exception import DatabaseException
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
-from mdstudio.utc import to_utc_string
 
 
 class MongoDatabaseWrapper(IDatabase):
@@ -58,9 +55,9 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
-        insert = self._prepare_for_mongo(insert)
         if fields:
             fields.convert_call({'insert': insert}, ['insert'])
+        insert = self._prepare_for_mongo(insert)
 
         return {
             'id': str(db_collection.insert_one(insert).inserted_id)
@@ -71,9 +68,9 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, List[DocumentType], Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
-        insert = self._prepare_for_mongo(insert)
         if fields:
             fields.convert_call({'insert': insert}, ['insert'])
+        insert = self._prepare_for_mongo(insert)
 
         return {
             'ids': [str(oid) for oid in db_collection.insert_many(insert).inserted_ids]
@@ -87,11 +84,11 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return self._update_response(upsert)
 
-        filter = self._prepare_for_mongo(filter)
-        replacement = self._prepare_for_mongo(replacement)
-
         if fields:
             fields.convert_call({'filter': filter, 'replacement': replacement}, ['filter', 'replacement'])
+
+        filter = self._prepare_for_mongo(filter)
+        replacement = self._prepare_for_mongo(replacement)
 
         replace_result = db_collection.replace_one(filter, replacement, upsert)
 
@@ -111,10 +108,10 @@ class MongoDatabaseWrapper(IDatabase):
             limit = 0 if not limit else limit
 
             if db_collection:
-                filter = self._prepare_for_mongo(filter)
 
                 if fields:
                     fields.convert_call({'filter': filter}, ['filter'])
+                filter = self._prepare_for_mongo(filter)
 
                 total = db_collection.count(filter, skip=skip, limit=limit)
 
@@ -130,11 +127,12 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return self._update_response(upsert)
 
-        filter = self._prepare_for_mongo(filter)
-        update = self._prepare_for_mongo(update)
 
         if fields:
             fields.convert_call({'filter': filter, 'update': update}, ['filter', 'update'])
+
+        filter = self._prepare_for_mongo(filter)
+        update = self._prepare_for_mongo(update)
 
         result = db_collection.update_one(filter, update, upsert)
 
@@ -148,11 +146,11 @@ class MongoDatabaseWrapper(IDatabase):
         if not db_collection:
             return self._update_response(upsert)
 
-        filter = self._prepare_for_mongo(filter)
-        update = self._prepare_for_mongo(update)
 
         if fields:
             fields.convert_call({'filter': filter, 'update': update}, ['filter', 'update'])
+        filter = self._prepare_for_mongo(filter)
+        update = self._prepare_for_mongo(update)
 
         result = db_collection.update_many(filter, update, upsert)
 
@@ -167,10 +165,12 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-            filter = self._prepare_for_mongo(filter)
 
             if fields:
                 fields.convert_call({'filter': filter}, ['filter'])
+
+            filter = self._prepare_for_mongo(filter)
+
             result = db_collection.find_one(filter, projection, skip=skip, sort=self._prepare_sortmode(sort))
 
             self._prepare_for_json(result)
@@ -194,10 +194,10 @@ class MongoDatabaseWrapper(IDatabase):
                 'size': 0
             }
 
-        filter = self._prepare_for_mongo(filter)
 
         if fields:
             fields.convert_call({'filter': filter}, ['filter'])
+        filter = self._prepare_for_mongo(filter)
 
         cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
 
@@ -211,11 +211,12 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-            filter = self._prepare_for_mongo(filter)
-            update = self._prepare_for_mongo(update)
 
             if fields:
                 fields.convert_call({'filter': filter, 'update': update}, ['filter', 'update'])
+
+            filter = self._prepare_for_mongo(filter)
+            update = self._prepare_for_mongo(update)
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
             result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort),
@@ -234,11 +235,12 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-            filter = self._prepare_for_mongo(filter)
-            replacement = self._prepare_for_mongo(replacement)
 
             if fields:
                 fields.convert_call({'filter': filter, 'replacement': replacement}, ['filter', 'replacement'])
+
+            filter = self._prepare_for_mongo(filter)
+            replacement = self._prepare_for_mongo(replacement)
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
             result = db_collection.find_one_and_replace(filter, replacement, projection,
@@ -257,10 +259,11 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-            filter = self._prepare_for_mongo(filter)
 
             if fields:
                 fields.convert_call({'filter': filter}, ['filter'])
+
+            filter = self._prepare_for_mongo(filter)
 
             result = db_collection.find_one_and_delete(filter, projection, sort=self._prepare_sortmode(sort))
             self._prepare_for_json(result)
@@ -276,10 +279,11 @@ class MongoDatabaseWrapper(IDatabase):
 
         results = []
         if db_collection:
-            filter = self._prepare_for_mongo(filter)
 
             if fields:
                 fields.convert_call({'filter': filter}, ['filter'])
+
+            filter = self._prepare_for_mongo(filter)
 
             results = db_collection.distinct(field, filter)
             for result in results:
@@ -313,10 +317,11 @@ class MongoDatabaseWrapper(IDatabase):
 
         count = 0
         if db_collection:
-            filter = self._prepare_for_mongo(filter)
 
             if fields:
                 fields.convert_call({'filter': filter}, ['filter'])
+
+            filter = self._prepare_for_mongo(filter)
 
             count = db_collection.delete_one(filter).deleted_count
         return {
@@ -330,10 +335,11 @@ class MongoDatabaseWrapper(IDatabase):
 
         count = 0
         if db_collection:
-            filter = self._prepare_for_mongo(filter)
 
             if fields:
                 fields.convert_call({'filter': filter}, ['filter'])
+
+            filter = self._prepare_for_mongo(filter)
 
             count = db_collection.delete_many(filter).deleted_count
         return {
@@ -346,12 +352,29 @@ class MongoDatabaseWrapper(IDatabase):
             if isinstance(doc, dict) and '_id' in doc:
                 doc['_id'] = str(doc['_id'])
 
+            self._convert_to_utc(doc)
+
+    def _convert_to_utc(self, document):
+        if isinstance(document, dict):
+            iter = document.items()
+        elif isinstance(document, list):
+            iter = enumerate(document)
+        else:
+            return
+
+        for key, value in iter:
+            if isinstance(value, date) and not isinstance(value, datetime):
+                pass
+            if isinstance(value, datetime):
+                document[key] = document[key].replace(tzinfo=pytz.utc)
+            else:
+                self._convert_to_utc(value)
+
     def _prepare_for_mongo(self, doc):
         def _prepare_obj(obj):
-            if obj:
+            if obj and '_id' in obj:
                 # convert json _id from str to ObjectId
-                if '_id' in obj:
-                    obj['_id'] = ObjectId(obj['_id'])
+                obj['_id'] = ObjectId(obj['_id'])
 
         doc = copy.deepcopy(doc)
         if isinstance(doc, list):
@@ -361,6 +384,24 @@ class MongoDatabaseWrapper(IDatabase):
         else:
             _prepare_obj(doc)
 
+        def _recurse(doc):
+            if isinstance(doc, dict):
+                iter = doc.items()
+            elif isinstance(doc, list):
+                iter = enumerate(doc)
+            else:
+                return
+
+            for key, value in iter:
+
+                if isinstance(value, date) and not isinstance(value, datetime):
+                    doc[key] = datetime(doc[key].year, doc[key].month, doc[key].day, tzinfo=pytz.utc)
+                if isinstance(value, datetime):
+                    pass
+                else:
+                    _recurse(value)
+
+        _recurse(doc)
         return doc
 
     def _prepare_sortmode(self, sort):
