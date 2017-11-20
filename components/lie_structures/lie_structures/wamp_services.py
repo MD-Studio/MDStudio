@@ -11,8 +11,11 @@ import json
 import jsonschema
 import tempfile
 
+from StringIO import StringIO
 from autobahn import wamp
 from Bio.PDB import PDBList
+from Bio.PDB.PDBIO import PDBIO
+from Bio.PDB.PDBParser import PDBParser
 
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_structures import settings
@@ -54,6 +57,53 @@ class StructuresWampApi(LieApplicationSession):
         session.status = 'completed'
         return {'session': session.dict(), 'structure': result}
 
+    @wamp.register(u'liestudio.structure.remove_residues')
+    def remove_residues(self, session=None, **kwargs):
+        """
+        Remove residues from a PDB structure
+        """
+
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+
+        # Parse the structure
+        parser = PDBParser(PERMISSIVE=True)
+
+        if kwargs.get('from_file', False):
+            struc_obj = open(kwargs.get('mol'), 'r')
+        else:
+            struc_obj = StringIO(kwargs.get('mol'))
+
+        structure = parser.get_structure('mol_object', struc_obj)
+        struc_obj.close()
+
+        to_remove = [r.upper() for r in kwargs.get('residues', [])]
+        removed = []
+        for model in structure:
+            for chain in model:
+                for residue in chain:
+                    if residue.get_resname() in to_remove:
+                        chain.detach_child(residue.id)
+                        removed.append(residue.get_resname())
+                if len(chain) == 0:
+                    model.detach_child(chain.id)
+        self.log.info('Removed residues: {0}'.format(','.join(removed)))
+
+        # Save to file or string
+        pdbio = PDBIO()
+        pdbio.set_structure(structure)
+
+        session['status'] = 'completed'
+        if kwargs.get('workdir'):
+            outfile = os.path.join(kwargs.get('workdir'), 'structure.pdb')
+            pdbio.save(outfile)
+            return {'session': session, 'mol': outfile}
+        else:
+            outfile = StringIO()
+            pdbio.save(outfile)
+            outfile.seek(0)
+            return {'session': session, 'mol': outfile.read()}
+
     @wamp.register(u'liestudio.structure.retrieve_rcsb_structure')
     def fetch_rcsb_structure(self, session=None, **kwargs):
         """
@@ -88,14 +138,20 @@ class StructuresWampApi(LieApplicationSession):
                               pdir=workdir,
                               overwrite=True)
 
+        # Change file extension
+        base, ext = os.path.splitext(dfile)
+        if ext == '.ent':
+            os.rename(dfile, '{0}.pdb'.format(base))
+            dfile = '{0}.pdb'.format(base)
+
         # Return file path if workdir in function arguments else return
         # file content inline.
         if os.path.isfile(dfile):
             session['status'] = 'completed'
             if 'workdir' in config:
-                return {'session': session, 'rcsb_file': dfile}
+                return {'session': session, 'mol': dfile}
             else:
-                return {'session': session, 'rcsb_file': open(dfile).read()}
+                return {'session': session, 'mol': open(dfile).read()}
 
         self.logger.error('Unable to download structure: {0}'.format(pdb_id), **session)
         session['status'] = 'failed'
