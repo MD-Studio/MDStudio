@@ -64,7 +64,7 @@ class DockingWampApi(LieApplicationSession):
             self.logger.error('File does not exists: {0}'.format(structure_path))
             return {'result': None}
     
-    def run_docking(self, session={}, **kwargs):
+    def run_docking(self, session=None, **kwargs):
         """
         Perform a PLANTS (Protein-Ligand ANT System) molecular docking.
         
