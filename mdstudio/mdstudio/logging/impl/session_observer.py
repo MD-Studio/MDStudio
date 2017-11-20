@@ -6,7 +6,7 @@ import os
 import pytz
 import twisted
 from autobahn.twisted import ApplicationSession
-from autobahn.wamp.exception import ApplicationError
+from autobahn.wamp.exception import ApplicationError, TransportLost
 from twisted.internet import task, reactor
 from twisted.python.failure import Failure
 
@@ -15,12 +15,15 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
 from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.log_type import LogType
+from mdstudio.logging.logger import Logger
 from mdstudio.utc import to_utc_string
 
 LOGLEVELS = ['debug', 'info', 'warn', 'error', 'critical']
 
 
 class SessionLogObserver(metaclass=Singleton):
+    log = Logger()
+
     def __init__(self, session, log_type=LogType.User):
         self.session = None
         self.sessions = []
@@ -29,9 +32,6 @@ class SessionLogObserver(metaclass=Singleton):
         self.lock = Lock()
         self.flusher_lock = Lock()
         self.flushing = False
-        self.recovery_file_path = os.path.join(session.component_root_path(), 'logs', 'recovery.json')
-
-        session.log.info('Collectiong logs on session {session}', session=session)
 
         ascii_brand = [
             r' __  __ ____      _             _ _',
@@ -43,9 +43,12 @@ class SessionLogObserver(metaclass=Singleton):
         ]
 
         for line in ascii_brand:
-            print(line)
+            self.log.info(line)
+
+        self.recovery_file_path = os.path.join(session.component_root_path(), 'logs', 'recovery.json')
 
         twisted.python.log.addObserver(self)
+        self.log.info('Collectiong logs on session {session}', session=session)
 
         self.flusher = task.LoopingCall(self.flush_logs)
 
@@ -92,7 +95,7 @@ class SessionLogObserver(metaclass=Singleton):
                 yield self.lock.release()
                 # The crossbar router is down, wait a few seconds to see if it is back up
                 yield sleep(3)
-            except ApplicationError:
+            except (ApplicationError, TransportLost):
                 yield self.lock.release()
                 # The log component is probably not awake yet, wait a bit longer
                 yield sleep(1)
