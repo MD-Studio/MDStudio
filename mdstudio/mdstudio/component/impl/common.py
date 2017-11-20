@@ -17,6 +17,8 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from twisted.python.failure import Failure
 
+from mdstudio.logging.impl.session_observer import SessionLogObserver
+from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
 
 
@@ -66,6 +68,7 @@ class CommonSession(ApplicationSession):
 
     def __init__(self, config=None):
         self.log = Logger(namespace=self.__class__.__name__)
+        self.log_type = LogType.User
 
         self.component_config = self.Config()
         self.function_scopes = self.extract_custom_scopes()
@@ -74,6 +77,8 @@ class CommonSession(ApplicationSession):
         self.load_settings()
 
         self.pre_init()
+
+        self.log_collector = SessionLogObserver(self, self.log_type)
 
         super(CommonSession, self).__init__(config)
 
@@ -170,6 +175,8 @@ class CommonSession(ApplicationSession):
 
     @chainable
     def on_join(self, details):
+        yield self.log_collector.start_flushing(self)
+
         registrations = yield self.register(self)
 
         failures = 0
@@ -224,7 +231,7 @@ class CommonSession(ApplicationSession):
 
     def load_settings(self):
         for file in self.settings_files:
-            settings_file = os.path.join(self.component_root_path, file)
+            settings_file = os.path.join(self.component_root_path(), file)
 
             if os.path.isfile(settings_file):
                 with open(settings_file, 'r') as f:
@@ -273,9 +280,9 @@ class CommonSession(ApplicationSession):
     def class_name(self):
         return type(self).__name__
 
-    @property
-    def component_root_path(self):
-        return os.path.dirname(os.path.dirname(inspect.getfile(self.__class__)))
+    @classmethod
+    def component_root_path(cls):
+        return os.path.dirname(os.path.dirname(inspect.getfile(cls)))
 
     @property
     def component_schemas_path(self):

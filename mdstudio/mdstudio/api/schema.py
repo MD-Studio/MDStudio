@@ -224,6 +224,7 @@ def validate_input(input_schema, strict=True):
             try:
                 validate_json_schema(schema, request)
             except ValidationError as e:
+                print(e)
                 if strict:
                     return_value({'error': 'Input not matching schema'})
             else:

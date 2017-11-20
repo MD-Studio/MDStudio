@@ -1,15 +1,23 @@
 # coding=utf-8
+from datetime import datetime
+
 import OpenSSL
 import os
+
+import pytz
+import twisted
 from autobahn.twisted.wamp import ApplicationRunner
+from twisted.python.logfile import DailyLogFile
+
 from mdstudio.component.impl.common import CommonSession
 from twisted.internet import reactor
 from twisted.internet.ssl import CertificateOptions
 
+from mdstudio.logging.impl.printing_observer import PrintingLogObserver
+
 
 def main(component, auto_reconnect=True):
     crossbar_host = os.getenv('CROSSBAR_HOST', 'localhost')
-    print('Crossbar host is: {}'.format(crossbar_host))
 
     cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, open('data/crossbar/server_cert.pem').read())
     options = CertificateOptions(caCerts=[cert])
@@ -21,15 +29,23 @@ def main(component, auto_reconnect=True):
     )
 
     def start_component(config):
-        session = component(config) # type: CommonSession
-
-        logdir = os.path.join(session.component_root_path, 'logs')
-        if not os.path.isdir(logdir):
-            os.mkdir(logdir)
+        logdir = os.path.join(component.component_root_path(), 'logs')
+        os.makedirs(logdir, exist_ok=True)
 
         gitignorepath = os.path.join(logdir, '.gitignore')
         if not os.path.isfile(gitignorepath):
             with open(gitignorepath, 'w') as f:
                 f.write('*')
 
-    return runner.run(component, auto_reconnect=auto_reconnect, start_reactor=not reactor.running)
+        log_file = DailyLogFile('daily.log', logdir)
+        twisted.python.log.addObserver(PrintingLogObserver(log_file))
+
+        print('Crossbar host is: {}'.format(crossbar_host))
+        session = component(config)  # type: CommonSession
+        return session
+
+    try:
+        runner.run(start_component, auto_reconnect=auto_reconnect, start_reactor=not reactor.running)
+    finally:
+        if reactor.running:
+            reactor.stop()
