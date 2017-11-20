@@ -278,7 +278,7 @@ class CommonSession(ApplicationSession):
 
     @classmethod
     def class_name(cls):
-        return type(cls).__name__
+        return cls.__name__
 
     @classmethod
     def component_root_path(cls):
@@ -286,7 +286,7 @@ class CommonSession(ApplicationSession):
 
     @classmethod
     def component_schemas_path(cls):
-        return os.path.join(os.path.dirname(inspect.getfile(cls.__class__)), 'schemas')
+        return os.path.join(os.path.dirname(inspect.getfile(cls)), 'schemas')
 
     @classmethod
     def mdstudio_root_path(cls):
