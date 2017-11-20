@@ -384,7 +384,7 @@ class Molecules(API):
                 fnme = unicode(kwargs.get(u'fnme'))
                 with open(fnme, u'w' + (u'b' if isinstance(response_content, str) else u't')) as fh:
                     fh.write(response_content)
-                return None
+                return fnme
             else:
                 return deserializer_fct(response_content)
 
