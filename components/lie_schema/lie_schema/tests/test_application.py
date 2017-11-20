@@ -36,22 +36,18 @@ class TestWampService(DBTestCase, APITestCase):
     def tearDown(self):
         wait_for_completion.wait_for_completion = False
 
-    def test_preInit(self):
+    def test_pre_init(self):
 
-        self.service.preInit()
-
-        self.assertEqual(self.service.session_config_template, {})
-
-        self.assertEqual(self.service.session_config['loggernamespace'], 'schema')
+        self.service.pre_init()
         self.assertIsInstance(self.service.endpoints, SchemaRepository)
         self.assertIsInstance(self.service.resources, SchemaRepository)
         self.assertIsInstance(self.service.claims, SchemaRepository)
 
     def test_onRun(self):
-        self.service.publish = mock.MagicMock()
-        self.service.onRun(None)
+        self.service.event = mock.MagicMock()
+        self.service.on_run()
 
-        self.service.publish.assert_called_once_with(u'mdstudio.schema.endpoint.events.online', True,
+        self.service.event.assert_called_once_with(u'mdstudio.schema.endpoint.events.online', True,
                                                      options=self.service.publish_options)
 
     @chainable

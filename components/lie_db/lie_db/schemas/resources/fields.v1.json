@@ -10,6 +10,13 @@
         "$ref": "resource://mdstudio/db/type/v1"
       }
     },
+    "date": {
+      "type": "array",
+      "description": "List of keys of date fields to transform",
+      "items": {
+        "$ref": "resource://mdstudio/db/type/v1"
+      }
+    },
     "protected": {
       "type": "array",
       "description": "List of keys of fields that should be stored encrypted for you",

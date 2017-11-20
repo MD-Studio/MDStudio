@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
-from pprint import pprint
 
 from faker import Faker
 from twisted.internet import reactor
 
+from lie_schema.application import SchemaComponent
 from lie_schema.exception import SchemaException
-from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
-from lie_schema import SchemaWampApi
-
 from lie_schema.schema_repository import SchemaRepository
+from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.db import DBTestCase
@@ -20,7 +18,7 @@ class TestSchemaRepository(DBTestCase):
 
     def setUp(self):
 
-        self.service = SchemaWampApi()
+        self.service = SchemaComponent()
         self.type = self.fake.word()
         self.db = MongoClientWrapper("localhost", 27127).get_database('users~schemaTest')
         self.rep = SchemaRepository(self.service, self.type, self.db)

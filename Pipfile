@@ -32,3 +32,4 @@ coverage = "*"
 mock = "*"
 mongomock = {git = "https://github.com/Zefiros-Software/mongomock.git"}
 faker = "*"
+pyfakefs = "*"
