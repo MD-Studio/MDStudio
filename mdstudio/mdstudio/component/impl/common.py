@@ -230,7 +230,7 @@ class CommonSession(ApplicationSession):
             self.add_session_env_var(session_var, env_vars[0], env_vars[1])
 
     def load_settings(self):
-        for file in self.settings_files:
+        for file in self.settings_files():
             settings_file = os.path.join(self.component_root_path(), file)
 
             if os.path.isfile(settings_file):
@@ -238,7 +238,7 @@ class CommonSession(ApplicationSession):
                     merge_dicts(self.component_config.settings, yaml.load(f))
 
     def validate_settings(self):
-        for path in self.settings_schemas:
+        for path in self.settings_schemas():
             if os.path.isfile(path):
                 with open(path, 'r') as f:
                     settings_schema = json.load(f)
@@ -276,31 +276,31 @@ class CommonSession(ApplicationSession):
             'session_id': 'session'
         }
 
-    @property
-    def class_name(self):
-        return type(self).__name__
+    @classmethod
+    def class_name(cls):
+        return type(cls).__name__
 
     @classmethod
     def component_root_path(cls):
         return os.path.dirname(os.path.dirname(inspect.getfile(cls)))
 
-    @property
-    def component_schemas_path(self):
-        return os.path.join(os.path.dirname(inspect.getfile(self.__class__)), 'schemas')
+    @classmethod
+    def component_schemas_path(cls):
+        return os.path.join(os.path.dirname(inspect.getfile(cls.__class__)), 'schemas')
 
-    @property
-    def mdstudio_root_path(self):
+    @classmethod
+    def mdstudio_root_path(cls):
         return os.path.normpath(os.path.join(os.path.dirname(inspect.getfile(CommonSession)), '..', '..', '..'))
 
-    @property
-    def mdstudio_schemas_path(self):
+    @classmethod
+    def mdstudio_schemas_path(cls):
         return os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(CommonSession)), '..', '..', 'schemas'))
 
-    @property
-    def settings_files(self):
+    @classmethod
+    def settings_files(cls):
         return ['settings.json', 'settings.yml', '.settings.json', '.settings.yml']
 
-    @property
-    def settings_schemas(self):
-        return [os.path.join(self.component_schemas_path, 'settings.json'),
-                os.path.join(self.mdstudio_schemas_path, 'settings.json')]
+    @classmethod
+    def settings_schemas(cls):
+        return [os.path.join(cls.component_schemas_path(), 'settings.json'),
+                os.path.join(cls.mdstudio_schemas_path(), 'settings.json')]

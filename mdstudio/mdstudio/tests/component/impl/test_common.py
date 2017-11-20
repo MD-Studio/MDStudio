@@ -192,7 +192,7 @@ class TestCommonSession(TestCase):
             validate_settings = mock.MagicMock()
 
         with Patcher() as patcher:
-            file = os.path.join(self.session.component_root_path, 'settings.yml')
+            file = os.path.join(self.session.component_root_path(), 'settings.yml')
             patcher.fs.CreateFile(file, contents='{"test": 2}')
             self.session = TestSession()
 
@@ -204,8 +204,8 @@ class TestCommonSession(TestCase):
             validate_settings = mock.MagicMock()
 
         with Patcher() as patcher:
-            file = os.path.join(self.session.component_root_path, 'settings.json')
-            file2 = os.path.join(self.session.component_root_path, 'settings.yml')
+            file = os.path.join(self.session.component_root_path(), 'settings.json')
+            file2 = os.path.join(self.session.component_root_path(), 'settings.yml')
             patcher.fs.CreateFile(file, contents='{"test": 2}')
             patcher.fs.CreateFile(file2, contents='{"test": 3}')
             self.session = TestSession()
@@ -218,8 +218,8 @@ class TestCommonSession(TestCase):
             validate_settings = mock.MagicMock()
 
         with Patcher() as patcher:
-            file = os.path.join(self.session.component_root_path, 'settings.yml')
-            file2 = os.path.join(self.session.component_root_path, '.settings.json')
+            file = os.path.join(self.session.component_root_path(), 'settings.yml')
+            file2 = os.path.join(self.session.component_root_path(), '.settings.json')
             patcher.fs.CreateFile(file, contents='{"test": 2}')
             patcher.fs.CreateFile(file2, contents='{"test": 3}')
             self.session = TestSession()
@@ -232,8 +232,8 @@ class TestCommonSession(TestCase):
             validate_settings = mock.MagicMock()
 
         with Patcher() as patcher:
-            file = os.path.join(self.session.component_root_path, '.settings.json')
-            file2 = os.path.join(self.session.component_root_path, '.settings.yml')
+            file = os.path.join(self.session.component_root_path(), '.settings.json')
+            file2 = os.path.join(self.session.component_root_path(), '.settings.yml')
             patcher.fs.CreateFile(file, contents='{"test": 2}')
             patcher.fs.CreateFile(file2, contents='{"test": 3}')
             self.session = TestSession()
@@ -258,27 +258,27 @@ class TestCommonSession(TestCase):
 
     def test_class_name(self):
 
-        self.assertEqual(self.session.class_name, "TestSession")
+        self.assertEqual(self.session.class_name(), "TestSession")
 
     def test_component_root_path(self):
 
-        self.assertEqual(self.session.component_root_path, os.path.realpath(os.path.join(os.path.dirname(__file__), '../')))
+        self.assertEqual(self.session.component_root_path(), os.path.realpath(os.path.join(os.path.dirname(__file__), '../')))
 
     def test_component_schemas_path(self):
 
-        self.assertEqual(self.session.component_schemas_path, os.path.realpath(os.path.join(os.path.dirname(__file__), 'schemas')))
+        self.assertEqual(self.session.component_schemas_path(), os.path.realpath(os.path.join(os.path.dirname(__file__), 'schemas')))
 
     def test_mdstudio_root_path(self):
 
-        self.assertEqual(self.session.mdstudio_root_path, os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../../')))
+        self.assertEqual(self.session.mdstudio_root_path(), os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../../')))
 
     def test_mdstudio_schemas_path(self):
 
-        self.assertEqual(self.session.mdstudio_schemas_path, os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../schemas')))
+        self.assertEqual(self.session.mdstudio_schemas_path(), os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../schemas')))
 
     def test_settings_files(self):
 
-        self.assertEqual(self.session.settings_files, [
+        self.assertEqual(self.session.settings_files(), [
             'settings.json',
             'settings.yml',
             '.settings.json',
@@ -287,9 +287,9 @@ class TestCommonSession(TestCase):
 
     def test_settings_schemas(self):
 
-        self.assertEqual(self.session.settings_schemas, [
-            os.path.join(self.session.component_schemas_path, 'settings.json'),
-            os.path.join(self.session.mdstudio_schemas_path, 'settings.json')
+        self.assertEqual(self.session.settings_schemas(), [
+            os.path.join(self.session.component_schemas_path(), 'settings.json'),
+            os.path.join(self.session.mdstudio_schemas_path(), 'settings.json')
         ])
 
     def test_validate_settings(self):
@@ -297,7 +297,7 @@ class TestCommonSession(TestCase):
             pass
 
         with Patcher() as patcher:
-            file = os.path.join(self.session.component_schemas_path, 'settings.json')
+            file = os.path.join(self.session.component_schemas_path(), 'settings.json')
             patcher.fs.CreateFile(file, contents='{"type": "object", "properties": {"test": {"type": "string"}}, "required": ["test"]}')
             self.assertRaisesRegex(ValidationError, '\'test\' is a required property', TestSession)
 
@@ -306,8 +306,8 @@ class TestCommonSession(TestCase):
             pass
 
         with Patcher() as patcher:
-            file = os.path.join(self.session.component_schemas_path, 'settings.json')
-            file2 = os.path.join(self.session.mdstudio_schemas_path, 'settings.json')
+            file = os.path.join(self.session.component_schemas_path(), 'settings.json')
+            file2 = os.path.join(self.session.mdstudio_schemas_path(), 'settings.json')
             patcher.fs.CreateFile(file, contents='{"type": "object", "properties": {"session": {"type": "object"}}, "required": ["session"]}')
             patcher.fs.CreateFile(file2, contents='{"type": "object", "properties": {"test": {"type": "string"}}, "required": ["test"]}')
 
@@ -318,8 +318,8 @@ class TestCommonSession(TestCase):
             pass
 
         with Patcher() as patcher:
-            file = os.path.join(self.session.component_schemas_path, 'settings.json')
-            file2 = os.path.join(self.session.mdstudio_schemas_path, 'settings.json')
+            file = os.path.join(self.session.component_schemas_path(), 'settings.json')
+            file2 = os.path.join(self.session.mdstudio_schemas_path(), 'settings.json')
             patcher.fs.CreateFile(file2, contents='{"type": "object", "properties": {"session": {"type": "object"}}, "required": ["session"]}')
             patcher.fs.CreateFile(file, contents='{"type": "object", "properties": {"test": {"type": "string"}}, "required": ["test"]}')
 

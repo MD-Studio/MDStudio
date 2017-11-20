@@ -115,7 +115,7 @@ class EndpointSchema(ISchema):
         if self.cached:
             return_value(True)
 
-        self._retrieve_local(os.path.join(session.component_schemas_path, 'endpoints'), self.schema_path, self.versions)
+        self._retrieve_local(os.path.join(session.component_schemas_path(), 'endpoints'), self.schema_path, self.versions)
 
         success = True
 
@@ -147,7 +147,7 @@ class ResourceSchema(ISchema):
             return_value(True)
 
         if session.component_config.static.vendor == self.vendor and session.component_config.static.component == self.component:
-            self._retrieve_local(os.path.join(session.component_schemas_path, 'resources'), self.schema_path, self.versions)
+            self._retrieve_local(os.path.join(session.component_schemas_path(), 'resources'), self.schema_path, self.versions)
         else:
             yield self._retrieve_wamp(session)
 
