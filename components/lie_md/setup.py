@@ -38,7 +38,7 @@ setup(
     packages=find_packages(),
     package_data={'lie_md': ['data/*']},
     py_modules=[distribution_name],
-    install_requires=['cerise_client', 'numpy', 'pyparsing'],
+    install_requires=['cerise_client', 'numpy', 'pyparsing', 'panedr'],
     include_package_data=True,
     zip_safe=True,
     entry_points={
