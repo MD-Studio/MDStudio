@@ -7,8 +7,7 @@ from lie_schema.application import SchemaComponent
 from lie_schema.exception import SchemaException
 from lie_schema.schema_repository import SchemaRepository
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
-from mdstudio.deferred.chainable import chainable
-from mdstudio.unittest import wait_for_completion
+from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
 from mdstudio.utc import to_utc_string, from_utc_string, now
 
@@ -30,16 +29,11 @@ class TestSchemaRepository(DBTestCase):
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
 
-        wait_for_completion.wait_for_completion = True
-
-    def tearDown(self):
-        wait_for_completion.wait_for_completion = False
-
     def test_construction(self):
         self.assertEqual(self.service, self.rep.session)
         self.assertEqual(self.type, self.rep.type)
 
-    @chainable
+    @test_chainable
     def test_upsert(self):
 
         vendor = self.fake.word()
@@ -92,7 +86,7 @@ class TestSchemaRepository(DBTestCase):
             ]
         })
 
-    @chainable
+    @test_chainable
     def test_upsert_same_twice(self):
 
         vendor = self.fake.word()
@@ -151,7 +145,7 @@ class TestSchemaRepository(DBTestCase):
             ]
         })
 
-    @chainable
+    @test_chainable
     def test_upsert_same_trice(self):
 
         vendor = self.fake.word()
@@ -216,7 +210,7 @@ class TestSchemaRepository(DBTestCase):
             ]
         })
 
-    @chainable
+    @test_chainable
     def test_upsert_invalid(self):
 
         vendor = self.fake.word()
@@ -244,7 +238,7 @@ class TestSchemaRepository(DBTestCase):
             self.assertRegex(str(e), "Schema does not conform to jsonschema draft 4")
         self.assertFalse(completed)
 
-    @chainable
+    @test_chainable
     def test_upsert_new_incompatible(self):
 
         vendor = self.fake.word()
@@ -311,7 +305,7 @@ class TestSchemaRepository(DBTestCase):
             self.assertRegex(str(e), "The new schema is not compatible with the old version that was already registered. Incompatible changes were")
         self.assertFalse(completed)
 
-    @chainable
+    @test_chainable
     def test_upsert_new_incompatible2(self):
 
         vendor = self.fake.word()
@@ -379,7 +373,7 @@ class TestSchemaRepository(DBTestCase):
         self.assertFalse(completed)
 
 
-    @chainable
+    @test_chainable
     def test_upsert_new_incompatible3(self):
 
         vendor = self.fake.word()
@@ -447,7 +441,7 @@ class TestSchemaRepository(DBTestCase):
             self.assertRegex(str(e), "The new schema is not compatible with the old version that was already registered. Incompatible changes were")
         self.assertFalse(completed)
 
-    @chainable
+    @test_chainable
     def test_upsert_new_compatible(self):
 
         vendor = self.fake.word()
@@ -521,7 +515,7 @@ class TestSchemaRepository(DBTestCase):
             ]
         })
 
-    @chainable
+    @test_chainable
     def test_upsert_new_compatible_old(self):
 
         vendor = self.fake.word()
@@ -602,7 +596,7 @@ class TestSchemaRepository(DBTestCase):
             ]
         })
 
-    @chainable
+    @test_chainable
     def test_upsert_two_different(self):
 
         vendor = self.fake.word()
@@ -724,7 +718,7 @@ class TestSchemaRepository(DBTestCase):
             ]
         })
 
-    @chainable
+    @test_chainable
     def test_get_non_existing(self):
         vendor = self.fake.word()
         component = self.fake.word()

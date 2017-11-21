@@ -24,11 +24,19 @@ def to_date_string(date):
     return date.isoformat()
 
 
-def from_utc_string(datetime):
+def from_utc_string(dt):
     # type: (str) -> datetime
-    return parsedate(datetime).astimezone(pytz.utc)
+    parsed = parsedate(dt)
+    # fix for python < 3.6
+    if not parsed.tzinfo:
+        parsed = parsed.replace(tzinfo=pytz.utc)
+    return parsed.astimezone(pytz.utc)
 
 
 def from_date_string(date):
     # type: (str) -> date
-    return parsedate(date).astimezone(pytz.utc).date()
+    parsed = parsedate(date)
+    # fix for python < 3.6
+    if not parsed.tzinfo:
+        parsed = parsed.replace(tzinfo=pytz.utc)
+    return parsed.astimezone(pytz.utc).date()

@@ -1,11 +1,9 @@
 from twisted.internet import reactor
-from twisted.internet.defer import Deferred
 from twisted.trial.unittest import TestCase
 
-from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.chainable import test_chainable, Chainable
 from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.deferred.return_value import return_value
-from mdstudio.unittest import wait_for_completion
 
 
 class TestMakeDeferred(TestCase):
@@ -13,12 +11,7 @@ class TestMakeDeferred(TestCase):
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
 
-        wait_for_completion.wait_for_completion = True
-
-    def tearDown(self):
-        wait_for_completion.wait_for_completion = False
-
-    @chainable
+    @test_chainable
     def test_no_args(self):
         class Test:
             @make_deferred
@@ -28,12 +21,12 @@ class TestMakeDeferred(TestCase):
         test = Test()
 
         testTest = test.test()
-        self.assertIsInstance(testTest, Deferred)
+        self.assertIsInstance(testTest, Chainable)
         self.assertEqual(3, (yield testTest))
 
         return_value({})
 
-    @chainable
+    @test_chainable
     def test_args(self):
         class Test:
             @make_deferred
@@ -42,13 +35,13 @@ class TestMakeDeferred(TestCase):
 
         test = Test()
         test_add = test.add(6, 9)
-        self.assertIsInstance(test_add, Deferred)
+        self.assertIsInstance(test_add, Chainable)
 
         self.assertEqual((yield test_add), 15)
 
         return_value({})
 
-    @chainable
+    @test_chainable
     def test_kwargs(self):
         class Test:
             @make_deferred
@@ -62,6 +55,7 @@ class TestMakeDeferred(TestCase):
 
         return_value({})
 
+    @test_chainable
     def test_exception(self):
         class Test:
             @make_deferred
@@ -71,6 +65,4 @@ class TestMakeDeferred(TestCase):
         test = Test()
 
         test_add = test.add()
-        self.assertFailure(test_add, ValueError)
-
-        return test_add
+        yield self.assertFailure(test_add, ValueError)

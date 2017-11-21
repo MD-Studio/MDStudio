@@ -18,9 +18,7 @@ from mdstudio.db.cursor import Cursor, query
 from mdstudio.db.model import Model
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import test_chainable
-from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.db import DBTestCase
-from mdstudio.utc import from_date_string
 
 twisted.internet.base.DelayedCall.debug = True
 
@@ -38,11 +36,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
-
-        wait_for_completion.wait_for_completion = True
-
-    def tearDown(self):
-        wait_for_completion.wait_for_completion = False
 
     def test_prepare_sortmode_asc(self):
         sort = ('test', SortMode.Asc)
@@ -968,8 +961,10 @@ class TestMongoDatabaseWrapper(DBTestCase):
         found = yield self.d.find_many({'_id': '59f1d9c57dd5d70043e74f8d'}).to_list()
         self.assertEqual(found[0], {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored})
 
+    @test_chainable
     def test_more_dry(self):
-        return self.assertFailure(self.d.wrapper.more("wefwefwef"), DatabaseException)
+        d = self.d.wrapper.more("wefwefwef")
+        yield self.assertFailure(d, DatabaseException)
 
     @test_chainable
     def test_rewind(self):
@@ -989,13 +984,14 @@ class TestMongoDatabaseWrapper(DBTestCase):
         for i in range(total):
             self.assertEqual((yield next(found)), obs[i])
 
-        found.rewind()
+        yield found.rewind()
 
         for i in range(total):
             self.assertEqual((yield next(found)), obs[i])
 
+    @test_chainable
     def test_rewind_dry(self):
-        return self.assertFailure(self.d.wrapper.rewind("wefwefwef"), DatabaseException)
+        yield self.assertFailure(self.d.wrapper.rewind("wefwefwef"), DatabaseException)
 
     @test_chainable
     def test_count_cursor(self):

@@ -10,8 +10,7 @@ from mongomock import ObjectId
 from twisted.internet import reactor
 
 from lie_db.application import DBComponent
-from mdstudio.deferred.chainable import chainable
-from mdstudio.unittest import wait_for_completion
+from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
@@ -31,11 +30,6 @@ class TestDBComponent(DBTestCase, APITestCase):
 
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
-
-        wait_for_completion.wait_for_completion = True
-
-    def tearDown(self):
-        wait_for_completion.wait_for_completion = False
 
     def test_on_init(self):
         with mock.patch.dict('os.environ'):
@@ -60,10 +54,10 @@ class TestDBComponent(DBTestCase, APITestCase):
 
         self.assertEqual(self.service._client._port, 31312)
 
-    @chainable
+    @test_chainable
     def test_more(self):
 
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
+        yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
         cursor = yield self.db.find_many(self.collection, {})
 
         output = yield self.assertApi(self.service, 'more', {
@@ -78,10 +72,10 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 0
         })
 
-    @chainable
+    @test_chainable
     def test_rewind(self):
 
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
+        yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
         cursor = yield self.db.find_many(self.collection, {})
 
         output = yield self.assertApi(self.service, 'rewind', {
@@ -96,7 +90,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 2
         })
 
-    @chainable
+    @test_chainable
     def test_insert_one(self):
 
         for i in range(50):
@@ -113,7 +107,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             found = yield self.db.find_one(self.collection, {'_id': id})
             self.assertEqual(obj, found['result'])
 
-    @chainable
+    @test_chainable
     def test_insert_one_fields_datetime(self):
 
         for i in range(50):
@@ -135,7 +129,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             found = yield self.db.find_one(self.collection, {'_id': id}, fields=Fields(date_times=['datetimeField']))
             self.assertEqual(obj, found['result'])
 
-    @chainable
+    @test_chainable
     def test_insert_one_fields_datetime2(self):
 
         for i in range(50):
@@ -157,7 +151,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             found = yield self.db.find_one(self.collection, {'_id': id}, fields=Fields(date_times=['datetimeField']))
             self.assertEqual(obj, found['result'])
 
-    @chainable
+    @test_chainable
     def test_insert_many(self):
 
         for i in range(10):
@@ -180,7 +174,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 found = yield self.db.find_one(self.collection, {'_id': fid})
                 self.assertEqual(objs[j], found['result'])
 
-    @chainable
+    @test_chainable
     def test_insert_many_fields_datetime(self):
 
         for i in range(10):
@@ -208,13 +202,13 @@ class TestDBComponent(DBTestCase, APITestCase):
                 found = yield self.db.find_one(self.collection, {'_id': fid}, fields=Fields(date_times=['datetimeField']))
                 self.assertEqual(objs[j], found['result'])
 
-    @chainable
+    @test_chainable
     def test_replace_one(self):
 
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'replace_one', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -229,11 +223,11 @@ class TestDBComponent(DBTestCase, APITestCase):
             'modified': 1
         })
 
-    @chainable
+    @test_chainable
     def test_replace_one_upsert(self):
 
         o1 = {'test': 1, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1])
+        yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'replace_one', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -250,14 +244,14 @@ class TestDBComponent(DBTestCase, APITestCase):
             'upsertedId': cursor['results'][1]['_id']
         })
 
-    @chainable
+    @test_chainable
     def test_replace_one_fields_datetime(self):
 
         date3 = self.fake.date_time(tzinfo=pytz.utc)
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc)}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc)}
         o3 = {'test2': 3, '_id': o2['_id'], 'date': date3}
-        self.db.insert_many(self.collection, [o1, o2], fields=Fields(date_times=['date']))
+        yield self.db.insert_many(self.collection, [o1, o2], fields=Fields(date_times=['date']))
         output = yield self.assertApi(self.service, 'replace_one', {
             'collection': self.collection,
             'filter': {
@@ -278,23 +272,10 @@ class TestDBComponent(DBTestCase, APITestCase):
             'modified': 1
         })
 
-    @chainable
-    def test_count_cursor_id(self):
-
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
-        cursor = yield self.db.find_many(self.collection, {})
-        output = yield self.assertApi(self.service, 'count', {
-            'collection': self.collection,
-            'cursorId': cursor['cursorId'],
-            'withLimitAndSkip': True
-        }, self.claims)
-
-        self.assertEqual(output, {'total': 2})
-
-    @chainable
+    @test_chainable
     def test_count_filter(self):
 
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
+        yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'filter': {'test': {'$gt': 1}},
@@ -302,10 +283,10 @@ class TestDBComponent(DBTestCase, APITestCase):
 
         self.assertEqual(output, {'total': 1})
 
-    @chainable
+    @test_chainable
     def test_count_skip(self):
 
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
+        yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'skip': 1
@@ -313,10 +294,10 @@ class TestDBComponent(DBTestCase, APITestCase):
 
         self.assertEqual(output, {'total': 1})
 
-    @chainable
+    @test_chainable
     def test_count_limit(self):
 
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
+        yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'limit': 1
@@ -324,10 +305,10 @@ class TestDBComponent(DBTestCase, APITestCase):
 
         self.assertEqual(output, {'total': 1})
 
-    @chainable
+    @test_chainable
     def test_count_fields_datetime(self):
 
-        self.db.insert_many(self.collection, [{'test': 1, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
+        yield self.db.insert_many(self.collection, [{'test': 1, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
                                               {'test': 2, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}])
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
@@ -339,13 +320,13 @@ class TestDBComponent(DBTestCase, APITestCase):
 
         self.assertEqual(output, {'total': 1})
 
-    @chainable
+    @test_chainable
     def test_update_one(self):
 
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_one', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -362,11 +343,11 @@ class TestDBComponent(DBTestCase, APITestCase):
             'modified': 1
         })
 
-    @chainable
+    @test_chainable
     def test_update_one_upsert(self):
 
         o1 = {'test': 1, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1])
+        yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'update_one', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -385,14 +366,14 @@ class TestDBComponent(DBTestCase, APITestCase):
             'upsertedId': cursor['results'][1]['_id']
         })
 
-    @chainable
+    @test_chainable
     def test_update_one_fields_datetime(self):
 
         date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_one', {
             'collection': self.collection,
             'filter': {
@@ -415,13 +396,13 @@ class TestDBComponent(DBTestCase, APITestCase):
             'modified': 1
         })
 
-    @chainable
+    @test_chainable
     def test_update_many(self):
 
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_many', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -438,11 +419,11 @@ class TestDBComponent(DBTestCase, APITestCase):
             'modified': 1
         })
 
-    @chainable
+    @test_chainable
     def test_update_many_upsert(self):
 
         o1 = {'test': 1, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1])
+        yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'update_many', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -461,14 +442,14 @@ class TestDBComponent(DBTestCase, APITestCase):
             'upsertedId': cursor['results'][1]['_id']
         })
 
-    @chainable
+    @test_chainable
     def test_update_many_fields_datetime(self):
 
         date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_many', {
             'collection': self.collection,
             'filter': {
@@ -491,7 +472,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'modified': 1
         })
 
-    @chainable
+    @test_chainable
     def test_find_one(self):
 
         objs = []
@@ -500,7 +481,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
             'filter': {'test': 1}
@@ -510,7 +491,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': objs[1]
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_projection(self):
 
         objs = []
@@ -519,7 +500,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -530,7 +511,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': {'test': 1}
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_skip(self):
 
         objs = [{
@@ -542,7 +523,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -553,7 +534,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': objs[2]
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_sort(self):
 
         objs = [{
@@ -565,7 +546,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -578,7 +559,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': objs[2]
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_fields_datetime(self):
 
         objs = []
@@ -588,7 +569,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 '_id': str(ObjectId()),
                 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -601,7 +582,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': objs[1]
         })
 
-    @chainable
+    @test_chainable
     def test_find_many(self):
 
         objs = []
@@ -610,7 +591,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
             'filter': {'test': 1}
@@ -624,7 +605,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 1
         })
 
-    @chainable
+    @test_chainable
     def test_find_many_projection(self):
 
         objs = []
@@ -633,7 +614,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -648,7 +629,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 1
         })
 
-    @chainable
+    @test_chainable
     def test_find_many_skip(self):
 
         objs = [{
@@ -660,7 +641,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -675,7 +656,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 1
         })
 
-    @chainable
+    @test_chainable
     def test_find_many_limit(self):
 
         objs = [{
@@ -687,7 +668,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -702,7 +683,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 1
         })
 
-    @chainable
+    @test_chainable
     def test_find_many_sort(self):
 
         objs = [{
@@ -714,7 +695,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'test': i,
                 '_id': str(ObjectId())
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -731,7 +712,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 2
         })
 
-    @chainable
+    @test_chainable
     def test_find_many_fields_datetime(self):
 
         objs = []
@@ -741,7 +722,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 '_id': str(ObjectId()),
                 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()
             })
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
             'filter': {'test': 1},
@@ -758,12 +739,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 1
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_update(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -779,12 +760,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o2
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_update_projection(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -803,12 +784,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': {'test': 2}
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_update_sort(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1, o2, o3])
+        yield self.db.insert_many(self.collection, [o1, o2, o3])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -828,12 +809,12 @@ class TestDBComponent(DBTestCase, APITestCase):
         o3['test2'] = 3
         self.assertSequenceEqual(cursor['results'], [o1, o2, o3])
 
-    @chainable
+    @test_chainable
     def test_find_one_and_update_return_updated(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -850,10 +831,10 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o3
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_update_upsert(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1])
+        yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -871,13 +852,13 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': None
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_update_fields_datetime(self):
         date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
             'filter': {
@@ -899,12 +880,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o2
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_replace(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -918,12 +899,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o2
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_replace_projection(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -940,12 +921,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': {'test': 2}
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_replace_sort(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1, o2, o3])
+        yield self.db.insert_many(self.collection, [o1, o2, o3])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -963,12 +944,12 @@ class TestDBComponent(DBTestCase, APITestCase):
         o3['test2'] = 3
         self.assertSequenceEqual(cursor['results'], [o1, o2, {'test2': 3, '_id': o3['_id']}])
 
-    @chainable
+    @test_chainable
     def test_find_one_and_replace_return_updated(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -983,10 +964,10 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o3
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_replace_upsert(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1])
+        yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -1002,12 +983,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': None
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_replace_fields_datetime(self):
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test2': 3, '_id': o2['_id']}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
             'filter': {
@@ -1026,11 +1007,11 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o2
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_delete(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
             'filter': {'test': 2}
@@ -1041,11 +1022,11 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o2
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_delete_projection(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -1059,12 +1040,12 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': {'test': 2}
         })
 
-    @chainable
+    @test_chainable
     def test_find_one_and_delete_sort(self):
         o1 = {'test': 1, '_id': str(ObjectId())}
         o2 = {'test': 2, '_id': str(ObjectId())}
         o3 = {'test': 2, '_id': str(ObjectId())}
-        self.db.insert_many(self.collection, [o1, o2, o3])
+        yield self.db.insert_many(self.collection, [o1, o2, o3])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
             'filter': {'test': 2},
@@ -1079,11 +1060,11 @@ class TestDBComponent(DBTestCase, APITestCase):
         o3['test2'] = 3
         self.assertSequenceEqual(cursor['results'], [o1, o2])
 
-    @chainable
+    @test_chainable
     def test_find_one_and_delete_fields_datetime(self):
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
-        self.db.insert_many(self.collection, [o1, o2])
+        yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
             'filter': {
@@ -1099,23 +1080,10 @@ class TestDBComponent(DBTestCase, APITestCase):
             'result': o2
         })
 
-    @chainable
-    def test_distinct(self):
-
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}, {'test': 3}, {'test': 2}])
-        output = yield self.assertApi(self.service, 'distinct', {
-            'collection': self.collection,
-            'field': 'test'
-        }, self.claims)
-        self.assertEqual(output, {
-            'results': [1, 2, 3],
-            'total': 3
-        })
-
-    @chainable
+    @test_chainable
     def test_distinct_filter(self):
 
-        self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}, {'test': 3}, {'test': 2}])
+        yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}, {'test': 3}, {'test': 2}])
         output = yield self.assertApi(self.service, 'distinct', {
             'collection': self.collection,
             'field': 'test',
@@ -1130,10 +1098,10 @@ class TestDBComponent(DBTestCase, APITestCase):
             'total': 2
         })
 
-    @chainable
+    @test_chainable
     def test_distinct_field_datetime(self):
 
-        self.db.insert_many(self.collection, [
+        yield self.db.insert_many(self.collection, [
             {'test': 1, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
             {'test': 2, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
             {'test': 3, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
@@ -1150,7 +1118,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'total': 3
         })
 
-    @chainable
+    @test_chainable
     def test_aggregate(self):
         objs = [
             {'test': 1, '_id': str(ObjectId())},
@@ -1158,7 +1126,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             {'test': 3, '_id': str(ObjectId())},
             {'test': 2, '_id': str(ObjectId())}
         ]
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'aggregate', {
             'collection': self.collection,
             'pipeline': [
@@ -1175,7 +1143,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 3
         })
 
-    @chainable
+    @test_chainable
     def test_delete_one(self):
         objs = [
             {'test': 1, '_id': str(ObjectId())},
@@ -1183,7 +1151,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             {'test': 3, '_id': str(ObjectId())},
             {'test': 2, '_id': str(ObjectId())}
         ]
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_one', {
             'collection': self.collection,
             'filter': {
@@ -1204,7 +1172,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 3
         })
 
-    @chainable
+    @test_chainable
     def test_delete_one_date_fields(self):
         objs = [
             {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
@@ -1212,7 +1180,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             {'test': 3, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
             {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         ]
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_one', {
             'collection': self.collection,
             'filter': {
@@ -1236,7 +1204,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 3
         })
 
-    @chainable
+    @test_chainable
     def test_delete_many(self):
         objs = [
             {'test': 1, '_id': str(ObjectId())},
@@ -1244,7 +1212,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             {'test': 3, '_id': str(ObjectId())},
             {'test': 2, '_id': str(ObjectId())}
         ]
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_many', {
             'collection': self.collection,
             'filter': {
@@ -1265,7 +1233,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             'size': 2
         })
 
-    @chainable
+    @test_chainable
     def test_delete_many_date_fields(self):
         objs = [
             {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
@@ -1273,7 +1241,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             {'test': 3, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
             {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         ]
-        self.db.insert_many(self.collection, objs)
+        yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_many', {
             'collection': self.collection,
             'filter': {

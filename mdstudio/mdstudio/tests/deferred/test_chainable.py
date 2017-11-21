@@ -6,7 +6,6 @@ from twisted.internet import reactor
 from mdstudio.deferred.chainable import Chainable, chainable, test_chainable
 from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.deferred.return_value import return_value
-from mdstudio.unittest import wait_for_completion
 
 
 class ChainedObject:
@@ -61,11 +60,6 @@ class TestChainable(TestCase):
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
 
-        wait_for_completion.wait_for_completion = True
-
-    def tearDown(self):
-        wait_for_completion.wait_for_completion = False
-
     @test_chainable
     def test_basic_deferred(self):
         test = ChainableTestClass(self)
@@ -99,9 +93,8 @@ class TestChainable(TestCase):
         test = ChainableTestClass(self)
         self.assertRaises(ValueError, test.call_exception)
 
+    @test_chainable
     def test_exception2(self):
         test = ChainableTestClass(self)
         d = test.call_exception2()
-        self.assertFailure(d, ValueError)
-
-        return d
+        yield self.assertFailure(d, ValueError)

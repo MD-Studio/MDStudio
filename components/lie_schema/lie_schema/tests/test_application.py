@@ -10,7 +10,6 @@ from lie_schema.application import SchemaComponent
 from twisted.internet import reactor
 
 from mdstudio.deferred.chainable import chainable
-from mdstudio.unittest import wait_for_completion
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
@@ -27,14 +26,6 @@ class TestWampService(DBTestCase, APITestCase):
             'vendor': self.vendor,
             'username': self.username
         }
-
-        if not reactor.getThreadPool().started:
-            reactor.getThreadPool().start()
-
-        wait_for_completion.wait_for_completion = True
-
-    def tearDown(self):
-        wait_for_completion.wait_for_completion = False
 
     def test_pre_init(self):
 

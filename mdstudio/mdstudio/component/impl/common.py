@@ -1,5 +1,7 @@
 import inspect
 import json
+from collections import OrderedDict
+
 import re
 from copy import deepcopy
 
@@ -351,19 +353,19 @@ class CommonSession(ApplicationSession):
 
     @property
     def session_env_mapping(self):
-        return {
-            'username': (['MDSTUDIO_USERNAME'], None),
-            'password': (['MDSTUDIO_PASSWORD'], None),
-            'realm': (['MDSTUDIO_REALM'], 'mdstudio')
-        }
+        return OrderedDict([
+            ('username', (['MDSTUDIO_USERNAME'], None)),
+            ('password', (['MDSTUDIO_PASSWORD'], None)),
+            ('realm', (['MDSTUDIO_REALM'], 'mdstudio'))
+        ])
 
     @property
     def session_update_vars(self):
-        return {
-            'username': 'authid',
-            'role': 'authrole',
-            'session_id': 'session'
-        }
+        return OrderedDict([
+            ('username', 'authid'),
+            ('role', 'authrole'),
+            ('session_id', 'session')
+        ])
 
     @classmethod
     def class_name(cls):

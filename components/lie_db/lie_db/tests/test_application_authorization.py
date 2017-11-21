@@ -3,7 +3,7 @@ from mock import mock
 
 from lie_db.application import DBComponent
 from mdstudio.db.connection import ConnectionType
-from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
@@ -16,7 +16,7 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
         self.service = DBComponent()
         self.service._client.get_database = mock.MagicMock(wraps=lambda x: x)
 
-    @chainable
+    @test_chainable
     def test_get_database_user(self):
 
         for i in range(50):
@@ -29,7 +29,7 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
             self.service._client.get_database.assert_called_once_with('users~{}'.format(username))
             self.assertEqual(db, 'users~{}'.format(username))
 
-    @chainable
+    @test_chainable
     def test_get_database_group(self):
 
         for i in range(50):
@@ -42,7 +42,7 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
             self.service._client.get_database.assert_called_once_with('groups~{}'.format(group))
             self.assertEqual(db, 'groups~{}'.format(group))
 
-    @chainable
+    @test_chainable
     def test_get_database_group_role(self):
 
         for i in range(50):
@@ -57,11 +57,10 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
             self.service._client.get_database.assert_called_once_with('grouproles~{}~{}'.format(group, group_role))
             self.assertEqual(db, 'grouproles~{}~{}'.format(group, group_role))
 
+    @test_chainable
     def test_get_database_other(self):
 
         db = self.service.get_database({
             'connectionType':  self.fake.slug()
         })
-        self.assertFailure(db, ValueError)
-
-        return db
+        yield self.assertFailure(db, ValueError)
