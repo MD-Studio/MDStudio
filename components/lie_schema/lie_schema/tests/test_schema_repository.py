@@ -69,12 +69,11 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})['result']
-        self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
         del found_history['builds'][0]['createdAt']
         self.assertEqual(found_history, {
             'name': name,
@@ -129,12 +128,11 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})['result']
-        self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
         del found_history['builds'][0]['createdAt']
         self.assertEqual(found_history, {
             'name': name,
@@ -195,12 +193,11 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})['result']
-        self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
         del found_history['builds'][0]['createdAt']
         self.assertEqual(found_history, {
             'name': name,
@@ -287,13 +284,12 @@ class TestSchemaRepository(DBTestCase):
             self.assertEqual(uploaded, expected)
 
             found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-            expected['updatedAt'] = to_utc_string(expected['updatedAt'])
             self.assertEqual(found, expected)
 
             found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
                 'result']
-            self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-            self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
+            self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+            self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
             del found_history['builds'][0]['createdAt']
             self.assertEqual(found_history, {
                 'name': name,
@@ -355,13 +351,12 @@ class TestSchemaRepository(DBTestCase):
             self.assertEqual(uploaded, expected)
 
             found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-            expected['updatedAt'] = to_utc_string(expected['updatedAt'])
             self.assertEqual(found, expected)
 
             found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
                 'result']
-            self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-            self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
+            self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+            self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
             del found_history['builds'][0]['createdAt']
             self.assertEqual(found_history, {
                 'name': name,
@@ -425,13 +420,12 @@ class TestSchemaRepository(DBTestCase):
             self.assertEqual(uploaded, expected)
 
             found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-            expected['updatedAt'] = to_utc_string(expected['updatedAt'])
             self.assertEqual(found, expected)
 
             found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
                 'result']
-            self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-            self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
+            self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+            self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
             del found_history['builds'][0]['createdAt']
             self.assertEqual(found_history, {
                 'name': name,
@@ -491,15 +485,14 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
             'result']
-        self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
-        self.assertIsInstance(from_utc_string(found_history['builds'][1]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][1]['createdAt']), timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][1]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][1]['createdAt'], timedelta(seconds=1))
         del found_history['builds'][0]['createdAt']
         del found_history['builds'][1]['createdAt']
         self.maxDiff = None
@@ -573,15 +566,14 @@ class TestSchemaRepository(DBTestCase):
         self.assertEqual(uploaded, expected)
 
         found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
             'result']
-        self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
-        self.assertIsInstance(from_utc_string(found_history['builds'][1]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][1]['createdAt']), timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][1]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][1]['createdAt'], timedelta(seconds=1))
         del found_history['builds'][0]['createdAt']
         del found_history['builds'][1]['createdAt']
         self.maxDiff = None
@@ -655,7 +647,6 @@ class TestSchemaRepository(DBTestCase):
             'vendor': vendor,
             'component': component
         }, projection={'_id': False})['result']
-        expected['updatedAt'] = to_utc_string(expected['updatedAt'])
         self.assertEqual(found, expected)
 
         found_history = yield self.db.find_one('{}.history'.format(self.type), {
@@ -664,8 +655,8 @@ class TestSchemaRepository(DBTestCase):
             'vendor': vendor,
             'component': component
         }, projection={'_id': False})['result']
-        self.assertIsInstance(from_utc_string(found_history['builds'][0]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history['builds'][0]['createdAt']), timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
         del found_history['builds'][0]['createdAt']
         self.assertEqual(found_history, {
             'name': name,
@@ -705,7 +696,6 @@ class TestSchemaRepository(DBTestCase):
             'vendor': vendor,
             'component': component
         }, projection={'_id': False})['result']
-        expected2['updatedAt'] = to_utc_string(expected2['updatedAt'])
         self.assertEqual(found2, expected2)
 
         found_history2 = yield self.db.find_one('{}.history'.format(self.type), {
@@ -714,8 +704,8 @@ class TestSchemaRepository(DBTestCase):
             'vendor': vendor,
             'component': component
         }, projection={'_id': False})['result']
-        self.assertIsInstance(from_utc_string(found_history2['builds'][0]['createdAt']), datetime)
-        self.assertLess(now() - from_utc_string(found_history2['builds'][0]['createdAt']), timedelta(seconds=1))
+        self.assertIsInstance(found_history2['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history2['builds'][0]['createdAt'], timedelta(seconds=1))
         del found_history2['builds'][0]['createdAt']
         self.assertEqual(found_history2, {
             'name': name2,

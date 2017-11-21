@@ -283,7 +283,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     @chainable
     def test_insert_one_date_fields2(self):
         date = self.faker.date_object()
-        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date, datetime.time(hour=0, tzinfo=pytz.utc))
         yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab', 'date': date}, fields=Fields(dates=['date']))
         found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'})
         self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab', 'date': stored})
@@ -361,7 +361,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     @chainable
     def test_insert_many_date_fields2(self):
         date = self.faker.date_object()
-        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date, datetime.time(hour=0, tzinfo=pytz.utc))
         yield self.d.insert_many([{'test': 2, '_id': '0123456789ab0123456789ab', 'date': date}], fields=Fields(dates=['date']))
         found = yield self.d.find_many({'_id': '0123456789ab0123456789ab'}).to_list()
         self.assertEqual(found[0], {'test': 2, '_id': '0123456789ab0123456789ab', 'date': stored})
@@ -461,7 +461,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_replace_one_date_fields2(self):
         date = self.faker.date_object()
         date2 = self.faker.date_object()
-        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date, datetime.time(hour=0, tzinfo=pytz.utc))
         ids = yield self.d.insert_many([
             {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
@@ -591,7 +591,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_update_one_date_fields2(self):
         date = self.faker.date_object()
         date2 = self.faker.date_object()
-        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date2, datetime.time(hour=0, tzinfo=pytz.utc))
         ids = yield self.d.insert_many([
             {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
@@ -724,7 +724,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_update_many_date_fields2(self):
         date = self.faker.date_object()
         date2 = self.faker.date_object()
-        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date2, datetime.time(hour=0, tzinfo=pytz.utc))
         ids = yield self.d.insert_many([
             {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
@@ -842,7 +842,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_find_one_date_fields2(self):
         date = self.faker.date_object()
         date2 = self.faker.date_object()
-        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date2, datetime.time(hour=0, tzinfo=pytz.utc))
         ids = yield self.d.insert_many([
             {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
@@ -959,7 +959,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_find_many_date_fields2(self):
         date = self.faker.date_object()
         date2 = self.faker.date_object()
-        stored = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date2, datetime.time(hour=0, tzinfo=pytz.utc))
         ids = yield self.d.insert_many([
             {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
@@ -1275,8 +1275,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_find_one_and_update_date_fields2(self):
         date = self.faker.date_object()
         date2 = self.faker.date_object()
-        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
-        stored2 = datetime.datetime.combine(date2, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date, datetime.time(hour=0, tzinfo=pytz.utc))
+        stored2 = datetime.datetime.combine(date2, datetime.time(hour=0, tzinfo=pytz.utc))
         ids = yield self.d.insert_many([
             {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},
@@ -1476,7 +1476,7 @@ class TestMongoDatabaseWrapper(DBTestCase):
     def test_find_one_and_replace_date_fields2(self):
         date = self.faker.date_object()
         date2 = self.faker.date_object()
-        stored = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.utc)
+        stored = datetime.datetime.combine(date, datetime.time(hour=0, tzinfo=pytz.utc))
         ids = yield self.d.insert_many([
             {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date},
             {'test': 3, '_id': '59f1d9c57dd5d70043e74f8d', 'date': date2},

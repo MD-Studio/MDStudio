@@ -593,12 +593,20 @@ class FieldsTests(TestCase):
         })
 
     def test_from_dict(self):
-        self.assertEqual(Fields().from_dict({
+        self.assertEqual(Fields.from_dict({
             'date': ['test2'],
             'datetime': ['test'],
             'protected': ['test3']
         }), Fields(date_times=['test'], dates=['test2'], protected=['test3']))
 
     def test_from_dict2(self):
-        self.assertEqual(Fields().from_dict({
+        self.assertEqual(Fields.from_dict({
         }), Fields())
+
+
+    def test_from_dict3(self):
+        self.assertEqual(Fields.from_dict({
+            'date': 'test2',
+            'datetime': 'test',
+            'protected': 'test3'
+        }), Fields(date_times=['test'], dates=['test2'], protected=['test3']))

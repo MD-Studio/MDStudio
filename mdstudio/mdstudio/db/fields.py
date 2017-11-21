@@ -9,15 +9,29 @@ from mdstudio.utc import from_utc_string, from_date_string
 
 
 class Fields(object):
+
+    # type: List[str]
     date_times = []
+
+    # type: List[str]
     dates = []
+
+    # type: List[str]
     protected = []
 
     def __init__(self, *args, date_times=None, dates=None, protected=None):
         # type: (List[str], List[str], List[str]) -> None
+        if date_times and not isinstance(date_times, list):
+            date_times = [date_times]
+        if dates and not isinstance(dates, list):
+            dates = [dates]
+        if protected and not isinstance(protected, list):
+            protected = [protected]
+
         self.date_times = date_times if date_times else self.date_times
         self.dates = dates if dates else self.dates
         self.protected = protected if protected else self.protected
+
 
     def __eq__(self, other):
         return other and set(self.date_times) == set(other.date_times) \
@@ -47,15 +61,10 @@ class Fields(object):
             result['protected'] = self.protected
         return result
 
-    def from_dict(self, request):
-        if 'datetime' in request:
-            self.date_times = request['datetime']
-        if 'date' in request:
-            self.dates = request['date']
-        if 'protected' in request:
-            self.protected = request['protected']
+    @staticmethod
+    def from_dict(request):
 
-        return self
+        return Fields(date_times=request.get('datetime'), dates=request.get('date'), protected=request.get('protected'))
 
     @staticmethod
     def transform_to_object(document, fields, parser, prefixes=None):

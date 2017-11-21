@@ -200,7 +200,6 @@ class MongoDatabaseWrapper(IDatabase):
         filter = self._prepare_for_mongo(filter)
 
         cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
-
         return self._get_cursor(cursor)
 
     @make_deferred

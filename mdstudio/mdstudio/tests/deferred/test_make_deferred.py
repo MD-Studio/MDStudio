@@ -9,11 +9,9 @@ from mdstudio.unittest import wait_for_completion
 
 
 class TestMakeDeferred(TestCase):
-    def setUp(self, *args, **kwargs):
+    def setUp(self):
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
-
-        super(TestMakeDeferred, self).setUp(*args, **kwargs)
 
         wait_for_completion.wait_for_completion = True
 

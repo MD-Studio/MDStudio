@@ -1,6 +1,10 @@
+
 import os
 import pytz
 from faker import Faker
+from mdstudio.utc import from_utc_string
+
+from mdstudio.db.fields import Fields
 from mock import mock
 from mongomock import ObjectId
 from twisted.internet import reactor
@@ -41,8 +45,6 @@ class TestDBComponent(DBTestCase, APITestCase):
 
             self.assertEqual(self.service._client._host, "localhost")
             self.assertEqual(self.service._client._port, 27017)
-            self.assertEqual(self.service.autolog, False)
-            self.assertEqual(self.service.autoschema, False)
 
     @mock.patch.dict(os.environ, {'MD_MONGO_HOST': 'localhost2'})
     def test_on_init_host(self):
@@ -57,15 +59,6 @@ class TestDBComponent(DBTestCase, APITestCase):
         self.service.on_init()
 
         self.assertEqual(self.service._client._port, 31312)
-
-    @mock.patch.dict(os.environ, {'MD_MONGO_PORT': '31312'})
-    def test_on_run(self):
-
-        self.service.event = mock.MagicMock()
-        self.service.on_run()
-
-        self.service.event.assert_called_once_with(u'mdstudio.db.endpoint.events.online', True,
-                                                     options=self.service.publish_options)
 
     @chainable
     def test_more(self):
@@ -139,7 +132,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             self.assertEqual(output, {
                 'id': id
             })
-            found = yield self.db.find_one(self.collection, {'_id': id})
+            found = yield self.db.find_one(self.collection, {'_id': id}, fields=Fields(date_times=['datetimeField']))
             self.assertEqual(obj, found['result'])
 
     @chainable
@@ -148,7 +141,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         for i in range(50):
             obj = self.fake.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
             id = str(ObjectId())
-            date = self.fake.date_time(tzinfo=pytz.utc)
+            date = self.fake.date_time(tzinfo=pytz.utc).isoformat()
             obj['_id'] = id
             obj['datetimeField'] = date
             output = yield self.assertApi(self.service, 'insert_one', {
@@ -161,8 +154,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             self.assertEqual(output, {
                 'id': id
             })
-            obj['datetimeField'] = date.replace(tzinfo=None)
-            found = yield self.db.find_one(self.collection, {'_id': id})
+            found = yield self.db.find_one(self.collection, {'_id': id}, fields=Fields(date_times=['datetimeField']))
             self.assertEqual(obj, found['result'])
 
     @chainable
@@ -213,7 +205,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'ids': ids
             })
             for j, fid in enumerate(ids):
-                found = yield self.db.find_one(self.collection, {'_id': fid})
+                found = yield self.db.find_one(self.collection, {'_id': fid}, fields=Fields(date_times=['datetimeField']))
                 self.assertEqual(objs[j], found['result'])
 
     @chainable
@@ -261,11 +253,11 @@ class TestDBComponent(DBTestCase, APITestCase):
     @chainable
     def test_replace_one_fields_datetime(self):
 
-        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
-        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
-        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
+        date3 = self.fake.date_time(tzinfo=pytz.utc)
+        o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc)}
+        o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc)}
         o3 = {'test2': 3, '_id': o2['_id'], 'date': date3}
-        self.db.insert_many(self.collection, [o1, o2])
+        self.db.insert_many(self.collection, [o1, o2], fields=Fields(date_times=['date']))
         output = yield self.assertApi(self.service, 'replace_one', {
             'collection': self.collection,
             'filter': {
@@ -279,7 +271,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'datetime': ['date']
             }
         }, self.claims)
-        cursor = yield self.db.find_many(self.collection, {})
+        cursor = yield self.db.find_many(self.collection, {}, fields=Fields(date_times=['date']))
         self.assertSequenceEqual(cursor['results'], [o1, o3])
         self.assertEqual(output, {
             'matched': 1,

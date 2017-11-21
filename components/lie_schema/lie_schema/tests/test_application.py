@@ -43,12 +43,14 @@ class TestWampService(DBTestCase, APITestCase):
         self.assertIsInstance(self.service.resources, SchemaRepository)
         self.assertIsInstance(self.service.claims, SchemaRepository)
 
-    def test_onRun(self):
-        self.service.event = mock.MagicMock()
+    @mock.patch("mdstudio.component.impl.core.CoreComponentSession.on_run")
+    def test_on_run(self, super_mock):
+        self.service.call = mock.MagicMock()
         self.service.on_run()
 
-        self.service.event.assert_called_once_with(u'mdstudio.schema.endpoint.events.online', True,
-                                                     options=self.service.publish_options)
+        self.service.call.assert_called_once_with(u'mdstudio.auth.endpoint.ring0.set-status', {'status': True})
+
+        super_mock.assert_called_once()
 
     @chainable
     def test_upload_endpoints(self):
