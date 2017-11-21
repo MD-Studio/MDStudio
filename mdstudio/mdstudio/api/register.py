@@ -6,6 +6,7 @@ import os
 from autobahn import wamp
 from autobahn.wamp import RegisterOptions
 from jsonschema import ValidationError
+from mdstudio.api.converter import convert_obj_to_json
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, \
@@ -139,6 +140,7 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
                                     res['warning'] = validation_error(output_schema.to_schema(), res['result'], e, 'Output', uri)
                                     self.log.warn('{warning_message}', warning_message=res['warning'])
 
+            convert_obj_to_json(res)
             return_value(res)
 
         wrapped_f.input_schema = input_schema

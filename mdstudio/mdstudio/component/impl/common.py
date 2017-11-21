@@ -157,8 +157,6 @@ class CommonSession(ApplicationSession):
         if 'result' not in result:
             result['result'] = None
 
-        convert_obj_to_json(result['result'])
-
         return_value(result['result'])
 
     @chainable
