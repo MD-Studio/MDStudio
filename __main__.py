@@ -31,12 +31,12 @@ if __name__ == '__main__':
             "classname": "lie_{role}.application.{component}Component".format(role=role, component=component),
             "realm": "mdstudio",
             "role": role
-        } for role, component in {
-            'auth': 'Auth',
-            'db': 'DB',
-            'schema': 'Schema',
-            'logger': 'Logger'
-        }.items()]
+        } for role, component in OrderedDict([
+            ('auth', 'Auth'),
+            ('db', 'DB'),
+            ('schema', 'Schema'),
+            ('logger', 'Logger')
+        ]).items()]
 
         wampcra_config = {
             "type": "static",

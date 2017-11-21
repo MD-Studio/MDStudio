@@ -14,20 +14,21 @@ class DBComponent(CoreComponentSession):
     """
     Database management WAMP methods.
     """
+    def pre_init(self):
+        self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
 
     def on_init(self):
         db_host = os.getenv('MD_MONGO_HOST', self.component_config.settings.get('host', 'localhost'))
         db_port = int(os.getenv('MD_MONGO_PORT', self.component_config.settings.get('port', 27017)))
         self._client = MongoClientWrapper(db_host, db_port)
-        self.autolog = False
-        self.autoschema = False
 
         self.database_lock = Lock()
 
     @chainable
-    def on_run(self):
-        self.publish_options = PublishOptions(acknowledge=True)
-        yield self.event(u'mdstudio.db.endpoint.events.online', True, options=self.publish_options)
+    def _on_join(self):
+        yield self.call('mdstudio.auth.endpoint.ring0.set-status', {'status': True})
+
+        yield super(DBComponent, self)._on_join()
 
     @register(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', scope='write')
     def more(self, request, claims=None):

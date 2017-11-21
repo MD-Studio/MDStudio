@@ -24,7 +24,7 @@
       "default": false
     },
     "sort": {
-      "$ref": "lresource://mdstudio/db/sort/v1"
+      "$ref": "resource://mdstudio/db/sort/v1"
     },
     "fields": {
       "$ref": "resource://mdstudio/db/fields/v1"

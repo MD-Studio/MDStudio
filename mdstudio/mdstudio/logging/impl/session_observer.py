@@ -10,6 +10,7 @@ from autobahn.wamp.exception import ApplicationError, TransportLost
 from twisted.internet import task, reactor
 from twisted.python.failure import Failure
 
+from mdstudio.api.call_exception import CallException
 from mdstudio.api.singleton import Singleton
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
@@ -48,12 +49,15 @@ class SessionLogObserver(metaclass=Singleton):
         else:
             message = event.get('message', '')
 
-        self.append_log({
-            'level': event['log_level'].name,
-            'source': event['log_namespace'],
-            'time': to_utc_string(datetime.fromtimestamp(event['log_time'], tz=pytz.utc)),
-            'message': message
-        })
+        if message:
+            self.append_log({
+                'level': event['log_level'].name,
+                'source': event['log_namespace'],
+                'time': to_utc_string(datetime.fromtimestamp(event['log_time'], tz=pytz.utc)),
+                'message': message
+            })
+        # else:
+        #     raise NotImplementedError('No message')
 
     @chainable
     def store_recovery(self):
@@ -83,13 +87,13 @@ class SessionLogObserver(metaclass=Singleton):
                 yield self.lock.release()
                 # The crossbar router is down, wait a few seconds to see if it is back up
                 yield sleep(3)
-            except (ApplicationError, TransportLost):
+            except (ApplicationError, TransportLost, CallException):
                 yield self.lock.release()
-                # The log component is probably not awake yet, wait a bit longer
+                # The log or db component is probably not awake yet, wait a bit longer
                 yield sleep(1)
             except Exception as e:
                 yield self.lock.release()
-                print(e)
+                self.log.failure('Unrecognized exception during logging', failure=e)
             else:
                 yield self.lock.release()
         else:

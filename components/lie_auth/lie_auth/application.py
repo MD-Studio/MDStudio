@@ -22,6 +22,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 from twisted.logger import Logger
 
 from mdstudio.component.impl.core import CoreComponentSession
+from mdstudio.deferred.chainable import chainable
 
 try:
     import urlparse
@@ -44,6 +45,9 @@ class AuthComponent(CoreComponentSession):
 
     def pre_init(self):
         self.oauth_client = oauth2.BackendApplicationClient('auth')
+        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
+        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'schema'))
+        self.status_list = {'auth': True}
 
     def on_init(self):
         self.db_initialized = False
@@ -68,8 +72,10 @@ class AuthComponent(CoreComponentSession):
         # # TODO: make this a dict of  {vendor}.{namespace}: [urilist] for faster lookup
         # self.registrations = []
 
-    def on_run(self, details=None):
+    @chainable
+    def _on_join(self):
         self.jwt_key = generate_secret()
+        yield super(AuthComponent, self)._on_join()
 
     def onExit(self, details=None):
         """
@@ -112,6 +118,19 @@ class AuthComponent(CoreComponentSession):
 
         return {'claims': claims}
 
+    @register('mdstudio.auth.endpoint.ring0.set-status', {}, {})
+    def ring0_set_status(self, request, claims=None):
+        self.status_list[claims['username']] = request['status']
+
+    @register('mdstudio.auth.endpoint.ring0.get-status', {}, {})
+    def ring0_get_status(self, request, claims=None):
+        return self.status_list.get(request['component'], False)
+
+    def authorize_request(self, uri, claims):
+        if 'mdstudio' in claims['groups'] and uri.startswith('mdstudio.auth.endpoint.ring0'):
+            return True
+
+        return False
 
     @wamp.register(u'mdstudio.auth.endpoint.sso')
     @inlineCallbacks

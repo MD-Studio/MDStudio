@@ -5,9 +5,12 @@ file: wamp_services.py
 
 WAMP service methods the module exposes.
 """
-
+import time
 from autobahn import wamp
+from autobahn.wamp import ApplicationError
 
+from mdstudio.api.api_result import APIResult
+from mdstudio.api.call_exception import CallException
 from mdstudio.api.register import register
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.model import Model
@@ -16,14 +19,47 @@ from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.log_type import LogType
 
 
+class LogsRepository:
+
+
+    class Logs(Model):
+        date_time_fields = ['time']
+
+    def __init__(self, db):
+        self.db = db
+
+    def logs(self, claims):
+        return self.Logs(self.db, self.get_log_collection_name(claims))
+
+    @staticmethod
+    def get_log_collection_name(claims):
+        log_type = LogType.from_string(claims['logType'])
+
+        if log_type == LogType.User:
+            collection_name = 'users~{user}'.format(user=claims['username'])
+        elif log_type == LogType.Group:
+            collection_name = 'groups~{group}'.format(group=claims['group'])
+        elif log_type == LogType.GroupRole:
+            collection_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
+        else:
+            raise NotImplemented('This distinction does not exist')
+
+        return collection_name
+
+
 class LoggerComponent(CoreComponentSession):
     """
     Logger management WAMP methods.
     """
-
     @chainable
     def on_run(self):
-        yield self.event(u'mdstudio.logger.endpoint.events.online', True, options=wamp.PublishOptions(acknowledge=True))
+        yield self.call('mdstudio.auth.endpoint.ring0.set-status', {'status': True})
+        yield super(LoggerComponent, self).on_run()
+
+    def pre_init(self):
+        self.logs = LogsRepository(self.db)
+        self.component_waiters.append(self.ComponentWaiter(self, 'db'))
+        self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
 
     @register('mdstudio.logger.endpoint.log', 'log/log', {})
     @chainable
@@ -38,8 +74,12 @@ class LoggerComponent(CoreComponentSession):
         :rtype:       :py:class:`dict` to JSON
         """
 
-        res = yield Model(self, self.get_log_collection_name(claims)).insert_many(request['logs'], date_fields=['insert.time'])
-        return_value(len(res))
+        try:
+            res = yield self.logs.logs(claims).insert_many(request['logs'])
+        except CallException as e:
+            return_value(APIResult(error='Database not online'))
+        else:
+            return_value(len(res))
 
     @register(u'mdstudio.logger.endpoint.get', {}, {})
     def get_log_events(self, user):
@@ -65,18 +105,3 @@ class LoggerComponent(CoreComponentSession):
             raise NotImplemented()
 
         return False
-
-    @staticmethod
-    def get_log_collection_name(claims):
-        log_type = LogType.from_string(claims['logType'])
-
-        if log_type == LogType.User:
-            collection_name = 'users~{user}'.format(user=claims['username'])
-        elif log_type == LogType.Group:
-            collection_name = 'groups~{group}'.format(group=claims['group'])
-        elif log_type == LogType.GroupRole:
-            collection_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
-        else:
-            raise NotImplemented('This distinction does not exist')
-
-        return collection_name

@@ -1,14 +1,17 @@
 import inspect
 import json
+import re
 from copy import deepcopy
 
 import os
 
 import yaml
 from autobahn.twisted.wamp import ApplicationSession
-from autobahn.wamp import PublishOptions
+from autobahn.wamp import PublishOptions, ApplicationError
 from autobahn.wamp.request import Publication
+from twisted.internet import reactor
 
+from mdstudio.api.api_result import APIResult
 from mdstudio.api.call_exception import CallException
 from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.schema import validate_json_schema
@@ -17,9 +20,11 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from twisted.python.failure import Failure
 
+from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.impl.session_observer import SessionLogObserver
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
+from mdstudio.utc import now
 
 
 class CommonSession(ApplicationSession):
@@ -117,13 +122,28 @@ class CommonSession(ApplicationSession):
 
         request = deepcopy(request)
         convert_obj_to_json(request)
-        result = yield super(CommonSession, self).call(procedure, request, signed_claims=signed_claims, **kwargs)
+
+        @chainable
+        def make_original_call():
+            res = yield super(CommonSession, self).call(procedure, request, signed_claims=signed_claims, **kwargs)
+
+            if not isinstance(res, dict):
+                res = APIResult(result=res)
+
+            return_value(res)
+
+        try:
+            result = yield make_original_call()
+        except ApplicationError as e:
+            result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 
         if 'expired' in result:
             signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-            result = yield super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims,
-                                                           **kwargs)
+            try:
+                result = yield make_original_call()
+            except ApplicationError as e:
+                result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 
         if 'expired' in result:
             raise CallException(result['expired'])
@@ -134,7 +154,10 @@ class CommonSession(ApplicationSession):
         if 'warning' in result:
             self.log.warn(result['warning'])
 
-        convert_obj_to_json(result)
+        if 'result' not in result:
+            result['result'] = None
+
+        convert_obj_to_json(result['result'])
 
         return_value(result['result'])
 
@@ -174,42 +197,53 @@ class CommonSession(ApplicationSession):
         return super(CommonSession, self).subscribe(handler, topic, options)
 
     @chainable
-    def on_join(self, details):
+    def _on_join(self):
+        yield self.upload_schemas()
+
+        yield self.on_run()
+
         yield self.log_collector.start_flushing(self)
 
+    @chainable
+    def on_join(self):
         registrations = yield self.register(self)
 
         failures = 0
         for r in registrations:
             if isinstance(r, Failure):
-                self.log.info("ERROR: {class_name}: {message}", class_name=self.class_name, message=r.value)
+                self.log.info("ERROR: {class_name}: {message}", class_name=self.class_name(), message=r.value)
                 failures = failures + 1
 
         if failures > 0:
             self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures,
-                          class_name=self.class_name)
+                          class_name=self.class_name())
 
         self.log.info("{class_name}: {procedures} procedures successfully registered",
-                      procedures=len(registrations) - failures, class_name=self.class_name)
+                      procedures=len(registrations) - failures, class_name=self.class_name())
+
+        reactor.callLater(1, self._on_join)
+
+    @chainable
+    def onJoin(self, details):
+        yield self.flatten_endpoint_schemas()
 
         # Update session config, they may have been changed by the application authentication method
         for var, details_var in self.session_update_vars.items():
             self.component_config.session[var] = getattr(details, details_var)
 
-        yield self.on_run()
+        reactor.callLater(1, self.on_join)
 
-    onJoin = on_join
-
-    @chainable
-    def on_leave(self, details):
-        self.log.info('{class_name} is leaving realm {realm}', class_name=self.class_name,
-                      realm=self.component_config.session.realm)
-
-        yield self.on_exit()
-
-        yield super(CommonSession, self).onLeave(details)
-
-    onLeave = on_leave
+    # @chainable
+    # def on_leave(self, details):
+    #     self.log.info('{class_name} is leaving realm {realm}', class_name=self.class_name(),
+    #                   realm=self.component_config.session.realm)
+    #
+    #     yield self.on_exit()
+    #
+    #     yield super(CommonSession, self).onLeave(details)
+    #     yield self.disconnect()
+    #
+    # onLeave = on_leave
 
     def add_session_env_var(self, session_var, env_vars, default=None, extract=os.getenv):
         if not isinstance(env_vars, list):
@@ -248,7 +282,7 @@ class CommonSession(ApplicationSession):
     def extract_custom_scopes(self):
         function_scopes = []
 
-        # Scan for input/output schemas on registrations
+        # Scan for scopes on registrations
         for key, f in self.__class__.__dict__.items():
             try:
                 function_scopes.append({
@@ -259,6 +293,63 @@ class CommonSession(ApplicationSession):
                 pass
 
         return function_scopes
+
+    @chainable
+    def upload_schemas(self):
+        schemas = {
+            'endpoints': self._collect_schemas('endpoints'),
+            'resources': self._collect_schemas('resources')
+        }
+
+        yield self.call(u'mdstudio.schema.endpoint.upload', {
+            'component': self.component_config.static.component,
+            'schemas': schemas
+        }, claims={'vendor': self.component_config.static.vendor})
+
+        self.log.info('Uploaded schemas for {package}', package=self.class_name())
+
+    def _collect_schemas(self, *sub_paths):
+        schemas = []
+        root_dir = os.path.join(self.component_schemas_path(), *sub_paths)
+
+        if os.path.isdir(root_dir):
+            for root, dirs, files in os.walk(root_dir):
+                if files:
+                    for file in files:
+                        path = os.path.join(root, file)
+                        rel_path = os.path.relpath(path, root_dir).replace('\\', '/')
+                        path_decomposition = re.match('(.*?)\\.?(v\\d+)?\\.json', rel_path)
+
+                        with open(path, 'r') as f:
+                            schema_entry = {
+                                'schema': json.load(f),
+                                'name': path_decomposition.group(1)
+                            }
+
+                        if path_decomposition.group(2):
+                            schema_entry['version'] = int(path_decomposition.group(2).strip('v'))
+
+                        schemas.append(schema_entry)
+
+        return schemas
+
+    @chainable
+    def flatten_endpoint_schemas(self):
+        # Scan for input/output schemas on registrations
+        for key, f in self.__class__.__dict__.items():
+            func = getattr(self, key)
+            try:
+                yield func.input_schema.flatten(self)
+            except AttributeError:
+                pass
+            try:
+                yield func.output_schema.flatten(self)
+            except AttributeError:
+                pass
+            try:
+                yield func.claims_schema.flatten(self)
+            except AttributeError:
+                pass
 
     @property
     def session_env_mapping(self):

@@ -10,7 +10,7 @@ from autobahn.twisted.wamp import ApplicationRunner
 from twisted.python.logfile import DailyLogFile
 
 from mdstudio.component.impl.common import CommonSession
-from twisted.internet import reactor
+from twisted.internet import reactor, ssl
 from twisted.internet.ssl import CertificateOptions
 
 from mdstudio.logging.impl.printing_observer import PrintingLogObserver
@@ -19,7 +19,10 @@ from mdstudio.logging.impl.printing_observer import PrintingLogObserver
 def main(component, auto_reconnect=True):
     crossbar_host = os.getenv('CROSSBAR_HOST', 'localhost')
 
-    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, open('data/crossbar/server_cert.pem').read())
+    with open('data/crossbar/server_cert.pem', 'r') as f:
+        cert_data = f.read().encode('utf-8')
+
+    cert = ssl.Certificate.loadPEM(cert_data)
     options = CertificateOptions(caCerts=[cert])
 
     runner = ApplicationRunner(

@@ -6,6 +6,7 @@ import json
 
 from jsonschema import FormatChecker, ValidationError
 
+from mdstudio.api.singleton import Singleton
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
@@ -88,6 +89,16 @@ class ISchema:
                 return v
 
 
+class InlineSchema(ISchema):
+    def __init__(self, schema):
+        self.schema = schema
+
+    def flatten(self, session=None):
+        return self._recurse_subschemas(self.schema, session)
+
+    def to_schema(self):
+        return self.schema
+
 class HttpsSchema(ISchema):
     def __init__(self, uri):
         super(HttpsSchema, self).__init__()
@@ -109,13 +120,15 @@ class EndpointSchema(ISchema):
         uri_versions = uri_decomposition.group(2)
         self.versions = versions or ([int(v) for v in uri_versions.replace('v', '').split(',')] if uri_versions else [1])
 
+        self.schema_subdir = 'endpoints'
+
     @chainable
     def flatten(self, session=None):
         # type: (CommonSession) -> bool
         if self.cached:
             return_value(True)
 
-        self._retrieve_local(os.path.join(session.component_schemas_path(), 'endpoints'), self.schema_path, self.versions)
+        self._retrieve_local(os.path.join(session.component_schemas_path(), self.schema_subdir), self.schema_path, self.versions)
 
         success = True
 
@@ -128,6 +141,21 @@ class EndpointSchema(ISchema):
                 break
 
         return_value(success)
+
+
+class ClaimSchema(EndpointSchema):
+    def __init__(self, uri, versions=None):
+        super(ClaimSchema, self).__init__(uri, versions)
+        self.schema_subdir = 'claims'
+
+
+class MDStudioClaimSchema(metaclass=Singleton):
+    def __init__(self, session):
+        with open(os.path.join(session.mdstudio_schemas_path(), 'claims.json'), 'r') as base_claims_file:
+            self.schema = json.load(base_claims_file)
+
+    def to_schema(self):
+        return self.schema
 
 
 class ResourceSchema(ISchema):
@@ -174,68 +202,6 @@ class ResourceSchema(ISchema):
             }, claims={
                 'vendor': self.vendor
             })
-
-
-# @todo: enable validation
-def validate_output(output_schema):
-    def wrap_f(f):
-        if not output_schema:
-            # print("Output is not checked because schema is {}".format(output_schema))
-            return f
-
-        @chainable
-        def wrapped_f(self, request, **kwargs):
-            if isinstance(output_schema, ISchema):
-                yield output_schema.flatten(self)
-                schema = output_schema.to_schema()
-            else:
-                schema = output_schema
-
-            res = yield f(self, request, **kwargs)
-
-            if 'result' in res:
-                try:
-                    validate_json_schema(schema, res['result'])
-                except ValidationError as e:
-                    self.log.error(e)
-                    return_value({'error': 'Something went wrong inside the component. Contact the developer.'})
-
-            return_value(res)
-
-        return wrapped_f
-
-    return wrap_f
-
-
-def validate_input(input_schema, strict=True):
-    def wrap_f(f):
-        if not input_schema:
-            # print("Input is not checked because schema is {}".format(input_schema))
-            return f
-
-        @chainable
-        def wrapped_f(self, request, **kwargs):
-            if isinstance(input_schema, ISchema):
-                yield input_schema.flatten(self)
-                schema = input_schema.to_schema()
-            else:
-                schema = input_schema
-
-            try:
-                validate_json_schema(schema, request)
-            except ValidationError as e:
-                print(e)
-                if strict:
-                    return_value({'error': 'Input not matching schema'})
-            else:
-                res = yield f(self, request, **kwargs)
-
-                return_value(res)
-
-        return wrapped_f
-
-    return wrap_f
-
 
 def validate_json_schema(schema_def, instance):
     jsonschema.validate(instance, schema_def, format_checker=FormatChecker())

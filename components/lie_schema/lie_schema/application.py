@@ -1,5 +1,6 @@
 import json
 
+import time
 from autobahn.wamp import PublishOptions
 from lie_schema.exception import SchemaException
 from lie_schema.schema_repository import SchemaRepository
@@ -14,19 +15,19 @@ class SchemaComponent(CoreComponentSession):
     Database management WAMP methods.
     """
 
-    def pre_init(self):
-
-        self.endpoints = SchemaRepository(self, 'endpoints')
-        self.resources = SchemaRepository(self, 'resources')
-        self.claims = SchemaRepository(self, 'claims')
-
-    def onInit(self):
-        self.autolog = False
+    def onConnect(self):
+        return self.on_connect()
 
     @chainable
     def on_run(self):
-        self.publish_options = PublishOptions(acknowledge=True)
-        yield self.event(u'mdstudio.schema.endpoint.events.online', True, options=self.publish_options)
+        yield self.call('mdstudio.auth.endpoint.ring0.set-status', {'status': True})
+        yield super(SchemaComponent, self).on_run()
+
+    def pre_init(self):
+        self.endpoints = SchemaRepository(self, 'endpoints')
+        self.resources = SchemaRepository(self, 'resources')
+        self.claims = SchemaRepository(self, 'claims')
+        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
 
     @register(u'mdstudio.schema.endpoint.upload', {}, {})
     @chainable
@@ -74,6 +75,9 @@ class SchemaComponent(CoreComponentSession):
         return_value(json.loads(res['schema']))
 
     def authorize_request(self, uri, claims):
+        if uri == u'mdstudio.schema.endpoint.status':
+            return True
+
         # @todo: check if user is part of group (in usermode)
         if claims['vendor'] in claims['groups']:
             return True
