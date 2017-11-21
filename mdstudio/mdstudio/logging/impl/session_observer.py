@@ -93,7 +93,9 @@ class SessionLogObserver(metaclass=Singleton):
                 yield sleep(1)
             except Exception as e:
                 yield self.lock.release()
-                self.log.failure('Unrecognized exception during logging', failure=e)
+                self.log.error('Unrecognized exception during logging {failure}', failure=e)
+            except:
+                yield self.lock.release()
             else:
                 yield self.lock.release()
         else:

@@ -60,7 +60,7 @@ def main(component, auto_reconnect=True):
         return session
 
     try:
-        runner.run(start_component, auto_reconnect=auto_reconnect, start_reactor=not reactor.running)
+        runner.run(start_component, auto_reconnect=auto_reconnect, start_reactor=not reactor.running, log_level='info')
     finally:
         if reactor.running:
             reactor.stop()

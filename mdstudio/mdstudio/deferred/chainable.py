@@ -62,16 +62,21 @@ class Chainable:
         return Chainable(d)
 
     def addCallback(self, *args, **kwargs):
-        return Chainable(self.__deferred.addCallback( *args, **kwargs))
+        return Chainable(self.__deferred.addCallback(*args, **kwargs))
 
     def addErrback(self, *args, **kwargs):
-        return Chainable(self.__deferred.addErrback( *args, **kwargs))
+        return Chainable(self.__deferred.addErrback(*args, **kwargs))
+
+    def addBoth(self, *args, **kwargs):
+        return Chainable(self.__deferred.addBoth(*args, **kwargs))
+
+    def addCallbacks(self, *args, **kwargs):
+        return Chainable(self.__deferred.addCallbacks(*args, **kwargs))
 
     def __getattribute__(self, name):
         return object.__getattribute__(self, name)
 
     def __getattr__(self, name):
-        # print(name)
         if hasattr(self.__deferred, name):
             # If we try to address a property of the internal Deferred, pass it through
             return getattr(self.__deferred, name)
@@ -111,3 +116,6 @@ def chainable(f):
         return Chainable(deferred)
 
     return _chainable
+
+def test_chainable(f):
+    return defer.inlineCallbacks(f)

@@ -3,7 +3,7 @@ from twisted.internet.defer import Deferred
 from twisted.trial.unittest import TestCase
 from twisted.internet import reactor
 
-from mdstudio.deferred.chainable import Chainable, chainable
+from mdstudio.deferred.chainable import Chainable, chainable, test_chainable
 from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.deferred.return_value import return_value
 from mdstudio.unittest import wait_for_completion
@@ -66,7 +66,7 @@ class TestChainable(TestCase):
     def tearDown(self):
         wait_for_completion.wait_for_completion = False
 
-    @chainable
+    @test_chainable
     def test_basic_deferred(self):
         test = ChainableTestClass(self)
         d = test.call()
@@ -75,7 +75,7 @@ class TestChainable(TestCase):
         self.assertIsInstance((yield d), int)
         self.assertEqual((yield test.call()), 3)
 
-    @chainable
+    @test_chainable
     def test_chained(self):
         test = ChainableTestClass(self)
 
@@ -83,7 +83,7 @@ class TestChainable(TestCase):
         self.assertEqual((yield test.call2()), 3)
         self.assertEqual((yield test.call3()), 3)
 
-    @chainable
+    @test_chainable
     def test_deferred_chain(self):
         d = Deferred()
         d2 = Deferred()
