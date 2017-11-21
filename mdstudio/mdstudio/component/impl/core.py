@@ -66,7 +66,7 @@ class CoreComponentSession(CommonSession):
 
     @chainable
     def on_run(self):
-        yield self.ComponentWaiter(self, 'logs').wait()
+        yield self.ComponentWaiter(self, 'logger').wait()
 
     @chainable
     def _on_join(self):
