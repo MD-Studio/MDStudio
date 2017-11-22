@@ -323,7 +323,8 @@ def get_output(job, config):
     """
     output_dict = {
         'gromitout': 'gromit_{}.out', 'gromiterr': 'gromit_{}.err',
-        'gromacslog': 'gromacs_{}.log', 'trajectory': 'traj_{}.trr'}
+        'gromacslog': 'gromacs_{}.log', 'trajectory': 'traj_{}.trr',
+        'energy': 'energy_{}.edr'}
 
     if job.state == 'Success':
         return {
