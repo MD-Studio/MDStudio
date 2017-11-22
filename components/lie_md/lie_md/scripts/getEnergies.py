@@ -26,11 +26,11 @@ import sys
 from panedr import edr_to_df
 from subprocess import (PIPE, Popen)
 
+# Container for the files
+Files = collections.namedtuple("FILES", ("gro", "ndx", "trr", "top"))
+
 
 def main(args):
-
-    # Create gromacs environment
-    gmxEnv = getGMXEnv(args.gmxrc) if args.gmxrc is not None else os.environ
 
     # Full energy gathering
     if args.energy and args.decompose:
@@ -42,7 +42,7 @@ def main(args):
 
     # Per-residue energy decomposition
     if args.decompose:
-        decompose(args, gmxEnv)
+        decompose(args)
     logging.info('SUCCESSFUL COMPLETION OF THE PROGRAM')
 
 
@@ -83,7 +83,7 @@ def get_energy(path, listRes=['Ligand']):
     return extract_ligand_info(df, listRes)
 
 
-def decompose(args, gmxEnv):
+def decompose(args):
     """
     Make a decomposition of the energy into its residue components
     """
@@ -91,7 +91,7 @@ def decompose(args, gmxEnv):
         msg = 'TERMINATED. List of residues not provided.'
         log_and_quit(msg)
 
-    if not all(availProg(cmd, gmxEnv)
+    if not all(availProg(cmd, args.gmxEnv)
                for cmd in ['grompp', 'mdrun', 'gmxdump']):
         msg = 'TERMINATED. Programs required for decomposition not found.'
         log_and_quit(msg)
@@ -102,15 +102,16 @@ def decompose(args, gmxEnv):
 
     # create decomposition mdp, ndx and run rerun
     gro = findFile(args.dataDir, ext='gro', pref='*sol')
-    ndx = findFile(args.dataDir, ext='ndx', pref='*sol')
+    ndx = findFile(args.dataDir, ext='ndx', pref='*-sol')
     trr = findFile(args.dataDir, ext='trr', pref='*MD*')
-    top = findFile(args.dataDir, ext='top', pref='*sol')
-    prefix_result = decomp(gmxEnv, mdpDict, args.resList, ndx, gro, top, trr)
+    top = findFile(args.dataDir, ext='top', pref='*-sol')
+    files = Files(gro, ndx, trr, top)
+    prefix_result = decomp(mdpDict, args, files)
 
-    energy_analysis(prefix_result)
+    energy_analysis(args, prefix_result)
 
 
-def energy_analysis(prefix):
+def energy_analysis(args, prefix):
     """Analysis of energy decomposition file after rerun"""
     path = findFile(args.dataDir, ext='edr',  prefix=prefix)
     logging.info(
@@ -121,26 +122,25 @@ def energy_analysis(prefix):
 
 
 def decomp(
-         gmxEnv, mdpDict, res_array, ndx_file, gro_file, top_file, trr_file,
-        ligGroup='Ligand', outPref='decompose', suff4ndx='sol'):
+         mdpDict, args, files,
+        ligGroup='Ligand', outPref='decompose'):
     """
     Decompose the energy into its components for different residues.
     """
-
-    mdp_file = create_new_mdp_file(mdpDict, res_array, ligGroup, outPref)
+    mdp_file = create_new_mdp_file(mdpDict, args, ligGroup, outPref)
 
     # create a dictionary with the index of the atoms that belong
     # to a given residue
-    dict_residues = create_residue_map(gro_file)
+    dict_residues = create_residue_map(files.gro)
 
     # create new ndx file:
-    new_ndx_file = create_new_ndx_file(dict_residues, ndx_file)
+    new_ndx_file = create_new_ndx_file(dict_residues, files.ndx)
 
     # Generate new tpr file
-    outTpr = '{}.tpr'.format(outPref)
-    cmd = ['grompp', '-f', mdp_file, '-c', gro_file, '-p',
-           top_file, '-n', new_ndx_file, '-o', outTpr]
-    call_subprocess(cmd, gmxEnv)
+    outTpr = os.path.join(args.dataDir, '{}.tpr'.format(outPref))
+    cmd = ['gmx grompp', '-f', mdp_file, '-c', files.gro, '-p',
+           files.top, '-n', new_ndx_file, '-o', outTpr]
+    call_subprocess(cmd, args.gmxEnv)
 
     if os.path.exists(outTpr):
         msg = 'Something went wrong in the creation of the tpr file  \
@@ -148,8 +148,8 @@ def decomp(
         log_and_quit(msg)
 
     # rerun energy
-    cmd = ['mdrun', '-s', outTpr, '-rerun', trr_file, '-deffnm', outPref]
-    rs = call_subprocess(cmd, gmxEnv)
+    cmd = ['gmx mdrun', '-s', outTpr, '-rerun', files.trr, '-deffnm', outPref]
+    rs = call_subprocess(cmd, args.gmxEnv)
     if rs is None:
         msg = 'Something went wrong in the rerun decomposition analysis'
         log_and_quit
@@ -229,7 +229,6 @@ def writeOut(frames, output_file, columns):
         f.write(frames[columns].to_string(index=False))
 
 
-
 def create_residue_map(gro_file):
     """
     Read residues from the `gro_file` and create
@@ -274,7 +273,7 @@ def create_new_ndx_file(residues_map, ndx_file):
     return new_ndx_file
 
 
-def create_new_mdp_file(mdpDict, res_array, ligGroup):
+def create_new_mdp_file(mdpDict, args, ligGroup):
     """ Crate a new input mdp file """
 
     listkeys = [
@@ -298,7 +297,7 @@ def create_new_mdp_file(mdpDict, res_array, ligGroup):
         'xtc-precision': '0', 'xtc-grps': '', 'nstlist': '1'}
 
     # the [1:-1] removes the [ ] from the beginning and the end
-    str_residues = np.array_str(res_array)[1:-1]
+    str_residues = np.array_str(args.resList)[1:-1]
     energygrps = '{}{}'.format(ligGroup, str_residues)
 
     newKeys['energygrps'] = energygrps
@@ -311,7 +310,7 @@ def create_new_mdp_file(mdpDict, res_array, ligGroup):
     for mdpKey in (x for x in listkeys if x in mdpDict):
         new_input += fmt.format(mdpKey, mdpDict[mdpKey])
 
-    mdp_file = "decomposition.mdp"
+    mdp_file = os.path.join(args.dataDir, "decomposition.mdp")
     with open(mdp_file, 'w') as f:
         f.write(new_input)
 
@@ -384,10 +383,13 @@ def findFile(workdir, ext=None, pref=''):
 
 def getGMXEnv(gmxrc):
     """ Use Gromacs environment """
-    command = ['bash', '-c', 'source {} && env'.format(gmxrc)]
-    rs = call_subprocess(command)
+    if gmxrc is None:
+        return os.environ
+    else:
+        command = ['bash', '-c', 'source {} && env'.format(gmxrc)]
+        rs = call_subprocess(command)
 
-    return {key: val for key, val in map(process_line, rs)}
+        return {key: val for key, val in map(process_line, rs)}
 
 
 def process_line(line):
@@ -419,7 +421,7 @@ if __name__ == "__main__":
         description='Dock sdf file into protein conformation')
 
     parser.add_argument(
-        '-gmxrc', required=False, dest='gmxrc',
+        '-gmxrc', required=False, dest='gmxrc', type=getGMXEnv,
         help='GMXRC file for environment loading')
     parser.add_argument(
         '-d', '--dir', required=False, dest='dataDir',
