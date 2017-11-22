@@ -4,7 +4,6 @@ from lie_md.gromacs_topology_amber import correctItp
 from os.path import join
 from twisted.logger import Logger
 
-import json
 import os
 import shutil
 

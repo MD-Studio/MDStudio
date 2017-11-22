@@ -48,7 +48,8 @@ def main(args):
 
 def process_energies(dataDir, outName):
     """
-    Read and format energies.
+    Read and format energies using a edr file contains in
+    `dataDir` and write it in `outName`.
     """
     path = findFile(dataDir, ext='edr', pref='*energy*')
     if path is None:
@@ -68,6 +69,7 @@ def get_energy(path, listRes=['Ligand']):
     use the `panedr` library to parse it.
 
     :params path:  Path to the edr file.
+    :returns: Pandas dataframe.
     """
     df = edr_to_df(path)
     # Electrostatic Energy
@@ -79,78 +81,6 @@ def get_energy(path, listRes=['Ligand']):
         df, ['LJ-14', 'LJ (SR)', 'LJ (LR)'])
 
     return extract_ligand_info(df, listRes)
-
-
-def extract_ligand_info(df, listRes):
-    """
-    Get the Ligand information.
-    """
-    for res in listRes:
-        names = get_residue_from_columns(res, df.columns)
-        df = compute_terms_per_residue(df, names)
-
-    return df
-
-
-def get_residue_from_columns(name, columns):
-    """
-    Extract the ligand terms from the column names.
-
-    :param name: Name of the residue
-    :param columns: name of the columns in the dataframe
-    :return: dictionary containing the residue's names as
-           keys and electrostatic and vdw names as values.
-    """
-    names = collections.defaultdict(list)
-    for c in filter(lambda x: name in x, columns):
-        v, k = c.split(':')
-        names[k].append(v)
-
-    # Sort the list
-    for xs in names.values():
-        xs.sort()
-
-    return names
-
-
-def compute_terms_per_residue(df, names):
-    """
-    Split the names in the electrostatic and van der Waals terms
-    and compute the electronic and VDW terms for each one of
-    the residue terms specified in the `names` dictionary.
-
-    :param df: Pandas dataframe
-    :param names: dictionary of the names use in the dataframe.
-    :return: updated dataframe
-    """
-    for key, vals in names.items():
-        sufix_elec = vals[:2]
-        sufix_vdw = vals[2:]
-        names_elec = ['{}:{}'.format(x, key) for x in sufix_elec]
-        names_vdw = ['{}:{}'.format(x, key) for x in sufix_vdw]
-        res_elec = '{}-ele'.format(key)
-        res_vdw = '{}-vdw'.format(key)
-
-        df[res_elec] = df[names_elec].sum(axis=1)
-        df[res_vdw] = df[names_vdw].sum(axis=1)
-
-    return df
-
-
-def sum_available_columns(df, labels):
-    """
-    Sum columns if they are in the dataframe
-    """
-    cols = [x for x in labels if x in df.columns]
-    return df[cols].sum(axis=1)
-
-
-def writeOut(frames, output_file, columns):
-    """
-    write columns as a table
-    """
-    with open(output_file, 'w') as f:
-        f.write(frames[columns].to_string(index=False))
 
 
 def decompose(args, gmxEnv):
@@ -225,6 +155,79 @@ def decomp(
         log_and_quit
 
     return outPref
+
+
+def extract_ligand_info(df, listRes):
+    """
+    Get the Ligand information.
+    """
+    for res in listRes:
+        names = get_residue_from_columns(res, df.columns)
+        df = compute_terms_per_residue(df, names)
+
+    return df
+
+
+def get_residue_from_columns(name, columns):
+    """
+    Extract the ligand terms from the column names.
+
+    :param name: Name of the residue
+    :param columns: name of the columns in the dataframe
+    :return: dictionary containing the residue's names as
+           keys and electrostatic and vdw names as values.
+    """
+    names = collections.defaultdict(list)
+    for c in filter(lambda x: name in x, columns):
+        v, k = c.split(':')
+        names[k].append(v)
+
+    # Sort the list
+    for xs in names.values():
+        xs.sort()
+
+    return names
+
+
+def compute_terms_per_residue(df, names):
+    """
+    Split the names in the electrostatic and van der Waals terms
+    and compute the electronic and VDW terms for each one of
+    the residue terms specified in the `names` dictionary.
+
+    :param df: Pandas dataframe
+    :param names: dictionary of the names use in the dataframe.
+    :return: updated dataframe
+    """
+    for key, vals in names.items():
+        sufix_elec = vals[:2]
+        sufix_vdw = vals[2:]
+        names_elec = ['{}:{}'.format(x, key) for x in sufix_elec]
+        names_vdw = ['{}:{}'.format(x, key) for x in sufix_vdw]
+        res_elec = '{}-ele'.format(key)
+        res_vdw = '{}-vdw'.format(key)
+
+        df[res_elec] = df[names_elec].sum(axis=1)
+        df[res_vdw] = df[names_vdw].sum(axis=1)
+
+    return df
+
+
+def sum_available_columns(df, labels):
+    """
+    Sum columns if they are in the dataframe
+    """
+    cols = [x for x in labels if x in df.columns]
+    return df[cols].sum(axis=1)
+
+
+def writeOut(frames, output_file, columns):
+    """
+    write columns as a table
+    """
+    with open(output_file, 'w') as f:
+        f.write(frames[columns].to_string(index=False))
+
 
 
 def create_residue_map(gro_file):
@@ -369,7 +372,6 @@ def availProg(prog, myEnv):
 
 def findFile(workdir, ext=None, pref=''):
     """ Check whether a file exists"""
-    print(workdir, ext, pref)
     rs = fnmatch.filter(os.listdir(workdir), "{}.{}".format(pref, ext))
     if rs:
         return os.path.join(workdir, rs[0])
