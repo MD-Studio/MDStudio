@@ -21,6 +21,7 @@ import fnmatch
 import logging
 import numpy as np
 import os
+import re
 import sys
 from panedr import edr_to_df
 from subprocess import (PIPE, Popen)
@@ -175,9 +176,6 @@ def decompose(args, gmxEnv):
     trr = findFile(args.dataDir, ext='trr', pref='*MD*')
     top = findFile(args.dataDir, ext='top', pref='*sol')
     prefix_result = decomp(gmxEnv, mdpDict, args.resList, ndx, gro, top, trr)
-    if prefix_result is None:
-        msg = 'Decomposition fails!'
-        log_and_quit(msg)
 
     energy_analysis(prefix_result)
 
@@ -195,70 +193,80 @@ def energy_analysis(prefix):
 def decomp(
          gmxEnv, mdpDict, res_array, ndx_file, gro_file, top_file, trr_file,
         ligGroup='Ligand', outPref='decompose', suff4ndx='sol'):
-    """ """
+    """
+    Decompose the energy into its components for different residues.
+    """
 
     mdp_file = create_new_mdp_file(mdpDict, res_array, ligGroup, outPref)
 
     # create a dictionary with the index of the atoms that belong
     # to a given residue
-    dict_residues = create_residue_dict(gro_file)
+    dict_residues = create_residue_map(gro_file)
 
     # create new ndx file:
     new_ndx_file = create_new_ndx_file(dict_residues, ndx_file)
 
-    # run rerun
+    # Generate new tpr file
+    outTpr = '{}.tpr'.format(outPref)
     cmd = ['grompp', '-f', mdp_file, '-c', gro_file, '-p',
            top_file, '-n', new_ndx_file, '-o', outTpr]
-    
-    success = executeProg(cmd, gmxEnv)
-    if not success:
-        msg = 'Something went wrong in the creation of the tpr file  for decomposition analysis'
-        return (False, msg)
+    call_subprocess(cmd, gmxEnv)
 
-    outTpr='%s.tpr'%outPref
+    if os.path.exists(outTpr):
+        msg = 'Something went wrong in the creation of the tpr file  \
+        for decomposition analysis'
+        log_and_quit(msg)
 
-    cmd = ['mdrun', '-s', outTpr, '-rerun', trr, '-deffnm', outPref]
-    success = executeProg(cmd, gmxEnv)
-    if not success:
+    # rerun energy
+    cmd = ['mdrun', '-s', outTpr, '-rerun', trr_file, '-deffnm', outPref]
+    rs = call_subprocess(cmd, gmxEnv)
+    if rs is None:
         msg = 'Something went wrong in the rerun decomposition analysis'
-        return False, msg
+        log_and_quit
 
     return outPref
 
 
-def create_residue_dict(gro_file, res_array):
+def create_residue_map(gro_file):
     """
     Read residues from the `gro_file` and create
-    a dict that map the the residues listed in `res_array`
+    an array that map the the residues listed in `res_array`
     with their correspoding atoms.
     """
-    dict_residues = {}
-    with open(gro_file, 'r') as inGro:
-        for nl, line in enumerate(inGro):
-            if nl > 2:
-                line_sp = [int(line[0:5]), line[5:10].rstrip().lstrip(), line[10:15].rstrip().lstrip(), int(line[15:20]), line[20:28], line[28:36], line[36:44]]
-                if line_sp[1] == 'SOL':
-                    break
-                if line_sp[0] in res_array:
-                    if line_sp[0] not in dict_residues:
-                        dict_residues[line_sp[0]] = []
-                    dict_residues[line_sp[0]].append(line_sp[3])
+    def match_int(x):
+        return re.match(r"([0-9]+)", x).groups()[0]
 
-    return dict_residues
+    arr = np.loadtxt(gro_file, dtype=np.str, skiprows=2, usecols=0)
+    xs = np.array(
+        [match_int(x) for x in arr if 'SOL' not in x and '.' not in x],
+        dtype=np.int32)
+
+    unique, counts = np.unique(xs, return_counts=True)
+    upper_limits = np.cumsum(counts) + 1
+    lower_limits = np.insert(upper_limits[:-1], 0, 1)
+
+    return np.stack((lower_limits, upper_limits), axis=1)
 
 
-def create_new_ndx_file(dict_residues, ndx_file):
-    """"""
-    new_ndx_file ='decomposition.ndx'
-    with open(outNdx, 'w') as outFile:
-        with open(ndx, 'r') as inNdx:
-            for line in inNdx:
-                outFile.write(line)
-        for res in dict_residues:
-            outFile.write('[ %d ]\n'%res)
-            for atm in dict_residues[res]:
-                outFile.write('%7d'%atm)
-            outFile.write('\n')
+def create_new_ndx_file(residues_map, ndx_file):
+    """
+    Write a new ndx file mapping the residue numbers to their
+    correspoding atoms, using a array `residues_map` that contains
+    in each row the lower and upper limit of the range of
+    the atoms contained in a given residue.
+    """
+    new = ''
+    for i, limits in enumerate(np.rollaxis(residues_map, axis=0)):
+        new += '[ {} ]\n'.format(i + 1)
+        data = np.array2string(
+            np.arange(*limits),
+            formatter={'int': lambda s: '{:>7d}'.format(s)})[1:-1]
+        new += ' {}\n'.format(data)
+
+    new_ndx_file = 'decomposition.ndx'
+    with open(ndx_file, 'r') as f_inp, open(new_ndx_file, 'w') as f_out:
+        old = f_inp.read()
+        f_out.write(old + new)
 
     return new_ndx_file
 
@@ -330,9 +338,8 @@ def parseMdp(mdpIn):
         xss = inFile.readlines()
 
     rs = filter(lambda line: not line.startswith(';') and '=' in line, xss)
-    key_vals = [check_lenght(x.split()[::2]) for x in rs]
 
-    return dict(key_vals)
+    return dict([check_lenght(x.split()[::2]) for x in rs])
 
 
 def check_lenght(xs):
