@@ -2,7 +2,7 @@ from twisted.internet import defer
 
 from twisted.internet.defer import Deferred
 
-class Chainable:
+class Chainable(object):
     @property
     def __class__(self):
         # Fake being a Deferred. We pass through everything to the deferred and catch what is not defined.

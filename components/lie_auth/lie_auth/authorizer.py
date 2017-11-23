@@ -1,7 +1,7 @@
 import itertools
 import re
 
-class ActionRule:
+class ActionRule(object):
     def __init__(self, actions):
         self.actions = actions
 
@@ -32,7 +32,7 @@ class ExactRule(ActionRule):
     def match(self, uri, action, **kw):
         return self.uri.format(uri=uri, **kw) == uri and super(ExactRule, self).match(uri, action, **kw)
 
-class Authorizer:
+class Authorizer(object):
     def __init__(self):
         # Build ruleset for communication inside ring0
         self.ring0_rules = [

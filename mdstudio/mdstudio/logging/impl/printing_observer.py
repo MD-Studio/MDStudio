@@ -5,7 +5,7 @@ import os
 import pytz
 
 
-class PrintingLogObserver:
+class PrintingLogObserver(object):
     def __init__(self, fp):
         self.fp = fp
 

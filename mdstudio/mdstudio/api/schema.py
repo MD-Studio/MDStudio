@@ -11,7 +11,7 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
-class ISchema:
+class ISchema(object):
     def __init__(self):
         self.cached = {}
 
@@ -149,7 +149,7 @@ class ClaimSchema(EndpointSchema):
         self.schema_subdir = 'claims'
 
 
-class MDStudioClaimSchema(metaclass=Singleton):
+class MDStudioClaimSchema(object,metaclass=Singleton):
     def __init__(self, session):
         with open(os.path.join(session.mdstudio_schemas_path(), 'claims.json'), 'r') as base_claims_file:
             self.schema = json.load(base_claims_file)

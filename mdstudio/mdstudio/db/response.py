@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-class UpdateManyResponse:
+class UpdateManyResponse(object):
     # type: int
     matched = 0
     # type: int
@@ -16,7 +16,7 @@ class UpdateManyResponse:
         self.upserted_id = response.get('upsertedId', None)
 
 
-class UpdateOneResponse:
+class UpdateOneResponse(object):
     # type: int
     matched = 0
     # type: int
@@ -31,7 +31,7 @@ class UpdateOneResponse:
         self.upserted_id = response.get('upsertedId', None)
 
 
-class ReplaceOneResponse:
+class ReplaceOneResponse(object):
     # type: int
     matched = 0
     # type: int

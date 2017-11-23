@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# this line is needed for pipenv (otherwise it can't choose a shell)
+export PYENV_SHELL=$(which bash)
+
+alias helpme='(/app/docker/crossbar/helpme.sh)'
+
+[[ "$WELCOMESHOWN" != "1" ]] && source /app/docker/crossbar/welcome.sh

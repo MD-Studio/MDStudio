@@ -24,7 +24,7 @@ SortOperators = Optional[Union[List[Tuple[str, SortMode]],Tuple[str, SortMode]]]
 
 
 @six.add_metaclass(abc.ABCMeta)
-class IDatabase:
+class IDatabase(object):
 
     @abc.abstractmethod
     def more(self, cursor_id):

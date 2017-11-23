@@ -4,7 +4,7 @@ import mdstudio.unittest.db as db
 from mdstudio.db.impl.mongo_database_wrapper import MongoDatabaseWrapper
 
 
-class MongoClientWrapper:
+class MongoClientWrapper(object):
     def __init__(self, host, port):
         self._host = host
         self._port = port

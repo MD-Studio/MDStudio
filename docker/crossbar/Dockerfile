@@ -9,4 +9,9 @@ WORKDIR /app
 
 STOPSIGNAL SIGTERM
 
+RUN echo "" >> ~/.bashrc && \
+    echo 'source ~/.bashrc_mdstudio' >> ~/.bashrc
+
+ADD .bashrc_mdstudio /root/.bashrc_mdstudio
+
 CMD ["bash", "/docker-entrypoint.sh"]

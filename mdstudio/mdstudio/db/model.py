@@ -16,7 +16,7 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
-class Model:
+class Model(object):
 
     # type: IDatabase
     wrapper = None
@@ -26,7 +26,7 @@ class Model:
 
     date_time_fields = []
     date_fields = []
-    protected_fields = []
+    encrypted_fields = []
 
     # @todo: global connection
     def __init__(self, wrapper=None, collection=None, connection_type=None):
@@ -210,7 +210,7 @@ class Model:
         return self.wrapper.extract(delete_many, 'count')
 
     def fields(self, other=None):
-        own_fields = Fields(date_times=self.date_time_fields, dates=self.date_fields, protected=self.protected_fields)
+        own_fields = Fields(date_times=self.date_time_fields, dates=self.date_fields, encrypted=self.encrypted_fields)
         if other:
             own_fields = own_fields.merge(other)
         if own_fields.is_empty():

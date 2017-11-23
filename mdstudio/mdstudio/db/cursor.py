@@ -87,7 +87,7 @@ class Cursor:
         # type: () -> Cursor
         self.__init__(self.wrapper, (yield self.wrapper.rewind(self._id)))
 
-        return self
+        return_value(self)
 
     def count(self, with_limit_and_skip=False):
         # type: (bool) -> int

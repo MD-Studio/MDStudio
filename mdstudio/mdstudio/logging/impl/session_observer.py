@@ -22,7 +22,7 @@ from mdstudio.utc import to_utc_string
 LOGLEVELS = ['debug', 'info', 'warn', 'error', 'critical']
 
 
-class SessionLogObserver(metaclass=Singleton):
+class SessionLogObserver(object, metaclass=Singleton):
     log = Logger()
 
     def __init__(self, session, log_type=LogType.User):

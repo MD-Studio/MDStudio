@@ -8,7 +8,7 @@ class DBTestCase(trial_unit.TestCase):
         global create_mock_client
         create_mock_client = True
 
-        result = super().run(result=result)
+        result = super(DBTestCase, self).run(result=result)
 
         create_mock_client = False
 

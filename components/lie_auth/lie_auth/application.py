@@ -658,7 +658,7 @@ class AuthComponent(CoreComponentSession):
             # We cannot be sure the DB is already up, possibly wait
             yield DBWaiter(self, update_registration).run()
 
-class DBWaiter:
+class DBWaiter(object):
     def __init__(self, session, callback):
         self.session = session
         self.callback = callback

@@ -10,7 +10,7 @@ from mdstudio.logging.logger import Logger
 
 
 class CoreComponentSession(CommonSession):
-    class ComponentWaiter:
+    class ComponentWaiter(object):
         log = Logger()
 
         def __init__(self, session, component):

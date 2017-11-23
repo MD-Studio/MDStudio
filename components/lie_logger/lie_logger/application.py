@@ -19,7 +19,7 @@ from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.log_type import LogType
 
 
-class LogsRepository:
+class LogsRepository(object):
 
 
     class Logs(Model):

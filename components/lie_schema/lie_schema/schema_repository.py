@@ -13,7 +13,7 @@ from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
 
 
-class SchemaRepository:
+class SchemaRepository(object):
 
     class Schemas(Model):
         """

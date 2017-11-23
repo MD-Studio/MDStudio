@@ -17,39 +17,39 @@ class Fields(object):
     dates = []
 
     # type: List[str]
-    protected = []
+    encrypted = []
 
-    def __init__(self, *args, date_times=None, dates=None, protected=None):
+    def __init__(self, date_times=None, dates=None, encrypted=None):
         # type: (List[str], List[str], List[str]) -> None
         if date_times and not isinstance(date_times, list):
             date_times = [date_times]
         if dates and not isinstance(dates, list):
             dates = [dates]
-        if protected and not isinstance(protected, list):
-            protected = [protected]
+        if encrypted and not isinstance(encrypted, list):
+            encrypted = [encrypted]
 
         self.date_times = date_times if date_times else self.date_times
         self.dates = dates if dates else self.dates
-        self.protected = protected if protected else self.protected
+        self.encrypted = encrypted if encrypted else self.encrypted
 
 
     def __eq__(self, other):
         return other and set(self.date_times) == set(other.date_times) \
                and set(self.dates) == set(other.dates) \
-               and set(self.protected) == set(other.protected)
+               and set(self.encrypted) == set(other.encrypted)
 
     def merge(self, other):
         # type: (Fields) -> Fields
         return Fields(date_times=other.date_times + self.date_times,
                       dates=other.dates + self.dates,
-                      protected=other.protected + self.protected)
+                      encrypted=other.encrypted + self.encrypted)
 
     def convert_call(self, obj, prefixes=None):
         self.transform_to_object(obj, self.date_times, Fields.parse_date_time, prefixes)
         self.transform_to_object(obj, self.dates, Fields.parse_date, prefixes)
 
     def is_empty(self):
-        return not self.date_times and not self.dates and not self.protected
+        return not self.date_times and not self.dates and not self.encrypted
 
     def to_dict(self):
         result = {}
@@ -57,14 +57,14 @@ class Fields(object):
             result['datetime'] = self.date_times
         if self.dates:
             result['date'] = self.dates
-        if self.protected:
-            result['protected'] = self.protected
+        if self.encrypted:
+            result['encrypted'] = self.encrypted
         return result
 
     @staticmethod
     def from_dict(request):
 
-        return Fields(date_times=request.get('datetime'), dates=request.get('date'), protected=request.get('protected'))
+        return Fields(date_times=request.get('datetime'), dates=request.get('date'), encrypted=request.get('encrypted'))
 
     @staticmethod
     def transform_to_object(document, fields, parser, prefixes=None):
