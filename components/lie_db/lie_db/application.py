@@ -58,7 +58,7 @@ class DBComponent(CoreComponentSession):
     def more(self, request, claims=None):
         database = self.get_database(claims)
 
-        return database.more(request['cursorId'])
+        return database.more(request['cursorId'], claims=claims)
 
     @register(u'mdstudio.db.endpoint.rewind',
               'cursor/rewind-request',
@@ -66,7 +66,7 @@ class DBComponent(CoreComponentSession):
     def rewind(self, request, claims=None):
         database = self.get_database(claims)
 
-        return database.rewind(request['cursorId'])
+        return database.rewind(request['cursorId'], claims=claims)
 
     @register(u'mdstudio.db.endpoint.insert_one',
               'insert/insert-one-request',

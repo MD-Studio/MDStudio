@@ -46,7 +46,7 @@ class MongoDatabaseWrapper(IDatabase):
     def rewind(self, cursor_id):
         # type: (str) -> Dict[str, Any]
         try:
-            self._cursors[cursor_id].rewind()
+            self._cursors[cursor_id][0].rewind()
 
             return self._more(cursor_id)
         except KeyError:
@@ -99,7 +99,7 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Optional[Fields]], Optional[str]) -> Dict[str, Any]
         total = 0
         if cursor_id:
-            total = self._cursors[cursor_id].count(with_limit_and_skip)
+            total = self._cursors[cursor_id][0].count(with_limit_and_skip)
         else:
             db_collection = self._get_collection(collection)
 
@@ -166,9 +166,7 @@ class MongoDatabaseWrapper(IDatabase):
 
             result = db_collection.find_one(filter, projection, skip=skip, sort=self._prepare_sortmode(sort))
 
-            fields.parse_result(result, claims)
-
-            self._prepare_for_json(result)
+            self._prepare_result(claims, fields, result)
 
         return {
             'result': result
@@ -193,7 +191,7 @@ class MongoDatabaseWrapper(IDatabase):
         filter = self._prepare_for_mongo(filter)
 
         cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
-        return self._get_cursor(cursor)
+        return self._get_cursor(cursor, fields=fields, claims=claims)
 
     @make_deferred
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
@@ -213,9 +211,7 @@ class MongoDatabaseWrapper(IDatabase):
             result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort),
                                                        upsert=upsert, return_document=return_document)
 
-            fields.parse_result(result, claims)
-
-            self._prepare_for_json(result)
+            self._prepare_result(claims, fields, result)
 
         return {
             'result': result
@@ -240,9 +236,7 @@ class MongoDatabaseWrapper(IDatabase):
                                                         sort=self._prepare_sortmode(sort), upsert=upsert,
                                                         return_document=return_document)
 
-            fields.parse_result(result, claims)
-
-            self._prepare_for_json(result)
+            self._prepare_result(claims, fields, result)
 
         return {
             'result': result
@@ -262,9 +256,7 @@ class MongoDatabaseWrapper(IDatabase):
 
             result = db_collection.find_one_and_delete(filter, projection, sort=self._prepare_sortmode(sort))
 
-            fields.parse_result(result, claims)
-
-            self._prepare_for_json(result)
+            self._prepare_result(claims, fields, result)
 
         return {
             'result': result
@@ -417,8 +409,8 @@ class MongoDatabaseWrapper(IDatabase):
             sort = [(sort[0], _convert_mode(sort[1]))]
         return sort
 
-    def _get_cursor(self, cursor, max_size=50):
-        # type: (Cursor) -> dict
+    def _get_cursor(self, cursor, fields=None, claims=None, max_size=50):
+        # type: (Cursor, Fields, dict, int) -> dict
 
         results = []
 
@@ -429,10 +421,14 @@ class MongoDatabaseWrapper(IDatabase):
             for _ in range(size):
                 doc = cursor.next()
                 self._prepare_for_json(doc)
+                if fields and claims:
+                    fields.parse_result(doc, claims)
                 results.append(doc)
         except AttributeError:
             for doc in cursor:
                 self._prepare_for_json(doc)
+                if fields and claims:
+                    fields.parse_result(doc, claims)
                 results.append(doc)
                 if len(results) >= max_size:
                     break
@@ -443,7 +439,7 @@ class MongoDatabaseWrapper(IDatabase):
         # hash the cursor id to make random guessing a lot harder
         id = getattr(cursor, '_id', getattr(cursor, 'cursor_id', random.randint(1, 999999999)))
         cursor_hash = hashlib.sha256('{}{}'.format(id, random.randint(1, 999999999)).encode()).hexdigest()
-        self._cursors[cursor_hash] = cursor
+        self._cursors[cursor_hash] = (cursor, fields)
 
         return {
             'results': results,
@@ -456,12 +452,12 @@ class MongoDatabaseWrapper(IDatabase):
         # type: (str) -> Dict[str, Any]
 
         try:
-            cursor = self._cursors[cursor_id]
+            cursor, fields = self._cursors[cursor_id]
 
             # refresh cursor keep alive time
-            self._cursors[cursor_id] = cursor
+            self._cursors[cursor_id] = (cursor, fields)
 
-            return self._get_cursor(cursor)
+            return self._get_cursor(cursor, fields)
 
         except KeyError:
             raise DatabaseException("Cursor with id '{}' is unknown".format(cursor_id))
@@ -504,3 +500,8 @@ class MongoDatabaseWrapper(IDatabase):
     def _convert_fields(fields, var_map, prefixes, claims=None):
         if fields:
             fields.convert_call(var_map, prefixes, claims)
+
+    def _prepare_result(self, claims, fields, result):
+        if fields:
+            fields.parse_result(result, claims)
+        self._prepare_for_json(result)

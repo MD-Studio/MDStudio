@@ -32,7 +32,7 @@ class TestCommonSession(TestCase):
         self.assertIsInstance(self.session.component_config.static, CommonSession.Config.Static)
         self.assertIsInstance(self.session.component_config.static, dict)
 
-        self.assertIsInstance(self.session.component_config.session, dict)
+        self.assertIsInstance(self.session.component_config.settings, dict)
 
         self.session.validate_settings.assert_called_once_with()
         self.session.load_settings.assert_called_once_with()
@@ -44,7 +44,7 @@ class TestCommonSession(TestCase):
             load_environment = mock.MagicMock()
             validate_settings = mock.MagicMock()
         self.session = TestSession()
-        self.session.load_environment.assert_called_once_with(self.session.session_env_mapping)
+        self.session.load_environment.assert_called_once_with(self.session.session_env_mapping, attribute='session')
 
 
     def test_construction_config(self):
@@ -85,7 +85,7 @@ class TestCommonSession(TestCase):
         class TestSession(CommonSession):
             def load_settings(self):
                 assert (self.environment)
-            def load_environment(self, mapping):
+            def load_environment(self, mapping, attribute=None):
                 self.environment = True
             def validate_settings(self):
                 assert (self.pre_init)
@@ -103,24 +103,44 @@ class TestCommonSession(TestCase):
         self.assertTrue(session.pre_init)
         self.assertTrue(session.on_init)
 
-    def test_add_session_env_var(self):
+    def test_add_env_var_from_config(self):
+        var = self.faker.word()
+        env = self.faker.word()
+        self.assertEqual(self.session.component_config.settings, {})
+        self.session.add_env_var_from_config(var, [env], extract=lambda x: x)
+
+        self.assertEqual(self.session.component_config.settings, {
+            var: env
+        })
+
+    def test_add_env_var_from_config2(self):
         var = self.faker.word()
         env = self.faker.word()
         self.assertEqual(self.session.component_config.session, {'realm': 'mdstudio'})
-        self.session.add_session_env_var(var, [env], extract=lambda x: x)
+        self.session.add_env_var_from_config(var, [env], extract=lambda x: x, attribute='session')
 
         self.assertEqual(self.session.component_config.session, {
             'realm': 'mdstudio',
             var: env
         })
 
+    def test_add_env_var_from_config3(self):
+        var = self.faker.word()
+        env = self.faker.word()
+        self.assertEqual(self.session.component_config.static, {})
+        self.session.add_env_var_from_config(var, [env], extract=lambda x: x, attribute='static')
+
+        self.assertEqual(self.session.component_config.static, {
+            var: env
+        })
+
     @mock.patch.dict(os.environ, {'TEST2': 'VALUE'})
-    def test_add_session_env_var_multiple(self):
+    def test_add_env_var_from_config_multiple(self):
         var = 'TEST'
         env = self.faker.word()
         env2 = 'TEST2'
         self.assertEqual(self.session.component_config.session, {'realm': 'mdstudio'})
-        self.session.add_session_env_var(var, [env, env2])
+        self.session.add_env_var_from_config(var, [env, env2], attribute='session')
 
         self.assertEqual(self.session.component_config.session, {
             'realm': 'mdstudio',
@@ -128,12 +148,12 @@ class TestCommonSession(TestCase):
         })
 
     @mock.patch.dict(os.environ, {'TEST2': 'VALUE2', 'TEST3': 'VALUE3'})
-    def test_add_session_env_var_multiple2(self):
+    def test_add_env_var_from_config_multiple2(self):
         var = 'TEST'
         env = 'TEST2'
         env2 = 'TEST3'
         self.assertEqual(self.session.component_config.session, {'realm': 'mdstudio'})
-        self.session.add_session_env_var(var, [env, env2])
+        self.session.add_env_var_from_config(var, [env, env2], attribute='session')
 
         self.assertEqual(self.session.component_config.session, {
             'realm': 'mdstudio',
@@ -141,34 +161,34 @@ class TestCommonSession(TestCase):
         })
 
     @mock.patch.dict(os.environ, {'TEST2': 'VALUE'})
-    def test_add_session_env_var_single(self):
+    def test_add_env_var_from_config_single(self):
         var = 'TEST'
         env = 'TEST2'
         self.assertEqual(self.session.component_config.session, {'realm': 'mdstudio'})
-        self.session.add_session_env_var(var, env)
+        self.session.add_env_var_from_config(var, env, attribute='session')
 
         self.assertEqual(self.session.component_config.session, {
             'realm': 'mdstudio',
             var: 'VALUE'
         })
 
-    def test_add_session_env_var_default(self):
+    def test_add_env_var_from_config_default(self):
         var = self.faker.word()
         env = self.faker.word()
         default = self.faker.word()
         self.assertEqual(self.session.component_config.session, {'realm': 'mdstudio'})
-        self.session.add_session_env_var(var, env, default)
+        self.session.add_env_var_from_config(var, env, attribute='session', default=default)
 
         self.assertEqual(self.session.component_config.session, {
             'realm': 'mdstudio',
             var: default
         })
 
-    def test_add_session_env_var_none(self):
+    def test_add_env_var_from_config_none(self):
         var = self.faker.word()
         env = self.faker.word()
         self.assertEqual(self.session.component_config.session, {'realm': 'mdstudio'})
-        self.session.add_session_env_var(var, env)
+        self.session.add_env_var_from_config(var, env, attribute='session')
 
         self.assertEqual(self.session.component_config.session, {
             'realm': 'mdstudio'
@@ -177,13 +197,13 @@ class TestCommonSession(TestCase):
     def test_load_environment(self):
         class TestSession(CommonSession):
             validate_settings = mock.MagicMock()
-            add_session_env_var = mock.MagicMock()
+            add_env_var_from_config = mock.MagicMock()
 
         self.session = TestSession()
-        self.session.add_session_env_var.assert_has_calls([
-            call('username', ['MDSTUDIO_USERNAME'], None),
-            call('password', ['MDSTUDIO_PASSWORD'], None),
-            call('realm', ['MDSTUDIO_REALM'], 'mdstudio')
+        self.session.add_env_var_from_config.assert_has_calls([
+            call('username', ['MDSTUDIO_USERNAME'], 'session', converter=None, default=None),
+            call('password', ['MDSTUDIO_PASSWORD'], 'session', converter=None, default=None),
+            call('realm', ['MDSTUDIO_REALM'], 'session', converter=None, default='mdstudio')
         ])
 
     def test_load_settings(self):

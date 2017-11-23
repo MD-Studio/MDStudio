@@ -248,7 +248,9 @@ class CommonSession(ApplicationSession):
     #
     # onLeave = on_leave
 
-    def add_env_var_from_config(self, session_var, env_vars, attribute, default=None, converter=None, extract=os.getenv):
+    def add_env_var_from_config(self, session_var, env_vars, attribute=None, default=None, converter=None, extract=os.getenv):
+        if not attribute:
+            attribute = 'settings'
         if not isinstance(env_vars, list):
             env_vars = [env_vars]
 
@@ -265,7 +267,7 @@ class CommonSession(ApplicationSession):
         if default:
             self.component_config[attribute][session_var] = default
 
-    def load_environment(self, mapping, attribute='settings'):
+    def load_environment(self, mapping, attribute=None):
         for session_var, env_vars in mapping.items():
             converter = env_vars[2] if len(env_vars) == 3 else None
             self.add_env_var_from_config(session_var, env_vars[0], attribute, default=env_vars[1], converter=converter)
