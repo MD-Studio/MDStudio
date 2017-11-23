@@ -66,6 +66,9 @@ class CommonSession(ApplicationSession):
             self.session = self.Session()
             self.settings = {}
 
+        def __getitem__(self, attr):
+            return getattr(self, attr)
+
         def to_dict(self):
             return {
                 'static': self.static,
@@ -79,7 +82,7 @@ class CommonSession(ApplicationSession):
 
         self.component_config = self.Config()
         self.function_scopes = self.extract_custom_scopes()
-        self.load_environment(self.session_env_mapping)
+        self.load_environment(self.session_env_mapping, attribute='session')
 
         self.load_settings()
 
@@ -245,7 +248,7 @@ class CommonSession(ApplicationSession):
     #
     # onLeave = on_leave
 
-    def add_session_env_var(self, session_var, env_vars, default=None, extract=os.getenv):
+    def add_env_var_from_config(self, session_var, env_vars, attribute, default=None, converter=None, extract=os.getenv):
         if not isinstance(env_vars, list):
             env_vars = [env_vars]
 
@@ -253,15 +256,19 @@ class CommonSession(ApplicationSession):
             env_var = extract(var)
 
             if env_var:
-                self.component_config.session[session_var] = env_var
+                if converter:
+                    self.component_config[attribute][session_var] = converter(env_var)
+                else:
+                    self.component_config[attribute][session_var] = env_var
                 return
 
         if default:
-            self.component_config.session[session_var] = default
+            self.component_config[attribute][session_var] = default
 
-    def load_environment(self, mapping):
+    def load_environment(self, mapping, attribute='settings'):
         for session_var, env_vars in mapping.items():
-            self.add_session_env_var(session_var, env_vars[0], env_vars[1])
+            converter = env_vars[2] if len(env_vars) == 3 else None
+            self.add_env_var_from_config(session_var, env_vars[0], attribute, default=env_vars[1], converter=converter)
 
     def load_settings(self):
         for file in self.settings_files():

@@ -1,6 +1,15 @@
+import base64
+
+import hashlib
+from collections import OrderedDict
+
 import os
 from autobahn.wamp import PublishOptions
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+from lie_db.key_repository import KeyRepository
 from mdstudio.api.register import register
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.connection import ConnectionType
@@ -15,14 +24,29 @@ class DBComponent(CoreComponentSession):
     Database management WAMP methods.
     """
     def pre_init(self):
+
+        self.load_environment(OrderedDict([
+            ('host', (['MD_MONGO_HOST'], 'localhost')),
+            ('port', (['MD_MONGO_PORT'], 27017, int)),
+            ('secret', (['MD_MONGO_SECRET'], None))
+        ]))
+
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
 
     def on_init(self):
-        db_host = os.getenv('MD_MONGO_HOST', self.component_config.settings.get('host', 'localhost'))
-        db_port = int(os.getenv('MD_MONGO_PORT', self.component_config.settings.get('port', 27017)))
-        self._client = MongoClientWrapper(db_host, db_port)
+
+        assert self.component_config.settings['secret'], 'The database must have a secret set!\nPlease modify your configuration or set "MD_MONGO_SECRET"'
+        assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! Please make sure it is larger than it is now.'
+
+        self._set_secret()
+
+        self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
 
         self.database_lock = Lock()
+
+    @property
+    def secret(self):
+        return self._secret
 
     @chainable
     def _on_join(self):
@@ -52,8 +76,7 @@ class DBComponent(CoreComponentSession):
         database = self.get_database(claims)
         kwargs = {}
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.insert_one(request['collection'], request['insert'], **kwargs)
 
@@ -65,8 +88,7 @@ class DBComponent(CoreComponentSession):
         database = self.get_database(claims)
         kwargs = {}
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.insert_many(request['collection'], request['insert'], **kwargs)
 
@@ -80,8 +102,7 @@ class DBComponent(CoreComponentSession):
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.replace_one(request['collection'], request['filter'],
                                     request['replacement'], **kwargs)
@@ -123,8 +144,7 @@ class DBComponent(CoreComponentSession):
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.update_one(request['collection'], request['filter'],
                                    request['update'], **kwargs)
@@ -140,8 +160,7 @@ class DBComponent(CoreComponentSession):
         if 'upsert' in request:
             kwargs['upsert'] = request['upsert']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.update_many(request['collection'], request['filter'],
                                     request['update'], **kwargs)
@@ -160,8 +179,7 @@ class DBComponent(CoreComponentSession):
         if 'sort' in request:
             kwargs['sort'] = request['sort']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.find_one(request['collection'], request['filter'], **kwargs)
 
@@ -181,8 +199,7 @@ class DBComponent(CoreComponentSession):
         if 'sort' in request:
             kwargs['sort'] = request['sort']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.find_many(request['collection'], request['filter'], **kwargs)
 
@@ -203,8 +220,7 @@ class DBComponent(CoreComponentSession):
         if 'returnUpdated' in request:
             kwargs['return_updated'] = request['returnUpdated']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.find_one_and_update(request['collection'], request['filter'],
                                             request['update'], **kwargs)
@@ -226,8 +242,7 @@ class DBComponent(CoreComponentSession):
         if 'returnUpdated' in request:
             kwargs['return_updated'] = request['returnUpdated']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.find_one_and_replace(request['collection'], request['filter'],
                                              request['replacement'], **kwargs)
@@ -245,8 +260,7 @@ class DBComponent(CoreComponentSession):
         if 'sort' in request:
             kwargs['sort'] = request['sort']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.find_one_and_delete(request['collection'], request['filter'], **kwargs)
 
@@ -261,8 +275,7 @@ class DBComponent(CoreComponentSession):
         if 'filter' in request:
             kwargs['filter'] = request['filter']
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.distinct(request['collection'], request['field'], **kwargs)
 
@@ -283,8 +296,7 @@ class DBComponent(CoreComponentSession):
 
         kwargs = {}
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.delete_one(request['collection'], request['filter'], **kwargs)
 
@@ -297,8 +309,7 @@ class DBComponent(CoreComponentSession):
 
         kwargs = {}
 
-        if 'fields' in request:
-            kwargs['fields'] = Fields.from_dict(request['fields'])
+        self.set_fields(claims, kwargs, request)
 
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 
@@ -323,6 +334,13 @@ class DBComponent(CoreComponentSession):
 
         return result
 
+    def set_fields(self, claims, kwargs, request):
+        if 'fields' in request:
+            repo = KeyRepository(self, self._client.get_database('users~db'))
+            kwargs['fields'] = Fields.from_dict(request['fields'], repo)
+            if kwargs['fields'].uses_encryption:
+                kwargs['claims'] = claims
+
     def authorize_request(self, uri, claims):
         connection_type = ConnectionType.from_string(claims['connectionType'])
 
@@ -336,3 +354,15 @@ class DBComponent(CoreComponentSession):
             raise NotImplemented()
 
         return False
+
+
+    def _set_secret(self):
+        secret = str.encode(self.component_config.settings['secret'])
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=hashlib.sha512(secret).digest(),
+            iterations=150000,
+            backend=default_backend()
+        )
+        self._secret = base64.urlsafe_b64encode(kdf.derive(secret))

@@ -37,7 +37,7 @@ class SessionLogObserver(object, metaclass=Singleton):
         self.recovery_file_path = os.path.join(session.component_root_path(), 'logs', 'recovery.json')
 
         twisted.python.log.addObserver(self)
-        self.log.info('Collectiong logs on session {session}', session=session)
+        self.log.info('Collecting logs on session {session}', session=session)
 
         self.flusher = task.LoopingCall(self.flush_logs)
 

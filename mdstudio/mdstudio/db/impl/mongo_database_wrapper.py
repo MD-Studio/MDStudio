@@ -25,6 +25,8 @@ class MongoDatabaseWrapper(IDatabase):
     # type: CacheDict
     _cursors = None
 
+    _internal_db =None
+
     def __init__(self, database_name, db):
         self._database_name = database_name
         self._db = db
@@ -51,12 +53,11 @@ class MongoDatabaseWrapper(IDatabase):
             raise DatabaseException("Cursor with id '{}' is unknown".format(cursor_id))
 
     @make_deferred
-    def insert_one(self, collection, insert, fields=None):
+    def insert_one(self, collection, insert, fields=None, claims=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
-        if fields:
-            fields.convert_call({'insert': insert}, ['insert'])
+        self._convert_fields(fields, {'insert': insert}, ['insert'], claims)
         insert = self._prepare_for_mongo(insert)
 
         return {
@@ -64,12 +65,11 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def insert_many(self, collection, insert, fields=None):
+    def insert_many(self, collection, insert, fields=None, claims=None):
         # type: (CollectionType, List[DocumentType], Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
-        if fields:
-            fields.convert_call({'insert': insert}, ['insert'])
+        self._convert_fields(fields, {'insert': insert}, ['insert'], claims)
         insert = self._prepare_for_mongo(insert)
 
         return {
@@ -77,15 +77,14 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def replace_one(self, collection, filter, replacement, upsert=False, fields=None):
+    def replace_one(self, collection, filter, replacement, upsert=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
             return self._update_response(upsert)
 
-        if fields:
-            fields.convert_call({'filter': filter, 'replacement': replacement}, ['filter', 'replacement'])
+        self._convert_fields(fields, {'filter': filter, 'replacement': replacement}, ['filter', 'replacement'], claims)
 
         filter = self._prepare_for_mongo(filter)
         replacement = self._prepare_for_mongo(replacement)
@@ -95,7 +94,7 @@ class MongoDatabaseWrapper(IDatabase):
         return self._update_response(upsert, result=replace_result)
 
     @make_deferred
-    def count(self, collection=None, filter=None, skip=None, limit=None, fields=None, cursor_id=None,
+    def count(self, collection=None, filter=None, skip=None, limit=None, fields=None, claims=None, cursor_id=None,
               with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Optional[Fields]], Optional[str]) -> Dict[str, Any]
         total = 0
@@ -109,8 +108,7 @@ class MongoDatabaseWrapper(IDatabase):
 
             if db_collection:
 
-                if fields:
-                    fields.convert_call({'filter': filter}, ['filter'])
+                self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
                 filter = self._prepare_for_mongo(filter)
 
                 total = db_collection.count(filter, skip=skip, limit=limit)
@@ -120,16 +118,14 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def update_one(self, collection, filter, update, upsert=False, fields=None):
+    def update_one(self, collection, filter, update, upsert=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Optional[Fields]]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
             return self._update_response(upsert)
 
-
-        if fields:
-            fields.convert_call({'filter': filter, 'update': update}, ['filter', 'update'])
+        self._convert_fields(fields, {'filter': filter, 'update': update}, ['filter', 'update'], claims)
 
         filter = self._prepare_for_mongo(filter)
         update = self._prepare_for_mongo(update)
@@ -139,16 +135,14 @@ class MongoDatabaseWrapper(IDatabase):
         return self._update_response(upsert, result=result)
 
     @make_deferred
-    def update_many(self, collection, filter, update, upsert=False, fields=None):
+    def update_many(self, collection, filter, update, upsert=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
             return self._update_response(upsert)
 
-
-        if fields:
-            fields.convert_call({'filter': filter, 'update': update}, ['filter', 'update'])
+        self._convert_fields(fields, {'filter': filter, 'update': update}, ['filter', 'update'], claims)
         filter = self._prepare_for_mongo(filter)
         update = self._prepare_for_mongo(update)
 
@@ -157,7 +151,7 @@ class MongoDatabaseWrapper(IDatabase):
         return self._update_response(upsert, result=result)
 
     @make_deferred
-    def find_one(self, collection, filter, projection=None, skip=None, sort=None, fields=None):
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, fields=None, claims=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
@@ -166,12 +160,13 @@ class MongoDatabaseWrapper(IDatabase):
         result = None
         if db_collection:
 
-            if fields:
-                fields.convert_call({'filter': filter}, ['filter'])
+            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
 
             result = db_collection.find_one(filter, projection, skip=skip, sort=self._prepare_sortmode(sort))
+
+            fields.parse_result(result, claims)
 
             self._prepare_for_json(result)
 
@@ -180,7 +175,7 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, fields=None):
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, fields=None, claims=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
@@ -194,9 +189,7 @@ class MongoDatabaseWrapper(IDatabase):
                 'size': 0
             }
 
-
-        if fields:
-            fields.convert_call({'filter': filter}, ['filter'])
+        self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
         filter = self._prepare_for_mongo(filter)
 
         cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
@@ -204,15 +197,14 @@ class MongoDatabaseWrapper(IDatabase):
 
     @make_deferred
     def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
-                            return_updated=False, fields=None):
+                            return_updated=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
 
-            if fields:
-                fields.convert_call({'filter': filter, 'update': update}, ['filter', 'update'])
+            self._convert_fields(fields, {'filter': filter, 'update': update}, ['filter', 'update'], claims)
 
             filter = self._prepare_for_mongo(filter)
             update = self._prepare_for_mongo(update)
@@ -220,6 +212,9 @@ class MongoDatabaseWrapper(IDatabase):
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
             result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort),
                                                        upsert=upsert, return_document=return_document)
+
+            fields.parse_result(result, claims)
+
             self._prepare_for_json(result)
 
         return {
@@ -228,15 +223,14 @@ class MongoDatabaseWrapper(IDatabase):
 
     @make_deferred
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
-                             return_updated=False, fields=None):
+                             return_updated=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
 
-            if fields:
-                fields.convert_call({'filter': filter, 'replacement': replacement}, ['filter', 'replacement'])
+            self._convert_fields(fields, {'filter': filter, 'replacement': replacement}, ['filter', 'replacement'], claims)
 
             filter = self._prepare_for_mongo(filter)
             replacement = self._prepare_for_mongo(replacement)
@@ -245,6 +239,9 @@ class MongoDatabaseWrapper(IDatabase):
             result = db_collection.find_one_and_replace(filter, replacement, projection,
                                                         sort=self._prepare_sortmode(sort), upsert=upsert,
                                                         return_document=return_document)
+
+            fields.parse_result(result, claims)
+
             self._prepare_for_json(result)
 
         return {
@@ -252,19 +249,21 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None, fields=None):
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, fields=None, claims=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         result = None
         if db_collection:
 
-            if fields:
-                fields.convert_call({'filter': filter}, ['filter'])
+            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
 
             result = db_collection.find_one_and_delete(filter, projection, sort=self._prepare_sortmode(sort))
+
+            fields.parse_result(result, claims)
+
             self._prepare_for_json(result)
 
         return {
@@ -272,19 +271,19 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def distinct(self, collection, field, filter=None, fields=None):
+    def distinct(self, collection, field, filter=None, fields=None, claims=None):
         # type: (CollectionType, str, Optional[DocumentType], Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         results = []
         if db_collection:
 
-            if fields:
-                fields.convert_call({'filter': filter}, ['filter'])
+            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
 
             results = db_collection.distinct(field, filter)
+            
             for result in results:
                 self._prepare_for_json(result)
 
@@ -310,15 +309,14 @@ class MongoDatabaseWrapper(IDatabase):
         return self._get_cursor(cursor)
 
     @make_deferred
-    def delete_one(self, collection, filter, fields=None):
+    def delete_one(self, collection, filter, fields=None, claims=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
         if db_collection:
 
-            if fields:
-                fields.convert_call({'filter': filter}, ['filter'])
+            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
 
@@ -328,15 +326,14 @@ class MongoDatabaseWrapper(IDatabase):
         }
 
     @make_deferred
-    def delete_many(self, collection=None, filter=None, fields=None):
+    def delete_many(self, collection=None, filter=None, fields=None, claims=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
         if db_collection:
 
-            if fields:
-                fields.convert_call({'filter': filter}, ['filter'])
+            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
 
@@ -503,3 +500,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         return self._db[collection_name]
 
+    @staticmethod
+    def _convert_fields(fields, var_map, prefixes, claims=None):
+        if fields:
+            fields.convert_call(var_map, prefixes, claims)

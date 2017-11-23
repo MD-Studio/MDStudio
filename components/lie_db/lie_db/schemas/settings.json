@@ -3,13 +3,23 @@
   "title": "DBSettings",
   "type": "object",
   "properties": {
-    "port": {
-      "type": "integer",
-      "default": 27017
-    },
-    "host": {
-      "type": "string",
-      "default": "localhost"
+    "settings": {
+      "properties": {
+        "port": {
+          "type": "integer",
+          "default": 27017
+        },
+        "host": {
+          "type": "string",
+          "default": "localhost"
+        },
+        "secret": {
+          "type": "string",
+          "minlength": 20
+        }
+      },
+      "required": ["host", "port", "secret"]
     }
-  }
+  },
+  "required": ["settings"]
 }

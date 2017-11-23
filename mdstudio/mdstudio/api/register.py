@@ -20,7 +20,7 @@ SchemaType = Union[str, dict, ISchema]
 
 def validation_error(schema, instance, error, prefix, uri):
     return \
-        '{prefix} validation on uri {uri} failed with schema:\n{schema}\nfailed on instance {instance}. ' \
+        '{prefix} validation on uri {uri} failed with schema:\n{schema}\nfailed on instance {instance}. \n' \
         'Subschema for {property}:\n{subschema}\ndid not match actual value:\n{subproperty}'.format(
             prefix=prefix,
             uri=uri,

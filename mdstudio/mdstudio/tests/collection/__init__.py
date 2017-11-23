@@ -74,3 +74,27 @@ class TestCollection(TestCase):
             'a': 6,
             'b': {'c': 4}
         })
+
+    def test_merge7(self):
+        a = {'a': 4, 'b': {'c': 10}}
+        b = {
+            'a': 6,
+            'b': {}
+        }
+        merge_dicts(a, b)
+        self.assertEqual(a, {
+            'a': 6,
+            'b': {'c': 10}
+        })
+
+    def test_merge8(self):
+        a = {'a': 4, 'b': {}}
+        b = {
+            'a': 6,
+            'b': {'c': 10}
+        }
+        merge_dicts(a, b)
+        self.assertEqual(a, {
+            'a': 6,
+            'b': {'c': 10}
+        })

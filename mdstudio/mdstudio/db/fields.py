@@ -1,10 +1,9 @@
 import datetime
-
-import pytz
 from typing import List
 
-from mdstudio.db.exception import DatabaseException
+import pytz
 
+from mdstudio.db.exception import DatabaseException
 from mdstudio.utc import from_utc_string, from_date_string
 
 
@@ -19,7 +18,9 @@ class Fields(object):
     # type: List[str]
     encrypted = []
 
-    def __init__(self, date_times=None, dates=None, encrypted=None):
+    _key_repository = None
+
+    def __init__(self, date_times=None, dates=None, encrypted=None, key_repository=None):
         # type: (List[str], List[str], List[str]) -> None
         if date_times and not isinstance(date_times, list):
             date_times = [date_times]
@@ -32,6 +33,7 @@ class Fields(object):
         self.dates = dates if dates else self.dates
         self.encrypted = encrypted if encrypted else self.encrypted
 
+        self._key_repository = key_repository
 
     def __eq__(self, other):
         return other and set(self.date_times) == set(other.date_times) \
@@ -44,9 +46,18 @@ class Fields(object):
                       dates=other.dates + self.dates,
                       encrypted=other.encrypted + self.encrypted)
 
-    def convert_call(self, obj, prefixes=None):
+    def convert_call(self, obj, prefixes=None, claims=None):
         self.transform_to_object(obj, self.date_times, Fields.parse_date_time, prefixes)
         self.transform_to_object(obj, self.dates, Fields.parse_date, prefixes)
+
+        if claims and self.uses_encryption:
+            encryptor = self.get_encryptor(claims)
+            self.transform_to_object(obj, self.encrypted, Fields.parse_encrypted, prefixes, **{'encryptor': encryptor})
+
+    def parse_result(self, obj, claims=None):
+        if claims and self.uses_encryption:
+            encryptor = self.get_encryptor(claims)
+            self.transform_to_object(obj, self.encrypted, Fields.decrypt, None, **{'encryptor': encryptor})
 
     def is_empty(self):
         return not self.date_times and not self.dates and not self.encrypted
@@ -61,13 +72,20 @@ class Fields(object):
             result['encrypted'] = self.encrypted
         return result
 
-    @staticmethod
-    def from_dict(request):
+    @property
+    def uses_encryption(self):
+        return len(self.encrypted) > 0
 
-        return Fields(date_times=request.get('datetime'), dates=request.get('date'), encrypted=request.get('encrypted'))
-
     @staticmethod
-    def transform_to_object(document, fields, parser, prefixes=None):
+    def from_dict(request, key_repository=None):
+
+        return Fields(date_times=request.get('datetime'),
+                        dates=request.get('date'),
+                        encrypted=request.get('encrypted'),
+                        key_repository=key_repository)
+
+
+    def transform_to_object(self, document, fields, parser, prefixes, **kwargs):
         if prefixes is None:
             prefixes = ['']
 
@@ -81,10 +99,9 @@ class Fields(object):
 
         for field in nfields:
             split_fields = field.split('.')
-            Fields.transform_docfield_to_object(document, split_fields, parser)
+            self.transform_docfield_to_object(document, split_fields, parser, **kwargs)
 
-    @staticmethod
-    def transform_docfield_to_object(doc, field, parser):
+    def transform_docfield_to_object(self, doc, field, parser, **kwargs):
         subdoc = doc
 
         for level in field[:-1]:
@@ -93,7 +110,7 @@ class Fields(object):
             else:
                 if isinstance(subdoc, list):
                     for d in subdoc:
-                        Fields.transform_docfield_to_object(d, field[1:], parser)
+                        self.transform_docfield_to_object(d, field[1:], parser, **kwargs)
                 subdoc = None
                 break
 
@@ -106,18 +123,17 @@ class Fields(object):
         if isinstance(subdoc, list):
             for d in subdoc:
                 if key in d:
-                    d[key] = parser(d[key])
+                    d[key] = parser(self, d[key], d, key, **kwargs)
         else:
             # either we indexed a normal datetime field, or a list with datetimes
             if key in subdoc:
                 if isinstance(subdoc[key], list):
                     for i, e in enumerate(subdoc[key]):
-                        subdoc[key][i] = parser(e)
+                        subdoc[key][i] = parser(self, e, subdoc, key, **kwargs)
                 else:
-                    subdoc[key] = parser(subdoc[key])
+                    subdoc[key] = parser(self, subdoc[key], subdoc, key, **kwargs)
 
-    @staticmethod
-    def parse_date_time(val):
+    def parse_date_time(self, val, *args, **kwargs):
         if isinstance(val, str):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
@@ -129,8 +145,7 @@ class Fields(object):
         else:
             raise DatabaseException("Failed to parse datetime field '{}'".format(val))
 
-    @staticmethod
-    def parse_date(val):
+    def parse_date(self, val, *args, **kwargs):
         if isinstance(val, str):
             return from_date_string(val)
         elif isinstance(val, datetime.datetime):
@@ -139,3 +154,24 @@ class Fields(object):
             return val
         else:
             raise DatabaseException("Failed to parse date field '{}'".format(val))
+
+    def parse_encrypted(self, val, *args, **kwargs):
+        if isinstance(val, str):
+            val = val.encode()
+        if isinstance(val, bytes):
+            return kwargs['encryptor'].encrypt(val)
+        else:
+            raise DatabaseException("Failed to encrypt field '{}'".format(val))
+
+    def decrypt(self, val, *args, **kwargs):
+        if isinstance(val, str):
+            val = val.encode()
+        if isinstance(val, bytes):
+            return kwargs['encryptor'].decrypt(val).decode('utf-8')
+        else:
+            raise DatabaseException("Failed to decrypt field '{}'".format(val))
+
+    def get_encryptor(self, claims):
+        from cryptography.fernet import Fernet
+        encryptor = Fernet(self._key_repository.get_key(claims))
+        return encryptor

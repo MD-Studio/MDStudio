@@ -17,7 +17,7 @@
         "$ref": "resource://mdstudio/db/type/v1"
       }
     },
-    "protected": {
+    "encrypted": {
       "type": "array",
       "description": "List of keys of fields that should be stored encrypted for you",
       "items": {

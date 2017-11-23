@@ -567,11 +567,11 @@ class FieldsTests(TestCase):
         self.assertRaises(DatabaseException, lambda: f.convert_call(doc))
 
     def test_to_dict(self):
-        fields = Fields(date_times=['test'], dates=['test2'], protected=['test3'])
+        fields = Fields(date_times=['test'], dates=['test2'], encrypted=['test3'])
         self.assertEqual(fields.to_dict(), {
             'date': ['test2'],
             'datetime': ['test'],
-            'protected': ['test3']
+            'encrypted': ['test3']
         })
 
     def test_to_dict2(self):
@@ -587,17 +587,17 @@ class FieldsTests(TestCase):
         })
 
     def test_to_dict4(self):
-        fields = Fields(protected=['test3'])
+        fields = Fields(encrypted=['test3'])
         self.assertEqual(fields.to_dict(), {
-            'protected': ['test3']
+            'encrypted': ['test3']
         })
 
     def test_from_dict(self):
         self.assertEqual(Fields.from_dict({
             'date': ['test2'],
             'datetime': ['test'],
-            'protected': ['test3']
-        }), Fields(date_times=['test'], dates=['test2'], protected=['test3']))
+            'encrypted': ['test3']
+        }), Fields(date_times=['test'], dates=['test2'], encrypted=['test3']))
 
     def test_from_dict2(self):
         self.assertEqual(Fields.from_dict({
@@ -608,5 +608,5 @@ class FieldsTests(TestCase):
         self.assertEqual(Fields.from_dict({
             'date': 'test2',
             'datetime': 'test',
-            'protected': 'test3'
-        }), Fields(date_times=['test'], dates=['test2'], protected=['test3']))
+            'encrypted': 'test3'
+        }), Fields(date_times=['test'], dates=['test2'], encrypted=['test3']))

@@ -5,6 +5,7 @@ from pprint import pformat
 import dictdiffer
 import hashlib
 from jsonschema import Draft4Validator, SchemaError
+from mdstudio.db.fields import Fields
 
 import mdstudio.utc as utc
 from lie_schema.exception import SchemaException
@@ -49,7 +50,7 @@ class SchemaRepository(object):
                     'hash': <hash>,
                     'createdAt': <time>,
                     'createdBy': {
-                        'user': <user>,
+                        'username': <user>,
                         'group: <group>,
                         'groupRole': <groupRole>
                     }
@@ -98,7 +99,7 @@ class SchemaRepository(object):
         version = schema['version']
         latest = yield self.find_latest(vendor, component, name, version, schema_str)
 
-        if not latest:
+        if True or not latest:
             yield self._upload_new_schema(claims, component, hash, name, schema, schema_str, vendor, version)
 
     @property
