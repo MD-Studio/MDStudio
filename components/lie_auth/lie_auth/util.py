@@ -6,6 +6,8 @@ import random
 import socket
 import string
 
+from typing import List, Optional
+
 from mdstudio.logging.logger import Logger
 
 try:
@@ -21,7 +23,7 @@ logging = Logger()
 
 
 def generate_password(password_length=16):
-    # type: (int) -> str
+    # type: (int) -> Optional[str]
     """
     Create random password of length `password_length`
 
@@ -98,17 +100,14 @@ def check_password(password_hash, password):
     return check_password_hash(password_hash, password)
 
 def ip_domain_based_access(domain, blacklist=None):
+    # type: (str, List[str]) -> bool
     """
     Filter access based on client IP or domain information.
     If the domain is contained in a domain blacklist return
     False to deny access, otherwise return True.
 
     :param domain:    domain to check access for against black list.
-    :type domain:     str
     :param blacklist: domains to blacklist with support for wildcards
-    :type blacklist:  list
-
-    :rtype:           bool
     """
 
     if blacklist is None:
