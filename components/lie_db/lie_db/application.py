@@ -31,6 +31,8 @@ class DBComponent(CoreComponentSession):
             ('secret', (['MD_MONGO_SECRET'], None))
         ]))
 
+        self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
+
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
 
     def on_init(self):
@@ -39,8 +41,6 @@ class DBComponent(CoreComponentSession):
         assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! Please make sure it is larger than it is now.'
 
         self._set_secret()
-
-        self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
 
         self.database_lock = Lock()
 

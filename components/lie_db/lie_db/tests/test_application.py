@@ -31,26 +31,26 @@ class TestDBComponent(DBTestCase, APITestCase):
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
 
-    def test_on_init(self):
+    def test_pre_init(self):
         with mock.patch.dict('os.environ'):
             del os.environ['MD_MONGO_HOST']
             del os.environ['MD_MONGO_PORT']
-            self.service.on_init()
+            self.service.pre_init()
 
             self.assertEqual(self.service._client._host, "localhost")
             self.assertEqual(self.service._client._port, 27017)
 
     @mock.patch.dict(os.environ, {'MD_MONGO_HOST': 'localhost2'})
-    def test_on_init_host(self):
+    def test_pre_init_host(self):
 
-        self.service.on_init()
+        self.service.pre_init()
 
         self.assertEqual(self.service._client._host, "localhost2")
 
     @mock.patch.dict(os.environ, {'MD_MONGO_PORT': '31312'})
-    def test_on_init_port(self):
+    def test_pre_init_port(self):
 
-        self.service.on_init()
+        self.service.pre_init()
 
         self.assertEqual(self.service._client._port, 31312)
 

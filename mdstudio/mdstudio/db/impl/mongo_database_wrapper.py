@@ -38,17 +38,17 @@ class MongoDatabaseWrapper(IDatabase):
         self._cursors = CacheDict(max_age_seconds=10 * 60)
 
     @make_deferred
-    def more(self, cursor_id):
+    def more(self, cursor_id, claims=None):
         # type: (str) -> Dict[str, Any]
-        return self._more(cursor_id)
+        return self._more(cursor_id, claims)
 
     @make_deferred
-    def rewind(self, cursor_id):
+    def rewind(self, cursor_id, claims=None):
         # type: (str) -> Dict[str, Any]
         try:
             self._cursors[cursor_id][0].rewind()
 
-            return self._more(cursor_id)
+            return self._more(cursor_id, claims)
         except KeyError:
             raise DatabaseException("Cursor with id '{}' is unknown".format(cursor_id))
 
@@ -448,7 +448,7 @@ class MongoDatabaseWrapper(IDatabase):
             'alive': getattr(cursor, 'alive', True) and len(results) > 0
         }
 
-    def _more(self, cursor_id):
+    def _more(self, cursor_id, claims):
         # type: (str) -> Dict[str, Any]
 
         try:
@@ -457,7 +457,7 @@ class MongoDatabaseWrapper(IDatabase):
             # refresh cursor keep alive time
             self._cursors[cursor_id] = (cursor, fields)
 
-            return self._get_cursor(cursor, fields)
+            return self._get_cursor(cursor, fields=fields, claims=claims)
 
         except KeyError:
             raise DatabaseException("Cursor with id '{}' is unknown".format(cursor_id))
