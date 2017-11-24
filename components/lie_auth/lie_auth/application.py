@@ -6,12 +6,11 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import base64
-import copy
 import datetime
 import json
-import os
 
+import base64
+import copy
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError
@@ -19,7 +18,6 @@ from oauthlib import oauth2
 from oauthlib.common import generate_client_id as generate_secret
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
-from twisted.logger import Logger
 
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.deferred.chainable import chainable
@@ -32,8 +30,7 @@ except ImportError:
 from mdstudio.api.register import register
 from mdstudio.utc import now
 from mdstudio.db.model import Model
-from .util import check_password, ip_domain_based_access
-from .password_retrieval import PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
+from .util import check_password, logging, ip_domain_based_access
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
 
@@ -54,13 +51,6 @@ class AuthComponent(CoreComponentSession):
         self.authorizer = Authorizer()
 
     def onInit(self, **kwargs):
-        password_retrieval_message_file = os.path.join(self._config_dir, 'password_retrieval.txt')
-        if os.path.isfile(password_retrieval_message_file):
-            self._password_retrieval_message_template = open(password_retrieval_message_file).read()
-        else:
-            self._password_retrieval_message_template = PASSWORD_RETRIEVAL_MESSAGE_TEMPLATE
-            open(password_retrieval_message_file, 'w').write(self._password_retrieval_message_template)
-
         self.oauth_backend_server = oauth2.BackendApplicationServer(OAuthRequestValidator(self))
 
         self.autolog = False
@@ -205,7 +195,9 @@ class AuthComponent(CoreComponentSession):
             raise ApplicationError('Access granted only to local users, access via domain {0}'.format(domain))
 
         # Is the domain blacklisted?
-        if not ip_domain_based_access(domain, blacklist=self.package_config.get('domain-blacklist', [])):
+        black_list = self.package_config.get('domain-blacklist', [])
+        if not ip_domain_based_access(domain, blacklist=black_list):
+            logging.info('Access for domain {domain} blacklisted (pattern={blacklist})'.format(domain=domain, blacklist=black_list))
             raise ApplicationError('Access from domain {0} not allowed'.format(domain))
 
         username = authid.strip()
