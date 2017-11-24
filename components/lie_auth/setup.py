@@ -4,7 +4,7 @@
 # package: lie_auth
 # file: setup.py
 #
-# Part of ‘lie_auth’, a package providing authentication and authorization for the LIEStudio
+# Part of ‘lie_auth’, a package providing authentication and authorization for the MDStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -23,37 +23,35 @@
 
 from setuptools import setup, find_packages
 
+
 def pipenv_requires():
     from pipenv.project import Project
     from pipenv.utils import convert_deps_to_pip
 
     pfile = Project(chdir=True).parsed_pipfile
-    return convert_deps_to_pip(pfile['packages'], r = False)
+    return convert_deps_to_pip(pfile['packages'], r=False)
 
 
 distribution_name = 'lie_auth'
 
 setup(
     name=distribution_name,
-    version=0.1,
-    description='Authentication and authorization management for the LIEStudio application',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
+    version='1.0.0',
     license='Apache Software License 2.0',
-    keywords='LIEStudio authenticator authorizer',
+    description='Authentication and authorization management for the MDStudio application',
+    author='Marc van Dijk - VU University - Amsterdam,'\
+           'Paul Visscher - Zefiros Software (www.zefiros.eu),'\
+           'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
+    author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
+    url='https://github.com/MD-Studio/MDStudio',
+    keywords='MDStudio authenticator authorizer',
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
     install_requires=pipenv_requires(),
-    test_suite="tests.module_test_suite",
+    test_suite="tests",
     include_package_data=True,
     zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_auth:wampapi'
-        ],
-    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',

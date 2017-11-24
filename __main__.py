@@ -17,6 +17,7 @@ from crossbar.controller.cli import run
 from twisted.internet import reactor
 from twisted.python.logfile import DailyLogFile
 
+from mdstudio.logging.brand import ascii_brand
 from mdstudio.logging.impl.printing_observer import PrintingLogObserver
 
 if __name__ == '__main__':
@@ -69,17 +70,7 @@ if __name__ == '__main__':
         log_file = DailyLogFile('daily.log', 'logs')
         twisted.python.log.addObserver(PrintingLogObserver(log_file))
 
-        ascii_brand = [
-            r' __  __ ____      _             _ _',
-            r'|  \/  |  _ \ ___| |_ _   _  __| (_) ___',
-            r'| |\/| | | | / __| __| | | |/ _` | |/ _ \ ',
-            r'| |  | | |_| \__ \ |_| |_| | (_| | | (_) |',
-            r'|_|  |_|____/|___/\__|\__,_|\__,_|_|\___/''',
-            ''
-        ]
-
-        for line in ascii_brand:
-            print(line)
+        print(ascii_brand)
 
         run('crossbar', [
             'start',

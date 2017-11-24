@@ -4,7 +4,7 @@
 # package: mdstudio
 # file: setup.py
 #
-# Part of ‘mdstudio’, a package providing MongoDB access for the LIEStudio
+# Part of ‘mdstudio’, a package providing MongoDB access for the MDStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -23,23 +23,25 @@
 
 from setuptools import setup, find_packages
 
-distribution_name = 'mdstudio'
+distribution_name = 'MDStudio'
 
 
 setup(
     name=distribution_name,
-    version=0.1,
-    description='System component for the LIEStudio application',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
+    version='1.0.0',
     license='Apache Software License 2.0',
-    keywords='LIEStudio system',
+    description='System component for the MDStudio application',
+    author='Marc van Dijk - VU University - Amsterdam,'\
+           'Paul Visscher - Zefiros Software (www.zefiros.eu),'\
+           'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
+    author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
+    url='https://github.com/MD-Studio/MDStudio',
+    keywords='MDStudio system',
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
     install_requires=['twisted','autobahn', 'pyyaml', 'jsonschema[format]', 'oauthlib', 'pytz', 'python-dateutil', 'asq', 'typing', 'node-semver'],
-    test_suite="tests.module_test_suite",
+    test_suite="tests",
     include_package_data=True,
     zip_safe=True,
     classifiers=[

@@ -4,7 +4,7 @@
 # package: lie_db
 # file: setup.py
 #
-# Part of ‘lie_db’, a package providing MongoDB access for the LIEStudio
+# Part of ‘lie_db’, a package providing MongoDB access for the MDStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -31,16 +31,17 @@ def pipenv_requires():
     return convert_deps_to_pip(pfile['packages'], r = False)
 
 distribution_name = 'lie_db'
-
 setup(
     name=distribution_name,
-    version=0.1,
-    description='PyMongo database drivers for the LIEStudio application',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
+    version='1.0.0',
     license='Apache Software License 2.0',
-    keywords='MongoDB PyMongo LIEStudio database',
+    description='PyMongo database drivers for the MDStudio application',
+    author='Marc van Dijk - VU University - Amsterdam,'\
+           'Paul Visscher - Zefiros Software (www.zefiros.eu),'\
+           'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
+    author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
+    url='https://github.com/MD-Studio/MDStudio',
+    keywords='MongoDB PyMongo MDStudio database',
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
@@ -48,11 +49,6 @@ setup(
     test_suite="tests",
     include_package_data=True,
     zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_db:wampapi'
-        ],
-    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
@@ -62,3 +58,4 @@ setup(
         'Intended Audience :: Science/Research',
     ],
 )
+
