@@ -15,8 +15,10 @@ services:
             - /.cache
         environment:
             - CROSSBAR_HOST=crossbar
-        env_file: .env
-    
+        env_file:
+        - .env
+        - .env-docker
+
     base-py3:
         build:
             context: docker/component
@@ -31,5 +33,6 @@ services:
             - /.cache
         environment:
             - CROSSBAR_HOST=crossbar
-        env_file: .env
-            
+        env_file:
+        - .env
+        - .env-docker

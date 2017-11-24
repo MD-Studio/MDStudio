@@ -1,8 +1,10 @@
 from mdstudio.component.impl.common import CommonSession
+from mdstudio.db.connection import ConnectionType
+from mdstudio.db.impl.connection import GlobalConnection
+from mdstudio.deferred.chainable import chainable
 
 
 class ComponentSession(CommonSession):
-
     def on_connect(self):
         auth_methods = ['ticket']
         authid = self.component_config.session.username
@@ -16,3 +18,8 @@ class ComponentSession(CommonSession):
         return self.component_config.session.password
 
     onChallenge = on_challenge
+
+    @chainable
+    def on_join(self):
+        yield super(ComponentSession, self).on_join()
+        self.db = GlobalConnection(self).get_wrapper(ConnectionType.User)

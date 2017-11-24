@@ -24,9 +24,9 @@ class SchemaComponent(CoreComponentSession):
         yield super(SchemaComponent, self).on_run()
 
     def pre_init(self):
-        self.endpoints = SchemaRepository(self, 'endpoints')
-        self.resources = SchemaRepository(self, 'resources')
-        self.claims = SchemaRepository(self, 'claims')
+        self.endpoints = SchemaRepository(self.db, 'endpoints')
+        self.resources = SchemaRepository(self.db, 'resources')
+        self.claims = SchemaRepository(self.db, 'claims')
         self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
 
     @register(u'mdstudio.schema.endpoint.upload', {}, {})

@@ -26,6 +26,7 @@ class ModelTests(TestCase):
 
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
+        self.wrapper._check_wrapper = mock.MagicMock()
         self.wrapper.component_info = mock.MagicMock()
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
         self.collection = 'coll'
@@ -51,7 +52,7 @@ class ModelTests(TestCase):
         self.documents = [self.document, self.document2]
 
     def test_construction(self):
-        self.wrapper = mock.Mock()
+        self.wrapper = mock.Mock(spec=IDatabase)
         self.collection = 'coll'
         self.model = Model(self.wrapper, self.collection)
         self.assertEqual(self.model.wrapper, self.wrapper)
@@ -76,10 +77,7 @@ class ModelTests(TestCase):
         self.wrapper.component_info = mock.MagicMock()
         self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
 
-        self.model = Model(self.wrapper, self.collection)
-        self.assertNotEqual(self.model.wrapper, self.wrapper)
-
-        self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
+        self.assertRaises(AssertionError, Model, self.wrapper, self.collection)
 
     def test_construction_class(self):
         class Users(Model):
