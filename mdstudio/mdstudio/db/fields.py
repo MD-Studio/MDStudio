@@ -9,7 +9,6 @@ from mdstudio.compat import unicode
 
 
 class Fields(object):
-
     # type: List[str]
     date_times = []
 
@@ -81,10 +80,9 @@ class Fields(object):
     def from_dict(request, key_repository=None):
 
         return Fields(date_times=request.get('datetime'),
-                        dates=request.get('date'),
-                        encrypted=request.get('encrypted'),
-                        key_repository=key_repository)
-
+                      dates=request.get('date'),
+                      encrypted=request.get('encrypted'),
+                      key_repository=key_repository)
 
     def transform_to_object(self, document, fields, parser, prefixes, **kwargs):
         if prefixes is None:
@@ -114,6 +112,12 @@ class Fields(object):
                         self.transform_docfield_to_object(d, field[1:], parser, **kwargs)
                 subdoc = None
                 break
+        if isinstance(subdoc, dict):
+            for key, val in subdoc.items():
+                if key.startswith('$'):
+                    print(val, key, field[1:])
+                    self.transform_docfield_to_object(val, field[1:], parser, **kwargs)
+
 
         if subdoc is None:
             return
@@ -139,7 +143,8 @@ class Fields(object):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
             if not val.tzinfo:
-                raise DatabaseException("No timezone information found. All datetime info should be stored in UTC format, please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
+                raise DatabaseException(
+                    "No timezone information found. All datetime info should be stored in UTC format, please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
             if val.tzinfo != pytz.utc:
                 val = val.astimezone(pytz.utc)
             return val

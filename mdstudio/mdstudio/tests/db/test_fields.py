@@ -270,6 +270,36 @@ class FieldsTests(TestCase):
             }
         })
 
+    def test_convert_call_date_time_prefixes_operators(self):
+        document = {
+            'insert': {
+                '$insert': {
+                    'date': '2017-10-26T09:16:00+00:00'
+                },
+                '$inserts': {
+                    'date': '2017-9-26T09:16:00+00:00'
+                },
+                '$insert2': {
+                    'date': '2017-8-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['date'])
+        f.convert_call(document, ['insert'])
+        self.assertEqual(document, {
+            'insert': {
+                '$insert': {
+                    'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                },
+                '$inserts': {
+                    'date': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+                },
+                '$insert2': {
+                    'date': datetime.datetime(2017, 8, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
     def test_convert_call_date(self):
         document = {
             'date': '2017-10-26'
