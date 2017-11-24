@@ -66,6 +66,8 @@ def hash_password(password):
     :type password:         string
     """
 
+    assert password, "Password must hold a value"
+
     # these are not parameters on purpose.
     # we should be sure the defaults are chosen securely
     # with these configuration set we take at least 0.05s
