@@ -23,11 +23,13 @@ import numpy as np
 import os
 import re
 import sys
+from multiprocessing import cpu_count
 from panedr import edr_to_df
 from subprocess import (PIPE, Popen)
 
 # Container for the files
-Files = collections.namedtuple("FILES", ("gro", "ndx", "trr", "top"))
+Files = collections.namedtuple(
+    "FILES", ("gro", "ndx", "trr", "top", "mdp", "tpr"))
 
 
 def main(args):
@@ -91,24 +93,63 @@ def decompose(args):
         msg = 'TERMINATED. List of residues not provided.'
         log_and_quit(msg)
 
-    if not all(availProg(cmd, args.gmxEnv)
-               for cmd in ['grompp', 'mdrun', 'gmxdump']):
-        msg = 'TERMINATED. Programs required for decomposition not found.'
-        log_and_quit(msg)
+    if not availProg('gmx', args.gmxEnv):
+        log_and_quit('gmx executable was not found')
 
     # parse MD mdp
     mdpIn = findFile(args.dataDir, ext='mdp', pref='*')
-    mdpDict = parseMdp(mdpIn)
+    mdp_dict = parseMdp(mdpIn)
 
     # create decomposition mdp, ndx and run rerun
     gro = findFile(args.dataDir, ext='gro', pref='*sol')
     ndx = findFile(args.dataDir, ext='ndx', pref='*-sol')
     trr = findFile(args.dataDir, ext='trr', pref='*MD*')
     top = findFile(args.dataDir, ext='top', pref='*-sol')
-    files = Files(gro, ndx, trr, top)
-    prefix_result = decomp(mdpDict, args, files)
+    files = Files(gro, ndx, trr, top, mdpIn, None)
+
+    prefix_result = decomp(mdp_dict, args, files)
 
     energy_analysis(args, prefix_result)
+
+
+def decomp(
+         mdp_dict, args, files, ligGroup='Ligand', output_prefix='decompose'):
+    """
+    Decompose the energy into its components for different residues.
+    """
+    new_mdp_file = create_new_mdp_file(mdp_dict, args, ligGroup)
+    # create a dictionary with the index of the atoms that belong
+    # to a given residue
+    dict_residues = create_residue_dict(files.gro)
+
+    # create new ndx file:
+    new_ndx_file = create_new_ndx_file(dict_residues, args, files.ndx)
+
+    # Generate new tpr file
+    new_tpr_file = create_new_tpr_file(args, files)
+
+    # update files tuple
+    new_files = files._replace(
+        mdp=new_mdp_file, ndx=new_ndx_file, tpr=new_tpr_file)
+
+    return rerun_md(args, new_files)
+
+
+def rerun_md(args, files):
+    """
+    Rerun the molecular dynamics and create decomposition of the energy.
+    """
+    mdrun = set_gmx_mpi_run(args.gmxEnv)
+    cmd = ['-s', files.tpr, '-rerun', files.trr, '-deffnm', 'decompose']
+    rs, err = call_subprocess(mdrun + cmd, args.gmxEnv)
+    logging.error(err)
+
+    energy_file = os.path.join(args.dataDir, 'decompose.edr')
+    if not os.path.exists(energy_file):
+        msg = 'Something went wrong in the rerun decomposition analysis'
+        log_and_quit(msg)
+
+    return energy_file
 
 
 def energy_analysis(args, prefix):
@@ -121,40 +162,116 @@ def energy_analysis(args, prefix):
     write_decomposition_ouput(df, args.outName, args.resList)
 
 
-def decomp(
-         mdpDict, args, files,
-        ligGroup='Ligand', outPref='decompose'):
+def create_new_tpr_file(args, files):
     """
-    Decompose the energy into its components for different residues.
+    Call gromacs grompp `http://manual.gromacs.org/programs/gmx-grompp.html`.
     """
-    mdp_file = create_new_mdp_file(mdpDict, args, ligGroup, outPref)
+    outTpr = os.path.join(args.dataDir, 'decompose.tpr')
+    cmd = ['gmx', 'grompp', '-f', files.mdp, '-c', files.gro, '-p',
+           files.top, '-n', files.ndx, '-o', outTpr]
+    rs, err = call_subprocess(cmd, args.gmxEnv)
+    logging.error(err)
 
-    # create a dictionary with the index of the atoms that belong
-    # to a given residue
-    dict_residues = create_residue_map(files.gro)
-
-    # create new ndx file:
-    new_ndx_file = create_new_ndx_file(dict_residues, files.ndx)
-
-    # Generate new tpr file
-    outTpr = os.path.join(args.dataDir, '{}.tpr'.format(outPref))
-    cmd = ['gmx grompp', '-f', mdp_file, '-c', files.gro, '-p',
-           files.top, '-n', new_ndx_file, '-o', outTpr]
-    call_subprocess(cmd, args.gmxEnv)
-
-    if os.path.exists(outTpr):
+    if not os.path.exists(outTpr):
         msg = 'Something went wrong in the creation of the tpr file  \
         for decomposition analysis'
         log_and_quit(msg)
 
-    # rerun energy
-    cmd = ['gmx mdrun', '-s', outTpr, '-rerun', files.trr, '-deffnm', outPref]
-    rs = call_subprocess(cmd, args.gmxEnv)
-    if rs is None:
-        msg = 'Something went wrong in the rerun decomposition analysis'
-        log_and_quit
+    return outTpr
 
-    return outPref
+
+def set_gmx_mpi_run(env):
+    """
+    Try to run gmx mdrun using MPI see:
+    `http://manual.gromacs.org/documentation/5.1/user-guide/mdrun-performance.html`
+    """
+    mpi_run = env.get('MPI_RUN', None)
+
+    if mpi_run is not None:
+        nranks = compute_mpi_ranks()
+        gmx = [mpi_run] + nranks + ['gmx']
+    else:
+        gmx = ['gmx']
+
+    return gmx + ['mdrun']
+
+
+def compute_mpi_ranks(ranks=''):
+    """
+    guess a reasonable default for the mpi ranks
+    """
+    if cpu_count() > 1:
+        xs = "-np 4 --map-by ppr:2:socket -v --display-map --display-allocation"
+        ranks = xs.split()
+
+    return ranks
+
+
+def create_new_ndx_file(residues_dict, args, ndx_file):
+    """
+    Write a new ndx file mapping the residue numbers to their
+    correspoding atoms, using a array `residues_map` that contains
+    in each row the lower and upper limit of the range of
+    the atoms contained in a given residue.
+    """
+    new = ''
+    for key in args.resList:
+        new += '[ {} ]\n'.format(key)
+        data = np.array2string(
+            np.arange(*residues_dict[key]),
+            formatter={'int': lambda s: '{:>7d}'.format(s)})[1:-1]
+        new += ' {}\n'.format(data)
+
+    new_ndx_file = os.path.join(args.dataDir, 'decompose.ndx')
+    with open(ndx_file, 'r') as f_inp, open(new_ndx_file, 'w') as f_out:
+        old = f_inp.read()
+        f_out.write(old + new)
+
+    return new_ndx_file
+
+
+def create_new_mdp_file(mdp_dict, args, ligGroup):
+    """ Crate a new input mdp file """
+
+    listkeys = [
+        'include', 'define', 'cutoff-scheme', 'ns-type', 'pbc',
+        'periodic-molecules', 'rlist', 'rlistlong', 'nstcalclr',
+        'coulombtype', 'coulomb-modifier', 'rcoulomb-switch', 'rcoulomb',
+        'epsilon-r', 'epsilon-rf', 'vdw-type', 'vdw-modifier', 'rvdw-switch',
+        'rvdw', 'DispCorr', 'table-extension', 'energygrp-table',
+        'fourierspacing', 'fourier-nx', 'fourier-ny', 'fourier-nz',
+        'pme-order', 'ewald-rtol', 'ewald-geometry', 'epsilon-surface',
+        'optimize-fft', 'implicit-solvent', 'QMMM', 'constraints',
+        'constraint-algorithm', 'continuation', 'Shake-SOR', 'shake-tol',
+        'lincsorder', 'lincs-iter', 'lincs-warnangle', 'morse',
+        'nwall', 'wall-type', 'wall-r-linpot', 'wall-atomtype', 'wall-density',
+        'wall-ewald-zfac', 'pull', 'rotation', 'disre', 'orire',
+        'free-energy', 'simulated-tempering']
+
+    newKeys = {
+        'nstxout': '0', 'nstvout': '0', 'nstfout': '0', 'nstlog': '0',
+        'nstcalcenergy': '1', 'nstenergy': '1', 'nstxtcout': '0',
+        'xtc-precision': '0', 'xtc-grps': '', 'nstlist': '1'}
+
+    # the [1:-1] removes the [ ] from the beginning and the end
+    str_residues = np.array_str(args.resList)[1:-1]
+    energygrps = '{} {}'.format(ligGroup, str_residues)
+
+    newKeys['energygrps'] = energygrps
+
+    new_input = ''
+    fmt = "{:15s} = {}\n"
+    for mdpKey in newKeys:
+        new_input += fmt.format(mdpKey, newKeys[mdpKey])
+
+    for mdpKey in (x for x in listkeys if x in mdp_dict):
+        new_input += fmt.format(mdpKey, mdp_dict[mdpKey])
+
+    mdp_file = os.path.join(args.dataDir, "decompose.mdp")
+    with open(mdp_file, 'w') as f:
+        f.write(new_input)
+
+    return mdp_file
 
 
 def extract_ligand_info(df, listRes):
@@ -229,7 +346,7 @@ def writeOut(frames, output_file, columns):
         f.write(frames[columns].to_string(index=False))
 
 
-def create_residue_map(gro_file):
+def create_residue_dict(gro_file):
     """
     Read residues from the `gro_file` and create
     an array that map the the residues listed in `res_array`
@@ -238,83 +355,19 @@ def create_residue_map(gro_file):
     def match_int(x):
         return re.match(r"([0-9]+)", x).groups()[0]
 
-    arr = np.loadtxt(gro_file, dtype=np.str, skiprows=2, usecols=0)
+    arr = np.loadtxt(gro_file, dtype=np.bytes_, skiprows=2, usecols=0)
+    arr = np.array(arr, dtype=np.str)
     xs = np.array(
         [match_int(x) for x in arr if 'SOL' not in x and '.' not in x],
         dtype=np.int32)
 
+    # create range of the atoms for each residue
     unique, counts = np.unique(xs, return_counts=True)
     upper_limits = np.cumsum(counts) + 1
     lower_limits = np.insert(upper_limits[:-1], 0, 1)
+    ranges = np.stack((lower_limits, upper_limits), axis=1)
 
-    return np.stack((lower_limits, upper_limits), axis=1)
-
-
-def create_new_ndx_file(residues_map, ndx_file):
-    """
-    Write a new ndx file mapping the residue numbers to their
-    correspoding atoms, using a array `residues_map` that contains
-    in each row the lower and upper limit of the range of
-    the atoms contained in a given residue.
-    """
-    new = ''
-    for i, limits in enumerate(np.rollaxis(residues_map, axis=0)):
-        new += '[ {} ]\n'.format(i + 1)
-        data = np.array2string(
-            np.arange(*limits),
-            formatter={'int': lambda s: '{:>7d}'.format(s)})[1:-1]
-        new += ' {}\n'.format(data)
-
-    new_ndx_file = 'decomposition.ndx'
-    with open(ndx_file, 'r') as f_inp, open(new_ndx_file, 'w') as f_out:
-        old = f_inp.read()
-        f_out.write(old + new)
-
-    return new_ndx_file
-
-
-def create_new_mdp_file(mdpDict, args, ligGroup):
-    """ Crate a new input mdp file """
-
-    listkeys = [
-        'include', 'define', 'cutoff-scheme', 'ns-type', 'pbc',
-        'periodic-molecules', 'rlist', 'rlistlong', 'nstcalclr',
-        'coulombtype', 'coulomb-modifier', 'rcoulomb-switch', 'rcoulomb',
-        'epsilon-r', 'epsilon-rf', 'vdw-type', 'vdw-modifier', 'rvdw-switch',
-        'rvdw', 'DispCorr', 'table-extension', 'energygrp-table',
-        'fourierspacing', 'fourier-nx', 'fourier-ny', 'fourier-nz',
-        'pme-order', 'ewald-rtol', 'ewald-geometry', 'epsilon-surface',
-        'optimize-fft', 'implicit-solvent', 'QMMM', 'constraints',
-        'constraint-algorithm', 'continuation', 'Shake-SOR', 'shake-tol',
-        'lincsorder', 'lincs-iter', 'lincs-warnangle', 'morse',
-        'nwall', 'wall-type', 'wall-r-linpot', 'wall-atomtype', 'wall-density',
-        'wall-ewald-zfac', 'pull', 'rotation', 'disre', 'orire',
-        'free-energy', 'simulated-tempering']
-
-    newKeys = {
-        'nstxout': '0', 'nstvout': '0', 'nstfout': '0', 'nstlog': '0',
-        'nstcalcenergy': '1', 'nstenergy': '1', 'nstxtcout': '0',
-        'xtc-precision': '0', 'xtc-grps': '', 'nstlist': '1'}
-
-    # the [1:-1] removes the [ ] from the beginning and the end
-    str_residues = np.array_str(args.resList)[1:-1]
-    energygrps = '{}{}'.format(ligGroup, str_residues)
-
-    newKeys['energygrps'] = energygrps
-
-    new_input = ''
-    fmt = "{:15s} = {}\n"
-    for mdpKey in newKeys:
-        new_input += fmt.format(mdpKey, newKeys[mdpKey])
-
-    for mdpKey in (x for x in listkeys if x in mdpDict):
-        new_input += fmt.format(mdpKey, mdpDict[mdpKey])
-
-    mdp_file = os.path.join(args.dataDir, "decomposition.mdp")
-    with open(mdp_file, 'w') as f:
-        f.write(new_input)
-
-    return mdp_file
+    return dict(zip(unique, ranges))
 
 
 def write_decomposition_ouput(listFrames, outName, resList):
@@ -347,7 +400,7 @@ def parseMdp(mdpIn):
 def check_lenght(xs):
     """ transform list to tuples fixing the lenght """
     if len(xs) == 1:
-        return tuple(xs[0], None)
+        return xs[0], ''
     else:
         return tuple(xs)
 
@@ -387,9 +440,10 @@ def getGMXEnv(gmxrc):
         return os.environ
     else:
         command = ['bash', '-c', 'source {} && env'.format(gmxrc)]
-        rs = call_subprocess(command)
+        rs = call_subprocess(command)[0]
+        lines = rs.decode().splitlines()
 
-        return {key: val for key, val in map(process_line, rs)}
+        return dict(map(process_line, lines))
 
 
 def process_line(line):
@@ -398,21 +452,19 @@ def process_line(line):
     return key, value.rstrip()
 
 
-def call_subprocess(cmd,  env=None):
+def call_subprocess(cmd, env=None):
     """
     Execute shell command and wait for the results
     """
     try:
-        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=env)
         rs = p.communicate()
-        err = rs[1]
-        if err:
-            logging.error("Subprocess fails with error: {}".format(err))
-        else:
-            return rs[0]
+        return rs
 
     except Exception as e:
-        log_and_quit("Subprocess fails with error: {}".format(e))
+        msg1 = "Subprocess fails with error: {}".format(e)
+        msg2 = "Command: {}\n".format(cmd)
+        log_and_quit(msg1 + msg2)
 
 
 if __name__ == "__main__":
@@ -421,7 +473,7 @@ if __name__ == "__main__":
         description='Dock sdf file into protein conformation')
 
     parser.add_argument(
-        '-gmxrc', required=False, dest='gmxrc', type=getGMXEnv,
+        '-gmxrc', required=False, dest='gmxEnv', type=getGMXEnv,
         help='GMXRC file for environment loading')
     parser.add_argument(
         '-d', '--dir', required=False, dest='dataDir',
@@ -434,7 +486,7 @@ if __name__ == "__main__":
         action='store_true')
     parser.add_argument(
         '-res', '--residues', required=False, dest='resList',
-        help='list of residue for which to decompose interaction energies (e.g. "1,2,3")',
+        help='list of residue for which to decompose interaction energies (e.g.1 "1,2,3")',
         type=parseResidues)
     parser.add_argument(
         '-o', '--output', dest='outName', required=True)
