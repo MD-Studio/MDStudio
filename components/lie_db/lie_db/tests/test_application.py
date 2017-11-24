@@ -33,8 +33,8 @@ class TestDBComponent(DBTestCase, APITestCase):
 
     def test_pre_init(self):
         with mock.patch.dict('os.environ'):
-            del os.environ['MD_MONGO_HOST']
-            del os.environ['MD_MONGO_PORT']
+            os.environ.pop('MD_MONGO_HOST', None)
+            os.environ.pop('MD_MONGO_PORT', None)
             self.service.pre_init()
 
             self.assertEqual(self.service._client._host, "localhost")

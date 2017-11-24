@@ -10,6 +10,7 @@ from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import DocumentType, ProjectionOperators, SortOperators, IDatabase, \
     AggregationOperator
 from mdstudio.db.fields import Fields
+from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
@@ -31,10 +32,8 @@ class Model(object):
     # @todo: global connection
     def __init__(self, wrapper=None, collection=None, connection_type=None):
         # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
-        if isinstance(wrapper, ApplicationSession):
-            self.wrapper = SessionDatabaseWrapper(wrapper, connection_type or self.connection_type)
-        else:
-            self.wrapper = wrapper
+        self._check_wrapper(wrapper)
+        self.wrapper = wrapper or GlobalConnection().get_wrapper(connection_type or self.connection_type)
 
         if issubclass(self.__class__, Model) and self.__class__ != Model and collection is None:
             self.collection = self.__class__.__name__.lower()
@@ -219,3 +218,6 @@ class Model(object):
 
     def _return_fields(self, fields):
         return fields
+
+    def _check_wrapper(self, wrapper):
+        assert isinstance(wrapper, IDatabase), 'Wrapper should inherit IDatabase'

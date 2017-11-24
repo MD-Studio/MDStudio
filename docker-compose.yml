@@ -16,7 +16,9 @@ services:
             - crossbar_pipenv:/root/.local/share/virtualenvs
         environment:
             - MD_GLOBAL_LOG=1
-        env_file: .env
+        env_file:
+        - .env
+        - .env-docker
 
     md:
         extends:
