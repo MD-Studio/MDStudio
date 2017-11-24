@@ -115,7 +115,6 @@ class Fields(object):
         if isinstance(subdoc, dict):
             for key, val in subdoc.items():
                 if key.startswith('$'):
-                    print(val, key, field[1:])
                     self.transform_docfield_to_object(val, field[1:], parser, **kwargs)
 
 
