@@ -80,7 +80,7 @@ class AuthComponent(CoreComponentSession):
         """
         pass
 
-    @wamp.register('mdstudio.auth.endpoint.sign', options=wamp.RegisterOptions(details_arg='details'))
+    @wamp.register(u'mdstudio.auth.endpoint.sign', options=wamp.RegisterOptions(details_arg='details'))
     def sign_claims(self, claims, details=None):
         role = details.caller_authrole
 
@@ -97,7 +97,7 @@ class AuthComponent(CoreComponentSession):
 
         return jwt_encode(claims, self.jwt_key)
 
-    @wamp.register('mdstudio.auth.endpoint.verify')
+    @wamp.register(u'mdstudio.auth.endpoint.verify')
     def verify_claims(self, signed_claims):
         try:
             claims = jwt_decode(signed_claims, self.jwt_key)
@@ -121,32 +121,6 @@ class AuthComponent(CoreComponentSession):
             return True
 
         return False
-
-    @wamp.register(u'mdstudio.auth.endpoint.sso')
-    @inlineCallbacks
-    def user_sso(self, auth_token):
-        """
-        Handles Single Sign On by:
-        - Verifing sso authentication token
-        - Return user data
-
-        :param auth_token: SSO authentication token
-        :type auth_token:  int
-        :return:           user data
-        :rtype:            dict to JSON
-        """
-
-        self.log.debug("SSO authentication token recieved: {0}".format(auth_token))
-
-        # TODO: We are prefilling the username here, need to write SSO auth
-        # validation routine
-        user = yield self._get_user('lieadmin')
-        if self._validate_user_login(user, 'lieadmin', 'liepw@#'):
-            user_settings = self._strip_unsafe_properties(user)
-            user_settings['password'] = 'liepw@#'
-            returnValue(user_settings)
-        else:
-            returnValue(False)
 
     @wamp.register(u'mdstudio.auth.endpoint.login')
     @inlineCallbacks

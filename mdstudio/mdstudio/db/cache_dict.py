@@ -16,12 +16,12 @@
 # limitations under the License.
 
 import time
-from threading import Lock
+from threading import RLock
 from collections import OrderedDict
 
 
 class CacheDict(OrderedDict):
-    lock = Lock()
+    lock = RLock()
 
     def __init__(self, max_age_seconds):
         super(CacheDict, self).__init__(self)

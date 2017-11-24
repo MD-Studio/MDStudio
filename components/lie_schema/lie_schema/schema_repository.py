@@ -33,7 +33,7 @@ class SchemaRepository(object):
         date_time_fields = ['updatedAt']
 
         def __init__(self, wrapper=None, collection=None):
-            super().__init__(wrapper=wrapper, collection=collection)
+            super(SchemaRepository.Schemas, self).__init__(wrapper=wrapper, collection=collection)
 
     class History(Model):
         """
@@ -61,7 +61,7 @@ class SchemaRepository(object):
         date_time_fields = ['builds.createdAt']
 
         def __init__(self, wrapper=None, collection=None):
-            super().__init__(wrapper=wrapper, collection=collection)
+            super(SchemaRepository.History, self).__init__(wrapper=wrapper, collection=collection)
 
     def __init__(self, session, type, db_wrapper=None):
         # type: (SchemaWampApi, str) -> None

@@ -21,6 +21,7 @@ from mdstudio.logging.impl.printing_observer import PrintingLogObserver
 
 if __name__ == '__main__':
     temp_config = None
+    log_file = None
 
     try:
         with open('crossbar_config.yml', 'r') as cc:
@@ -63,7 +64,8 @@ if __name__ == '__main__':
         temp_config.write(json.dumps(config).encode('utf-8'))
         temp_config.close()
 
-        os.makedirs('logs', exist_ok=True)
+        if not os.path.isdir('logs'):
+            os.mkdir('logs')
         log_file = DailyLogFile('daily.log', 'logs')
         twisted.python.log.addObserver(PrintingLogObserver(log_file))
 

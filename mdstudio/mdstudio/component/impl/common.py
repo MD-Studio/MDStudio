@@ -130,7 +130,7 @@ class CommonSession(ApplicationSession):
 
         @chainable
         def make_original_call():
-            res = yield super(CommonSession, self).call(procedure, request, signed_claims=signed_claims, **kwargs)
+            res = yield super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs)
 
             if not isinstance(res, dict):
                 res = APIResult(result=res)
@@ -165,22 +165,23 @@ class CommonSession(ApplicationSession):
         return_value(result['result'])
 
     @chainable
-    def publish(self, topic, *args, claims=None, **kwargs):
+    def publish(self, topic, claims=None, options=None):
         if claims is None:
             claims = {}
 
         signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-        options = kwargs.pop('options', None) or PublishOptions(acknowledge=True, exclude_me=False)
+        options = options or PublishOptions(acknowledge=True, exclude_me=False)
 
-        result = yield super(CommonSession, self).publish(topic, *args, signed_claims=signed_claims, options=options,
-                                                          **kwargs)  # type: Publication
+        result = yield super(CommonSession, self).publish(topic, signed_claims=signed_claims, options=options)  # type: Publication
 
         return_value(result)
 
     def subscribe(self, handler, topic, options=None):
         @chainable
-        def _handler(*args, signed_claims=None, **kwargs):
+        def _handler(*args, **kwargs):
+            signed_claims = kwargs.pop('signed_claims', None)
+            assert signed_claims, "Subscribe was called without claims"
             claims = yield super(CommonSession, self).call('mdstudio.auth.endpoint.verify', signed_claims)
 
             if not ('error' in claims or 'expired' in claims):
@@ -224,7 +225,7 @@ class CommonSession(ApplicationSession):
         self.log.info("{class_name}: {procedures} procedures successfully registered",
                       procedures=len(registrations) - failures, class_name=self.class_name())
 
-        reactor.callLater(1, self._on_join)
+        yield self._on_join()
 
     @chainable
     def onJoin(self, details):
@@ -234,7 +235,7 @@ class CommonSession(ApplicationSession):
         for var, details_var in self.session_update_vars.items():
             self.component_config.session[var] = getattr(details, details_var)
 
-        reactor.callLater(1, self.on_join)
+        yield self.on_join()
 
     # @chainable
     # def on_leave(self, details):
@@ -382,15 +383,15 @@ class CommonSession(ApplicationSession):
 
     @classmethod
     def component_root_path(cls):
-        return os.path.dirname(os.path.dirname(inspect.getfile(cls)))
+        return os.path.abspath(os.path.dirname(os.path.dirname(inspect.getfile(cls))))
 
     @classmethod
     def component_schemas_path(cls):
-        return os.path.join(os.path.dirname(inspect.getfile(cls)), 'schemas')
+        return os.path.abspath(os.path.join(os.path.dirname(inspect.getfile(cls)), 'schemas'))
 
     @classmethod
     def mdstudio_root_path(cls):
-        return os.path.normpath(os.path.join(os.path.dirname(inspect.getfile(CommonSession)), '..', '..', '..'))
+        return os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(inspect.getfile(CommonSession)), '..', '..', '..')))
 
     @classmethod
     def mdstudio_schemas_path(cls):

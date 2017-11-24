@@ -13,7 +13,7 @@ class TestUTC(TestCase):
     faker = Faker()
 
     def test_now(self):
-        self.assertLess(now(), datetime.now(tz=pytz.utc), timedelta(seconds=1))
+        self.assertLess(now() - datetime.now(tz=pytz.utc), timedelta(seconds=1))
 
     def test_today(self):
         self.assertEqual(today(), now().date())

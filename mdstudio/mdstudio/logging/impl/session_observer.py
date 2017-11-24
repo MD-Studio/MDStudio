@@ -4,6 +4,7 @@ from datetime import datetime
 
 import os
 import pytz
+import six
 import twisted
 from autobahn.twisted import ApplicationSession
 from autobahn.wamp.exception import ApplicationError, TransportLost
@@ -21,8 +22,8 @@ from mdstudio.utc import to_utc_string
 
 LOGLEVELS = ['debug', 'info', 'warn', 'error', 'critical']
 
-
-class SessionLogObserver(object, metaclass=Singleton):
+@six.add_metaclass(Singleton)
+class SessionLogObserver(object):
     log = Logger()
 
     def __init__(self, session, log_type=LogType.User):

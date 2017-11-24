@@ -93,9 +93,9 @@ class CoreComponentSession(CommonSession):
     onChallenge = on_challenge
 
     def load_settings(self):
-        self.component_config.session['username'] = self.class_name().lower().replace('component', '', 1)
-        self.component_config.static['vendor'] = 'mdstudio'
-        self.component_config.static['component'] = self.component_config.session.username
+        self.component_config.session['username'] = u'{}'.format(self.class_name().lower().replace('component', '', 1))
+        self.component_config.static['vendor'] = u'mdstudio'
+        self.component_config.static['component'] = u'{}'.format(self.component_config.session.username)
 
         super(CoreComponentSession, self).load_settings()
 

@@ -16,6 +16,7 @@ from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields
 from mdstudio.db.exception import DatabaseException
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
+from mdstudio.compat import unicode
 
 
 class MongoDatabaseWrapper(IDatabase):
@@ -397,7 +398,7 @@ class MongoDatabaseWrapper(IDatabase):
             return sort
 
         def _convert_mode(mode):
-            if isinstance(mode, str):
+            if isinstance(mode, (str, unicode)):
                 mode = SortMode.Desc if mode == "desc" else SortMode.Asc
             return int(mode)
 

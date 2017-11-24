@@ -5,6 +5,7 @@ import pytz
 
 from mdstudio.db.exception import DatabaseException
 from mdstudio.utc import from_utc_string, from_date_string
+from mdstudio.compat import unicode
 
 
 class Fields(object):
@@ -134,7 +135,7 @@ class Fields(object):
                     subdoc[key] = parser(self, subdoc[key], subdoc, key, **kwargs)
 
     def parse_date_time(self, val, *args, **kwargs):
-        if isinstance(val, str):
+        if isinstance(val, (str, unicode)):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
             if not val.tzinfo:
@@ -146,7 +147,7 @@ class Fields(object):
             raise DatabaseException("Failed to parse datetime field '{}'".format(val))
 
     def parse_date(self, val, *args, **kwargs):
-        if isinstance(val, str):
+        if isinstance(val, (str, unicode)):
             return from_date_string(val)
         elif isinstance(val, datetime.datetime):
             return val.date()
@@ -156,7 +157,7 @@ class Fields(object):
             raise DatabaseException("Failed to parse date field '{}'".format(val))
 
     def parse_encrypted(self, val, *args, **kwargs):
-        if isinstance(val, str):
+        if isinstance(val, (str, unicode)):
             val = val.encode()
         if isinstance(val, bytes):
             return kwargs['encryptor'].encrypt(val)
@@ -164,7 +165,7 @@ class Fields(object):
             raise DatabaseException("Failed to encrypt field '{}'".format(val))
 
     def decrypt(self, val, *args, **kwargs):
-        if isinstance(val, str):
+        if isinstance(val, (str, unicode)):
             val = val.encode()
         if isinstance(val, bytes):
             return kwargs['encryptor'].decrypt(val).decode('utf-8')

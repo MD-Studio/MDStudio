@@ -1,7 +1,7 @@
 from copy import deepcopy
 from jsonschema import ValidationError
 from pyfakefs.fake_filesystem_unittest import Patcher
-from unittest import TestCase
+from unittest2 import TestCase
 
 import os
 from autobahn.wamp import ComponentConfig

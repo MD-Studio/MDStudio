@@ -14,6 +14,7 @@ from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, C
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
+from mdstudio.compat import unicode
 
 SchemaType = Union[str, dict, ISchema]
 
@@ -62,7 +63,7 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
     if not input_schema:
         # print('Input on {uri} is not checked'.format(uri=uri))
         input_schema = InlineSchema({})
-    elif isinstance(input_schema, str):
+    elif isinstance(input_schema, (str, unicode)):
         if not re.match('\\w+://.*', input_schema):
             input_schema = 'endpoint://{}'.format(input_schema)
 
@@ -73,7 +74,7 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
     if not output_schema:
         # print('Output on {uri} is not checked'.format(uri=uri))
         output_schema = InlineSchema({})
-    elif isinstance(output_schema, str):
+    elif isinstance(output_schema, (str, unicode)):
         if not re.match('\\w+://.*', output_schema):
             output_schema = 'endpoint://{}'.format(output_schema)
 
@@ -85,7 +86,7 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
 
     if not claim_schema:
         pass
-    elif isinstance(claim_schema, str):
+    elif isinstance(claim_schema, (str, unicode)):
         if not re.match(r'\w+://.*', claim_schema):
             claim_schema = 'claims://{}'.format(claim_schema)
 
@@ -96,10 +97,12 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
         claim_schemas.append(claim_schema)
 
     def wrap_f(f):
-        @wamp.register(uri, options)
+        @wamp.register(u'{}'.format(uri), options)
         @chainable
-        def wrapped_f(self, request, *args, signed_claims=None, **kwargs):
-            claims = yield super(CommonSession, self).call('mdstudio.auth.endpoint.verify', signed_claims)
+        def wrapped_f(self, request, *args, **kwargs):
+            signed_claims = kwargs.pop('signed_claims', None)
+            assert signed_claims, "Subscribe was called without claims"
+            claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.verify', signed_claims)
 
             if 'error' in claims:
                 res = APIResult(error=claims['error'])

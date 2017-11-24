@@ -17,6 +17,7 @@ from mdstudio.db.fields import Fields
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
+from mdstudio.deferred.return_value import return_value
 
 
 class DBComponent(CoreComponentSession):
@@ -332,7 +333,7 @@ class DBComponent(CoreComponentSession):
             result = self._client.get_database(database_name)
             yield self.database_lock.release()
 
-        return result
+        return_value(result)
 
     def set_fields(self, claims, kwargs, request):
         if 'fields' in request:

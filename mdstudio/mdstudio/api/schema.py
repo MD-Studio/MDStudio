@@ -4,6 +4,7 @@ import os
 import jsonschema
 import json
 
+import six
 from jsonschema import FormatChecker, ValidationError
 
 from mdstudio.api.singleton import Singleton
@@ -148,8 +149,8 @@ class ClaimSchema(EndpointSchema):
         super(ClaimSchema, self).__init__(uri, versions)
         self.schema_subdir = 'claims'
 
-
-class MDStudioClaimSchema(object,metaclass=Singleton):
+@six.add_metaclass(Singleton)
+class MDStudioClaimSchema(object):
     def __init__(self, session):
         with open(os.path.join(session.mdstudio_schemas_path(), 'claims.json'), 'r') as base_claims_file:
             self.schema = json.load(base_claims_file)
