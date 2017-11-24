@@ -23,12 +23,16 @@ class KeyRepository(object):
 
     def get_key(self, claims):
         connection_type = claims['connectionType']
-        password = self._new_password()
-        print("CALL")
-        result = self._get_key_model(connection_type).find_one_and_update(self._get_key_body(claims, connection_type), {
-            '$setOnInsert': password
-        }, upsert=True, return_document=ReturnDocument.AFTER)
-        return self._decrypt_key(result['key'])
+        model = self._get_key_model(connection_type)
+        body = self._get_key_body(claims, connection_type)
+        found = model.find_one(body)
+        if not found:
+            password = self._new_password()
+            # find_one_and_update ensures transactionality here
+            found = self._get_key_model(connection_type).find_one_and_update(body, {
+                '$setOnInsert': password
+            }, upsert=True, return_document=ReturnDocument.AFTER)
+        return self._decrypt_key(found['key'])
 
     def _key_from_password(self, password, salt):
         kdf = PBKDF2HMAC(
