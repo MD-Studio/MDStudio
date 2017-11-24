@@ -3,7 +3,7 @@ import datetime
 
 import pytz
 from copy import deepcopy
-from twisted.trial.unittest import TestCase
+from unittest2 import TestCase
 
 from mdstudio.db.database import Fields
 from mdstudio.db.exception import DatabaseException
