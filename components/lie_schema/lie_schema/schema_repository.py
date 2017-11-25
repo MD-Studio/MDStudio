@@ -9,7 +9,9 @@ from jsonschema import Draft4Validator, SchemaError
 import mdstudio.utc as utc
 from lie_schema.exception import SchemaException
 from mdstudio.db.connection import ConnectionType
+from mdstudio.db.database import IDatabase
 from mdstudio.db.model import Model
+from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
 
 
@@ -63,10 +65,9 @@ class SchemaRepository(object):
         def __init__(self, wrapper=None, collection=None):
             super(SchemaRepository.History, self).__init__(wrapper=wrapper, collection=collection)
 
-    def __init__(self, session, type, db_wrapper=None):
-        # type: (SchemaWampApi, str) -> None
-        self.wrapper = db_wrapper if db_wrapper else session
-        self.session = session
+    def __init__(self, db_wrapper, type):
+        # type: (IDatabase, str) -> None
+        self.wrapper = db_wrapper
         self.type = type
 
     def find_latest(self, vendor, component, name, version, schema_str=None):

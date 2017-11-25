@@ -81,7 +81,7 @@ class CommonSession(ApplicationSession):
         self.log_type = LogType.User
 
         self.component_config = self.Config()
-        self.function_scopes = self.extract_custom_scopes()
+        self.function_scopes = self.extract_custom_scopes()  # @todo: register these
         self.load_environment(self.session_env_mapping, attribute='session')
 
         self.load_settings()
@@ -360,6 +360,18 @@ class CommonSession(ApplicationSession):
                 yield func.claims_schema.flatten(self)
             except AttributeError:
                 pass
+
+    # @todo
+    @chainable
+    def _register_scopes(self):
+        return_value(True)
+        if self.function_scopes:
+            res = yield self.call(
+                'mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
+                {'scopes': self.function_scopes})
+
+            self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
+                          package=self.component_info['package_name'])
 
     @property
     def session_env_mapping(self):

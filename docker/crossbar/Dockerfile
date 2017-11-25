@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:2.7
 
 RUN pip install --upgrade pip pipenv
 
@@ -11,6 +11,8 @@ STOPSIGNAL SIGTERM
 
 RUN echo "" >> ~/.bashrc && \
     echo 'source ~/.bashrc_mdstudio' >> ~/.bashrc
+
+ENV PYENV_SHELL=/bin/bash
 
 ADD .bashrc_mdstudio /root/.bashrc_mdstudio
 

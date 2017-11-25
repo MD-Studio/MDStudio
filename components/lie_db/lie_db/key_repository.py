@@ -12,9 +12,6 @@ from mdstudio.db.model import Model
 
 
 class KeyRepository(object):
-    class Key(Model):
-        pass
-
     _internal_db = None
 
     def __init__(self, session, internal_db):

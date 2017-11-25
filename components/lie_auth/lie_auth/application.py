@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-
-"""
-file: wamp_services.py
-
-WAMP service methods the module exposes.
-"""
-
 import datetime
 import json
 
@@ -36,10 +29,6 @@ from .authorizer import Authorizer
 
 
 class AuthComponent(CoreComponentSession):
-    """
-    User management WAMP methods.
-    """
-
     def pre_init(self):
         self.oauth_client = oauth2.BackendApplicationClient('auth')
         self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
@@ -66,19 +55,6 @@ class AuthComponent(CoreComponentSession):
     def _on_join(self):
         self.jwt_key = generate_secret()
         yield super(AuthComponent, self)._on_join()
-
-    def onExit(self, details=None):
-        """
-        User component exit routines
-
-        Terminate all active sessions on component shutdown
-
-        :param settings: global and module specific settings
-        :type settings:  :py:class:`dict` or :py:class:`dict` like object
-        :return:         successful exit sequence
-        :rtype:          bool
-        """
-        pass
 
     @wamp.register(u'mdstudio.auth.endpoint.sign', options=wamp.RegisterOptions(details_arg='details'))
     def sign_claims(self, claims, details=None):
@@ -125,54 +101,11 @@ class AuthComponent(CoreComponentSession):
     @wamp.register(u'mdstudio.auth.endpoint.login')
     @inlineCallbacks
     def user_login(self, realm, authid, details):
-        """
-        Handles application authentication and authorization on the Crossbar
-        WAMP session level by acting as the dynamic authorizer using any of
-        the Crossbar supported authentication methods.
-
-        For more information about crossbar authentication/authorization
-        consult the online documentation at: http://crossbar.io/docs/Administration/
-
-        This method also provides authentication based on IP/domain
-        information in addition to the crossbar supported authentication
-        methods.
-
-        :param realm:   crossbar realm to connect to
-        :type realm:    str
-        :param authid:  authentication ID, usually username
-        :type authid:   str
-        :param details: additional details including authentication method
-                        and transport details
-        :type details:  :py:class:`dict`
-        :return:        authentication response with the realm, user role and
-                        user account info returned.
-        :rtype:         :py:class:`dict` or False
-        """
-
+        assert authid
         authmethod = details.get(u'authmethod', None)
 
-        # Resolve request domain
-        domain = None
-        if u'http_headers_received' in details:
-            domain = details[u'http_headers_received'].get(u'host', None)
-            details[u'domain'] = domain
-
-        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
-                      realm=realm, authid=authid, authmethod=authmethod, domain=domain)
-
-        # Check for essentials (authid)
-        if authid is None:
-            raise ApplicationError('Authentication ID not defined')
-
-        # Is the application only available for local users?
-        if domain and self.package_config.get('only_localhost_access', False) and domain != 'localhost':
-            raise ApplicationError('Access granted only to local users, access via domain {0}'.format(domain))
-
-        # Is the domain blacklisted?
-        black_list = self.package_config.get('domain-blacklist', [])
-        if not ip_domain_based_access(domain, blacklist=black_list):
-            logging.info('Access for domain {domain} blacklisted (pattern={blacklist})'.format(domain=domain, blacklist=black_list))
-            raise ApplicationError('Access from domain {0} not allowed'.format(domain))
+        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod}}',
+                      realm=realm, authid=authid, authmethod=authmethod)
 
         username = authid.strip()
         user = yield self._get_user(username)
@@ -352,14 +285,6 @@ class AuthComponent(CoreComponentSession):
     @wamp.register(u'mdstudio.auth.endpoint.logout', options=wamp.RegisterOptions(details_arg='details'))
     @inlineCallbacks
     def user_logout(self, details):
-        """
-        Handles the user logout process by:
-        - Retrieve user based on session_id
-
-        :param session_id: user unique session ID
-        :type session_id:  int
-        """
-
         user = yield self._get_user(details.get('authid'))
         if user:
             self.log.info('Logout user: {0}, id: {1}'.format(user['username'], user['_id']))
@@ -370,17 +295,6 @@ class AuthComponent(CoreComponentSession):
 
         returnValue('Unknown user, unable to logout')
 
-    @wamp.register(u'mdstudio.auth.endpoint.retrieve')
-    def retrieve_password(self, email):
-        """
-        Retrieve a forgotten password by email
-        This will reset the users password and
-        send a temporary password by email.
-
-        :param email: user account email
-        """
-
-        raise Exception
 
     # # TODO: improve and register this method, with json schemas
     # @inlineCallbacks
@@ -473,24 +387,6 @@ class AuthComponent(CoreComponentSession):
 
         return check
 
-    @inlineCallbacks
-    def _get_user(self, filter):
-        if type(filter) is not dict:
-            filter = {'username': filter}
-
-        res = yield Model(self, 'users').find_one(filter)
-
-        returnValue(res)
-
-    @inlineCallbacks
-    def _get_client(self, client_id):
-        client = yield Model(self, 'clients').find_one({'clientId': client_id})
-
-        if client:
-            returnValue(client)
-        else:
-            returnValue(None)
-
     def _http_basic_authentication(self, username, password):
         # mimic HTTP basic authentication
         # concatenate username and password with a colon
@@ -518,53 +414,6 @@ class AuthComponent(CoreComponentSession):
         res = yield Model(self, 'sessions').delete_one({'userId': user_id, 'sessionId': session_id})
         returnValue(res > 0)
 
-    def _strip_unsafe_properties(self, _user):
-        user = _user.copy()
-
-        for entry in self.package_config.get('unsafe_properties'):
-            if entry in user:
-                del user[entry]
-
-        return user
-
-    # @inlineCallbacks
-    # def _retrieve_password(self, email):
-    #     """
-    #     Retrieve password by email
-    #
-    #     The email message template for user account password retrieval
-    #     is stored in the self._password_retrieval_message_template variable.
-    #
-    #     * Locates the user in the database by email which should be a
-    #       unique and persistent identifier.
-    #     * Generate a new random password
-    #     * Send the new password to the users email once. If the email
-    #       could not be send, abort the procedure
-    #     * Save the new password in the database.
-    #
-    #     :param email: email address to search user for
-    #     :type email:  string
-    #     """
-    #
-    #     user = yield self._get_user({'email': email})
-    #     if not user:
-    #       self.log.info('No user with email {0}'.format(email))
-    #       return
-    #
-    #     new_password = generate_password()
-    #     user['password'] = hash_password(new_password)
-    #     self.log.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
-    #
-    #     with Email() as email:
-    #       email.send(
-    #         email,
-    #         self._password_retrieval_message_template.format(password=new_password, user=user['username']),
-    #         'Password retrieval request for LIEStudio'
-    #       )
-    #       res = yield Model(self, 'users').update_one({'_id': user['_id']}, {'password': new_password})
-    #
-    #     returnValue(user)
-
     def _store_action(self, uri, action, options):
         registration = Model(self, 'registration_info')
 
@@ -573,29 +422,29 @@ class AuthComponent(CoreComponentSession):
         if action == 'register':
             match = options.get('match', 'exact')
 
-            @inlineCallbacks
-            def update_registration():
-                upd = yield registration.update_one(
-                    {
-                        'uri': uri,
-                        'match': match
-                    },
-                    {
-                        '$inc': {
-                            'registrationCount': 1
-                        },
-                        '$set': {
-                            'latestRegistration': n
-                        },
-                        '$setOnInsert': {
-                            'uri': uri,
-                            'firstRegistration': n,
-                            'match': match
-                        }
-                    },
-                    upsert=True,
-                    date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
-                )
+            # @inlineCallbacks
+            # def update_registration():
+            #     upd = yield registration.update_one(
+            #         {
+            #             'uri': uri,
+            #             'match': match
+            #         },
+            #         {
+            #             '$inc': {
+            #                 'registrationCount': 1
+            #             },
+            #             '$set': {
+            #                 'latestRegistration': n
+            #             },
+            #             '$setOnInsert': {
+            #                 'uri': uri,
+            #                 'firstRegistration': n,
+            #                 'match': match
+            #             }
+            #         },
+            #         upsert=True,
+            #         date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
+            #     )
 
             # We cannot be sure the DB is already up, possibly wait
             yield DBWaiter(self, update_registration).run()
@@ -605,58 +454,21 @@ class AuthComponent(CoreComponentSession):
                 id = yield self.call(u'wamp.registration.match', uri)
                 if id:
                     reg_info = yield self.call(u'wamp.registration.get', id)
-                    yield registration.update_one(
-                        {
-                            'uri': reg_info['uri'],
-                            'match': reg_info['match']
-                        },
-                        {
-                            '$inc': {
-                                'callCount': 1
-                            },
-                            '$set': {
-                                'latestCall': now
-                            }
-                        },
-                        date_fields=['update.$set.latestCall']
-                    )
+                    # yield registration.update_one(
+                    #     {
+                    #         'uri': reg_info['uri'],
+                    #         'match': reg_info['match']
+                    #     },
+                    #     {
+                    #         '$inc': {
+                    #             'callCount': 1
+                    #         },
+                    #         '$set': {
+                    #             'latestCall': now
+                    #         }
+                    #     },
+                    #     date_fields=['update.$set.latestCall']
+                    # )
 
             # We cannot be sure the DB is already up, possibly wait
             yield DBWaiter(self, update_registration).run()
-
-class DBWaiter(object):
-    def __init__(self, session, callback):
-        self.session = session
-        self.callback = callback
-        self.unsub = Deferred()
-        self.called = False
-        self.sub = None
-
-        self.unsub.addCallback(self._unsubscribe)
-
-    @inlineCallbacks
-    def run(self):
-        if not self.session.db_initialized:
-            self.sub = yield self.session.on_event(self._callback_wrapper, u'mdstudio.db.endpoint.events.online')
-
-            reactor.callLater(0.25, self._check_called)
-        else:
-            yield self.callback()
-            self.called = True
-
-    @inlineCallbacks
-    def _callback_wrapper(self, event):
-        yield self.callback()
-        self.called = True
-        self.unsub.callback(True)
-        self.session.db_initialized = True
-
-    def _unsubscribe(self, event=None):
-        self.sub.unsubscribe()
-
-    def _check_called(self):
-        if self.session.db_initialized:
-            if not self.called:
-                self._callback_wrapper(True)
-        else:
-            reactor.callLater(0.25, self._check_called)

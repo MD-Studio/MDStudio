@@ -1,25 +1,9 @@
 # -*- coding: utf-8 -*-
-import fnmatch
-import hashlib
 import os
-import random
-import socket
 import string
-
-from typing import List, Optional
-
-from mdstudio.logging.logger import Logger
-
-try:
-    # Python 3
-    from urllib.parse import urlparse
-except ImportError:
-    # Python 2
-    from urlparse import urlparse
+from typing import Optional
 
 from werkzeug.security import generate_password_hash, check_password_hash
-
-logging = Logger()
 
 
 def generate_password(password_length=16):
@@ -67,7 +51,6 @@ def hash_password(password):
     :param password:        password to hash
     :type password:         string
     """
-
     assert password, "Password must hold a value"
 
     # these are not parameters on purpose.
@@ -80,11 +63,10 @@ def hash_password(password):
     # salt length should be approx 512/8 bytes
     salt_length = 64
     hash_iterations = 656000
-    if hash_method not in hashlib.algorithms_available:
-        hash_method = 'sha512'
 
     hash_method = '{0}:{1}:{2}'.format(key_derivation, hash_method, hash_iterations)
     return generate_password_hash(password, method=hash_method.lower(), salt_length=salt_length)
+
 
 def check_password(password_hash, password):
     # type: (str, str) -> bool
@@ -93,28 +75,8 @@ def check_password(password_hash, password):
 
     Uses the Werkzeug.security check_password_hash function.
 
-    :param password:      plain string password to check
     :param password_hash: hashed password to check against.
+    :param password:      plain string password to check
     """
 
     return check_password_hash(password_hash, password)
-
-def ip_domain_based_access(domain, blacklist=None):
-    # type: (str, List[str]) -> bool
-    """
-    Filter access based on client IP or domain information.
-    If the domain is contained in a domain blacklist return
-    False to deny access, otherwise return True.
-
-    :param domain:    domain to check access for against black list.
-    :param blacklist: domains to blacklist with support for wildcards
-    """
-
-    if blacklist is None:
-        blacklist = []
-    for bld in blacklist:
-        if fnmatch.fnmatch(domain, bld):
-            return False
-
-    return True
-
