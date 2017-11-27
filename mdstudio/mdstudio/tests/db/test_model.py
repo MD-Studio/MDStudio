@@ -27,8 +27,6 @@ class ModelTests(TestCase):
     def setUp(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
         self.wrapper._check_wrapper = mock.MagicMock()
-        self.wrapper.component_info = mock.MagicMock()
-        self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
         self.collection = 'coll'
         self.model = Model(self.wrapper, self.collection)
         self.time = self.faker.date_time(pytz.utc)
@@ -64,8 +62,6 @@ class ModelTests(TestCase):
 
     def test_construction3(self):
         self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
-        self.wrapper.component_info = mock.MagicMock()
-        self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
 
         self.model = Model(self.wrapper, self.collection)
         self.assertEqual(self.model.wrapper, self.wrapper)
@@ -74,8 +70,6 @@ class ModelTests(TestCase):
 
     def test_construction4(self):
         self.wrapper = mock.MagicMock(spec=ApplicationSession)
-        self.wrapper.component_info = mock.MagicMock()
-        self.wrapper.component_info.get = mock.MagicMock(return_value='namespace')
 
         self.assertRaises(AssertionError, Model, self.wrapper, self.collection)
 

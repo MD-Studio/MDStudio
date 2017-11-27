@@ -1,9 +1,10 @@
 import datetime
-from typing import List
+from typing import List, Callable, Optional
 
 import pytz
 
 from mdstudio.db.exception import DatabaseException
+from mdstudio.logging.logger import Logger
 from mdstudio.utc import from_utc_string, from_date_string
 from mdstudio.compat import unicode
 
@@ -19,9 +20,12 @@ class Fields(object):
     encrypted = []
 
     _key_repository = None
+    _encrypted_prefix = '__encrypted__'
+
+    _logger = Logger()
 
     def __init__(self, date_times=None, dates=None, encrypted=None, key_repository=None):
-        # type: (List[str], List[str], List[str]) -> None
+        # type: (Optional[List[str]], Optional[List[str]], Optional[List[str]], Optional[KeyRepository]) -> None
         if date_times and not isinstance(date_times, list):
             date_times = [date_times]
         if dates and not isinstance(dates, list):
@@ -36,6 +40,7 @@ class Fields(object):
         self._key_repository = key_repository
 
     def __eq__(self, other):
+        # type: (Fields) -> bool
         return other and set(self.date_times) == set(other.date_times) \
                and set(self.dates) == set(other.dates) \
                and set(self.encrypted) == set(other.encrypted)
@@ -47,6 +52,7 @@ class Fields(object):
                       encrypted=other.encrypted + self.encrypted)
 
     def convert_call(self, obj, prefixes=None, claims=None):
+        # type: (dict, Optional[List[str]], Optional[dict]) -> None
         self.transform_to_object(obj, self.date_times, Fields.parse_date_time, prefixes)
         self.transform_to_object(obj, self.dates, Fields.parse_date, prefixes)
 
@@ -55,14 +61,17 @@ class Fields(object):
             self.transform_to_object(obj, self.encrypted, Fields.parse_encrypted, prefixes, **{'encryptor': encryptor})
 
     def parse_result(self, obj, claims=None):
+        # type: (dict, dict) -> None
         if claims and self.uses_encryption:
             encryptor = self.get_encryptor(claims)
             self.transform_to_object(obj, self.encrypted, Fields.decrypt, None, **{'encryptor': encryptor})
 
     def is_empty(self):
+        # type: () -> bool
         return not self.date_times and not self.dates and not self.encrypted
 
     def to_dict(self):
+        # type: () -> dict
         result = {}
         if self.date_times:
             result['datetime'] = self.date_times
@@ -74,17 +83,19 @@ class Fields(object):
 
     @property
     def uses_encryption(self):
+        # type: () -> bool
         return len(self.encrypted) > 0
 
     @staticmethod
     def from_dict(request, key_repository=None):
-
+        # type: (dict, KeyRepository) -> Fields
         return Fields(date_times=request.get('datetime'),
                       dates=request.get('date'),
                       encrypted=request.get('encrypted'),
                       key_repository=key_repository)
 
     def transform_to_object(self, document, fields, parser, prefixes, **kwargs):
+        # type: (dict, List[str], Callable, Optional[List[str]]) -> None
         if prefixes is None:
             prefixes = ['']
 
@@ -101,6 +112,7 @@ class Fields(object):
             self.transform_docfield_to_object(document, split_fields, parser, **kwargs)
 
     def transform_docfield_to_object(self, doc, field, parser, **kwargs):
+        # type: (dict, Optional[List[str]], Callable) -> None
         subdoc = doc
 
         for level in field[:-1]:
@@ -116,7 +128,6 @@ class Fields(object):
             for key, val in subdoc.items():
                 if key.startswith('$'):
                     self.transform_docfield_to_object(val, field[1:], parser, **kwargs)
-
 
         if subdoc is None:
             return
@@ -143,7 +154,8 @@ class Fields(object):
         elif isinstance(val, datetime.datetime):
             if not val.tzinfo:
                 raise DatabaseException(
-                    "No timezone information found. All datetime info should be stored in UTC format, please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
+                    "No timezone information found. All datetime info should be stored in UTC format, "
+                    "please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
             if val.tzinfo != pytz.utc:
                 val = val.astimezone(pytz.utc)
             return val
@@ -164,7 +176,7 @@ class Fields(object):
         if isinstance(val, (str, unicode)):
             val = val.encode()
         if isinstance(val, bytes):
-            return kwargs['encryptor'].encrypt(val)
+            return '{}:{}'.format(self._encrypted_prefix, kwargs['encryptor'].encrypt(val).decode('utf-8'))
         else:
             raise DatabaseException("Failed to encrypt field '{}'".format(val))
 
@@ -172,11 +184,18 @@ class Fields(object):
         if isinstance(val, (str, unicode)):
             val = val.encode()
         if isinstance(val, bytes):
-            return kwargs['encryptor'].decrypt(val).decode('utf-8')
+            if '{}:'.format(self._encrypted_prefix) in val:
+                return kwargs['encryptor'].decrypt(val).decode('utf-8')
+            else:
+                self._logger.warn('Trying to decrypt an unencrypted field, please check your insert statements')
+                return val
         else:
             raise DatabaseException("Failed to decrypt field '{}'".format(val))
 
     def get_encryptor(self, claims):
         from cryptography.fernet import Fernet
-        encryptor = Fernet(self._key_repository.get_key(claims))
+        encryptor = Fernet(self._get_key(claims))
         return encryptor
+
+    def _get_key(self, claims):
+        return self._key_repository.get_key(claims)
