@@ -320,15 +320,23 @@ class DBComponent(CoreComponentSession):
 
         if connection_type == ConnectionType.User:
             database_name = 'users~{user}'.format(user=claims['username'])
+
+            assert database_name.count('~') <= 1, 'Someone tried to spoof the key database!'
         elif connection_type == ConnectionType.Group:
             database_name = 'groups~{group}'.format(group=claims['group'])
+
+            assert database_name.count('~') <= 1, 'Someone tried to spoof the key database!'
         elif connection_type == ConnectionType.GroupRole:
             database_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
+
+            assert database_name.count('~') <= 2, 'Someone tried to spoof the key database!'
         else:
             raise NotImplemented('This distinction does not exist')
 
         result = None
         if database_name:
+            assert database_name.strip() != 'users~db', 'Someone tried to spoof the key database!'
+
             yield self.database_lock.acquire()
             result = self._client.get_database(database_name)
             yield self.database_lock.release()
