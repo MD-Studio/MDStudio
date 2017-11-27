@@ -2,18 +2,15 @@
 import os
 import pytz
 from faker import Faker
-from lie_db.key_repository import KeyRepository
-from mdstudio.deferred.lock import Lock
-
-from mdstudio.utc import from_utc_string
-
-from mdstudio.db.fields import Fields
-from mock import mock
+from mock import mock, call
 from mongomock import ObjectId
 from twisted.internet import reactor
 
 from lie_db.application import DBComponent
+from lie_db.key_repository import KeyRepository
+from mdstudio.db.fields import Fields
 from mdstudio.deferred.chainable import test_chainable
+from mdstudio.deferred.lock import Lock
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
@@ -64,6 +61,17 @@ class TestDBComponent(DBTestCase, APITestCase):
         self.assertIsInstance(self.service._secret, bytes)
         self.assertEqual(self.service._secret, b'pJIM5xrgbis_h9HBqfexTSf7MON0uedITnyPdI67ngY=')
         self.assertIsInstance(self.service.database_lock, Lock)
+
+    @mock.patch("mdstudio.component.impl.core.CoreComponentSession._on_join")
+    @test_chainable
+    def test_on_join(self, m):
+
+        self.service.call = mock.MagicMock()
+        yield self.service._on_join()
+        self.service.call.assert_has_calls([
+            call('mdstudio.auth.endpoint.ring0.set-status', {'status': True})
+        ])
+        m.assert_called_once()
 
     @test_chainable
     def test_more(self):
@@ -330,6 +338,19 @@ class TestDBComponent(DBTestCase, APITestCase):
         }, self.claims)
 
         self.assertEqual(output, {'total': 1})
+
+    @test_chainable
+    def test_count_cursor_id(self):
+        yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
+        cursor = yield self.db.find_many(self.collection, {})
+
+        output = yield self.assertApi(self.service, 'count', {
+            'cursorId': cursor['cursorId'],
+            'withLimitAndSkip': True
+        }, self.claims)
+        self.assertEqual(output, {
+            'total': 2
+        })
 
     @test_chainable
     def test_update_one(self):
