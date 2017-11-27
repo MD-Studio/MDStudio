@@ -15,6 +15,14 @@ from mdstudio.utc import now
 
 class FieldsTests(TestCase):
 
+    def test_merge(self):
+        field = Fields(dates=['date1'], date_times=['datetime1'], encrypted=['encrypted1'])
+        field2 = Fields(dates=['date2'], date_times=['datetime2'], encrypted=['encrypted2'])
+        merged = field.merge(field2)
+        self.assertEqual(merged.date_times, ['datetime2', 'datetime1'])
+        self.assertEqual(merged.dates, ['date2', 'date1'])
+        self.assertEqual(merged.encrypted, ['encrypted2', 'encrypted1'])
+
     def test_convert_call_date_time(self):
         document = {
             'date': '2017-10-26T09:16:00+00:00'
@@ -725,7 +733,6 @@ class FieldsTests(TestCase):
         self.field = Fields(encrypted=['test'])
         self.field._key_repository = mock.MagicMock()
         self.field._key_repository.get_key = mock.MagicMock(return_value=b'123456')
-        self.field._logger = mock.MagicMock()
         obj = {
             'test': 'hello world'
         }
@@ -741,8 +748,29 @@ class FieldsTests(TestCase):
             'test': 'hello world'
         }
         obj2 = deepcopy(obj)
-        self.assertRaises(DatabaseException, self.field.parse_result, obj2, {'username': 'user'})
+        self.assertRaisesRegex(DatabaseException, 'Trying to decrypt an unencrypted field with key "test", '
+                                                  'please check your insert statements!', self.field.parse_result, obj2, {'username': 'user'})
+
+    def test_encryption_fields_decrypt_fails2(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': 2
+        }
+        obj2 = deepcopy(obj)
+        self.assertRaisesRegex(DatabaseException, "Failed to decrypt field '2'", self.field.parse_result, obj2, {'username': 'user'})
         self.assertEqual(obj, obj2)
+
+    def test_encryption_fields_decrypt_fails3(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': '__encrypted__:wefwefewf'
+        }
+        obj2 = deepcopy(obj)
+        self.assertRaisesRegex(DatabaseException, "", self.field.parse_result, obj2, {'username': 'user'})
 
     def test_to_dict(self):
         fields = Fields(date_times=['test'], dates=['test2'], encrypted=['test3'])

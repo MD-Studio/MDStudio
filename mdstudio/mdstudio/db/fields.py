@@ -22,8 +22,6 @@ class Fields(object):
     _key_repository = None
     _encrypted_prefix = '__encrypted__'
 
-    _logger = Logger()
-
     def __init__(self, date_times=None, dates=None, encrypted=None, key_repository=None):
         # type: (Optional[List[str]], Optional[List[str]], Optional[List[str]], Optional[KeyRepository]) -> None
         if date_times and not isinstance(date_times, list):
@@ -194,11 +192,10 @@ class Fields(object):
                 if prefix in val.decode('utf-8'):
                     val = kwargs['encryptor'].decrypt(val.replace(prefix.encode(), b'', 1))
                 else:
-                    self._logger.warn('Trying to decrypt an unencrypted field with key "{key}", please check your insert statements!', key=key)
+                    raise DatabaseException('Trying to decrypt an unencrypted field with key "{key}", please check your insert statements!'.format(key=key))
             except Exception as ex:
-                self._logger.info('Failed to decrypt field {key}:\n{exp_str}', key=key, exp_str=str(ex))
-                raise DatabaseException(ex)
-            finally:
+                raise DatabaseException('Failed to decrypt field {key}:\n{exp_str}'.format(key=key, exp_str=str(ex)))
+            else:
                 return val.decode('utf-8')
         else:
             raise DatabaseException("Failed to decrypt field '{}'".format(val))
