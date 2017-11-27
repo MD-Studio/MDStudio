@@ -141,14 +141,15 @@ class Fields(object):
                         elif '.' in key:
                             accessor = None
                             keys = key.split('.')
-                            nfields = deepcopy(field)
+                            nfields = deepcopy(field[i:])
                             for vkey in deepcopy(keys):
                                 if not accessor:
                                     accessor = vkey
                                 else:
                                     accessor = '{}.{}'.format(accessor, vkey)
                                 # remove front from list
-                                nfields.pop(0)
+                                if nfields[0] == vkey:
+                                    nfields.pop(0)
                                 if accessor in subdoc:
                                     self.transform_docfield_to_object(subdoc, [accessor] + nfields, parser, **kwargs)
 
