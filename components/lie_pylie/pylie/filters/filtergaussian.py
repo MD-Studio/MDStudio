@@ -40,6 +40,7 @@ class FilterGaussian(object):
             returnellipse=True,
             edgecolor='red',
             facecolor='none')
+
         # Register outliers
         self.liedataframe['filter_mask'] = self.liedataframe['filter_mask'].values + numpy.array(outliers)
 

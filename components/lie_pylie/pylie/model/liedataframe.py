@@ -204,7 +204,7 @@ def lie_deltag(dataset, params=[0.5, 0.5, 0], kBt=2.49, **kwargs):
     :ptype params:  list
     :param kBt:     Boltzmann constant at given temperature. Default = 2.49
     :ptype kBt:     float
-    :param calc_prob: list of booleans specifing wich of the energy terms to
+    :param calc_prob: list of booleans specifying which of the energy terms to
                     include in Boltzmann weighting. By default True for all terms.
     :ptype calc_prob: list
     :param param_labels: Data labels for the scaling parameters used in the
@@ -213,6 +213,7 @@ def lie_deltag(dataset, params=[0.5, 0.5, 0], kBt=2.49, **kwargs):
     :param data_labels: Data labels for the input datasets used in the
                     results DataFrame. By default set to 'vdw', 'coul' and 'dx'.
     :ptype param_labels: list
+
     :return array:  Pandas DataFrame with an array of deltaG values, the weighted
                     VdW and Coul energy values, alpha, beta and gamma values and
                     propensities for each case.

@@ -435,7 +435,7 @@ class LIEDataFrameBase(_Common, DataFrame):
         Convenience method for quick selection of case-pose combinations in
         the LIEDataFrame.
 
-        :param case_pose_list: list of case ID, pose Id tuples
+        :param case_pose_list: list of case ID, pose ID tuples
         :ptype case_pose_list: list
         :return: New LIEDataFrame representing selected cases
         :rtype: LIEDataFrame
@@ -449,8 +449,7 @@ class LIEDataFrameBase(_Common, DataFrame):
             else:
                 cp_indexes.extend(sel.index.values)
 
-        if len(cp_indexes):
-            return self.loc[cp_indexes, :]
+        return self.loc[cp_indexes, :]
 
     def plot(self, *args, **kwargs):
         """
