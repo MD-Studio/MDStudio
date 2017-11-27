@@ -31,6 +31,12 @@ class TestUTC(TestCase):
             n = self.faker.date_time(tzinfo=tz)
             self.assertEqual(from_utc_string(n.isoformat()), n)
 
+    def test_utc3(self):
+
+        for i in range(100):
+            n = self.faker.date_time()
+            self.assertEqual(from_utc_string(n.isoformat()), n.replace(tzinfo=pytz.utc))
+
     def test_date(self):
 
         for i in range(100):

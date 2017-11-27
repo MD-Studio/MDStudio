@@ -29,6 +29,16 @@ class FieldsTests(TestCase):
         self.assertFalse(Fields(date_times=['test']).is_empty())
         self.assertFalse(Fields(encrypted=['test']).is_empty())
 
+    def test_convert_call_date_time_empty_field(self):
+        document = {
+            'date': '2017-10-26T09:16:00+00:00'
+        }
+        f = Fields(date_times=[])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'date': '2017-10-26T09:16:00+00:00'
+        })
+
     def test_convert_call_date_time(self):
         document = {
             'date': '2017-10-26T09:16:00+00:00'
@@ -206,6 +216,30 @@ class FieldsTests(TestCase):
         self.assertEqual(document, {
             'date': [datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
                      datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)]
+        })
+
+    def test_convert_call_date_time_list2(self):
+        document = {
+            'date': [
+                '2017-10-26T09:16:00+00:00',
+                {
+                    'insert': {
+                        'test': '2017-10-26T09:16:00+00:00'
+                    }
+                }
+            ]
+        }
+        f = Fields(date_times=['date.insert.test'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'date': [
+                '2017-10-26T09:16:00+00:00',
+                {
+                    'insert': {
+                        'test': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                    }
+                }
+            ]
         })
 
     def test_convert_call_date_time_no_list(self):

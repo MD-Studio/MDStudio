@@ -2,6 +2,8 @@
 import os
 import pytz
 from faker import Faker
+from lie_db.key_repository import KeyRepository
+
 from mdstudio.utc import from_utc_string
 
 from mdstudio.db.fields import Fields
@@ -369,7 +371,7 @@ class TestDBComponent(DBTestCase, APITestCase):
     @test_chainable
     def test_update_one_fields_datetime(self):
 
-        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
+        date3 = self.fake.date_time(tzinfo=pytz.utc)
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
@@ -445,7 +447,7 @@ class TestDBComponent(DBTestCase, APITestCase):
     @test_chainable
     def test_update_many_fields_datetime(self):
 
-        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
+        date3 = self.fake.date_time(tzinfo=pytz.utc)
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
@@ -854,7 +856,7 @@ class TestDBComponent(DBTestCase, APITestCase):
 
     @test_chainable
     def test_find_one_and_update_fields_datetime(self):
-        date3 = self.fake.date_time(tzinfo=pytz.utc).isoformat()
+        date3 = self.fake.date_time(tzinfo=pytz.utc)
         o1 = {'test': 1, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o2 = {'test': 2, '_id': str(ObjectId()), 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}
         o3 = {'test': 2, 'test2': 3, '_id': o2['_id'], 'date': date3}
@@ -1264,3 +1266,74 @@ class TestDBComponent(DBTestCase, APITestCase):
             'results': [objs[0], objs[2]],
             'size': 2
         })
+
+    @test_chainable
+    def test_get_database(self):
+        self.assertEqual((yield self.service.get_database({
+            'connectionType': 'user',
+            'username': 'test-user'
+        }))._database_name, 'users~test-user')
+
+    @test_chainable
+    def test_get_database2(self):
+        for i in range(50):
+            word = self.fake.word()
+            self.assertEqual((yield self.service.get_database({
+                'connectionType': 'user',
+                'username': word
+            }))._database_name, 'users~{}'.format(word))
+
+    @test_chainable
+    def test_get_database3(self):
+        self.assertEqual((yield self.service.get_database({
+            'connectionType': 'group',
+            'group': 'test-group'
+        }))._database_name, 'groups~test-group')
+
+    @test_chainable
+    def test_get_database4(self):
+        for i in range(50):
+            word = self.fake.word()
+            self.assertEqual((yield self.service.get_database({
+                'connectionType': 'group',
+                'group': word
+            }))._database_name, 'groups~{}'.format(word))
+
+    @test_chainable
+    def test_get_database5(self):
+        self.assertEqual((yield self.service.get_database({
+            'connectionType': 'groupRole',
+            'group': 'test-group',
+            'groupRole': 'test-group-role'
+        }))._database_name, 'grouproles~test-group~test-group-role')
+
+    @test_chainable
+    def test_get_database6(self):
+        for i in range(50):
+            word = self.fake.word()
+            role = self.fake.word()
+            self.assertEqual((yield self.service.get_database({
+                'connectionType': 'groupRole',
+                'group': word,
+                'groupRole': role
+            }))._database_name, 'grouproles~{}~{}'.format(word, role))
+
+    @test_chainable
+    def test_get_database_non_existing(self):
+        yield self.assertFailure(self.service.get_database({
+            'connectionType': 'groupRoles',
+            'group': 'test-group',
+            'groupRole': 'test-group-role'
+        }), ValueError)
+
+    def test_set_fields(self):
+        claims = {'test': 'hello worlds'}
+        kwargs = {}
+        self.service.set_fields(claims, kwargs, {
+            'fields': {
+                'encrypted': ['test']
+            }
+        })
+        self.assertEqual(kwargs['fields'], Fields(encrypted=['test']))
+        self.assertIsInstance(kwargs['fields']._key_repository, KeyRepository)
+        self.assertEqual(kwargs['claims'], claims)
