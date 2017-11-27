@@ -161,17 +161,20 @@ class AuthComponent(CoreComponentSession):
         repo = UserRepository(self.db)
         user = None
         group = None
-        try:
-            user = yield repo.create_user('foo', 'bar', 'foo@bar')
-            print(user)
-            print(repo.groups.date_time_fields)
-            group = yield repo.create_group('foogroup', user['handle'])
-            print(group)
-        finally:
-            if group:
-                yield repo.groups.delete_one({'groupName': group['groupName']})
-            if user:
-                yield repo.users.delete_one({'username': user['username']})
+        # try:
+        yield repo.users.delete_many({})
+        yield repo.groups.delete_many({})
+        user = yield repo.create_user('foo', 'bar', 'foo@bar')
+        user2 = yield repo.create_user('foo2', 'bar2', 'foo@bar')
+        group = yield repo.create_group('foogroup', user['handle'])
+        group_role = yield repo.create_group_role('foogroup', 'editor', user['handle'])['roles'][0]
+        added_member = yield repo.add_group_member('foogroup', group_role['handle'], user2['handle'])
+        print(added_member)
+        # finally:
+        #     if group:
+        #         yield repo.groups.delete_one({'groupName': 'foogroup'})
+        #     if user:
+        #         yield repo.users.delete_one({'username': 'foo'})
 
     # @register(u'mdstudio.auth.endpoint.oauth.registerscopes', {}, {}, match='prefix')
     # @inlineCallbacks

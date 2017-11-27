@@ -57,7 +57,7 @@ class DictWithTimestamps(dict):
         if created_at is not None:
             self.created_at = created_at
             if updated_at is None:
-                self.updated_at = updated_at
+                self.updated_at = created_at
 
         if updated_at is not None:
             self.updated_at = None
@@ -95,11 +95,11 @@ class UserRepository(object):
 
     class Group(DictWithTimestamps):
         class Role(DictWithTimestamps):
-            class Owner(DictWithTimestamps):
+            class Member(DictWithTimestamps):
                 handle = dict_property('handle')
 
                 def __init__(self, handle, **kwargs):
-                    super(UserRepository.Group.Role.Owner, self).__init__(**kwargs)
+                    super(UserRepository.Group.Role.Member, self).__init__(**kwargs)
                     self.handle = handle
 
             class Permissions(dict):
@@ -107,22 +107,24 @@ class UserRepository(object):
                 role_resource_permissions = dict_property('roleResourcePermissions')
                 group_resource_permissions = dict_property('groupResourcePermissions')
 
-                def __init__(self, component_permissions=None, role_resource_permissions=None, group_resource_permissions=None,
-                             **kwargs):
+                def __init__(self, component_permissions=None, role_resource_permissions=None, group_resource_permissions=None, **kwargs):
                     super(UserRepository.Group.Role.Permissions, self).__init__(**kwargs)
-                    self.component_permissions = component_permissions or kwargs.get('componentPermissions', None)
-                    self.role_resource_permissions = role_resource_permissions or kwargs.get('roleResourcePermissions', None)
-                    self.group_resource_permissions = group_resource_permissions or kwargs.get('groupResourcePermissions', None)
+                    self.component_permissions = component_permissions or kwargs.get('componentPermissions', [])
+                    self.role_resource_permissions = role_resource_permissions or kwargs.get('roleResourcePermissions', False)
+                    self.group_resource_permissions = group_resource_permissions or kwargs.get('groupResourcePermissions', False)
 
             name = dict_property('roleName')
-            owners = dict_array_property('owners', Owner)
+            handle = dict_property('handle')
+            owners = dict_array_property('owners', Member)
+            members = dict_array_property('members', Member)
             permissions = dict_property('permissions', Permissions)
 
-            def __init__(self, name=None, handle=None, owners=None, permissions=None, **kwargs):
+            def __init__(self, name=None, handle=None, owners=None, members=None, permissions=None, **kwargs):
                 super(UserRepository.Group.Role, self).__init__(**kwargs)
                 self.name = name or kwargs.get('roleName')
                 self.handle = handle
                 self.owners = owners
+                self.members = members
                 self.permissions = permissions
 
         class Member(DictWithTimestamps):
@@ -264,7 +266,17 @@ class UserRepository(object):
                         'removeComponents': <bool>
         """
         connection_type = ConnectionType.User
-        date_time_fields = timestamp_properties(['', 'roles', 'roles.owners', 'members', 'components'])
+        date_time_fields = timestamp_properties([
+            '',
+            'roles',
+            'roles.owners',
+            'roles.members',
+            'role.permissions.componentPermissions',
+            'role.permissions.groupResourcePermissions',
+            'role.permissions.roleResourcePermissions',
+            'members',
+            'components'
+        ])
 
     def __init__(self, db_wrapper):
         self.wrapper = db_wrapper
@@ -355,43 +367,12 @@ class UserRepository(object):
         created_at = now()
         role_uiid = random_uuid()
 
-        group_role_owner = UserRepository.Group.Role.Owner(owner_handle, created_at=created_at)
-        initial_permissions = UserRepository.Group.Role.Permissions([], True, True, created_at=created_at)
-        initial_role = UserRepository.Group.Role('owner', role_uiid, [group_role_owner], initial_permissions, created_at=created_at)
+        role_owner = UserRepository.Group.Role.Member(owner_handle, created_at=created_at)
+        initial_permissions = UserRepository.Group.Role.Permissions([], True, True)
+        initial_role = UserRepository.Group.Role('owner', role_uiid, [role_owner], [role_owner], initial_permissions, created_at=created_at)
+        initial_member = UserRepository.Group.Member(owner_handle, [role_uiid], created_at=created_at)
 
-        group = UserRepository.Group(group_name, display_name, random_uuid(), [initial_role], UserRepository.Group.Member(owner_handle, [role_uiid]), [], created_at=created_at)
-
-        # group = self._with_create_time({
-        #     'groupName': group_name,
-        #     'displayName': display_name,
-        #     'handle': random_uuid(),
-        #     'roles': [
-        #         self._with_create_time({
-        #             'role': 'owner',
-        #             'owners': [owner_handle],
-        #             'handle': role_uiid,
-        #             'members': [
-        #                 self._with_create_time({
-        #                     'handle': owner_handle
-        #                 }, created_at)
-        #             ],
-        #             'permissions': {
-        #                 'componentPermissions': [],
-        #                 'roleResourcePermissions': True,
-        #                 'groupResourcePermissions': True
-        #             }
-        #         }, created_at)
-        #     ],
-        #     'members': [
-        #         self._with_create_time({
-        #             'handle': owner_handle,
-        #             'roles': [role_uiid]
-        #         }, created_at)
-        #     ],
-        #     'components': []
-        # }, created_at)
-
-        print(group)
+        group = UserRepository.Group(group_name, display_name, random_uuid(), [initial_role], [initial_member], [], created_at=created_at)
 
         inserted = yield self.groups.find_one_and_update({
             'groupName': group_name
@@ -399,10 +380,9 @@ class UserRepository(object):
             '$setOnInsert': group
         }, upsert=True, projection={'_id': False}, return_updated=True)
 
-        print([p for p in dictdiffer.diff(group, inserted)])
-
         return_value(group if group == inserted else None)
 
+    @chainable
     def create_group_role(self, group_name, role_name, owner_handle, role_resources=True, group_resources=False):
         created_at = now()
 
@@ -414,36 +394,28 @@ class UserRepository(object):
                         'role': role_name
                     }
                 }
+            },
+            'members': {
+                '$elemMatch': {
+                    'handle': owner_handle
+                }
             }
         }
 
+        role_uuid = random_uuid()
         role_owner = UserRepository.Group.Role.Member(owner_handle, created_at=created_at)
         initial_permissions = UserRepository.Group.Role.Permissions([], role_resources, group_resources, created_at=created_at)
 
         group_update = {
             '$push': {
-                'roles': UserRepository.Group.Role(role_name, role_owner, role_owner, initial_permissions, created_at=created_at)
+                'roles': UserRepository.Group.Role(role_name, role_uuid, [role_owner], [role_owner], initial_permissions, created_at=created_at),
+                'members.$.roles': role_uuid
             }
-            #     {
-            #     'roles': self._with_create_time({
-            #         'role': role_name,
-            #         'owners': [user_handle],
-            #         'members': [
-            #             self._with_create_time({
-            #                 'handle': user_handle
-            #             }, created_at)
-            #         ],
-            #         'permissions': {
-            #             'componentPermissions': [],
-            #             'roleResourcePermissions': role_resources if role_resources else [],
-            #             'groupResourcePermissions': group_resources if group_resources else []
-            #         }
-            #     })
-            # }
         }
 
-        return (yield self.groups.find_one_and_update(group_filter, group_update, {'_id': False}, return_updated=True))
+        return (yield self.groups.find_one_and_update(group_filter, group_update, projection={'roles': {'$elemMatch': {'handle': role_uuid}}}, return_updated=True))
 
+    @chainable
     def add_group_member(self, group_name, role_handle, user_handle):
         created_at = now()
 
@@ -455,16 +427,27 @@ class UserRepository(object):
                         'handle': user_handle
                     }
                 }
+            },
+            'roles': {
+                '$elemMatch': {
+                    'handle': role_handle
+                }
             }
         }
+        print(group_filter)
+
+        print((yield self.groups.find_one(group_filter)))
 
         group_update = {
             '$push': {
-                'members': {
-                    UserRepository.Group.Member(user_handle, [role_handle], created_at=created_at)
-                },
+                'members': UserRepository.Group.Member(user_handle, [role_handle], created_at=created_at),
+                'roles.$.members': UserRepository.Group.Role.Member(user_handle, created_at=created_at)
             }
         }
+
+        updated = yield self.groups.find_one_and_update(group_filter, group_update, projection={'_id': False}).modified
+
+        return_value(updated == 1)
 
     @staticmethod
     def _with_create_time(entry, created_at=None):

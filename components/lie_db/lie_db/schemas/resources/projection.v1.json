@@ -2,11 +2,5 @@
   "$schema": "http://json-schema.org/schema#",
   "title": "DatabaseProjection",
   "description": "A valid MongoDB projection: https://docs.mongodb.com/manual/tutorial/project-fields-from-query-results/",
-  "type": "object",
-  "patternProperties": {
-    "^.*$": {
-      "type": "boolean"
-    }
-  },
-  "additionalProperties": false
+  "type": "object"
 }
