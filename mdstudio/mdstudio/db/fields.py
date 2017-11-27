@@ -180,14 +180,15 @@ class Fields(object):
         else:
             raise DatabaseException("Failed to encrypt field '{}'".format(val))
 
-    def decrypt(self, val, *args, **kwargs):
+    def decrypt(self, val, key, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             val = val.encode()
         if isinstance(val, bytes):
-            if '{}:'.format(self._encrypted_prefix) in val:
-                return kwargs['encryptor'].decrypt(val).decode('utf-8')
+            prefix = '{}:'.format(self._encrypted_prefix)
+            if prefix in val.decode('utf-8'):
+                return kwargs['encryptor'].decrypt(val.replace(prefix.encode(), b'', 1)).decode('utf-8')
             else:
-                self._logger.warn('Trying to decrypt an unencrypted field, please check your insert statements')
+                self._logger.warn('Trying to decrypt an unencrypted field with key "{}}", please check your insert statements!'.format(key))
                 return val
         else:
             raise DatabaseException("Failed to decrypt field '{}'".format(val))
