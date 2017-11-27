@@ -15,15 +15,13 @@ def random_uuid():
     return str(uuid4())
 
 
-def dict_property(name, property_class=None):
-    if property_class is None:
+def dict_property(name, modifier=None):
+    if modifier is None:
         def getter(self):
             return self[name]
     else:
         def getter(self):
-            res = self[name]
-            res.__class__ = property_class
-            return res
+            return modifier(self[name])
 
     def setter(self, value):
         self[name] = value
@@ -31,15 +29,14 @@ def dict_property(name, property_class=None):
     return property(getter, setter)
 
 
-def dict_array_property(name, item_class=None):
-    if item_class is None:
+def dict_array_property(name, modifier=None):
+    if modifier is None:
         def getter(self):
             return self[name]
     else:
         def getter(self):
             for item in self[name]:
-                item.__class__ = item_class
-                yield item
+                yield modifier(item)
 
     def setter(self, value):
         self[name] = value
@@ -69,6 +66,12 @@ class DictWithTimestamps(dict):
     updated_at = dict_property('updatedAt')
     deleted_at = dict_property('deletedAt')
 
+    @classmethod
+    def from_dict(cls, instance):
+        inst = cls()
+        inst.update(instance)
+        return inst
+
 
 class UserRepository(object):
     class Users(Model):
@@ -91,6 +94,7 @@ class UserRepository(object):
         date_time_fields = timestamp_properties()
 
         class Instance(DictWithTimestamps):
+            name = dict_property('username')
             username = dict_property('username')
             display_name = dict_property('displayName')
             handle = dict_property('handle')
@@ -111,9 +115,28 @@ class UserRepository(object):
                     self.handle = handle
 
             class Permissions(dict):
-                component_permissions = dict_property('componentPermissions')
-                role_resource_permissions = dict_property('roleResourcePermissions')
-                group_resource_permissions = dict_property('groupResourcePermissions')
+                class ComponentPermission(DictWithTimestamps):
+                    handle = dict_property('handle')
+                    namespace = dict_property('namespace')
+                    scopes = dict_array_property('scopes')
+                    endpoints = dict_array_property('endpoints')
+
+                    def __init__(self, handle=None, namespace=None, scopes=None, endpoints=None, **kwargs):
+                        super(UserRepository.Group.Role.Permissions.ComponentPermission, self).__init__(**kwargs)
+                        self.handle = handle
+                        self.namespace = namespace
+                        self.scopes = scopes
+                        self.endpoints = endpoints
+
+                @classmethod
+                def from_dict(cls, instance):
+                    inst = cls()
+                    inst.update(instance)
+                    return inst
+
+                component_permissions = dict_array_property('componentPermissions', ComponentPermission.from_dict)
+                role_resource_permissions = dict_array_property('roleResourcePermissions', ComponentPermission.from_dict)
+                group_resource_permissions = dict_array_property('groupResourcePermissions', ComponentPermission.from_dict)
 
                 def __init__(self, component_permissions=None, role_resource_permissions=None, group_resource_permissions=None, **kwargs):
                     super(UserRepository.Group.Role.Permissions, self).__init__(**kwargs)
@@ -123,9 +146,9 @@ class UserRepository(object):
 
             name = dict_property('roleName')
             handle = dict_property('handle')
-            owners = dict_array_property('owners', Member)
-            members = dict_array_property('members', Member)
-            permissions = dict_property('permissions', Permissions)
+            owners = dict_array_property('owners', Member.from_dict)
+            members = dict_array_property('members', Member.from_dict)
+            permissions = dict_property('permissions', Permissions.from_dict)
 
             def __init__(self, name=None, handle=None, owners=None, members=None, permissions=None, **kwargs):
                 super(UserRepository.Group.Role, self).__init__(**kwargs)
@@ -167,9 +190,9 @@ class UserRepository(object):
         name = dict_property('groupName')
         display_name = dict_property('displayName')
         handle = dict_property('handle')
-        roles = dict_array_property('roles', Role)
-        members = dict_array_property('members', Member)
-        components = dict_array_property('components', Component)
+        roles = dict_array_property('roles', Role.from_dict)
+        members = dict_array_property('members', Member.from_dict)
+        components = dict_array_property('components', Component.from_dict)
 
     class Groups(Model):
         """
@@ -322,7 +345,7 @@ class UserRepository(object):
             '$setOnInsert': user
         }, upsert=True, projection={'_id': False}, return_updated=True)
 
-        return_value(user if user == inserted else None)
+        return_value(UserRepository.Users.Instance.from_dict(user) if user == inserted else None)
 
     @chainable
     def find_user(self, username=None, handle=None, email=None):
@@ -336,7 +359,7 @@ class UserRepository(object):
         result = yield self.users.find_one(user_filter, {'_id': False, 'password': False})
 
         if isinstance(result, dict):
-            result.__class__ = UserRepository.Users.Instance
+            result = UserRepository.Users.Instance.from_dict(result)
 
         return_value(result)
 
@@ -375,14 +398,14 @@ class UserRepository(object):
     Group CRUD
     """
     @chainable
-    def create_group(self, group_name, owner_handle=None, display_name=None, owner_username=None):
+    def create_group(self, group_name, owner_username, display_name=None):
         if display_name is None:
             display_name = group_name
 
         created_at = now()
         role_uiid = random_uuid()
 
-        owner_handle = owner_handle or (yield self.find_user(username=owner_username).handle)
+        owner_handle = (yield self.find_user(username=owner_username).handle)
 
         role_owner = UserRepository.Group.Role.Member(owner_handle, created_at=created_at)
         initial_permissions = UserRepository.Group.Role.Permissions([], True, True)
@@ -397,13 +420,13 @@ class UserRepository(object):
             '$setOnInsert': group
         }, upsert=True, projection={'_id': False}, return_updated=True)
 
-        return_value(group if group == inserted else None)
+        return_value(UserRepository.Group.from_dict(group) if group == inserted else None)
 
     @chainable
-    def create_group_role(self, group_name, role_name, owner_handle=None, role_resources=True, group_resources=False, owner_username=None):
+    def create_group_role(self, group_name, role_name, owner_username, role_resources=True, group_resources=False):
         created_at = now()
 
-        owner_handle = owner_handle or (yield self.find_user(username=owner_username).handle)
+        owner_handle = (yield self.find_user(username=owner_username).handle)
 
         group_filter = {
             'groupName': group_name,
@@ -421,10 +444,6 @@ class UserRepository(object):
             }
         }
 
-        print(group_filter)
-
-        print((yield self.groups.find_one(group_filter)))
-
         role_uuid = random_uuid()
         role_owner = UserRepository.Group.Role.Member(owner_handle, created_at=created_at)
         initial_permissions = UserRepository.Group.Role.Permissions([], role_resources, group_resources, created_at=created_at)
@@ -438,15 +457,30 @@ class UserRepository(object):
 
         updated = yield self.groups.find_one_and_update(group_filter, group_update, projection={'roles': {'$elemMatch': {'handle': role_uuid}}}, return_updated=True).get('roles', [None])[0]
 
-        return updated if updated is not None and updated['handle'] == role_uuid else None
+        return_value(UserRepository.Group.Role.from_dict(updated) if updated is not None and updated['handle'] == role_uuid else None)
 
     @chainable
-    def add_role_member(self, ):
-        pass
+    def find_role(self, group_name, role_name):
+        # type: (str, str) -> UserRepository.Group.Role
+        role_filter = {
+            'groupName': group_name,
+            'roles': {
+                '$elemMatch': {
+                    'roleName': role_name
+                }
+            }
+        }
+
+        role = yield self.groups.find_one(role_filter, projection={'roles': {'$elemMatch': {'roleName': role_name}}}).get('roles', [None])[0]
+
+        return_value(UserRepository.Group.Role.from_dict(role) if role else None)
 
     @chainable
-    def add_group_member(self, group_name, role_handle, user_handle):
+    def add_group_member(self, group_name, role_name, username):
         created_at = now()
+
+        user_handle = yield self.find_user(username=username).handle
+        role_handle = yield self.find_role(group_name, role_name).handle
 
         group_filter = {
             'groupName': group_name,
@@ -474,6 +508,74 @@ class UserRepository(object):
         updated = yield self.groups.update_one(group_filter, group_update).modified
 
         return_value(updated == 1)
+
+    @chainable
+    def add_role_member(self, group_name, role_name, username):
+        created_at = now()
+
+        user_handle = yield self.find_user(username=username).handle
+
+        group_filter = {
+            'groupName': group_name,
+            'members': {
+                '$elemMatch': {
+                    'handle': user_handle
+                }
+            },
+            'roles': {
+                '$elemMatch': {
+                    'roleName': role_name
+                }
+            }
+        }
+
+        group_update = {
+            '$push': {
+                'roles.$.members': UserRepository.Group.Role.Member(user_handle, created_at=created_at)
+            }
+        }
+
+        updated = yield self.groups.update_one(group_filter, group_update).modified
+
+        return_value(updated == 1)
+
+    @chainable
+    def create_component(self, group_name, role_name, component_name):
+        created_at = now()
+        component_handle = random_uuid()
+
+        role_handle = yield self.find_role(group_name, role_name).handle
+
+        component_filter = {
+            'groupName': group_name,
+            'roles': {
+                '$elemMatch': {
+                    'handle': role_handle
+                }
+            },
+            'components': {
+                '$not': {
+                    '$elemMatch': {
+                        'componentName': component_name
+                    }
+                }
+            }
+        }
+
+        group_update = {
+            '$push': {
+                'roles.$.permissions.componentPermissions': UserRepository.Group.Role.Permissions.ComponentPermission(component_handle, True, True, True, created_at=created_at),
+                'components': UserRepository.Group.Component(component_name, component_handle, [role_handle], created_at=created_at)
+            }
+        }
+
+        return_value((yield self.groups.find_one_and_update(component_filter, group_update, projection={
+            'components': {
+                '$elemMatch': {
+                    'componentName': component_name
+                }
+            }
+        }, return_updated=True).get('components', [None])[0]))
 
     @staticmethod
     def _with_create_time(entry, created_at=None):

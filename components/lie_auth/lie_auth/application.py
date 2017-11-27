@@ -161,19 +161,19 @@ class AuthComponent(CoreComponentSession):
         repo = UserRepository(self.db)
         user = None
         group = None
-        # try:
+
         yield repo.users.delete_many({})
         yield repo.groups.delete_many({})
         user = yield repo.create_user('foo', 'bar', 'foo@bar')
         user2 = yield repo.create_user('foo2', 'bar2', 'foo@bar')
-        group = yield repo.create_group('foogroup', owner_username='foo')
-        group_role = yield repo.create_group_role('foogroup', 'editor', user['handle'])
-        added_member = yield repo.add_group_member('foogroup', group_role['handle'], user2['handle'])
-        # finally:
-        #     if group:
-        #         yield repo.groups.delete_one({'groupName': 'foogroup'})
-        #     if user:
-        #         yield repo.users.delete_one({'username': 'foo'})
+        user3 = yield repo.create_user('foo3', 'bar2', 'foo@bar3')
+        group = yield repo.create_group('foogroup', user.name)
+        group_role = yield repo.create_group_role(group.name, 'editor', user.name)
+        group_role2 = yield repo.create_group_role(group.name, 'user', user.name)
+        assert (yield repo.add_group_member(group.name, group_role.name, user2.name))
+        assert (yield repo.add_role_member(group.name, group_role2.name, user2.name))
+        assert (yield repo.add_group_member(group.name, group_role.name, user3.name))
+        component = (yield repo.create_component(group.name, group_role.name, 'foo'))
 
     # @register(u'mdstudio.auth.endpoint.oauth.registerscopes', {}, {}, match='prefix')
     # @inlineCallbacks
