@@ -3,6 +3,8 @@ import datetime
 
 import pytz
 from copy import deepcopy
+from cryptography.fernet import Fernet
+from mock import mock
 from unittest2 import TestCase
 
 from mdstudio.db.database import Fields
@@ -267,6 +269,36 @@ class FieldsTests(TestCase):
             },
             'insert2': {
                 'date': '2017-10-26T09:16:00+00:00'
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_operators(self):
+        document = {
+            'insert': {
+                '$insert': {
+                    'date': '2017-10-26T09:16:00+00:00'
+                },
+                '$inserts': {
+                    'date': '2017-9-26T09:16:00+00:00'
+                },
+                '$insert2': {
+                    'date': '2017-8-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['date'])
+        f.convert_call(document, ['insert'])
+        self.assertEqual(document, {
+            'insert': {
+                '$insert': {
+                    'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                },
+                '$inserts': {
+                    'date': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+                },
+                '$insert2': {
+                    'date': datetime.datetime(2017, 8, 26, 9, 16, tzinfo=pytz.utc)
+                }
             }
         })
 
@@ -548,6 +580,36 @@ class FieldsTests(TestCase):
             }
         })
 
+    def test_convert_call_date_prefixes_operators(self):
+        document = {
+            'insert': {
+                '$insert': {
+                    'date': '2017-10-26'
+                },
+                '$inserts': {
+                    'date': '2017-9-26'
+                },
+                '$insert2': {
+                    'date': '2017-8-26'
+                }
+            }
+        }
+        f = Fields(dates=['date'])
+        f.convert_call(document, ['insert'])
+        self.assertEqual(document, {
+            'insert': {
+                '$insert': {
+                    'date': datetime.date(2017, 10, 26)
+                },
+                '$inserts': {
+                    'date': datetime.date(2017, 9, 26)
+                },
+                '$insert2': {
+                    'date': datetime.date(2017, 8, 26)
+                }
+            }
+        })
+
     def test_datetime_conversion(self):
         tz = pytz.timezone('Pacific/Johnston')
 
@@ -565,6 +627,27 @@ class FieldsTests(TestCase):
 
         f = Fields(date_times=['createdAt'])
         self.assertRaises(DatabaseException, lambda: f.convert_call(doc))
+
+    def test_uses_encryption(self):
+        self.assertFalse(Fields().uses_encryption)
+        self.assertFalse(Fields(dates=['test']).uses_encryption)
+        self.assertFalse(Fields(date_times=['test']).uses_encryption)
+        self.assertTrue(Fields(encrypted=['test']).uses_encryption)
+
+    def test_encryption_fields(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': 'hello world'
+        }
+        obj2 = deepcopy(obj)
+        self.field.convert_call(obj2, None, {'username': 'user'})
+
+        self.assertNotEqual(obj, obj2)
+        self.assertRegex(obj2['test'], '__encrypted__:')
+        self.field.parse_result(obj2, {'username': 'user'})
+        self.assertEqual(obj, obj2)
 
     def test_to_dict(self):
         fields = Fields(date_times=['test'], dates=['test2'], encrypted=['test3'])
