@@ -3,6 +3,7 @@ import os
 import pytz
 from faker import Faker
 from lie_db.key_repository import KeyRepository
+from mdstudio.deferred.lock import Lock
 
 from mdstudio.utc import from_utc_string
 
@@ -55,6 +56,14 @@ class TestDBComponent(DBTestCase, APITestCase):
         self.service.pre_init()
 
         self.assertEqual(self.service._client._port, 31312)
+
+    def test_on_init(self):
+
+        self.service.component_config.settings['secret'] = 'test secret test secrets test'
+        self.service.on_init()
+        self.assertIsInstance(self.service._secret, bytes)
+        self.assertEqual(self.service._secret, b'pJIM5xrgbis_h9HBqfexTSf7MON0uedITnyPdI67ngY=')
+        self.assertIsInstance(self.service.database_lock, Lock)
 
     @test_chainable
     def test_more(self):
