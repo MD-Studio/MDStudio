@@ -1144,23 +1144,25 @@ class FieldsTests(TestCase):
         }), Fields(date_times=['test'], dates=['test2'], encrypted=['test3']))
 
     def test_convert_call_hashed(self):
-        document = {
-            'date': '2017-10-26'
-        }
-        f = Fields(hashed=['date'])
-        f.convert_call(document)
-        self.assertEqual(document, {
-            'date': '2017-10-26',
-            '__hashed__:date': 'mZSsbRV10gocguxt2ybRiF7GuzxnZNPLUlCzS3-vs7I='
-        })
+        for i in range(50):
+            document = {
+                'date': '2017-10-26'
+            }
+            f = Fields(hashed=['date'])
+            f.convert_call(document)
+            self.assertEqual(document, {
+                'date': '2017-10-26',
+                '__hashed__:date': 'OLiaieIaRIW2tk3SwD9zGAE4TGk-yxifRdI8xElZ7j8='
+            })
 
     def test_convert_call_hashed2(self):
-        document = {
-            'date': b'2017-10-26'
-        }
-        f = Fields(hashed=['date'])
-        f.convert_call(document)
-        self.assertEqual(document, {
-            'date': b'2017-10-26',
-            '__hashed__:date': 'mZSsbRV10gocguxt2ybRiF7GuzxnZNPLUlCzS3-vs7I='
-        })
+        for i in range(50):
+            document = {
+                'date': b'2017-10-26'
+            }
+            f = Fields(hashed=['date'])
+            f.convert_call(document)
+            self.assertEqual(document, {
+                'date': b'2017-10-26',
+                '__hashed__:date': 'OLiaieIaRIW2tk3SwD9zGAE4TGk-yxifRdI8xElZ7j8='
+            })
