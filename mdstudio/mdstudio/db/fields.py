@@ -164,7 +164,11 @@ class Fields(object):
         else:
             # either we indexed a normal datetime field, or a list with datetimes
             if key in subdoc:
-                if isinstance(subdoc[key], list):
+                if isinstance(subdoc[key], dict):
+                    for dkey, val in subdoc[key].items():
+                        if dkey.startswith('$') and dkey in self.conversion_operators:
+                            subdoc[key][dkey] = parser(self, val, subdoc, key, **kwargs)
+                elif isinstance(subdoc[key], list):
                     for i, e in enumerate(subdoc[key]):
                         subdoc[key][i] = parser(self, e, subdoc, key, **kwargs)
                 else:
@@ -236,8 +240,13 @@ class Fields(object):
             return encryptor
 
     @property
-    def value_operators(self):
-        return ['eq', 'gt', 'gte', 'in', 'lt', 'lte', 'ne', 'nin']
+    def conversion_operators(self):
+        return ['$eq', '$gt', '$gte', '$in', '$lt', '$lte', '$ne', '$nin',
+                '$and', '$not', '$nor', '$or',
+                '$all', '$elemMatch',
+                '$set', '$setOnInsert',
+                '$addToSet', '$pull', '$push',
+                '$each']
 
     def _get_key(self, claims):
         return self._key_repository.get_key(claims)
