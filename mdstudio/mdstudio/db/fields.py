@@ -9,6 +9,21 @@ from mdstudio.utc import from_utc_string, from_date_string
 from mdstudio.compat import unicode
 
 
+def timestamp_properties(prefixes=None):
+    suffixes = ['createdAt', 'updatedAt', 'deletedAt']
+
+    def join(prefix):
+        if prefix == '':
+            return suffixes
+        else:
+            return ('{}.{}'.format(prefix, suffix) for suffix in suffixes)
+
+    if prefixes is None:
+        return suffixes
+    else:
+        return [prop for prefix in prefixes for prop in join(prefix)]
+
+
 class Fields(object):
     # type: List[str]
     date_times = []

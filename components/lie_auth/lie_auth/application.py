@@ -7,6 +7,7 @@ import copy
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError
+from lie_auth.user_repository import UserRepository
 from oauthlib import oauth2
 from oauthlib.common import generate_client_id as generate_secret
 from twisted.internet import reactor
@@ -23,7 +24,6 @@ except ImportError:
 from mdstudio.api.register import register
 from mdstudio.utc import now
 from mdstudio.db.model import Model
-from .util import check_password, logging, ip_domain_based_access
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
 
@@ -155,6 +155,23 @@ class AuthComponent(CoreComponentSession):
         self.log.info('Access granted. user: {user}', user=authid)
 
         returnValue(auth_ticket)
+
+    @chainable
+    def on_run(self):
+        repo = UserRepository(self.db)
+        user = None
+        group = None
+        try:
+            user = yield repo.create_user('foo', 'bar', 'foo@bar')
+            print(user)
+            print(repo.groups.date_time_fields)
+            group = yield repo.create_group('foogroup', user['handle'])
+            print(group)
+        finally:
+            if group:
+                yield repo.groups.delete_one({'groupName': group['groupName']})
+            if user:
+                yield repo.users.delete_one({'username': user['username']})
 
     # @register(u'mdstudio.auth.endpoint.oauth.registerscopes', {}, {}, match='prefix')
     # @inlineCallbacks
