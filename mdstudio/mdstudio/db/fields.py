@@ -111,21 +111,30 @@ class Fields(object):
 
     def transform_docfield_to_object(self, doc, field, parser, **kwargs):
         # type: (dict, Optional[List[str]], Callable) -> None
-        subdoc = doc
+        if not field:
+            return
 
-        for level in field[:-1]:
-            if isinstance(subdoc, dict) and level in subdoc:
-                subdoc = subdoc[level]
+        subdoc = doc
+        for i, level in enumerate(field[:-1]):
+            if isinstance(subdoc, dict):
+                if level in subdoc:
+                    subdoc = subdoc[level]
+                else:
+                    for key, val in subdoc.items():
+                        if key.startswith('$'):
+                            self.transform_docfield_to_object(val, field[i:], parser, **kwargs)
+                    subdoc = None
             else:
                 if isinstance(subdoc, list):
                     for d in subdoc:
-                        self.transform_docfield_to_object(d, field[1:], parser, **kwargs)
+                        self.transform_docfield_to_object(d, field[i:], parser, **kwargs)
                 subdoc = None
                 break
+
         if isinstance(subdoc, dict):
             for key, val in subdoc.items():
                 if key.startswith('$'):
-                    self.transform_docfield_to_object(val, field[1:], parser, **kwargs)
+                    self.transform_docfield_to_object(val, [field[-1]], parser, **kwargs)
 
         if subdoc is None:
             return

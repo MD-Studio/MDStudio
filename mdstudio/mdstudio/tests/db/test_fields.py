@@ -23,6 +23,12 @@ class FieldsTests(TestCase):
         self.assertEqual(merged.dates, ['date2', 'date1'])
         self.assertEqual(merged.encrypted, ['encrypted2', 'encrypted1'])
 
+    def test_is_empty(self):
+        self.assertTrue(Fields().is_empty())
+        self.assertFalse(Fields(dates=['test']).is_empty())
+        self.assertFalse(Fields(date_times=['test']).is_empty())
+        self.assertFalse(Fields(encrypted=['test']).is_empty())
+
     def test_convert_call_date_time(self):
         document = {
             'date': '2017-10-26T09:16:00+00:00'
@@ -46,6 +52,68 @@ class FieldsTests(TestCase):
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
             'o': {
                 'date2': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+            }
+        })
+
+    def test_convert_call_date_time_nested2(self):
+        document = {
+            'date': '2017-10-26T09:16:00+00:00',
+            'date2': '2017-10-26T09:16:00+00:00',
+            'o': {
+                'date2': '2017-9-26T09:16:00+00:00'
+            }
+        }
+        f = Fields(date_times=['date', 'date2', 'o.date2'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+            'date2': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+            'o': {
+                'date2': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+            }
+        })
+
+    def test_convert_call_date_time_nested3(self):
+        document = {
+            'date': '2017-10-26T09:16:00+00:00',
+            'date2': '2017-10-26T09:16:00+00:00',
+            'o': {
+                'date': '2017-9-26T09:16:00+00:00',
+                'date2': '2017-9-26T09:16:00+00:00'
+            }
+        }
+        f = Fields(date_times=['date', 'date2', 'o.date2', 'o.date'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+            'date2': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+            'o': {
+                'date': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc),
+                'date2': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+            }
+        })
+
+    def test_convert_call_date_time_nested4(self):
+        document = {
+            '$setOnInsert': {
+                'date': '2017-10-26T09:16:00+00:00',
+                'date2': '2017-10-26T09:16:00+00:00',
+                'o': {
+                    'date': '2017-9-26T09:16:00+00:00',
+                    'date2': '2017-9-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['date', 'date2', 'o.date2', 'o.date'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            '$setOnInsert': {
+                'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                'date2': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                'o': {
+                    'date': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc),
+                    'date2': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+                }
             }
         })
 
@@ -461,6 +529,42 @@ class FieldsTests(TestCase):
                     }
                 }
             ]
+        })
+
+    def test_convert_call_date_object_list3(self):
+        document = {
+            'insert': {
+                'dates': [
+                    {
+                        'date': {
+                            'o': '2017-10-26'
+                        }
+                    },
+                    {
+                        'date': {
+                            'o': '2017-10-26'
+                        }
+                    }
+                ]
+            }
+        }
+        f = Fields(dates=['insert.dates.date.o'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'insert': {
+                'dates': [
+                    {
+                        'date': {
+                            'o': datetime.date(2017, 10, 26)
+                        }
+                    },
+                    {
+                        'date': {
+                            'o': datetime.date(2017, 10, 26)
+                        }
+                    }
+                ]
+            }
         })
 
     def test_convert_call_date_object_list_nonexisting(self):
