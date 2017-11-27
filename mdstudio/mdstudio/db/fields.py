@@ -148,7 +148,7 @@ class Fields(object):
                 else:
                     subdoc[key] = parser(self, subdoc[key], subdoc, key, **kwargs)
 
-    def parse_date_time(self, val, key, *args, **kwargs):
+    def parse_date_time(self, val, sub, key, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
@@ -162,7 +162,7 @@ class Fields(object):
         else:
             raise DatabaseException("Failed to parse datetime field '{}' with key '{}'".format(val, key))
 
-    def parse_date(self, val, key, *args, **kwargs):
+    def parse_date(self, val, sub, key, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             return from_date_string(val)
         elif isinstance(val, datetime.datetime):
@@ -185,7 +185,7 @@ class Fields(object):
         else:
             return val
 
-    def decrypt(self, val, key, *args, **kwargs):
+    def decrypt(self, val, sub, key, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             val = val.encode()
         if isinstance(val, bytes):
@@ -194,9 +194,9 @@ class Fields(object):
                 if prefix in val.decode('utf-8'):
                     val = kwargs['encryptor'].decrypt(val.replace(prefix.encode(), b'', 1))
                 else:
-                    self._logger.warn('Trying to decrypt an unencrypted field with key "{}", please check your insert statements!', key)
+                    self._logger.warn('Trying to decrypt an unencrypted field with key "{key}", please check your insert statements!', key=key)
             except Exception as ex:
-                self._logger.error('Failed to decrypt field {}:\n{}', key, str(ex))
+                self._logger.info('Failed to decrypt field {key}:\n{exp_str}', key=key, exp_str=str(ex))
                 raise DatabaseException(ex)
             finally:
                 return val.decode('utf-8')
