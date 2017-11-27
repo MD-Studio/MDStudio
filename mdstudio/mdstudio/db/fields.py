@@ -133,7 +133,8 @@ class Fields(object):
                                 else:
                                     accessor = '{}.{}'.format(accessor, vkey)
                                 # remove front from list
-                                nfields.pop(0)
+                                if nfields[0] == vkey:
+                                    nfields.pop(0)
                                 if accessor in subdoc:
                                     self.transform_docfield_to_object(subdoc, [accessor] + nfields, parser, **kwargs)
 
