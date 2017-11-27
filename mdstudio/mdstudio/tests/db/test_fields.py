@@ -449,6 +449,24 @@ class FieldsTests(TestCase):
             }
         })
 
+    def test_convert_call_date_time_prefixes_operators_comparison(self):
+        document = {
+            'filter': {
+                'deletedAt': {
+                    '$lt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['deletedAt'])
+        f.convert_call(document, ['filter'])
+        self.assertEqual(document, {
+            'filter': {
+                'deletedAt': {
+                    '$lt': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
     def test_convert_call_date_time_prefixes_dotstring_operators(self):
         document = {
             'update': {
