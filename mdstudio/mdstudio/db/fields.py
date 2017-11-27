@@ -1,9 +1,14 @@
+import base64
 import datetime
+import hashlib
+
 import re
 from typing import List, Callable, Optional
 
 import pytz
 from copy import deepcopy
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 
 from mdstudio.db.exception import DatabaseException
 from mdstudio.logging.logger import Logger
@@ -21,21 +26,27 @@ class Fields(object):
     # type: List[str]
     encrypted = []
 
+    # type: List[str]
+    hashed = []
+
     _key_repository = None
     _encrypted_prefix = '__encrypted__'
 
-    def __init__(self, date_times=None, dates=None, encrypted=None, key_repository=None):
-        # type: (Optional[List[str]], Optional[List[str]], Optional[List[str]], Optional[KeyRepository]) -> None
+    def __init__(self, date_times=None, dates=None, encrypted=None, hashed=None, key_repository=None):
+        # type: (Optional[List[str]], Optional[List[str]], Optional[List[str]], Optional[List[str]], Optional[KeyRepository]) -> None
         if date_times and not isinstance(date_times, list):
             date_times = [date_times]
         if dates and not isinstance(dates, list):
             dates = [dates]
         if encrypted and not isinstance(encrypted, list):
             encrypted = [encrypted]
+        if hashed and not isinstance(hashed, list):
+            hashed = [hashed]
 
         self.date_times = date_times if date_times else self.date_times
         self.dates = dates if dates else self.dates
         self.encrypted = encrypted if encrypted else self.encrypted
+        self.hashed = hashed if hashed else self.hashed
 
         self._key_repository = key_repository
 
@@ -55,6 +66,7 @@ class Fields(object):
         # type: (dict, Optional[List[str]], Optional[dict]) -> None
         self.transform_to_object(obj, self.date_times, Fields.parse_date_time, prefixes)
         self.transform_to_object(obj, self.dates, Fields.parse_date, prefixes)
+        self.transform_to_object(obj, self.hashed, Fields.parse_hashed, prefixes)
 
         if claims and self.uses_encryption:
             encryptor = self.get_encryptor(claims)
@@ -206,6 +218,26 @@ class Fields(object):
                 val = '{}:{}'.format(self._encrypted_prefix, kwargs['encryptor'].encrypt(val).decode('utf-8'))
             else:
                 raise DatabaseException("Failed to encrypt field '{}'".format(val))
+        except Exception as ex:
+            raise ex
+        else:
+            return val
+
+    def parse_hashed(self, val, sub, key, *args, **kwargs):
+        if isinstance(val, (str, unicode)):
+            sval = val.encode()
+        else:
+            sval = deepcopy(val)
+        try:
+            from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=hashlib.sha512(sval).digest(),
+                iterations=150000,
+                backend=default_backend()
+            )
+            sub['__hashed__:{}'.format(key)] = base64.urlsafe_b64encode(kdf.derive(sval)).decode('utf-8')
         except Exception as ex:
             raise ex
         else:
