@@ -99,11 +99,11 @@ class Fields(object):
 
         nfields = []
         for f in fields:
-            if all(not f.startswith(p) for p in prefixes):
-                for p in prefixes:
+            for p in prefixes:
+                if p and not f.startswith('{}.'.format(p)):
                     nfields.append('{}.{}'.format(p, f))
-            else:
-                nfields.append(f)
+                else:
+                    nfields.append(f)
 
         for field in nfields:
             split_fields = field.split('.')
