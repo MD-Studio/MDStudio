@@ -431,6 +431,24 @@ class FieldsTests(TestCase):
             }
         })
 
+    def test_convert_call_date_time_prefixes_operators_exists(self):
+        document = {
+            'filter': {
+                'deletedAt': {
+                    '$exists': False
+                }
+            }
+        }
+        f = Fields(date_times=['deletedAt'])
+        f.convert_call(document, ['filter'])
+        self.assertEqual(document, {
+            'filter': {
+                'deletedAt': {
+                    '$exists': False
+                }
+            }
+        })
+
     def test_convert_call_date_time_prefixes_dotstring_operators(self):
         document = {
             'update': {
