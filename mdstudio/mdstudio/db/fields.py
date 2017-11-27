@@ -126,7 +126,7 @@ class Fields(object):
                         elif '.' in key:
                             accessor = None
                             keys = key.split('.')
-                            nfields = deepcopy(field)
+                            nfields = deepcopy(field[i:])
                             for vkey in deepcopy(keys):
                                 if not accessor:
                                     accessor = vkey
