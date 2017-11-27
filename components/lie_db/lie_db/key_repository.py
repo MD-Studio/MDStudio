@@ -1,7 +1,7 @@
 import base64
 import os
 from cryptography.exceptions import InvalidSignature
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -60,7 +60,7 @@ class KeyRepository(object):
     def _decrypt_key(self, password):
         try:
             return self._get_session_crypto().decrypt(password)
-        except InvalidSignature:
+        except InvalidToken:
             raise DatabaseException('Tried to decrypt the component key with a different secret! Please use your old secret.')
 
     def _get_key_model(self, connection_type):
