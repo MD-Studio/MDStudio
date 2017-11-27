@@ -234,7 +234,7 @@ class Fields(object):
                 algorithm=hashes.SHA256(),
                 length=32,
                 salt=hashlib.sha512(sval).digest(),
-                iterations=150000,
+                iterations=50000,
                 backend=default_backend()
             )
             sub['__hashed__:{}'.format(key)] = base64.urlsafe_b64encode(kdf.derive(sval)).decode('utf-8')

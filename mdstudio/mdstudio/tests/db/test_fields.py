@@ -1153,3 +1153,14 @@ class FieldsTests(TestCase):
             'date': '2017-10-26',
             '__hashed__:date': 'mZSsbRV10gocguxt2ybRiF7GuzxnZNPLUlCzS3-vs7I='
         })
+
+    def test_convert_call_hashed2(self):
+        document = {
+            'date': b'2017-10-26'
+        }
+        f = Fields(hashed=['date'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'date': b'2017-10-26',
+            '__hashed__:date': 'mZSsbRV10gocguxt2ybRiF7GuzxnZNPLUlCzS3-vs7I='
+        })
