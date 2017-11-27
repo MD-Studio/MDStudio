@@ -166,10 +166,9 @@ class AuthComponent(CoreComponentSession):
         yield repo.groups.delete_many({})
         user = yield repo.create_user('foo', 'bar', 'foo@bar')
         user2 = yield repo.create_user('foo2', 'bar2', 'foo@bar')
-        group = yield repo.create_group('foogroup', user['handle'])
-        group_role = yield repo.create_group_role('foogroup', 'editor', user['handle'])['roles'][0]
+        group = yield repo.create_group('foogroup', owner_username='foo')
+        group_role = yield repo.create_group_role('foogroup', 'editor', user['handle'])
         added_member = yield repo.add_group_member('foogroup', group_role['handle'], user2['handle'])
-        print(added_member)
         # finally:
         #     if group:
         #         yield repo.groups.delete_one({'groupName': 'foogroup'})

@@ -90,6 +90,14 @@ class UserRepository(object):
         encrypted_fields = ['email']
         date_time_fields = timestamp_properties()
 
+        class Instance(DictWithTimestamps):
+            username = dict_property('username')
+            display_name = dict_property('displayName')
+            handle = dict_property('handle')
+            password = dict_property('password')
+            email = dict_property('email')
+            timezone = dict_property('timezone')
+
     class Sessions(Model):
         connection_type = ConnectionType.User
 
@@ -316,14 +324,21 @@ class UserRepository(object):
 
         return_value(user if user == inserted else None)
 
+    @chainable
     def find_user(self, username=None, handle=None, email=None):
-        user_filter = self._add_to_request({}, username=username, handle=handle, email=email)
+        # type: (Optional[str], Optional[str], Optional[str]) -> UserRepository.Users.Instance
+        user_filter = self._add_to_request({}, ['username', 'handle', 'email'], username=username, handle=handle, email=email)
 
         assert user_filter, "You need at least one of [username, handle, email]"
 
         user_filter['deletedAt'] = {'$exists': False}
 
-        return self.users.find_one(user_filter, {'_id': False, 'password': False})
+        result = yield self.users.find_one(user_filter, {'_id': False, 'password': False})
+
+        if isinstance(result, dict):
+            result.__class__ = UserRepository.Users.Instance
+
+        return_value(result)
 
     @chainable
     def update_user(self, handle, **kwargs):
@@ -343,7 +358,7 @@ class UserRepository(object):
 
     @chainable
     def check_user_password(self, username, password):
-        return_value((yield self.find_user(username=username)['password']) == password)
+        return_value((yield self.find_user(username=username).password) == password)
 
     @staticmethod
     def _add_to_request(request, accepted_parameters, **kwargs):
@@ -360,12 +375,14 @@ class UserRepository(object):
     Group CRUD
     """
     @chainable
-    def create_group(self, group_name, owner_handle, display_name=None):
+    def create_group(self, group_name, owner_handle=None, display_name=None, owner_username=None):
         if display_name is None:
             display_name = group_name
 
         created_at = now()
         role_uiid = random_uuid()
+
+        owner_handle = owner_handle or (yield self.find_user(username=owner_username).handle)
 
         role_owner = UserRepository.Group.Role.Member(owner_handle, created_at=created_at)
         initial_permissions = UserRepository.Group.Role.Permissions([], True, True)
@@ -383,8 +400,10 @@ class UserRepository(object):
         return_value(group if group == inserted else None)
 
     @chainable
-    def create_group_role(self, group_name, role_name, owner_handle, role_resources=True, group_resources=False):
+    def create_group_role(self, group_name, role_name, owner_handle=None, role_resources=True, group_resources=False, owner_username=None):
         created_at = now()
+
+        owner_handle = owner_handle or (yield self.find_user(username=owner_username).handle)
 
         group_filter = {
             'groupName': group_name,
@@ -402,18 +421,28 @@ class UserRepository(object):
             }
         }
 
+        print(group_filter)
+
+        print((yield self.groups.find_one(group_filter)))
+
         role_uuid = random_uuid()
         role_owner = UserRepository.Group.Role.Member(owner_handle, created_at=created_at)
         initial_permissions = UserRepository.Group.Role.Permissions([], role_resources, group_resources, created_at=created_at)
 
         group_update = {
             '$push': {
-                'roles': UserRepository.Group.Role(role_name, role_uuid, [role_owner], [role_owner], initial_permissions, created_at=created_at),
+                'roles': UserRepository.Group.Role(role_name, role_uuid, [role_owner], [role_owner], initial_permissions),
                 'members.$.roles': role_uuid
             }
         }
 
-        return (yield self.groups.find_one_and_update(group_filter, group_update, projection={'roles': {'$elemMatch': {'handle': role_uuid}}}, return_updated=True))
+        updated = yield self.groups.find_one_and_update(group_filter, group_update, projection={'roles': {'$elemMatch': {'handle': role_uuid}}}, return_updated=True).get('roles', [None])[0]
+
+        return updated if updated is not None and updated['handle'] == role_uuid else None
+
+    @chainable
+    def add_role_member(self, ):
+        pass
 
     @chainable
     def add_group_member(self, group_name, role_handle, user_handle):
@@ -434,9 +463,6 @@ class UserRepository(object):
                 }
             }
         }
-        print(group_filter)
-
-        print((yield self.groups.find_one(group_filter)))
 
         group_update = {
             '$push': {
@@ -445,7 +471,7 @@ class UserRepository(object):
             }
         }
 
-        updated = yield self.groups.find_one_and_update(group_filter, group_update, projection={'_id': False}).modified
+        updated = yield self.groups.update_one(group_filter, group_update).modified
 
         return_value(updated == 1)
 
