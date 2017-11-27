@@ -1,7 +1,9 @@
 import datetime
+import re
 from typing import List, Callable, Optional
 
 import pytz
+from copy import deepcopy
 
 from mdstudio.db.exception import DatabaseException
 from mdstudio.logging.logger import Logger
@@ -136,6 +138,20 @@ class Fields(object):
                     for key, val in subdoc.items():
                         if key.startswith('$'):
                             self.transform_docfield_to_object(val, field[i:], parser, **kwargs)
+                        elif '.' in key:
+                            accessor = None
+                            keys = key.split('.')
+                            nfields = deepcopy(field)
+                            for vkey in deepcopy(keys):
+                                if not accessor:
+                                    accessor = vkey
+                                else:
+                                    accessor = '{}.{}'.format(accessor, vkey)
+                                # remove front from list
+                                nfields.pop(0)
+                                if accessor in subdoc:
+                                    self.transform_docfield_to_object(subdoc, [accessor] + nfields, parser, **kwargs)
+
                     subdoc = None
             else:
                 if isinstance(subdoc, list):
@@ -214,7 +230,9 @@ class Fields(object):
                 if prefix in val.decode('utf-8'):
                     val = kwargs['encryptor'].decrypt(val.replace(prefix.encode(), b'', 1))
                 else:
-                    raise DatabaseException('Trying to decrypt an unencrypted field with key "{key}", please check your insert statements!'.format(key=key))
+                    raise DatabaseException(
+                        'Trying to decrypt an unencrypted field with key "{key}", please check your insert statements!'.format(
+                            key=key))
             except Exception as ex:
                 raise DatabaseException('Failed to decrypt field {key}:\n{exp_str}'.format(key=key, exp_str=str(ex)))
             else:
@@ -230,6 +248,10 @@ class Fields(object):
             raise DatabaseException('Failed to create a Fernet encryption class due to an incorrect key.')
         else:
             return encryptor
+
+    @property
+    def value_operators(self):
+        return ['eq', 'gt', 'gte', 'in', 'lt', 'lte', 'ne', 'nin']
 
     def _get_key(self, claims):
         return self._key_repository.get_key(claims)

@@ -506,7 +506,7 @@ class FieldsTests(TestCase):
             'update': {
                 '$push': {
                     'date.$.o': '2017-10-26T09:16:00+00:00'
-                },
+                }
             }
         }
         f = Fields(date_times=['date.o'])
@@ -515,6 +515,66 @@ class FieldsTests(TestCase):
             'update': {
                 '$push': {
                     'date.$.o': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_dotstring_operators2(self):
+        document = {
+            'update.$f.lol': {
+                '$push': {
+                    'date.$.o': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['update.lol.date.o'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            'update.$f.lol': {
+                '$push': {
+                    'date.$.o': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_dotstring_operators3(self):
+        document = {
+            'update.$f': {
+                'lol.$push': {
+                    'date.$.o': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['update.lol.date.o'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            'update.$f': {
+                'lol.$push': {
+                    'date.$.o': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_dotstring_operators4(self):
+        document = {
+            'update.$f': {
+                'lol.$push': {
+                    'date.$.o': '2017-10-26T09:16:00+00:00',
+                    'date': {
+                        'o': '2017-10-26T09:15:00+00:00'
+                    }
+                }
+            }
+        }
+        f = Fields(date_times=['update.lol.date.o'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            'update.$f': {
+                'lol.$push': {
+                    'date.$.o': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                    'date': {
+                        'o': datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)
+                    }
                 }
             }
         })
