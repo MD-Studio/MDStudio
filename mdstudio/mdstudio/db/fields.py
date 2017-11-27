@@ -126,8 +126,6 @@ class Fields(object):
 
     def transform_docfield_to_object(self, doc, field, parser, **kwargs):
         # type: (dict, Optional[List[str]], Callable) -> None
-        if not field:
-            return
 
         subdoc = doc
         for i, level in enumerate(field[:-1]):

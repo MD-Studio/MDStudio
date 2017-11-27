@@ -21,6 +21,8 @@ class SessionDatabaseWrapper(IDatabase):
 
         if connection_type == ConnectionType.Group:
             self.claims['group'] = session.component_config.static.vendor
+        elif connection_type == ConnectionType.GroupRole:
+            raise NotImplemented()
 
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]

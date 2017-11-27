@@ -861,6 +861,21 @@ class TestMongoDatabaseWrapper(DBTestCase):
         self.assertSequenceEqual((yield found.to_list()), obs)
 
     @test_chainable
+    def test_find_many_parse_result(self):
+
+        total = 100
+        obs = []
+        for i in range(total):
+            obs.append({'test': i, '_id': str(ObjectId())})
+        yield self.d.insert_many(obs)
+
+        fields = Fields()
+        fields.parse_result = mock.MagicMock(wraps=fields.parse_result)
+        yield self.db.find_many('test_collection', {}, fields=fields, claims={'user': 'test'})
+
+        fields.parse_result.assert_has_calls([])
+
+    @test_chainable
     def test_find_many_projection(self):
 
         total = 100

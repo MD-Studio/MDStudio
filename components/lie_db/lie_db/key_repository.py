@@ -1,14 +1,14 @@
 import base64
-import hashlib
 import os
+from cryptography.exceptions import InvalidSignature
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from mdstudio.db.exception import DatabaseException
 from pymongo import ReturnDocument
 
 from mdstudio.db.connection import ConnectionType
-from mdstudio.db.model import Model
 
 
 class KeyRepository(object):
@@ -24,10 +24,10 @@ class KeyRepository(object):
         body = self._get_key_body(claims, connection_type)
         found = model.find_one(body)
         if not found:
-            password = self._new_password()
+            new_key = self._new_key()
             # find_one_and_update ensures transactionality here
             found = self._get_key_model(connection_type).find_one_and_update(body, {
-                '$setOnInsert': password
+                '$setOnInsert': new_key
             }, upsert=True, return_document=ReturnDocument.AFTER)
         return self._decrypt_key(found['key'])
 
@@ -42,7 +42,7 @@ class KeyRepository(object):
         key = base64.urlsafe_b64encode(kdf.derive(password))
         return key
 
-    def _new_password(self):
+    def _new_key(self):
 
         key = self._key_from_password(Fernet.generate_key(), os.urandom(16))
         return {
@@ -58,7 +58,10 @@ class KeyRepository(object):
         return Fernet(self._session.secret)
 
     def _decrypt_key(self, password):
-        return self._get_session_crypto().decrypt(password)
+        try:
+            return self._get_session_crypto().decrypt(password)
+        except InvalidSignature:
+            raise DatabaseException('Tried to decrypt the component key with a different secret! Please use your old secret.')
 
     def _get_key_model(self, connection_type):
         return self._internal_db._db['{}.keys'.format(connection_type)]
