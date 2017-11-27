@@ -465,6 +465,42 @@ class FieldsTests(TestCase):
             }
         })
 
+    def test_convert_call_date_time_prefixes_operators_exists(self):
+        document = {
+            'filter': {
+                'deletedAt': {
+                    '$exists': False
+                }
+            }
+        }
+        f = Fields(date_times=['deletedAt'])
+        f.convert_call(document, ['filter'])
+        self.assertEqual(document, {
+            'filter': {
+                'deletedAt': {
+                    '$exists': False
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_dotstring_operators(self):
+        document = {
+            'update': {
+                '$push': {
+                    'date.$.o': '2017-10-26T09:16:00+00:00'
+                },
+            }
+        }
+        f = Fields(date_times=['date.o'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            'update': {
+                '$push': {
+                    'date.$.o': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
     def test_convert_call_date(self):
         document = {
             'date': '2017-10-26'
