@@ -39,6 +39,58 @@ class FieldsTests(TestCase):
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
         })
 
+    def test_convert_call_date_time2(self):
+        document = {
+            'updatedAt': '2017-10-26T09:16:00+00:00',
+            'createdAt': '2017-10-26T09:16:00+00:00'
+        }
+        f = Fields(date_times=['updatedAt', 'createdAt'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'updatedAt': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+            'createdAt': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+        })
+
+    def test_convert_call_date_time3(self):
+        document = {
+            'update': {
+                '$setOnInsert': {
+                    'updatedAt': '2017-10-26T09:16:00+00:00',
+                    'createdAt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['update.updatedAt', 'update.createdAt'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'update': {
+                '$setOnInsert': {
+                    'updatedAt': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                    'createdAt': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
+    def test_convert_call_date_time4(self):
+        document = {
+            'update': {
+                '$setOnInsert': {
+                    'updatedAt': '2017-10-26T09:16:00+00:00',
+                    'createdAt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['updatedAt', 'createdAt'])
+        f.convert_call(document, prefixes=['update'])
+        self.assertEqual(document, {
+            'update': {
+                '$setOnInsert': {
+                    'updatedAt': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
+                    'createdAt': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
     def test_convert_call_date_time_nested(self):
         document = {
             'date': '2017-10-26T09:16:00+00:00',
