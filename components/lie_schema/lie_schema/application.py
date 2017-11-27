@@ -1,7 +1,5 @@
 import json
 
-import time
-from autobahn.wamp import PublishOptions
 from lie_schema.exception import SchemaException
 from lie_schema.schema_repository import SchemaRepository
 from mdstudio.api.register import register
@@ -11,12 +9,6 @@ from mdstudio.deferred.return_value import return_value
 
 
 class SchemaComponent(CoreComponentSession):
-    """
-    Database management WAMP methods.
-    """
-
-    def onConnect(self):
-        return self.on_connect()
 
     @chainable
     def on_run(self):

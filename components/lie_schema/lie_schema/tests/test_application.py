@@ -9,7 +9,7 @@ from lie_schema.schema_repository import SchemaRepository
 from lie_schema.application import SchemaComponent
 from twisted.internet import reactor
 
-from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.chainable import chainable, test_chainable
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
@@ -27,6 +27,9 @@ class TestWampService(DBTestCase, APITestCase):
             'username': self.username
         }
 
+        if not reactor.getThreadPool().started:
+            reactor.getThreadPool().start()
+
     def test_pre_init(self):
 
         self.service.pre_init()
@@ -34,14 +37,17 @@ class TestWampService(DBTestCase, APITestCase):
         self.assertIsInstance(self.service.resources, SchemaRepository)
         self.assertIsInstance(self.service.claims, SchemaRepository)
 
+
     @mock.patch("mdstudio.component.impl.core.CoreComponentSession.on_run")
-    def test_on_run(self, super_mock):
+    @test_chainable
+    def test_on_run(self, m):
+
         self.service.call = mock.MagicMock()
-        self.service.on_run()
-
-        self.service.call.assert_called_once_with(u'mdstudio.auth.endpoint.ring0.set-status', {'status': True})
-
-        super_mock.assert_called_once()
+        yield self.service.on_run()
+        self.service.call.assert_has_calls([
+            call('mdstudio.auth.endpoint.ring0.set-status', {'status': True})
+        ])
+        m.assert_called_once()
 
     @chainable
     def test_upload_endpoints(self):
