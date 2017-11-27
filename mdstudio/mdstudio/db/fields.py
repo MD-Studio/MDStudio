@@ -163,7 +163,7 @@ class Fields(object):
                 else:
                     subdoc[key] = parser(self, subdoc[key], subdoc, key, **kwargs)
 
-    def parse_date_time(self, val, *args, **kwargs):
+    def parse_date_time(self, val, key, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
@@ -175,9 +175,9 @@ class Fields(object):
                 val = val.astimezone(pytz.utc)
             return val
         else:
-            raise DatabaseException("Failed to parse datetime field '{}'".format(val))
+            raise DatabaseException("Failed to parse datetime field '{}' with key '{}'".format(val, key))
 
-    def parse_date(self, val, *args, **kwargs):
+    def parse_date(self, val, key, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             return from_date_string(val)
         elif isinstance(val, datetime.datetime):
@@ -185,33 +185,47 @@ class Fields(object):
         elif isinstance(val, datetime.date):
             return val
         else:
-            raise DatabaseException("Failed to parse date field '{}'".format(val))
+            raise DatabaseException("Failed to parse date field '{}' with key {}".format(val, key))
 
     def parse_encrypted(self, val, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             val = val.encode()
-        if isinstance(val, bytes):
-            return '{}:{}'.format(self._encrypted_prefix, kwargs['encryptor'].encrypt(val).decode('utf-8'))
+        try:
+            if isinstance(val, bytes):
+                val = '{}:{}'.format(self._encrypted_prefix, kwargs['encryptor'].encrypt(val).decode('utf-8'))
+            else:
+                raise DatabaseException("Failed to encrypt field '{}'".format(val))
+        except Exception as ex:
+            raise ex
         else:
-            raise DatabaseException("Failed to encrypt field '{}'".format(val))
+            return val
 
     def decrypt(self, val, key, *args, **kwargs):
         if isinstance(val, (str, unicode)):
             val = val.encode()
         if isinstance(val, bytes):
             prefix = '{}:'.format(self._encrypted_prefix)
-            if prefix in val.decode('utf-8'):
-                return kwargs['encryptor'].decrypt(val.replace(prefix.encode(), b'', 1)).decode('utf-8')
-            else:
-                self._logger.warn('Trying to decrypt an unencrypted field with key "{}}", please check your insert statements!'.format(key))
-                return val
+            try:
+                if prefix in val.decode('utf-8'):
+                    val = kwargs['encryptor'].decrypt(val.replace(prefix.encode(), b'', 1))
+                else:
+                    self._logger.warn('Trying to decrypt an unencrypted field with key "{}", please check your insert statements!', key)
+            except Exception as ex:
+                self._logger.error('Failed to decrypt field {}:\n{}', key, str(ex))
+                raise DatabaseException(ex)
+            finally:
+                return val.decode('utf-8')
         else:
             raise DatabaseException("Failed to decrypt field '{}'".format(val))
 
     def get_encryptor(self, claims):
         from cryptography.fernet import Fernet
-        encryptor = Fernet(self._get_key(claims))
-        return encryptor
+        try:
+            encryptor = Fernet(self._get_key(claims))
+        except Exception:
+            raise DatabaseException('Failed to create a Fernet encryption class due to an incorrect key.')
+        else:
+            return encryptor
 
     def _get_key(self, claims):
         return self._key_repository.get_key(claims)

@@ -1,6 +1,7 @@
 # coding=utf-8
 import datetime
 
+import binascii
 import pytz
 from copy import deepcopy
 from cryptography.fernet import Fernet
@@ -644,9 +645,103 @@ class FieldsTests(TestCase):
         obj2 = deepcopy(obj)
         self.field.convert_call(obj2, None, {'username': 'user'})
 
+        self.field._key_repository.get_key.assert_called_once_with({'username': 'user'})
+
         self.assertNotEqual(obj, obj2)
         self.assertRegex(obj2['test'], '__encrypted__:')
         self.field.parse_result(obj2, {'username': 'user'})
+        self.assertEqual(obj, obj2)
+
+        obj3 = deepcopy(obj)
+        self.field.convert_call(obj3, None, {'username': 'user'})
+        self.assertNotEqual(obj3, obj2)
+
+    def test_encryption_fields_none(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': 'hello world'
+        }
+        obj2 = deepcopy(obj)
+        self.field.convert_call(obj2, None)
+
+        self.assertEqual(obj, obj2)
+
+    def test_encryption_fields_none2(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': 'hello world'
+        }
+        obj2 = deepcopy(obj)
+        self.field.convert_call(obj2, None, {'username': 'user'})
+
+        self.assertNotEqual(obj, obj2)
+        self.assertRegex(obj2['test'], '__encrypted__:')
+        self.field.parse_result(obj2)
+        self.assertRegex(obj2['test'], '__encrypted__:')
+        self.assertNotEqual(obj, obj2)
+
+    def test_encryption_fields_bytes(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': b'hello world'
+        }
+        obj2 = deepcopy(obj)
+        self.field.convert_call(obj2, None, {'username': 'user'})
+
+        self.assertNotEqual(obj, obj2)
+        self.assertRegex(obj2['test'], '__encrypted__:')
+        self.field.parse_result(obj2, {'username': 'user'})
+        self.assertEqual(obj['test'].decode('utf-8'), obj2['test'])
+
+    def test_encryption_fields_int(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': 2
+        }
+        obj2 = deepcopy(obj)
+        self.assertRaisesRegex(DatabaseException, "Failed to encrypt field '2'", self.field.convert_call, obj2, None, {'username': 'user'})
+
+    def test_encryption_fields_wrong_key(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=b'123456')
+        obj = {
+            'test': 'hello world'
+        }
+        obj2 = deepcopy(obj)
+        self.assertRaisesRegex(DatabaseException, "Failed to create a Fernet encryption class due to an incorrect key.",
+                               self.field.convert_call, obj2, None, {'username': 'user'})
+
+
+    def test_encryption_fields_decrypt_wrong_key(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=b'123456')
+        self.field._logger = mock.MagicMock()
+        obj = {
+            'test': 'hello world'
+        }
+        obj2 = deepcopy(obj)
+        self.assertRaisesRegex(DatabaseException, "Failed to create a Fernet encryption class due to an incorrect key.",
+                               self.field.parse_result, obj2, {'username': 'user'})
+
+    def test_encryption_fields_decrypt_fails(self):
+        self.field = Fields(encrypted=['test'])
+        self.field._key_repository = mock.MagicMock()
+        self.field._key_repository.get_key = mock.MagicMock(return_value=Fernet.generate_key())
+        obj = {
+            'test': 'hello world'
+        }
+        obj2 = deepcopy(obj)
+        self.assertRaises(DatabaseException, self.field.parse_result, obj2, {'username': 'user'})
         self.assertEqual(obj, obj2)
 
     def test_to_dict(self):
