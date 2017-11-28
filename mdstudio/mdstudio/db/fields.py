@@ -137,6 +137,10 @@ class Fields(object):
                             keys = key.split('.')
                             nfields = deepcopy(field[i:])
                             for vkey in deepcopy(keys):
+
+                                if not nfields:
+                                    break
+
                                 if not accessor:
                                     accessor = vkey
                                 else:
