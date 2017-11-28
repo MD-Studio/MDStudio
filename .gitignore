@@ -198,9 +198,6 @@ fabric.properties
 # files generated on merge conflicts
 *.orig
 
-# Ignore pycharm helper files
-.pycharm_helpers/
-
 # Ignore compiled typescript
 app/gulp/*.js
 app/gulp/*.map

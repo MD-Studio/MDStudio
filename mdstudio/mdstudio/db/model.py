@@ -29,7 +29,6 @@ class Model(object):
     date_fields = []
     encrypted_fields = []
 
-    # @todo: global connection
     def __init__(self, wrapper=None, collection=None, connection_type=None):
         # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
         self._check_wrapper(wrapper)
