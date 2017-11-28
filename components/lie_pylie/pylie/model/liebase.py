@@ -31,7 +31,6 @@ class _Common(object):
 
     @property
     def size(self):
-
         """
         Provide backwards compatibility with older versions of Pandas that do not
         have the size attribute
@@ -88,12 +87,15 @@ class _Common(object):
                 if func.startswith(n):
                     self.plot_functions[func.replace(n, '')] = getattr(plotting, func)
 
-    def get_columns(self, columns, flags=None):
+    def get_columns(self, columns, flags=0):
         """
         Get columns with wildcard support.
 
-        :param flags: optional flags for the regular expression engine
-        :return:      list of matching column names or empty list
+        :param columns: column(s) to search for
+        :type columns:  :py:str
+        :param flags:   optional flags for the regular expression engine
+        :return:        list of matching column names or empty list
+        :rtype:         :py:list
         """
 
         if not isinstance(columns, list):
@@ -102,7 +104,7 @@ class _Common(object):
         result = []
         for column in columns:
             if '*' in column:
-                pattern = re.compile('^{0}'.format(column.replace('*', '.*')))
+                pattern = re.compile('^{0}'.format(column.replace('*', '.*')), flags=flags)
                 result.extend([col for col in self.columns if pattern.search(col)])
             elif column in self.columns:
                 result.append(column)
@@ -188,9 +190,9 @@ class LIESeriesBase(_Common, Series):
         arguments and keyword arguments using *args and **kwargs.
         The function should return a matplotlib plot axis.
 
-        :param *args: any additional argument passed to the plot function
-        :param **kwargs: any additional keyword argument passed to the plot function
-        :return: matplotlib plot axis
+        :param args:   any additional argument passed to the plot function
+        :param kwargs: any additional keyword argument passed to the plot function
+        :return:       matplotlib plot axis
         """
 
         # kind = kwargs.get('kind', None)
@@ -258,7 +260,7 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         # This causes: UserWarning: Pandas doesn't allow columns to be created via a new attribute name
-        #if not hasattr(self, key) and not key == 'plot_functions':
+        # if not hasattr(self, key) and not key == 'plot_functions':
 
         if not hasattr(self, key):
             self._metadata[key] = value
@@ -278,14 +280,31 @@ class LIEDataFrameBase(_Common, DataFrame):
         :rtype:       :py:list
         """
 
-        cases = set(cases)
-        actual_cases = set(self.cases)
-        if cases.intersection(actual_cases) != cases:
-            difference = list(cases.difference(actual_cases))
-            cases = (Counter(cases) - Counter(difference)).keys()
-            logger.error("Case with index: {0} not in dataframe".format(str(difference).strip('[]')))
+        # If cases is a Pandas Series
+        if getattr(cases, '_class_name', None) == 'series':
+            cases = list(cases.values)
 
-        return sorted(cases)
+        # Split cases in full cases and case-pose combinations
+        sel_poses = [n for n in cases if isinstance(n, tuple)]
+        sel_cases = [n for n in cases if isinstance(n, int)]
+
+        # Check cases
+        sel_cases = set(sel_cases)
+        actual_cases = set(self.cases)
+        if sel_cases.intersection(actual_cases) != sel_cases:
+            difference = list(sel_cases.difference(actual_cases))
+            sel_cases = (Counter(sel_cases) - Counter(difference)).keys()
+            logger.error('Case with index: {0} not in dataframe'.format(str(difference).strip('[]')))
+
+        # Check poses
+        checked_poses = []
+        for case_pose in sel_poses:
+            if not self.loc[(self['case'] == case_pose[0]) & (self['poses'] == case_pose[1])].empty:
+                checked_poses.append(case_pose)
+            else:
+                logger.error('Case-pose combination: {0}-{1} not in dataframe'.format(*case_pose))
+
+        return sorted(sel_cases), checked_poses
 
     @property
     def _constructor(self):
@@ -345,48 +364,40 @@ class LIEDataFrameBase(_Common, DataFrame):
     @trainset.setter
     def trainset(self, cases):
         """
-        Trainset property setter method.
+        Train set property setter method.
 
         :param cases: list of cases to label as training set
         :type cases:  :py:list
         """
 
         if 'train_mask' in self.columns:
+            cases, poses = self._sanitize_cases(cases)
 
-            # If tuple in cases list, then specific poses need to be selected
-            if tuple in [type(n) for n in cases]:
-                self.loc[:, 'train_mask'] = 0
-                for case in cases:
-                    if type(case) == tuple:
-                        self.loc[(self['case'] == case[0]) & (self['poses'] == case[1]), 'train_mask'] = 1
-                    else:
-                        self.loc[self['case'] == case, 'train_mask'] = 1
-            else:
-                cases = self._sanitize_cases(cases)
-                self.loc[:, 'train_mask'] = 0
-                self.loc[self['case'].isin(cases), 'train_mask'] = 1
+            # Set cases
+            self.loc[self['case'].isin(cases), 'train_mask'] = 1
+
+            # Set poses
+            for cp in poses:
+                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'train_mask'] = 1
 
     @testset.setter
     def testset(self, cases):
         """
-        Testset property setter method.
+        Test set property setter method.
 
         :param cases: list of cases to label as test set
         :type cases:  :py:list
         """
 
         if self._column_names['train_mask'] in self.columns:
+            cases, poses = self._sanitize_cases(cases)
 
-            # If tuple in cases list, then specific poses need to be selected
-            if tuple in [type(n) for n in cases]:
-                for case in cases:
-                    if type(case) == tuple:
-                        self.loc[(self['case'] == case[0]) & (self['poses'] == case[1]), 'train_mask'] = 0
-                    else:
-                        self.loc[self['case'] == case, 'train_mask'] = 0
-            else:
-                cases = self._sanitize_cases(cases)
-                self.loc[self['case'].isin(cases), 'train_mask'] = 0
+            # Set cases
+            self.loc[self['case'].isin(cases), 'train_mask'] = 0
+
+            # Set poses
+            for cp in poses:
+                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'train_mask'] = 0
 
     @property
     def outliers(self):
@@ -430,16 +441,33 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['filter_mask'] in self.columns:
+            cases, poses = self._sanitize_cases(cases)
 
-            # If cases is a series
-            if getattr(cases, '_class_name', None) == 'series':
-                if len(cases.values) == len(self['filter_mask']):
-                    self['filter_mask'] = cases.values
+            # Set cases
+            self.loc[self['case'].isin(cases), 'filter_mask'] = 1
 
-            # If cases is a list of case ID's
-            elif type(cases) == list:
-                cases = self._sanitize_cases(cases)
-                self.loc[self['case'].isin(cases), 'filter_mask'] = 1
+            # Set poses
+            for cp in poses:
+                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'filter_mask'] = 1
+
+    @inliers.setter
+    def inliers(self, cases):
+        """
+        Inliers property setter method.
+
+        :param cases: list of cases to label as inliers
+        :ptype cases: list
+        """
+
+        if self._column_names['filter_mask'] in self.columns:
+            cases, poses = self._sanitize_cases(cases)
+
+            # Set cases
+            self.loc[self['case'].isin(cases), 'filter_mask'] = 0
+
+            # Set poses
+            for cp in poses:
+                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'filter_mask'] = 0
 
     def reset_trainset(self, train=False):
         """
@@ -477,7 +505,7 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['case'] in self.columns:
-            cases = self._sanitize_cases(cases)
+            cases, poses = self._sanitize_cases(cases)
             if cases:
                 return self.loc[self['case'].isin(cases)]
             return self.loc[[]]
