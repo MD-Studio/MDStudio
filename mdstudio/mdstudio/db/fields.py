@@ -163,7 +163,7 @@ class Fields(object):
 
         if isinstance(subdoc, dict):
             for key, val in subdoc.items():
-                if key.startswith('$'):
+                if key.startswith('$') and key in self.conversion_operators:
                     self.transform_docfield_to_object(val, [field[-1]], parser, **kwargs)
 
         if subdoc is None:
