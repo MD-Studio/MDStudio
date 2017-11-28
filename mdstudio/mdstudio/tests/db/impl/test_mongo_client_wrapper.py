@@ -21,12 +21,11 @@ class TestMongoClientWrapper(DBTestCase):
         self.assertIsInstance(self.d._client, mongomock.MongoClient)
 
     def test_get_database_not_exists(self):
-        # @todo
-        #with mock.patch('mdstudio.db.mongo_client_wrapper.logger.info'):
 
+        self.d.logger = mock.MagicMock()
         db = self.d.get_database('database_name')
 
-        #logger.info.assert_called_once_with('Creating database "{database}"', database='database_name')
+        self.d.logger.info.assert_called_once_with('Creating database "{database}"', database='database_name')
 
         self.assertIsInstance(db, MongoDatabaseWrapper)
         self.assertEqual(db, self.d.get_database('database_name'))
@@ -34,13 +33,11 @@ class TestMongoClientWrapper(DBTestCase):
     def test_get_database_exists(self):
 
         self.d._client.get_database('database_name')
-
-        # @todo
-        #with mock.patch('mdstudio.db.mongo_client_wrapper.logger.info'):
+        self.d.logger = mock.MagicMock()
 
         db = self.d.get_database('database_name')
 
-        #logger.info.assert_not_called()
+        self.d.logger.info.assert_not_called()
 
         self.assertIsInstance(db, MongoDatabaseWrapper)
         self.assertEqual(db, self.d.get_database('database_name'))
