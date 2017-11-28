@@ -10,6 +10,7 @@ Library of basic LIE related methods
 import logging
 import numpy
 import itertools
+import matplotlib.pyplot as plt
 
 from scipy import stats
 from matplotlib.patches import Ellipse
@@ -167,7 +168,7 @@ def hlinkage_to_treematrix(linkage_matrix):
 
     remove = []
     for idx, element in enumerate(cluster_list):
-        nodes = [linkage_matrix[idx, 1], linkage_matrix[idx, 2]]
+        nodes = [linkage_matrix[idx, 1].astype(int), linkage_matrix[idx, 2].astype(int)]
 
         # both nodes are leaf nodes
         if nodes[0] < N and nodes[1] < N:
@@ -191,7 +192,7 @@ def hlinkage_to_treematrix(linkage_matrix):
             idx = numpy.where(linkage_matrix[:, 0] == element)[0][0]
 
             if idx:
-                nodes = [linkage_matrix[idx, 1], linkage_matrix[idx, 2]]
+                nodes = [linkage_matrix[idx, 1].astype(int), linkage_matrix[idx, 2].astype(int)]
 
                 # Start merging nodes
                 if nodes[0] < N and nodes[1] <= element:
@@ -256,12 +257,12 @@ def cv_set_partitioner(cases, cvtype='LOO', p=2, maxpartitions=200):
     :return:       DataFrame with the partition identity matrix
     """
 
-    N = len(cases)
+    nr = len(cases)
     if type(p) == float:
         assert 0 < p < 1, "Cross-validation partition fraction needs to be between 0 and 1"
-        p = int(N * p)
+        p = int(nr * p)
     elif type(p) == int:
-        assert 0 < p < N, "Cross-validation partition count needs to be between 0 and {0}. Got {1}".format(N, p)
+        assert 0 < p < nr, "Cross-validation partition count needs to be between 0 and {0}. Got {1}".format(nr, p)
     else:
         p = 1
 
@@ -270,7 +271,7 @@ def cv_set_partitioner(cases, cvtype='LOO', p=2, maxpartitions=200):
         if cvtype == 'LOO':
             p = 1
         permutations = [n for n in itertools.permutations(range(0, len(cases)), p)]
-        perm_matrix = numpy.ones((N, len(permutations)))
+        perm_matrix = numpy.ones((nr, len(permutations)))
         for i, t in enumerate(permutations):
             perm_matrix[t, i] = 0
             if i == maxpartitions:
@@ -279,11 +280,11 @@ def cv_set_partitioner(cases, cvtype='LOO', p=2, maxpartitions=200):
 
     if cvtype == 'KFOLD':
 
-        assert 2 <= p < N, "K-folds fold partition needs to be between 2 and {0}. Got {1}".format(N, p)
+        assert 2 <= p < nr, "K-folds fold partition needs to be between 2 and {0}. Got {1}".format(nr, p)
 
-        fold_sizes = (N // p) * numpy.ones(p, dtype=numpy.int)
-        fold_sizes[:N % p] += 1
-        perm_matrix = numpy.ones((N, len(fold_sizes)))
+        fold_sizes = (nr // p) * numpy.ones(p, dtype=numpy.int)
+        fold_sizes[:nr % p] += 1
+        perm_matrix = numpy.ones((nr, len(fold_sizes)))
         current = 0
         for i, fold_size in enumerate(fold_sizes):
             start, stop = current, current + fold_size
@@ -293,14 +294,14 @@ def cv_set_partitioner(cases, cvtype='LOO', p=2, maxpartitions=200):
     if cvtype == 'RAND':
 
         partitions = []
-        case_id = range(N)
+        case_id = range(nr)
         for n in range(maxpartitions):
             part = numpy.random.permutation(case_id)
             part = part.tolist()[0:p]
             if not part in partitions:
                 partitions.append(part)
 
-        perm_matrix = numpy.zeros((N, len(partitions)))
+        perm_matrix = numpy.zeros((nr, len(partitions)))
         for i, partition in enumerate(partitions):
             perm_matrix[partition, i] = 1
 
