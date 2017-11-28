@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-file: module_liedataframe_test.py
+file: module_liedeltag_test.py
 
-Test the pylie DataFrameBase methods common to all
-DataFrame types in the package
+Test pylie liedeltag method for calculating the free energy of binding
+(delta G) using the LIE equation
 """
 
 import os

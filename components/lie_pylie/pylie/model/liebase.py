@@ -3,7 +3,6 @@
 import logging
 import re
 
-from collections import Counter
 from pandas import DataFrame, Series
 
 from .. import plotting
@@ -126,9 +125,9 @@ class LIESeriesBase(_Common, Series):
 
         super(LIESeriesBase, self).__init__(*args, **kwargs)
 
-        # Register plotting functions. Only the first time so the user can modify
-        # the plotting functions dict later
-        if not hasattr(self, 'plot_functions'):
+        # Register plotting functions for custom series.
+        # Only the first time so the user can modify the plotting functions dict later
+        if not self._class_name == 'series' and not hasattr(self, 'plot_functions'):
             self._init_plot_functions()
 
     def __setattr__(self, key, value):
@@ -234,9 +233,9 @@ class LIEDataFrameBase(_Common, DataFrame):
             if self._column_names.get(col, col) in self.columns:
                 self[self._column_names.get(col, col)].fillna(0, inplace=True)
 
-        # Register plotting functions. Only the first time so the user can modify
-        # the plotting functions dict later
-        if not hasattr(self, 'plot_functions'):
+        # Register plotting functions for custom dataframes.
+        # Only the first time so the user can modify the plotting functions dict later
+        if not self._class_name == 'dataframe' and not hasattr(self, 'plot_functions'):
             self._init_plot_functions()
 
         # Get copy of the global configuration for this class once so the user

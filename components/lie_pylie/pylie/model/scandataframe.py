@@ -473,6 +473,11 @@ class LIEScanDataFrame(LIEDataFrameBase):
             raise KeyError("no such column name: {0}".format(column))
 
     def plot(self, *args, **kwargs):
+        """
+        Support a number of class specific plot 'kinds'.
+        If not requested refer to base class plot function
+        """
+
         kind = kwargs.get('kind', None)
         if kind == 'simmatrix':
             kwargs.pop('kind')

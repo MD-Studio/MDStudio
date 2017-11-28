@@ -78,14 +78,14 @@ class LIEDataFrame(LIEDataFrameBase):
         """
         Convenience method for quick calculation of delta G using LIE.
 
-        :param alpha: LIE alpha scaling parameter
-        :ptype alpha: float
-        :param beta: LIE beta scaling parameter
-        :ptype beta: float
-        :param gamma: LIE gamma scaling parameter
-        :ptype gamma: float
-        :param **kwargs: Any keyword arguments passed to lie_deltag
-        :return: DeltaG DataFrame instance
+        :param alpha:  LIE alpha scaling parameter
+        :ptype alpha:  float
+        :param beta:   LIE beta scaling parameter
+        :ptype beta:   float
+        :param gamma:  LIE gamma scaling parameter
+        :ptype gamma:  float
+        :param kwargs: Any keyword arguments passed to lie_deltag
+        :return:       DeltaG DataFrame instance
         """
 
         if not params:
@@ -106,8 +106,8 @@ class LIEDataFrame(LIEDataFrameBase):
         Convenience method for quick setup of a LIE model building class and make
         an initial model
 
-        :param **kwargs: Any keyword arguments passed to LIEModelBuilder
-        :return: LIEModelBuilder class
+        :param kwargs: Any keyword arguments passed to LIEModelBuilder
+        :return:       LIEModelBuilder class
         """
 
         # To prevent circular import problems
@@ -141,9 +141,9 @@ class LIEDataFrame(LIEDataFrameBase):
         Convenience method for quick setup of a Alpha/Beta parameter scan with the
         data from the current LIEDataFrame instance.
 
-        :param *args: Any arguments passed to LIEScanDataFrame
-        :param **kwargs: Any keyword arguments passed to LIEScanDataFrame
-        :return: LIEScanDataFrame class
+        :param args:   Any arguments passed to LIEScanDataFrame
+        :param kwargs: Any keyword arguments passed to LIEScanDataFrame
+        :return:       LIEScanDataFrame class
         """
 
         # To prevent circular import problems

@@ -85,7 +85,7 @@ def multivariate_gaussian(dataframe, confidence=0.975, returnellipse=False, **kw
     @param class dataframe: pandas DataFrame instance with multivariate data
     @param float confidence: the confidence interval to fit on, 0.975 by default
     @param bool returnellipse: if to return matplotlib Ellipse object
-    @param **kwargs: any additional keyword arguments will be passed to Ellipse
+    @param kwargs: any additional keyword arguments will be passed to Ellipse
 
     @return mixed: array of outliers (0 or 1), optional Ellipse object
     """
@@ -298,7 +298,7 @@ def cv_set_partitioner(cases, cvtype='LOO', p=2, maxpartitions=200):
         for n in range(maxpartitions):
             part = numpy.random.permutation(case_id)
             part = part.tolist()[0:p]
-            if not part in partitions:
+            if part not in partitions:
                 partitions.append(part)
 
         perm_matrix = numpy.zeros((nr, len(partitions)))
