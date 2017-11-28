@@ -1,19 +1,16 @@
-import base64
 import datetime
+from typing import List, Callable, Optional, Union
+
+import base64
 import hashlib
-
-import re
-from typing import List, Callable, Optional
-
 import pytz
 from copy import deepcopy
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
-from mdstudio.db.exception import DatabaseException
-from mdstudio.logging.logger import Logger
-from mdstudio.utc import from_utc_string, from_date_string
 from mdstudio.compat import unicode
+from mdstudio.db.exception import DatabaseException
+from mdstudio.utc import from_utc_string, from_date_string
 
 
 def timestamp_properties(prefixes=None):
@@ -48,7 +45,7 @@ class Fields(object):
     _encrypted_prefix = '__encrypted__'
 
     def __init__(self, date_times=None, dates=None, encrypted=None, hashed=None, key_repository=None):
-        # type: (Optional[List[str]], Optional[List[str]], Optional[List[str]], Optional[List[str]], Optional[KeyRepository]) -> None
+        # type: (Optional[Union[List[str],str]], Optional[Union[List[str],str]], Optional[Union[List[str],str]], Optional[Union[List[str],str]], Optional[KeyRepository]) -> None
         if date_times and not isinstance(date_times, list):
             date_times = [date_times]
         if dates and not isinstance(dates, list):
@@ -155,6 +152,10 @@ class Fields(object):
                             keys = key.split('.')
                             nfields = deepcopy(field[i:])
                             for vkey in deepcopy(keys):
+
+                                if not nfields:
+                                    break
+
                                 if not accessor:
                                     accessor = vkey
                                 else:
@@ -162,6 +163,8 @@ class Fields(object):
                                 # remove front from list
                                 if nfields[0] == vkey:
                                     nfields.pop(0)
+                                elif not vkey.startswith('$'):
+                                    break
                                 if accessor in subdoc:
                                     self.transform_docfield_to_object(subdoc, [accessor] + nfields, parser, **kwargs)
 

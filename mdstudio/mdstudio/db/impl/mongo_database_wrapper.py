@@ -17,6 +17,7 @@ from mdstudio.db.exception import DatabaseException
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.compat import unicode
+from mdstudio.logging.logger import Logger
 
 
 class MongoDatabaseWrapper(IDatabase):
@@ -26,7 +27,9 @@ class MongoDatabaseWrapper(IDatabase):
     # type: CacheDict
     _cursors = None
 
-    _internal_db =None
+    _internal_db = None
+
+    _logger = Logger()
 
     def __init__(self, database_name, db):
         self._database_name = database_name
@@ -108,7 +111,6 @@ class MongoDatabaseWrapper(IDatabase):
             limit = 0 if not limit else limit
 
             if db_collection:
-
                 self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
                 filter = self._prepare_for_mongo(filter)
 
@@ -160,7 +162,6 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-
             self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
@@ -202,7 +203,6 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-
             self._convert_fields(fields, {'filter': filter, 'update': update}, ['filter', 'update'], claims)
 
             filter = self._prepare_for_mongo(filter)
@@ -226,7 +226,6 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-
             self._convert_fields(fields, {'filter': filter, 'replacement': replacement}, ['filter', 'replacement'], claims)
 
             filter = self._prepare_for_mongo(filter)
@@ -250,7 +249,6 @@ class MongoDatabaseWrapper(IDatabase):
 
         result = None
         if db_collection:
-
             self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
@@ -276,7 +274,7 @@ class MongoDatabaseWrapper(IDatabase):
             filter = self._prepare_for_mongo(filter)
 
             results = db_collection.distinct(field, filter)
-            
+
             for result in results:
                 self._prepare_for_json(result)
 
@@ -308,7 +306,6 @@ class MongoDatabaseWrapper(IDatabase):
 
         count = 0
         if db_collection:
-
             self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
@@ -325,7 +322,6 @@ class MongoDatabaseWrapper(IDatabase):
 
         count = 0
         if db_collection:
-
             self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
 
             filter = self._prepare_for_mongo(filter)
@@ -488,10 +484,8 @@ class MongoDatabaseWrapper(IDatabase):
 
         if collection_name not in self._db.collection_names():
             if create:
-                # @todo
-                # logger.info('Creating collection {collection} in {database}', collection=collection_name,
-                #            database=self._database_name)
-                pass
+                self._logger.info('Creating collection {collection} in {database}', collection=collection_name,
+                                  database=self._database_name)
             else:
                 return None
 

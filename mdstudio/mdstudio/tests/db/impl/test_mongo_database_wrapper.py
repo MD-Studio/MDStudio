@@ -22,8 +22,8 @@ from mdstudio.unittest.db import DBTestCase
 
 twisted.internet.base.DelayedCall.debug = True
 
-class TestMongoDatabaseWrapper(DBTestCase):
 
+class TestMongoDatabaseWrapper(DBTestCase):
     faker = Faker()
 
     def setUp(self):
@@ -182,43 +182,39 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
     def test_get_collection_dict(self):
 
-        # @todo
-        #with mock.patch('mdstudio.db.mongo_client_wrapper.logger.info'):
-            collection = {
-                'name': 'test_collection'
-            }
-            self.assertEqual(self.db._get_collection(collection), None)
-            #logger.info.assert_not_called()
+        self.db._logger = mock.MagicMock()
+        collection = {
+            'name': 'test_collection'
+        }
+        self.assertEqual(self.db._get_collection(collection), None)
+        self.db._logger.info.assert_not_called()
 
     def test_get_collection_dict_create(self):
 
-        # @todo
-        #with mock.patch('mdstudio.db.mongo_client_wrapper.logger.info'):
-            collection = {
-                'name': 'test_collection'
-            }
-            self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
+        self.db._logger = mock.MagicMock()
+        collection = {
+            'name': 'test_collection'
+        }
+        self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
-            #logger.info.assert_called_once_with('Creating collection {collection} in {database}',
-            #                                    collection='test_collection', database='users~userNameDatabase')
+        self.db._logger.info.assert_called_once_with('Creating collection {collection} in {database}',
+                                                     collection='test_collection', database='users~userNameDatabase')
 
     def test_get_collection_str(self):
 
-        # @todo
-        #with mock.patch('mdstudio.db.mongo_client_wrapper.logger.info'):
-            collection = 'test_collection'
-            self.assertEqual(self.db._get_collection(collection), None)
-            #logger.info.assert_not_called()
+        self.db._logger = mock.MagicMock()
+        collection = 'test_collection'
+        self.assertEqual(self.db._get_collection(collection), None)
+        self.db._logger.info.assert_not_called()
 
     def test_get_collection_str_create(self):
 
-        # @todo
-        #with mock.patch('mdstudio.db.mongo_client_wrapper.logger.info'):
-            collection = 'test_collection'
-            self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
+        self.db._logger = mock.MagicMock()
+        collection = 'test_collection'
+        self.assertIsInstance(self.db._get_collection(collection, create=True), mongomock.collection.Collection)
 
-            #logger.info.assert_called_once_with('Creating collection {collection} in {database}',
-            #                                    collection='test_collection', database='users~userNameDatabase')
+        self.db._logger.info.assert_called_once_with('Creating collection {collection} in {database}',
+                                                     collection='test_collection', database='users~userNameDatabase')
 
     @test_chainable
     def test_insert_one(self):
@@ -261,7 +257,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
     @test_chainable
     def test_insert_one_date_time_fields(self):
         datetime = self.faker.date_time(pytz.utc)
-        yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime}, fields=Fields(date_times=['datetime']))
+        yield self.d.insert_one({'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime},
+                                fields=Fields(date_times=['datetime']))
         found = yield self.d.find_one({'_id': '0123456789ab0123456789ab'})
 
         self.assertEqual(found, {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime})
@@ -338,7 +335,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
     @test_chainable
     def test_insert_many_date_time_fields(self):
         datetime = self.faker.date_time(pytz.utc)
-        yield self.d.insert_many([{'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime}], fields=Fields(date_times=['datetime']))
+        yield self.d.insert_many([{'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime}],
+                                 fields=Fields(date_times=['datetime']))
         found = yield self.d.find_many({'_id': '0123456789ab0123456789ab'}).to_list()
 
         self.assertEqual(found[0], {'test': 2, '_id': '0123456789ab0123456789ab', 'datetime': datetime})
@@ -349,7 +347,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
         yield self.d.insert_many([{'test': 2, '_id': '0123456789ab0123456789ab', 'date': date}], fields=Fields(dates=['date']))
         found = yield self.d.find_many({'_id': '0123456789ab0123456789ab'}, fields=Fields(dates=['date'])).to_list()
         self.assertEqual(found[0], {'test': 2, '_id': '0123456789ab0123456789ab', 'date': date})
-
 
     @test_chainable
     def test_insert_many_date_fields2(self):
@@ -595,7 +592,6 @@ class TestMongoDatabaseWrapper(DBTestCase):
 
         found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'})
         self.assertEqual(found, {'test': 6, '_id': '59f1d9c57dd5d70043e74f8d', 'date': stored})
-
 
     @test_chainable
     def test_update_many(self):
@@ -1463,7 +1459,8 @@ class TestMongoDatabaseWrapper(DBTestCase):
         ], fields=Fields(date_times=['datetime']))
         self.assertEqual(ids, ['0123456789ab0123456789ab', '59f1d9c57dd5d70043e74f8d'])
 
-        yield self.d.find_one_and_replace({'_id': '59f1d9c57dd5d70043e74f8d'}, {'datetime2': datetime}, fields=Fields(date_times=['datetime']))
+        yield self.d.find_one_and_replace({'_id': '59f1d9c57dd5d70043e74f8d'}, {'datetime2': datetime},
+                                          fields=Fields(date_times=['datetime']))
 
         found = yield self.d.find_one({'_id': '59f1d9c57dd5d70043e74f8d'}, fields=Fields(date_times=['datetime', 'datetime2']))
         self.assertEqual(found, {'_id': '59f1d9c57dd5d70043e74f8d', 'datetime2': datetime})

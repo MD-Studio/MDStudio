@@ -2,9 +2,13 @@ from pymongo import MongoClient
 
 import mdstudio.unittest.db as db
 from mdstudio.db.impl.mongo_database_wrapper import MongoDatabaseWrapper
+from mdstudio.logging.logger import Logger
 
 
 class MongoClientWrapper(object):
+
+    logger = Logger()
+
     def __init__(self, host, port):
         self._host = host
         self._port = port
@@ -14,9 +18,7 @@ class MongoClientWrapper(object):
     def get_database(self, database_name):
         if database_name not in self._databases:
             if database_name not in self._client.database_names():
-                # @todo: fix logging
-                #logger.info('Creating database "{database}"', database=database_name)
-                pass
+                self.logger.info('Creating database "{database}"', database=database_name)
 
             database = MongoDatabaseWrapper(database_name, self._client[database_name])
             self._databases[database_name] = database
