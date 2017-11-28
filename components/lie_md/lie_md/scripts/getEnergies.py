@@ -57,7 +57,7 @@ def process_energies(dataDir, outName):
     :params dataDir: Directory where the job is execute.
     :params outName: Name of the output file.
     """
-    path = findFile(dataDir, ext='edr', pref='*energy*')
+    path = findFile(dataDir, ext='edr', pref='*')
     if path is None:
         msg = 'TERMINATED. Program {} not found.'.format(path)
         log_and_quit(msg)
@@ -101,13 +101,13 @@ def decompose(args):
         log_and_quit('gmx executable was not found')
 
     # parse MD mdp
-    mdpIn = findFile(args.dataDir, ext='mdp', pref='*')
+    mdpIn = findFile(args.dataDir, ext='mdp', pref='md-prod-out')
     mdp_dict = parseMdp(mdpIn)
 
     # create decomposition mdp, ndx and run rerun
     gro = findFile(args.dataDir, ext='gro', pref='*sol')
     ndx = findFile(args.dataDir, ext='ndx', pref='*-sol')
-    trr = findFile(args.dataDir, ext='trr', pref='*MD*')
+    trr = findFile(args.dataDir, ext='trr', pref='*MD.part*')
     top = findFile(args.dataDir, ext='top', pref='*-sol')
     files = Files(gro, ndx, trr, top, mdpIn, None)
 
@@ -500,7 +500,7 @@ if __name__ == "__main__":
         help='list of residue for which to decompose interaction energies (e.g.1 "1,2,3")',
         type=parseResidues)
     parser.add_argument(
-        '-o', '--output', dest='outName', required=True)
+        '-o', '--output', dest='outName', default='energy.out')
 
     args = parser.parse_args()
 

@@ -7,6 +7,7 @@ inputs:
   ligand_pdb: File
   ligand_top: File
   ligand_itp: File
+  include_itp: File
   force_field: string
   sim_time: double
 
@@ -37,6 +38,7 @@ steps:
       ligand_pdb: ligand_pdb
       ligand_top: ligand_top
       ligand_itp: ligand_itp
+      include_itp: include_itp
       force_field: force_field
       sim_time: sim_time
     out: [gromitout,gromiterr,gromacslog_step9,trajectory, energy]

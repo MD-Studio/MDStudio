@@ -364,7 +364,8 @@ def copy_files_to_remote(job, gromacs_config):
     """
     # copy_files to remote worker
     files = ['protein_pdb', 'protein_top', 'protein_itp',
-             'ligand_pdb', 'ligand_top', 'ligand_itp']
+             'ligand_pdb', 'ligand_top', 'ligand_itp',
+             'include_itp']
     for name in files:
         job.add_input_file(name, gromacs_config[name])
 

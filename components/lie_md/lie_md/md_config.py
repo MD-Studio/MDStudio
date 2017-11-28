@@ -28,7 +28,7 @@ def check_input(gromacs_config, dict_input):
     Check if all the data required to run gromacs is present
     """
     file_names = ['protein_pdb', 'protein_top', 'protein_itp',
-                  'ligand_pdb', 'ligand_top', 'ligand_itp']
+                  'ligand_pdb', 'ligand_top', 'ligand_itp', 'include_itp']
 
     for f in file_names:
         path = dict_input.get(f, None)

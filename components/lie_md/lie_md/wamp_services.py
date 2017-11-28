@@ -47,6 +47,7 @@ class MDWampApi(LieApplicationSession):
             * ligand_pdb
             * ligand_top
             * ligand_itp
+            * include_itp
         """
         workdir = kwargs['workdir']
 
@@ -65,7 +66,6 @@ class MDWampApi(LieApplicationSession):
         # Run the MD and retrieve the energies
         output = call_cerise_gromacs(
             gromacs_config, cerise_config, self.db['cerise'])
-        # retrieve_energies(workdir)
 
         session['status'] = 'completed'
 
