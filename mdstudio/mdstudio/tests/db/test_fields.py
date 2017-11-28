@@ -629,6 +629,46 @@ class FieldsTests(TestCase):
             }
         })
 
+    def test_convert_call_date_time_prefixes_dotstring_operators8(self):
+        document = {
+            'update': {
+                '$set': {
+                    'roles.$.permissions.componentPermissions.foo': {
+                        'createdAt': '2017-10-26T09:16:00+00:00'
+                    }
+                }
+            }
+        }
+        f = Fields(date_times=['roles.permissions.createdAt'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            'update': {
+                '$set': {
+                    'roles.$.permissions.componentPermissions.foo': {
+                        'createdAt': '2017-10-26T09:16:00+00:00'
+                    }
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_dotstring_operators9(self):
+        document = {
+            '$set': {
+                'roles': {
+                    'createdAt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['roles.createdAt'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            '$set': {
+                'roles': {
+                    'createdAt': datetime.datetime(2017, 10, 26, 9, 15, tzinfo=pytz.utc)
+                }
+            }
+        })
+
     def test_convert_call_date(self):
         document = {
             'date': '2017-10-26'

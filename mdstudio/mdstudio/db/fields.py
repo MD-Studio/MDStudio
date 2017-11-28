@@ -148,6 +148,8 @@ class Fields(object):
                                 # remove front from list
                                 if nfields[0] == vkey:
                                     nfields.pop(0)
+                                elif not vkey.startswith('$'):
+                                    break
                                 if accessor in subdoc:
                                     self.transform_docfield_to_object(subdoc, [accessor] + nfields, parser, **kwargs)
 
