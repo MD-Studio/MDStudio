@@ -1,3 +1,4 @@
+
 '''
 Tool to gather ensemble energies and per-residue decomposed energies from
 gromacs md files (edr and trr for decomposition)
@@ -52,6 +53,9 @@ def process_energies(dataDir, outName):
     """
     Read and format energies using a edr file contains in
     `dataDir` and write it in `outName`.
+
+    :params dataDir: Directory where the job is execute.
+    :params outName: Name of the output file.
     """
     path = findFile(dataDir, ext='edr', pref='*energy*')
     if path is None:
@@ -60,8 +64,8 @@ def process_energies(dataDir, outName):
     else:
         frames = get_energy(path)
         labs2print = [
-            'Time', 'Potential', 'Kinetic En.', 'Temperature', 'ele', 'vdw',
-            'Ligand-Ligenv-ele', 'Ligand-Ligenv-vdw']
+            'Time', 'Potential', 'Kinetic En.', 'Temperature', 'ele',
+            'vdw', 'Ligand-Ligenv-ele', 'Ligand-Ligenv-vdw']
         writeOut(frames, outName, labs2print)
 
 
@@ -87,7 +91,7 @@ def get_energy(path, listRes=['Ligand']):
 
 def decompose(args):
     """
-    Make a decomposition of the energy into its residue components
+    Make a decomposition of the energy into some if its residue components.
     """
     if args.resList is None:
         msg = 'TERMINATED. List of residues not provided.'
@@ -107,9 +111,9 @@ def decompose(args):
     top = findFile(args.dataDir, ext='top', pref='*-sol')
     files = Files(gro, ndx, trr, top, mdpIn, None)
 
-    prefix_result = decomp(mdp_dict, args, files)
+    energy_file = decomp(mdp_dict, args, files)
 
-    energy_analysis(args, prefix_result)
+    energy_analysis(args, energy_file)
 
 
 def decomp(
@@ -118,19 +122,21 @@ def decomp(
     Decompose the energy into its components for different residues.
     """
     new_mdp_file = create_new_mdp_file(mdp_dict, args, ligGroup)
+    files = files._replace(mdp=new_mdp_file)
+
     # create a dictionary with the index of the atoms that belong
     # to a given residue
     dict_residues = create_residue_dict(files.gro)
 
     # create new ndx file:
     new_ndx_file = create_new_ndx_file(dict_residues, args, files.ndx)
+    files = files._replace(ndx=new_ndx_file)
 
     # Generate new tpr file
     new_tpr_file = create_new_tpr_file(args, files)
 
     # update files tuple
-    new_files = files._replace(
-        mdp=new_mdp_file, ndx=new_ndx_file, tpr=new_tpr_file)
+    new_files = files._replace(ndx=new_ndx_file, tpr=new_tpr_file)
 
     return rerun_md(args, new_files)
 
@@ -143,6 +149,7 @@ def rerun_md(args, files):
     cmd = ['-s', files.tpr, '-rerun', files.trr, '-deffnm', 'decompose']
     rs, err = call_subprocess(mdrun + cmd, args.gmxEnv)
     logging.error(err)
+    logging.info(rs)
 
     energy_file = os.path.join(args.dataDir, 'decompose.edr')
     if not os.path.exists(energy_file):
@@ -152,12 +159,9 @@ def rerun_md(args, files):
     return energy_file
 
 
-def energy_analysis(args, prefix):
+def energy_analysis(args, energy_file):
     """Analysis of energy decomposition file after rerun"""
-    path = findFile(args.dataDir, ext='edr',  prefix=prefix)
-    logging.info(
-        "Extracting decomposed energies from {} file".format(path))
-    df = get_energy(path)
+    df = get_energy(energy_file)
 
     write_decomposition_ouput(df, args.outName, args.resList)
 
@@ -168,7 +172,7 @@ def create_new_tpr_file(args, files):
     """
     outTpr = os.path.join(args.dataDir, 'decompose.tpr')
     cmd = ['gmx', 'grompp', '-f', files.mdp, '-c', files.gro, '-p',
-           files.top, '-n', files.ndx, '-o', outTpr]
+           files.top, '-n', files.ndx, '-o', outTpr, '-maxwarn', '2']
     rs, err = call_subprocess(cmd, args.gmxEnv)
     logging.error(err)
 
@@ -198,11 +202,12 @@ def set_gmx_mpi_run(env):
 
 def compute_mpi_ranks(ranks=''):
     """
-    guess a reasonable default for the mpi ranks
+    guess a reasonable default for the mpi ranks.
     """
-    if cpu_count() > 1:
-        xs = "-np 4 --map-by ppr:2:socket -v --display-map --display-allocation"
-        ranks = xs.split()
+    cpus = cpu_count()
+    if cpus > 4:
+        s = "-np 4 --map-by ppr:2:socket -v --display-map --display-allocation"
+        ranks = s.split()
 
     return ranks
 
@@ -210,7 +215,7 @@ def compute_mpi_ranks(ranks=''):
 def create_new_ndx_file(residues_dict, args, ndx_file):
     """
     Write a new ndx file mapping the residue numbers to their
-    correspoding atoms, using a array `residues_map` that contains
+    correspoding atoms, using a array `residues_dict` that contains
     in each row the lower and upper limit of the range of
     the atoms contained in a given residue.
     """
@@ -231,7 +236,9 @@ def create_new_ndx_file(residues_dict, args, ndx_file):
 
 
 def create_new_mdp_file(mdp_dict, args, ligGroup):
-    """ Crate a new input mdp file """
+    """
+    Create a new input mdp file using the previous `mdp_dict` data.
+    """
 
     listkeys = [
         'include', 'define', 'cutoff-scheme', 'ns-type', 'pbc',
@@ -276,7 +283,7 @@ def create_new_mdp_file(mdp_dict, args, ligGroup):
 
 def extract_ligand_info(df, listRes):
     """
-    Get the Ligand information.
+    Get the Ligand information from a pandas dataframe `df`.
     """
     for res in listRes:
         names = get_residue_from_columns(res, df.columns)
@@ -342,8 +349,9 @@ def writeOut(frames, output_file, columns):
     """
     write columns as a table
     """
+    frames.index.name = 'Frames'
     with open(output_file, 'w') as f:
-        f.write(frames[columns].to_string(index=False))
+        f.write(frames[columns].to_string())
 
 
 def create_residue_dict(gro_file):
@@ -372,7 +380,7 @@ def create_residue_dict(gro_file):
 
 def write_decomposition_ouput(listFrames, outName, resList):
     """ Write results for decomposition """
-    hs1 = ['time', 'Potential', 'ele', 'vdw']
+    hs1 = ['Time', 'Potential', 'ele', 'vdw']
     hs2 = ['Ligand-{}-vdw'.format(x) for x in resList]
     hs3 = ['Ligand-rest-vdw']
     hs4 = ['Ligand-{}-ele'.format(x) for x in resList]
@@ -423,7 +431,9 @@ def availProg(prog, myEnv):
 
 
 def findFile(workdir, ext=None, pref=''):
-    """ Check whether a file exists"""
+    """
+    Check whether a file starting with `pref` and ending with `ext` exists.
+    """
     rs = fnmatch.filter(os.listdir(workdir), "{}.{}".format(pref, ext))
     if rs:
         return os.path.join(workdir, rs[0])
@@ -454,7 +464,8 @@ def process_line(line):
 
 def call_subprocess(cmd, env=None):
     """
-    Execute shell command and wait for the results
+    Execute shell command `cmd`, using the environment `env`
+    and wait for the results.
     """
     try:
         p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=env)
