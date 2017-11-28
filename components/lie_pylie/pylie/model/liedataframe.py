@@ -164,24 +164,24 @@ def lie_deltag(dataset, params=[0.5, 0.5, 0], kBt=2.49, **kwargs):
 
       dGcalc = (S1 * D1) + (S2 * D2) +.... (Sn * Dn) + Si
 
-    Where S is a scaling parameter, D is a dataset and i is the intercept value.
-    The elements for each scaling parameter, dataset multiplication are drawn from
+    Where S is a scaling parameter, D is a data set and i is the intercept value.
+    The elements for each scaling parameter, data set multiplication are drawn from
     the dataset and params list provided as input for the method.
 
-    The scaling parameter are classicly: Alpha, Beta and Gamma. Gamma serves as
+    The scaling parameter are classically: Alpha, Beta and Gamma. Gamma serves as
     intercept which is optional.
-    The dataset is classicaly composed of the Van der Waals and Coulomb energy
+    The data set is classically composed of the Van der Waals and Coulomb energy
     values as single value, Numpy array or Pandas DataFrame type.
 
     The method requires at least a D1, D2 and S1, S2. The equation can be extended
-    with an arbitrary number of additional datasets, each with their own scaling
+    with an arbitrary number of additional data sets, each with their own scaling
     parameter.
 
     Poses and cases:
-    From an array point of view, seperate cases are represented as rows and poses
+    From an array point of view, separate cases are represented as rows and poses
     as columns. Columns for pose energies need to be of equals length for each
     case.
-    Input for which it is abmiquous rather it is a row- or column vector will be
+    Input for which it is ambiguous rather it is a row- or column vector will be
     cast as row vector (thus treated as cases rather then poses).
 
     LIE scaling parameters:
@@ -196,27 +196,28 @@ def lie_deltag(dataset, params=[0.5, 0.5, 0], kBt=2.49, **kwargs):
 
     :param dataset: list of datasets to use in the LIE equation. Classicly these
                     are at least Van der Waals and Coulomb energy terms.
-    :ptype dataset: list
+    :type dataset:  :py:list
     :param params:  list of scaling parameters in the LIE equation for each of the
                     terms in the dataset plus optional intercept term. By default
                     these are set to 0.5, 0.5 and 0.0 for the alpha, beta and
                     gamma scaling parameter respectivly.
-    :ptype params:  list
+    :type params:   :py:list
     :param kBt:     Boltzmann constant at given temperature. Default = 2.49
-    :ptype kBt:     float
+    :type kBt:      :py:float
     :param calc_prob: list of booleans specifying which of the energy terms to
                     include in Boltzmann weighting. By default True for all terms.
-    :ptype calc_prob: list
+    :type calc_prob: :py:list
     :param param_labels: Data labels for the scaling parameters used in the
                     results DataFrame. By default set to the Greek alphabet.
-    :ptype param_labels: list
+    :type param_labels: :py:list
     :param data_labels: Data labels for the input datasets used in the
                     results DataFrame. By default set to 'vdw', 'coul' and 'dx'.
-    :ptype param_labels: list
+    :type param_labels: :py:list
 
-    :return array:  Pandas DataFrame with an array of deltaG values, the weighted
+    :return:        Pandas DataFrame with an array of deltaG values, the weighted
                     VdW and Coul energy values, alpha, beta and gamma values and
                     propensities for each case.
+    :rtype:         :pandas:dataframe
     """
 
     # Function requires at least a dataset with two value sets.

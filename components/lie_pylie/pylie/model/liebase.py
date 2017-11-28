@@ -195,11 +195,11 @@ class LIESeriesBase(_Common, Series):
         :return:       matplotlib plot axis
         """
 
-        # kind = kwargs.get('kind', None)
-        # if kind and kind in self.plot_functions:
-        #  return self.plot_functions[kind](self, *args, **kwargs)
-        # else:
-        return super(LIESeriesBase, self).plot(*args, **kwargs)
+        kind = kwargs.get('kind', None)
+        if kind and kind in self.plot_functions:
+            return self.plot_functions[kind](self, *args, **kwargs)
+        else:
+            return super(LIESeriesBase, self).plot(*args, **kwargs)
 
 
 class LIEDataFrameBase(_Common, DataFrame):
@@ -271,12 +271,12 @@ class LIEDataFrameBase(_Common, DataFrame):
         Sanitize provided list of case ID's or case-pose combinations
 
         For every case ID or case-pose combination check if it is in the
-        DataFrame and store the indexes. Remove duplicates and report missing
+        DataFrame and store the indices. Remove duplicates and report missing
         cases.
 
         :param cases: list of case ID's or case-pose combinations to sanitize
         :type cases:  :py:list
-        :return:      list of DataFrame indexes
+        :return:      list of DataFrame indices
         :rtype:       :py:list
         """
 
@@ -284,7 +284,7 @@ class LIEDataFrameBase(_Common, DataFrame):
         if getattr(cases, '_class_name', None) == 'series':
             cases = list(cases.values)
 
-        selected_indexes = []
+        selected_indices = []
         cases_not_found = []
         poses_not_found = []
         df_cases = self['case'].values.astype(int)
@@ -293,7 +293,7 @@ class LIEDataFrameBase(_Common, DataFrame):
             # Item is a case
             if isinstance(item, int):
                 if item in df_cases:
-                    selected_indexes.extend(self.loc[self['case'] == item].index.values)
+                    selected_indices.extend(self.loc[self['case'] == item].index.values)
                 else:
                     cases_not_found.append(item)
 
@@ -303,7 +303,7 @@ class LIEDataFrameBase(_Common, DataFrame):
                 if sel.empty:
                     poses_not_found.append(item)
                 else:
-                    selected_indexes.extend(sel.index.values)
+                    selected_indices.extend(sel.index.values)
 
         if cases_not_found:
             logger.error('Cases not in dataframe: {0}'.format(str(cases_not_found).strip('[]')))
@@ -311,7 +311,7 @@ class LIEDataFrameBase(_Common, DataFrame):
             pstring = ['{0}-{1}'.format(*p) for p in poses_not_found]
             logger.error('Case-pose combination not in dataframe: {0}'.format(', '.join(pstring)))
 
-        return set(selected_indexes)
+        return set(selected_indices)
 
     @property
     def _constructor(self):
@@ -378,8 +378,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if 'train_mask' in self.columns:
-            cp_indexes = self._sanitize_cases(cases)
-            self.loc[cp_indexes, 'train_mask'] = 1
+            cp_indices = self._sanitize_cases(cases)
+            self.loc[cp_indices, 'train_mask'] = 1
 
     @testset.setter
     def testset(self, cases):
@@ -391,8 +391,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['train_mask'] in self.columns:
-            cp_indexes = self._sanitize_cases(cases)
-            self.loc[cp_indexes, 'train_mask'] = 0
+            cp_indices = self._sanitize_cases(cases)
+            self.loc[cp_indices, 'train_mask'] = 0
 
     @property
     def outliers(self):
@@ -436,8 +436,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['filter_mask'] in self.columns:
-            cp_indexes = self._sanitize_cases(cases)
-            self.loc[cp_indexes, 'filter_mask'] = 1
+            cp_indices = self._sanitize_cases(cases)
+            self.loc[cp_indices, 'filter_mask'] = 1
 
     @inliers.setter
     def inliers(self, cases):
@@ -449,8 +449,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['filter_mask'] in self.columns:
-            cp_indexes = self._sanitize_cases(cases)
-            self.loc[cp_indexes, 'filter_mask'] = 0
+            cp_indices = self._sanitize_cases(cases)
+            self.loc[cp_indices, 'filter_mask'] = 0
 
     def reset_trainset(self, train=False):
         """
@@ -487,8 +487,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         :rtype:       LIEDataFrame
         """
 
-        cp_indexes = self._sanitize_cases(cases)
-        return self.loc[cp_indexes, :]
+        cp_indices = self._sanitize_cases(cases)
+        return self.loc[cp_indices, :]
 
     def get_poses(self, case_pose_list):
         """
@@ -502,8 +502,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         :rtype:                LIEDataFrame
         """
 
-        cp_indexes = self._sanitize_cases(case_pose_list)
-        return self.loc[cp_indexes, :]
+        cp_indices = self._sanitize_cases(case_pose_list)
+        return self.loc[cp_indices, :]
 
     def plot(self, *args, **kwargs):
         """
