@@ -14,7 +14,6 @@ from mdstudio.utc import now
 
 
 class FieldsTests(TestCase):
-
     def test_merge(self):
         field = Fields(dates=['date1'], date_times=['datetime1'], encrypted=['encrypted1'])
         field2 = Fields(dates=['date2'], date_times=['datetime2'], encrypted=['encrypted2'])
@@ -44,6 +43,16 @@ class FieldsTests(TestCase):
             'date': '2017-10-26T09:16:00+00:00'
         }
         f = Fields(date_times=['date'])
+        f.convert_call(document)
+        self.assertEqual(document, {
+            'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+        })
+
+    def test_convert_call_date_time_twice(self):
+        document = {
+            'date': '2017-10-26T09:16:00+00:00'
+        }
+        f = Fields(date_times=['date','date'])
         f.convert_call(document)
         self.assertEqual(document, {
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
@@ -349,7 +358,8 @@ class FieldsTests(TestCase):
             'f': '2017-10-26T09:15:00+00:00'
         }
         cdocument = deepcopy(document)
-        self.assertRaisesRegex(DatabaseException, "Failed to parse datetime field '200'", lambda: Fields(date_times=['date']).convert_call(cdocument))
+        self.assertRaisesRegex(DatabaseException, "Failed to parse datetime field '200'",
+                               lambda: Fields(date_times=['date']).convert_call(cdocument))
 
     def test_convert_call_date_time_nonexisting_key(self):
         document = {
@@ -438,6 +448,36 @@ class FieldsTests(TestCase):
     def test_convert_call_date_time_prefixes_operators(self):
         document = {
             'insert': {
+                '$set': {
+                    'date': '2017-10-26T09:16:00+00:00'
+                },
+                '$setOnInsert': {
+                    'date': '2017-9-26T09:16:00+00:00'
+                },
+                '$addToSet': {
+                    'date': '2017-8-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=['date'])
+        f.convert_call(document, ['insert'])
+        self.assertEqual(document, {
+            'insert': {
+                '$set': {
+                    'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                },
+                '$setOnInsert': {
+                    'date': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+                },
+                '$addToSet': {
+                    'date': datetime.datetime(2017, 8, 26, 9, 16, tzinfo=pytz.utc)
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_operators2(self):
+        document = {
+            'insert': {
                 '$insert': {
                     'date': '2017-10-26T09:16:00+00:00'
                 },
@@ -454,13 +494,13 @@ class FieldsTests(TestCase):
         self.assertEqual(document, {
             'insert': {
                 '$insert': {
-                    'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
+                    'date': '2017-10-26T09:16:00+00:00'
                 },
                 '$inserts': {
-                    'date': datetime.datetime(2017, 9, 26, 9, 16, tzinfo=pytz.utc)
+                    'date': '2017-9-26T09:16:00+00:00'
                 },
                 '$insert2': {
-                    'date': datetime.datetime(2017, 8, 26, 9, 16, tzinfo=pytz.utc)
+                    'date': '2017-8-26T09:16:00+00:00'
                 }
             }
         })
@@ -691,6 +731,117 @@ class FieldsTests(TestCase):
             }
         })
 
+    def test_convert_call_date_time_prefixes_dotstring_operators11(self):
+        document = {
+            'update': {
+                '$set': {
+                    'roles.$.permissions.componentPermissions.foo.updatedAt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=[
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+            'roles.createdAt',
+            'roles.updatedAt',
+            'roles.deletedAt',
+            'roles.owners.createdAt',
+            'roles.owners.updatedAt',
+            'roles.owners.deletedAt',
+            'roles.members.createdAt',
+            'roles.members.updatedAt',
+            'roles.members.deletedAt',
+            'members.createdAt',
+            'members.updatedAt',
+            'members.deletedAt',
+            'components.createdAt',
+            'components.updatedAt',
+            'components.deletedAt'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            'update': {
+                '$set': {
+                    'roles.$.permissions.componentPermissions.foo.updatedAt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_dotstring_operators12(self):
+        document = {
+            'update': {
+                '$push': {
+                    'roles.$.permissions.componentPermissions.foo.scopes': [
+                        'call', 'register'
+                    ]
+                },
+                '$set': {
+                    'roles.$.permissions.componentPermissions.foo.updatedAt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        }
+        f = Fields(date_times=[
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+            'roles.createdAt',
+            'roles.updatedAt',
+            'roles.deletedAt',
+            'roles.owners.createdAt',
+            'roles.owners.updatedAt',
+            'roles.owners.deletedAt',
+            'roles.members.createdAt',
+            'roles.members.updatedAt',
+            'roles.members.deletedAt',
+            'members.createdAt',
+            'members.updatedAt',
+            'members.deletedAt',
+            'components.createdAt',
+            'components.updatedAt',
+            'components.deletedAt'])
+        f.convert_call(document, ['update'])
+        self.assertEqual(document, {
+            'update': {
+                '$push': {
+                    'roles.$.permissions.componentPermissions.foo.scopes': [
+                        'call', 'register'
+                    ]
+                },
+                '$set': {
+                    'roles.$.permissions.componentPermissions.foo.updatedAt': '2017-10-26T09:16:00+00:00'
+                }
+            }
+        })
+
+    def test_convert_call_date_time_prefixes_dotstring_operators13(self):
+        document = {
+            'filter': {
+                'roles': {
+                    '$elemMatch': {
+                        'permissions.componentPermissions.foo': {
+                            '$exists': False
+                        }
+                    }
+                }
+            }
+        }
+        f = Fields(date_times=[
+            'roles.permissions.componentPermissions.foo.createdAt'
+        ])
+        self.maxDiff = None
+        f.convert_call(document, ['filter', 'projection', 'update'])
+        self.assertEqual(document, {
+            'filter': {
+                'roles': {
+                    '$elemMatch': {
+                        'permissions.componentPermissions.foo': {
+                            '$exists': False
+                        }
+                    }
+                }
+            }
+        })
+
     def test_convert_call_date(self):
         document = {
             'date': '2017-10-26'
@@ -703,7 +854,7 @@ class FieldsTests(TestCase):
 
     def test_convert_call_date_date_time(self):
         document = {
-            'date':  datetime.datetime(2017, 10, 26)
+            'date': datetime.datetime(2017, 10, 26)
         }
         f = Fields(dates=['date'])
         f.convert_call(document)
@@ -713,7 +864,7 @@ class FieldsTests(TestCase):
 
     def test_convert_call_date_date(self):
         document = {
-            'date':  datetime.date(2017, 10, 26)
+            'date': datetime.date(2017, 10, 26)
         }
         f = Fields(dates=['date'])
         f.convert_call(document)
@@ -919,7 +1070,8 @@ class FieldsTests(TestCase):
             'f': '2017-10-26'
         }
         cdocument = deepcopy(document)
-        self.assertRaisesRegex(DatabaseException, "Failed to parse date field '200'", lambda: Fields(dates=['date']).convert_call(cdocument))
+        self.assertRaisesRegex(DatabaseException, "Failed to parse date field '200'",
+                               lambda: Fields(dates=['date']).convert_call(cdocument))
 
     def test_convert_call_date_nonexisting_key(self):
         document = {
@@ -1008,6 +1160,36 @@ class FieldsTests(TestCase):
     def test_convert_call_date_prefixes_operators(self):
         document = {
             'insert': {
+                '$set': {
+                    'date': '2017-10-26'
+                },
+                '$setOnInsert': {
+                    'date': '2017-9-26'
+                },
+                '$addToSet': {
+                    'date': '2017-8-26'
+                }
+            }
+        }
+        f = Fields(dates=['date'])
+        f.convert_call(document, ['insert'])
+        self.assertEqual(document, {
+            'insert': {
+                '$set': {
+                    'date': datetime.date(2017, 10, 26)
+                },
+                '$setOnInsert': {
+                    'date': datetime.date(2017, 9, 26)
+                },
+                '$addToSet': {
+                    'date': datetime.date(2017, 8, 26)
+                }
+            }
+        })
+
+    def test_convert_call_date_prefixes_operators2(self):
+        document = {
+            'insert': {
                 '$insert': {
                     'date': '2017-10-26'
                 },
@@ -1024,13 +1206,13 @@ class FieldsTests(TestCase):
         self.assertEqual(document, {
             'insert': {
                 '$insert': {
-                    'date': datetime.date(2017, 10, 26)
+                    'date': '2017-10-26'
                 },
                 '$inserts': {
-                    'date': datetime.date(2017, 9, 26)
+                    'date': '2017-9-26'
                 },
                 '$insert2': {
-                    'date': datetime.date(2017, 8, 26)
+                    'date': '2017-8-26'
                 }
             }
         })
@@ -1144,7 +1326,6 @@ class FieldsTests(TestCase):
         self.assertRaisesRegex(DatabaseException, "Failed to create a Fernet encryption class due to an incorrect key.",
                                self.field.convert_call, obj2, None, {'username': 'user'})
 
-
     def test_encryption_fields_decrypt_wrong_key(self):
         self.field = Fields(encrypted=['test'])
         self.field._key_repository = mock.MagicMock()
@@ -1165,7 +1346,8 @@ class FieldsTests(TestCase):
         }
         obj2 = deepcopy(obj)
         self.assertRaisesRegex(DatabaseException, 'Trying to decrypt an unencrypted field with key "test", '
-                                                  'please check your insert statements!', self.field.parse_result, obj2, {'username': 'user'})
+                                                  'please check your insert statements!', self.field.parse_result, obj2,
+                               {'username': 'user'})
 
     def test_encryption_fields_decrypt_fails2(self):
         self.field = Fields(encrypted=['test'])
@@ -1224,7 +1406,6 @@ class FieldsTests(TestCase):
     def test_from_dict2(self):
         self.assertEqual(Fields.from_dict({
         }), Fields())
-
 
     def test_from_dict3(self):
         self.assertEqual(Fields.from_dict({
