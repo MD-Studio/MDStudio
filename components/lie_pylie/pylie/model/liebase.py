@@ -268,15 +268,15 @@ class LIEDataFrameBase(_Common, DataFrame):
 
     def _sanitize_cases(self, cases):
         """
-        Sanitize provided list of case ID's
+        Sanitize provided list of case ID's or case-pose combinations
 
-        Remove duplicates and check if case ID is available in the 'case' column of
-        the LIEDataFrame. An error is logged in case a non-existing case ID is
-        encountered and the case is subsequently removed from the list.
+        For every case ID or case-pose combination check if it is in the
+        DataFrame and store the indexes. Remove duplicates and report missing
+        cases.
 
-        :param cases: list of case ID's to sanitize
+        :param cases: list of case ID's or case-pose combinations to sanitize
         :type cases:  :py:list
-        :return:      sanitized list
+        :return:      list of DataFrame indexes
         :rtype:       :py:list
         """
 
@@ -284,27 +284,34 @@ class LIEDataFrameBase(_Common, DataFrame):
         if getattr(cases, '_class_name', None) == 'series':
             cases = list(cases.values)
 
-        # Split cases in full cases and case-pose combinations
-        sel_poses = [n for n in cases if isinstance(n, tuple)]
-        sel_cases = [n for n in cases if isinstance(n, int)]
+        selected_indexes = []
+        cases_not_found = []
+        poses_not_found = []
+        df_cases = self['case'].values.astype(int)
+        for item in cases:
 
-        # Check cases
-        sel_cases = set(sel_cases)
-        actual_cases = set(self.cases)
-        if sel_cases.intersection(actual_cases) != sel_cases:
-            difference = list(sel_cases.difference(actual_cases))
-            sel_cases = (Counter(sel_cases) - Counter(difference)).keys()
-            logger.error('Case with index: {0} not in dataframe'.format(str(difference).strip('[]')))
+            # Item is a case
+            if isinstance(item, int):
+                if item in df_cases:
+                    selected_indexes.extend(self.loc[self['case'] == item].index.values)
+                else:
+                    cases_not_found.append(item)
 
-        # Check poses
-        checked_poses = []
-        for case_pose in sel_poses:
-            if not self.loc[(self['case'] == case_pose[0]) & (self['poses'] == case_pose[1])].empty:
-                checked_poses.append(case_pose)
-            else:
-                logger.error('Case-pose combination: {0}-{1} not in dataframe'.format(*case_pose))
+            # Item is a case-pose combination
+            if isinstance(item, tuple) and len(item) == 2:
+                sel = self.loc[(self['case'] == item[0]) & (self['poses'] == item[1])]
+                if sel.empty:
+                    poses_not_found.append(item)
+                else:
+                    selected_indexes.extend(sel.index.values)
 
-        return sorted(sel_cases), checked_poses
+        if cases_not_found:
+            logger.error('Cases not in dataframe: {0}'.format(str(cases_not_found).strip('[]')))
+        if poses_not_found:
+            pstring = ['{0}-{1}'.format(*p) for p in poses_not_found]
+            logger.error('Case-pose combination not in dataframe: {0}'.format(', '.join(pstring)))
+
+        return set(selected_indexes)
 
     @property
     def _constructor(self):
@@ -371,14 +378,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if 'train_mask' in self.columns:
-            cases, poses = self._sanitize_cases(cases)
-
-            # Set cases
-            self.loc[self['case'].isin(cases), 'train_mask'] = 1
-
-            # Set poses
-            for cp in poses:
-                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'train_mask'] = 1
+            cp_indexes = self._sanitize_cases(cases)
+            self.loc[cp_indexes, 'train_mask'] = 1
 
     @testset.setter
     def testset(self, cases):
@@ -390,14 +391,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['train_mask'] in self.columns:
-            cases, poses = self._sanitize_cases(cases)
-
-            # Set cases
-            self.loc[self['case'].isin(cases), 'train_mask'] = 0
-
-            # Set poses
-            for cp in poses:
-                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'train_mask'] = 0
+            cp_indexes = self._sanitize_cases(cases)
+            self.loc[cp_indexes, 'train_mask'] = 0
 
     @property
     def outliers(self):
@@ -441,14 +436,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['filter_mask'] in self.columns:
-            cases, poses = self._sanitize_cases(cases)
-
-            # Set cases
-            self.loc[self['case'].isin(cases), 'filter_mask'] = 1
-
-            # Set poses
-            for cp in poses:
-                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'filter_mask'] = 1
+            cp_indexes = self._sanitize_cases(cases)
+            self.loc[cp_indexes, 'filter_mask'] = 1
 
     @inliers.setter
     def inliers(self, cases):
@@ -460,14 +449,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         """
 
         if self._column_names['filter_mask'] in self.columns:
-            cases, poses = self._sanitize_cases(cases)
-
-            # Set cases
-            self.loc[self['case'].isin(cases), 'filter_mask'] = 0
-
-            # Set poses
-            for cp in poses:
-                self.loc[(self['case'] == cp[0]) & (self['poses'] == cp[1]), 'filter_mask'] = 0
+            cp_indexes = self._sanitize_cases(cases)
+            self.loc[cp_indexes, 'filter_mask'] = 0
 
     def reset_trainset(self, train=False):
         """
@@ -504,11 +487,8 @@ class LIEDataFrameBase(_Common, DataFrame):
         :rtype:       LIEDataFrame
         """
 
-        if self._column_names['case'] in self.columns:
-            cases, poses = self._sanitize_cases(cases)
-            if cases:
-                return self.loc[self['case'].isin(cases)]
-            return self.loc[[]]
+        cp_indexes = self._sanitize_cases(cases)
+        return self.loc[cp_indexes, :]
 
     def get_poses(self, case_pose_list):
         """
@@ -522,14 +502,7 @@ class LIEDataFrameBase(_Common, DataFrame):
         :rtype:                LIEDataFrame
         """
 
-        cp_indexes = []
-        for case_pose in case_pose_list:
-            sel = self.loc[(self['case'] == case_pose[0]) & (self['poses'] == case_pose[1]), :]
-            if sel.empty:
-                logger.error("No {0}-{1} case-pose combination found in dataframe".format(case_pose[0], case_pose[1]))
-            else:
-                cp_indexes.extend(sel.index.values)
-
+        cp_indexes = self._sanitize_cases(case_pose_list)
         return self.loc[cp_indexes, :]
 
     def plot(self, *args, **kwargs):
