@@ -5,9 +5,11 @@ gromacs md files (edr and trr for decomposition)
 The program execute gromacs commands from inside
 
 examples of execution:
-1. To gather energies from edr : python getEnergies.py -gmxrc /opt/gromacs-4.6.7/bin/GMXRC -ene -o energy.dat
+1. To gather energies from edr:
+ python getEnergies.py energy -o energy.dat
 
-2. to obtained per-residue decompose contributes: python getEnergies.py -gmxrc /opt/gromacs-4.6.7/bin/GMXRC -dec -o energydec.dat -res "416,417,418,419,420,421,422,423"
+2. to obtained per-residue decompose contributes:
+ python getEnergies.py decompose -gmxrc /opt/gromacs-4.6.7/bin/GMXRC -o energydec.dat -res "416,417,418,419,420,421,422,423"
 
 For decomposition, configuration as in mdpName='md-prod-out.mdp' is used.
 Rerun is performed for the trajectory: ext='trr',pref='*?MD*'
@@ -34,17 +36,11 @@ Files = collections.namedtuple(
 
 
 def main(args):
-
-    # Full energy gathering
-    if args.energy and args.decompose:
-        msg = 'Make a decision: decomposition (-dec) or ensemble energy gathering (-ene)!'
-        log_and_quit(msg)
-
-    if args.energy:
+    if args.mode == 'energy':
         process_energies(args.dataDir, args.outName)
 
     # Per-residue energy decomposition
-    if args.decompose:
+    if args.mode == 'decompose':
         decompose(args)
     logging.info('SUCCESSFUL COMPLETION OF THE PROGRAM')
 
@@ -440,7 +436,9 @@ def findFile(workdir, ext=None, pref=''):
 
     else:
         logging.error(
-            "file not Found with prefix: {} and ext: {}".format(pref, ext))
+            """
+file not Found with prefix: {} and ext: {}
+in dir: {}""".format(pref, ext, workdir))
         return None
 
 
@@ -481,26 +479,32 @@ def call_subprocess(cmd, env=None):
 if __name__ == "__main__":
     logging.basicConfig(level='INFO')
     parser = argparse.ArgumentParser(
-        description='Dock sdf file into protein conformation')
+        description='Decompose the energy into its different components per residue')
 
-    parser.add_argument(
+    # Create separate parsers for the energy and decomposition
+    subparsers = parser.add_subparsers(
+        help='Parser for both energy and its decomposition',
+        dest='mode')
+    parser_energy = subparsers.add_parser(
+        'energy', help='gather total energy')
+    parser_dec = subparsers.add_parser(
+        'decompose', help='perform residue decomposition analysis')
+
+    parser_dec.add_argument(
         '-gmxrc', required=False, dest='gmxEnv', type=getGMXEnv,
         help='GMXRC file for environment loading')
-    parser.add_argument(
-        '-d', '--dir', required=False, dest='dataDir',
-        help='directory with MD files to process', default=os.getcwd())
-    parser.add_argument(
-        '-dec', '--decompose', dest='decompose',
-        help='perform residue decomposition analysis', action='store_true')
-    parser.add_argument(
-        '-ene', '--energy', dest='energy', help='gather total energy',
-        action='store_true')
-    parser.add_argument(
+
+    parser_dec.add_argument(
         '-res', '--residues', required=False, dest='resList',
         help='list of residue for which to decompose interaction energies (e.g.1 "1,2,3")',
         type=parseResidues)
-    parser.add_argument(
-        '-o', '--output', dest='outName', default='energy.out')
+
+    for p in [parser_energy, parser_dec]:
+        p.add_argument(
+            '-d', '--dir', required=False, dest='dataDir',
+            help='directory with MD files to process', default=os.getcwd())
+        p.add_argument(
+            '-o', '--output', dest='outName', default='energy.out')
 
     args = parser.parse_args()
 
