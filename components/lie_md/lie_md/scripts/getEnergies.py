@@ -57,7 +57,7 @@ def process_energies(dataDir, outName):
     :params dataDir: Directory where the job is execute.
     :params outName: Name of the output file.
     """
-    path = findFile(dataDir, ext='edr', pref='*')
+    path = findFile(dataDir, ext='edr', pref='*-MD.part*')
     if path is None:
         msg = 'TERMINATED. Program {} not found.'.format(path)
         log_and_quit(msg)
