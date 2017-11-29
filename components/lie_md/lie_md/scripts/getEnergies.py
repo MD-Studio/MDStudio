@@ -37,7 +37,7 @@ Files = collections.namedtuple(
 
 def main(args):
     if args.mode == 'energy':
-        process_energies(args.dataDir, args.outName)
+        process_energies(args, args.outName)
 
     # Per-residue energy decomposition
     if args.mode == 'decompose':
@@ -45,7 +45,7 @@ def main(args):
     logging.info('SUCCESSFUL COMPLETION OF THE PROGRAM')
 
 
-def process_energies(dataDir, outName):
+def process_energies(args, outName):
     """
     Read and format energies using a edr file contains in
     `dataDir` and write it in `outName`.
@@ -53,16 +53,12 @@ def process_energies(dataDir, outName):
     :params dataDir: Directory where the job is execute.
     :params outName: Name of the output file.
     """
-    path = findFile(dataDir, ext='edr', pref='*-MD.part*')
-    if path is None:
-        msg = 'TERMINATED. Program {} not found.'.format(path)
-        log_and_quit(msg)
-    else:
-        frames = get_energy(path)
-        labs2print = [
-            'Time', 'Potential', 'Kinetic En.', 'Temperature', 'ele',
-            'vdw', 'Ligand-Ligenv-ele', 'Ligand-Ligenv-vdw']
-        writeOut(frames, outName, labs2print)
+    path_edr = get_edr_file(args)
+    frames = get_energy(path_edr)
+    labs2print = [
+        'Time', 'Potential', 'Kinetic En.', 'Temperature', 'ele',
+        'vdw', 'Ligand-Ligenv-ele', 'Ligand-Ligenv-vdw']
+    writeOut(frames, outName, labs2print)
 
 
 def get_energy(path, listRes=['Ligand']):
@@ -454,6 +450,15 @@ def getGMXEnv(gmxrc):
         return dict(map(process_line, lines))
 
 
+def get_edr_file(args):
+    """
+    """
+    if args.edr is None:
+        return findFile(args.dataDir, ext='edr', pref='*-MD.part*')
+    else:
+        return args.edr
+
+
 def process_line(line):
     """ Split a Line in key, value pairs """
     key, value = line.partition("=")[::2]
@@ -490,6 +495,12 @@ if __name__ == "__main__":
     parser_dec = subparsers.add_parser(
         'decompose', help='perform residue decomposition analysis')
 
+    # Arguments for total energy
+    parser_energy.add_argument(
+        '-edr', required=False,
+        help='Gromacs energy output in edr format')
+
+    # Arguments for energy decomposition
     parser_dec.add_argument(
         '-gmxrc', required=False, dest='gmxEnv', type=getGMXEnv,
         help='GMXRC file for environment loading')
@@ -499,6 +510,7 @@ if __name__ == "__main__":
         help='list of residue for which to decompose interaction energies (e.g.1 "1,2,3")',
         type=parseResidues)
 
+    # Arguments for both parsers
     for p in [parser_energy, parser_dec]:
         p.add_argument(
             '-d', '--dir', required=False, dest='dataDir',
