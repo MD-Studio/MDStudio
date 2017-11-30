@@ -14,8 +14,8 @@ from autobahn.wamp.request import Publication
 from twisted.internet import reactor
 
 from mdstudio.api.api_result import APIResult
-from mdstudio.api.call_exception import CallException
 from mdstudio.api.converter import convert_obj_to_json
+from mdstudio.api.exception import CallException
 from mdstudio.api.schema import validate_json_schema
 from mdstudio.collection import merge_dicts
 from mdstudio.deferred.chainable import chainable

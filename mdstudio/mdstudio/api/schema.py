@@ -7,6 +7,7 @@ import json
 import six
 from jsonschema import FormatChecker, ValidationError
 
+from mdstudio.api.exception import RegisterException
 from mdstudio.api.singleton import Singleton
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
@@ -18,7 +19,7 @@ class ISchema(object):
 
     def _retrieve_local(self, base_path, schema_path, versions=None):
         if versions:
-            if not isinstance(versions, list):
+            if not isinstance(versions, (list, set)):
                 versions = [versions]
 
             for version in versions:
@@ -30,7 +31,7 @@ class ISchema(object):
             path = os.path.join(base_path, '{}.json'.format(schema_path))
 
             with open(path, 'r') as f:
-                self.cached[0] = json.load(f)
+                self.cached[1] = json.load(f)
 
     @chainable
     def _recurse_subschemas(self, schema, session):
@@ -41,6 +42,9 @@ class ISchema(object):
 
             if ref:
                 ref_decomposition = re.match(r'(\w+)://(.+)', ref)
+                if not ref_decomposition:
+                    raise RegisterException('$ref value in the schema must hold a valid resource uri. This may be given as '
+                                            'resource://<uri>, endpoint://<uri>, or https://<url>, you specified "{}"'.format(ref))
                 subschema = self._schema_factory(ref_decomposition.group(1), ref_decomposition.group(2))
 
                 if (yield subschema.flatten(session)):
@@ -69,11 +73,15 @@ class ISchema(object):
     @staticmethod
     def _schema_factory(schema_type, schema_path):
         factory_dict = {
-            'resource': lambda p: ResourceSchema('resource://{}'.format(p)),
-            'endpoint': lambda p: EndpointSchema('endpoint://{}'.format(p)),
-            'https': lambda p: HttpsSchema('https://{}'.format(p)),
-            'http': lambda p: HttpsSchema('https://{}'.format(p))
+            'resource': ResourceSchema,
+            'endpoint': EndpointSchema,
+            'https': HttpsSchema,
+            'http': HttpsSchema
         }
+        if schema_type not in factory_dict:
+            raise RegisterException('You tried to specify an unknown schema type. '
+                                    'Valid schemas are resource://<uri>, endpoint://<uri> and https://<url>. '
+                                    'We got "{}" as schema type'.format(schema_type))
 
         return factory_dict[schema_type](schema_path)
 
@@ -81,17 +89,17 @@ class ISchema(object):
         if not self.cached:
             raise NotImplementedError("This schema has not been or could not be retrieved.")
 
-        if len(self.cached.items()) > 1:
+        if len(self.cached) > 1:
             return {
-                'oneOf': self.cached.values()
+                'oneOf': list(self.cached.values())
             }
         else:
-            for k, v in self.cached.items():
-                return v
+            return six.next(six.itervalues(self.cached))
 
 
 class InlineSchema(ISchema):
     def __init__(self, schema):
+        super(InlineSchema, self).__init__()
         self.schema = schema
 
     def flatten(self, session=None):
@@ -100,10 +108,11 @@ class InlineSchema(ISchema):
     def to_schema(self):
         return self.schema
 
+
 class HttpsSchema(ISchema):
     def __init__(self, uri):
         super(HttpsSchema, self).__init__()
-        self.uri = uri
+        self.uri = 'https://{}'.format(uri)
 
     def flatten(self, session=None):
         return True
@@ -115,10 +124,14 @@ class HttpsSchema(ISchema):
 class EndpointSchema(ISchema):
     def __init__(self, uri, versions=None):
         super(EndpointSchema, self).__init__()
-        uri_decomposition = re.match(r'endpoint://([\w/_\-]+?)/?((v\d+,?)*)?$', uri)
+        uri_decomposition = re.match(r'([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
+        if not uri_decomposition:
+            raise RegisterException('An endpoint schema uri must be in the form "endpoint://<schema path>(/v<versions>), '
+                                    'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
+                                    'We got "endpoint://{}".'.format(uri))
         self.schema_path = uri_decomposition.group(1)
 
-        uri_versions = uri_decomposition.group(2)
+        uri_versions = uri_decomposition.group(3)
         self.versions = versions or ([int(v) for v in uri_versions.replace('v', '').split(',')] if uri_versions else [1])
 
         self.schema_subdir = 'endpoints'
@@ -129,7 +142,12 @@ class EndpointSchema(ISchema):
         if self.cached:
             return_value(True)
 
-        self._retrieve_local(os.path.join(session.component_schemas_path(), self.schema_subdir), self.schema_path, self.versions)
+        try:
+            dir = os.path.join(session.component_schemas_path(), self.schema_subdir)
+            self._retrieve_local(dir, self.schema_path, self.versions)
+        except FileNotFoundError as ex:
+            raise RegisterException('Tried to access schema "{}/{}" with versions {}, '
+                                    'but the schema was not found:\n{}'.format(dir, self.schema_path, self.versions, str(ex)))
 
         success = True
 
@@ -141,6 +159,9 @@ class EndpointSchema(ISchema):
                 success = False
                 break
 
+        if not success:
+            self.cached = {}
+
         return_value(success)
 
 
@@ -148,6 +169,7 @@ class ClaimSchema(EndpointSchema):
     def __init__(self, uri, versions=None):
         super(ClaimSchema, self).__init__(uri, versions)
         self.schema_subdir = 'claims'
+
 
 @six.add_metaclass(Singleton)
 class MDStudioClaimSchema(object):
@@ -162,12 +184,18 @@ class MDStudioClaimSchema(object):
 class ResourceSchema(ISchema):
     def __init__(self, uri, versions=None):
         super(ResourceSchema, self).__init__()
-        uri_decomposition = re.match(r'resource://([\w\d_\-]+)/([\w\d_\-]+)/([\w/_\-]+?)/?((v\d+,?)*)?$', uri)
+        uri_decomposition = re.match(r'([\w\-]+)/([\w\-]+)/([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
+        if not uri_decomposition:
+            raise RegisterException('An resource schema uri must be in the form "resource://<vendor>/<component>/<schema path>(/v<versions>), '
+                                    'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
+                                    'We got "resource://{}".'.format(uri))
         self.vendor = uri_decomposition.group(1)
         self.component = uri_decomposition.group(2)
         self.schema_path = uri_decomposition.group(3)
 
-        self.versions = versions or [int(v) for v in uri_decomposition.group(4).replace('v', '').split(',')] or [1]
+        uri_versions = uri_decomposition.group(5)
+
+        self.versions = versions or ([int(v) for v in uri_versions.replace('v', '').split(',')] if uri_versions else [1])
 
     @chainable
     def flatten(self, session=None):
@@ -190,6 +218,9 @@ class ResourceSchema(ISchema):
                 success = False
                 break
 
+        if not success:
+            self.cached = {}
+
         return_value(success)
 
     @chainable
@@ -203,6 +234,7 @@ class ResourceSchema(ISchema):
             }, claims={
                 'vendor': self.vendor
             })
+
 
 def validate_json_schema(schema_def, instance):
     jsonschema.validate(instance, schema_def, format_checker=FormatChecker())

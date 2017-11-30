@@ -6,12 +6,11 @@ import os
 import pytz
 import six
 import twisted
-from autobahn.twisted import ApplicationSession
 from autobahn.wamp.exception import ApplicationError, TransportLost
 from twisted.internet import task, reactor
 from twisted.python.failure import Failure
 
-from mdstudio.api.call_exception import CallException
+from mdstudio.api.exception import CallException
 from mdstudio.api.singleton import Singleton
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
