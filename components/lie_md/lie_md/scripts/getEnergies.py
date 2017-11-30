@@ -1,4 +1,4 @@
-
+#! /usr/bin/env python
 '''
 Tool to gather ensemble energies and per-residue decomposed energies from
 gromacs md files (edr and trr for decomposition)
