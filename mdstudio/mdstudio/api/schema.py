@@ -18,7 +18,7 @@ class ISchema(object):
         self.cached = {}
 
     def _retrieve_local(self, base_path, schema_path, versions=None):
-        if versions:
+        if versions is not None:
             if not isinstance(versions, (list, set)):
                 versions = [versions]
 

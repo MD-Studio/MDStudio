@@ -78,6 +78,21 @@ class ISchemaTests(DBTestCase):
                 schema._retrieve_local(base_path, schema_path, versions=version)
                 self.assertEqual(schema.cached, contents)
 
+    def test_retrieve_local_version_single0(self):
+        for i in range(50):
+            with Patcher() as patcher:
+                base_path = self.faker.file_path()
+                schema_path = self.faker.file_path()
+                version = 0
+                contents = {}
+                content = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
+                patcher.fs.CreateFile(os.path.join(base_path, schema_path) + '.v{}.json'.format(version), contents=json.dumps(content))
+                contents[version] = content
+
+                schema = ISchema()
+                schema._retrieve_local(base_path, schema_path, versions=version)
+                self.assertEqual(schema.cached, contents)
+
     @test_chainable
     def test_recurse_subschemas_no_refs(self):
 

@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-
+import time
 import os
 from autobahn.wamp import ApplicationError, TransportLost
 from mock import mock, call
@@ -17,6 +17,7 @@ from mdstudio.utc import from_utc_string, now
 class SessionObserverTests(DBTestCase):
 
     def setUp(self):
+        SessionLogObserver._instance = None
         self.session = mock.MagicMock()
         self.session.__str__ = mock.MagicMock(return_value='test session')
         self.session.component_root_path = mock.MagicMock(return_value='/')
@@ -43,15 +44,16 @@ class SessionObserverTests(DBTestCase):
         self.assertEqual(self.observer.recovery_file_path, '/logs/recovery.json')
 
     def test_call(self):
+        t = now()
         self.observer({
             'log_format': 'hello {str}',
             'log_namespace': 'test namespace',
             'log_level': LogType.Group,
-            'log_time': now().timestamp(),
+            'log_time': t.timestamp(),
             'str': 'test'
         })
 
-        self.assertLessEqual(now() - from_utc_string(self.observer.logs[1]['time']), timedelta(seconds=1))
+        self.assertLessEqual(t - from_utc_string(self.observer.logs[1]['time']), timedelta(seconds=1))
         del self.observer.logs[1]['time']
         self.assertEqual(self.observer.logs[1], {
             'level': 'Group',
@@ -60,14 +62,15 @@ class SessionObserverTests(DBTestCase):
         })
 
     def test_call2(self):
+        t = now()
         self.observer({
             'message': 'hello test',
             'log_namespace': 'test namespace',
             'log_level': LogType.Group,
-            'log_time': now().timestamp()
+            'log_time': t.timestamp()
         })
 
-        self.assertLessEqual(now() - from_utc_string(self.observer.logs[1]['time']), timedelta(seconds=1))
+        self.assertLessEqual(t - from_utc_string(self.observer.logs[1]['time']), timedelta(seconds=1))
         del self.observer.logs[1]['time']
         self.assertEqual(self.observer.logs[1], {
             'level': 'Group',
@@ -214,7 +217,6 @@ class SessionObserverTests(DBTestCase):
             call(1)
         ])
 
-
     @test_chainable
     def test_flush_logs6(self):
         def raise_(ex):
@@ -234,7 +236,6 @@ class SessionObserverTests(DBTestCase):
         }])
         self.observer.log.error.assert_called_once()
 
-
     @test_chainable
     def test_flush_logs7(self):
         def raise_(ex):
@@ -249,7 +250,6 @@ class SessionObserverTests(DBTestCase):
         yield self.observer.flush_logs()
         self.assertEqual(self.observer.logs, [])
 
-
     @test_chainable
     def test_flush_logs8(self):
         self.observer.session = self.session
@@ -261,6 +261,7 @@ class SessionObserverTests(DBTestCase):
         self.observer.sleep.assert_has_calls([
             call(1)
         ])
+
     @test_chainable
     def test_flush_logs9(self):
         self.observer.session = self.session
@@ -292,13 +293,10 @@ class SessionObserverTests(DBTestCase):
 
         self.assertEqual(self.observer.session, self.session)
 
-
     @test_chainable
     def test_start_flushing2(self):
-
         with Patcher() as patcher:
             patcher.fs.CreateFile(self.observer.recovery_file_path, contents=json.dumps([{'est': 'error'}]))
-
 
             self.observer.session = self.session
             self.observer.sleep = mock.MagicMock()
@@ -312,23 +310,18 @@ class SessionObserverTests(DBTestCase):
             self.session.flush_logs.assert_called_once_with([{'est': 'error'}])
             self.assertEqual(self.observer.session, self.session)
 
-
     @test_chainable
     def test_start_flushing3(self):
-
         with Patcher() as patcher:
             patcher.fs.CreateFile(self.observer.recovery_file_path, contents='sdfwef')
-
 
             self.observer.session = self.session
             self.observer.sleep = mock.MagicMock()
             yield self.observer.start_flushing(self.session)
             self.assertNotEqual(self.observer.logs, 'sdfwef')
 
-
     @test_chainable
     def test_start_flushing4(self):
-
         with Patcher() as patcher:
             self.observer.session = self.session
             self.observer.sleep = mock.MagicMock()
