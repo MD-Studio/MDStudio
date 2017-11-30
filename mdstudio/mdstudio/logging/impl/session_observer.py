@@ -21,6 +21,7 @@ from mdstudio.utc import to_utc_string
 
 LOGLEVELS = ['debug', 'info', 'warn', 'error', 'critical']
 
+
 @six.add_metaclass(Singleton)
 class SessionLogObserver(object):
     log = Logger()
@@ -38,7 +39,6 @@ class SessionLogObserver(object):
 
         twisted.python.log.addObserver(self)
         self.log.info('Collecting logs on session {session}', session=session)
-
         self.flusher = task.LoopingCall(self.flush_logs)
 
         reactor.addSystemEventTrigger('before', 'shutdown', self.store_recovery)
@@ -86,11 +86,11 @@ class SessionLogObserver(object):
             except TimeoutError:
                 yield self.lock.release()
                 # The crossbar router is down, wait a few seconds to see if it is back up
-                yield sleep(3)
+                yield self.sleep(3)
             except (ApplicationError, TransportLost, CallException):
                 yield self.lock.release()
                 # The log or db component is probably not awake yet, wait a bit longer
-                yield sleep(1)
+                yield self.sleep(1)
             except Exception as e:
                 yield self.lock.release()
                 self.log.error('Unrecognized exception during logging {failure}', failure=e)
@@ -102,7 +102,11 @@ class SessionLogObserver(object):
             yield self.lock.release()
 
         if count < 10:
-            yield sleep(1)
+            yield self.sleep(1)
+
+    @chainable
+    def sleep(self, time):
+        yield sleep(time)
 
     @chainable
     def start_flushing(self, session):

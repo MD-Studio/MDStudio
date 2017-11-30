@@ -11,7 +11,8 @@ from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
 from pyfakefs.fake_filesystem_unittest import Patcher, TestCase
 
-from mdstudio.api.schema import ISchema, ResourceSchema, EndpointSchema, HttpsSchema, InlineSchema, ClaimSchema, validate_json_schema
+from mdstudio.api.schema import ISchema, ResourceSchema, EndpointSchema, HttpsSchema, InlineSchema, ClaimSchema, validate_json_schema, \
+    MDStudioClaimSchema
 
 
 class ISchemaTests(DBTestCase):
@@ -919,3 +920,16 @@ class ValidateTests(TestCase):
 
     def test_validate_json_schema_fail2(self):
         self.assertRaises(ValidationError, validate_json_schema, {'format': 'uri', 'type': 'string'}, 'example')
+
+
+class MDStudioClaimSchemaTests(TestCase):
+    def test_construction(self):
+        with Patcher() as patcher:
+            session = mock.MagicMock()
+            session.mdstudio_schemas_path = mock.MagicMock(return_value='schemas')
+
+            patcher.fs.CreateFile('schemas/claims.json', contents='{"test": "json"}')
+            schema = MDStudioClaimSchema(session)
+            self.assertIs(schema, MDStudioClaimSchema(session))
+            self.assertEqual(schema.to_schema(), {'test': 'json'})
+            MDStudioClaimSchema._instance = None
