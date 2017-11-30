@@ -2,15 +2,16 @@ import json
 
 import os
 from faker import Faker
+from jsonschema import ValidationError
 from mock import mock
 
 from mdstudio.api.exception import RegisterException
 from mdstudio.deferred.chainable import test_chainable
 
 from mdstudio.unittest.db import DBTestCase
-from pyfakefs.fake_filesystem_unittest import Patcher
+from pyfakefs.fake_filesystem_unittest import Patcher, TestCase
 
-from mdstudio.api.schema import ISchema, ResourceSchema, EndpointSchema, HttpsSchema, InlineSchema, ClaimSchema
+from mdstudio.api.schema import ISchema, ResourceSchema, EndpointSchema, HttpsSchema, InlineSchema, ClaimSchema, validate_json_schema
 
 
 class ISchemaTests(DBTestCase):
@@ -907,3 +908,14 @@ class ResourceSchemaTests(DBTestCase):
                 self.assertFalse((yield schema.flatten(session)))
                 self.assertEqual(schema.cached, {})
                 self.assertFalse((yield schema.flatten(session)))
+
+
+class ValidateTests(TestCase):
+    def test_validate_json_schema(self):
+        validate_json_schema({'format': 'uri', 'type': 'string'}, 'https://example.com')
+
+    def test_validate_json_schema_fail(self):
+        self.assertRaises(ValidationError, validate_json_schema, {'format': 'uri', 'type': 'string'}, 2)
+
+    def test_validate_json_schema_fail2(self):
+        self.assertRaises(ValidationError, validate_json_schema, {'format': 'uri', 'type': 'string'}, 'example')
