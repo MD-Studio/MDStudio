@@ -29,9 +29,7 @@ class MDWampApi(ComponentSession):
         self.component_config.static.vendor = 'mdgroup'
         self.component_config.static.component = 'md'
 
-    @wamp.register(u'mdgroup.md.endpoint.status', options=RegisterOptions(invoke=u'roundrobin'))
-
-    @wamp.register(u'liestudio.gromacs.liemd')
+    @wamp.register(u'mdgroup.md.endpoint.gromacs.liemd')
     def run_gromacs_liemd(
             self, session={}, protein_file=None, ligand_file=None,
             topology_file=None, **kwargs):

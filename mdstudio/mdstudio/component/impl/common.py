@@ -2,6 +2,9 @@ import inspect
 import json
 import os
 from collections import OrderedDict
+from copy import deepcopy
+
+import re
 import yaml
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp import PublishOptions, ApplicationError
@@ -211,6 +214,8 @@ class CommonSession(ApplicationSession):
     def on_join(self):
         registrations = yield self.register(self)
 
+        yield self._on_join()
+
         failures = 0
         for r in registrations:
             if isinstance(r, Failure):
@@ -223,8 +228,6 @@ class CommonSession(ApplicationSession):
 
         self.log.info("{class_name}: {procedures} procedures successfully registered",
                       procedures=len(registrations) - failures, class_name=self.class_name())
-
-        yield self._on_join()
 
     @chainable
     def onJoin(self, details):
