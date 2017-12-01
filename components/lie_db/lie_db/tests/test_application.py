@@ -1,4 +1,3 @@
-
 import os
 import pytz
 from faker import Faker
@@ -16,7 +15,6 @@ from mdstudio.unittest.db import DBTestCase
 
 
 class TestDBComponent(DBTestCase, APITestCase):
-
     fake = Faker()
 
     def setUp(self):
@@ -328,7 +326,7 @@ class TestDBComponent(DBTestCase, APITestCase):
     def test_count_fields_datetime(self):
 
         yield self.db.insert_many(self.collection, [{'test': 1, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()},
-                                              {'test': 2, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}])
+                                                    {'test': 2, 'date': self.fake.date_time(tzinfo=pytz.utc).isoformat()}])
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
             'limit': 1,

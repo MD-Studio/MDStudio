@@ -2,20 +2,17 @@ import json
 
 from faker import Faker
 from mock import mock, call
-
-from lie_schema.exception import SchemaException
-from lie_schema.schema_repository import SchemaRepository
-
-from lie_schema.application import SchemaComponent
 from twisted.internet import reactor
 
+from lie_schema.application import SchemaComponent
+from lie_schema.exception import SchemaException
+from lie_schema.schema_repository import SchemaRepository
 from mdstudio.deferred.chainable import chainable, test_chainable
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
 
 class TestWampService(DBTestCase, APITestCase):
-
     faker = Faker()
 
     def setUp(self):
@@ -36,7 +33,6 @@ class TestWampService(DBTestCase, APITestCase):
         self.assertIsInstance(self.service.endpoints, SchemaRepository)
         self.assertIsInstance(self.service.resources, SchemaRepository)
         self.assertIsInstance(self.service.claims, SchemaRepository)
-
 
     @mock.patch("mdstudio.component.impl.core.CoreComponentSession.on_run")
     @test_chainable
@@ -92,7 +88,7 @@ class TestWampService(DBTestCase, APITestCase):
 
             self.service.endpoints.upsert.assert_has_calls([
                 call(self.vendor, obj['component'], {'order': i}, self.claims),
-                call(self.vendor, obj['component'], {'order': i*2}, self.claims)
+                call(self.vendor, obj['component'], {'order': i * 2}, self.claims)
             ])
 
     @chainable
@@ -138,7 +134,7 @@ class TestWampService(DBTestCase, APITestCase):
 
             self.service.resources.upsert.assert_has_calls([
                 call(self.vendor, obj['component'], {'order': i}, self.claims),
-                call(self.vendor, obj['component'], {'order': i*2}, self.claims)
+                call(self.vendor, obj['component'], {'order': i * 2}, self.claims)
             ])
 
     @chainable
@@ -184,7 +180,7 @@ class TestWampService(DBTestCase, APITestCase):
 
             self.service.claims.upsert.assert_has_calls([
                 call(self.vendor, obj['component'], {'order': i}, self.claims),
-                call(self.vendor, obj['component'], {'order': i*2}, self.claims)
+                call(self.vendor, obj['component'], {'order': i * 2}, self.claims)
             ])
 
     @chainable
@@ -290,5 +286,8 @@ class TestWampService(DBTestCase, APITestCase):
                 yield self.assertApi(self.service, 'schema_get', obj, self.claims)
                 completed = True
             except SchemaException as e:
-                self.assertRegex(str(e), 'Schema name "{}" with type "{}", and version "{}" on "{}/{}" was not found'.format(name, 'claim', version, self.vendor, component))
+                self.assertRegex(str(e),
+                                 'Schema name "{}" with type "{}", and version "{}" on "{}/{}" was not found'.format(name, 'claim', version,
+                                                                                                                     self.vendor,
+                                                                                                                     component))
             self.assertFalse(completed)

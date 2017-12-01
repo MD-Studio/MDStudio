@@ -5,13 +5,10 @@ file: wamp_services.py
 
 WAMP service methods the module exposes.
 """
-import time
-from autobahn import wamp
-from autobahn.wamp import ApplicationError
 
 from mdstudio.api.api_result import APIResult
-from mdstudio.api.exception import CallException
 from mdstudio.api.endpoint import endpoint
+from mdstudio.api.exception import CallException
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
@@ -20,8 +17,6 @@ from mdstudio.logging.log_type import LogType
 
 
 class LogsRepository(object):
-
-
     class Logs(Model):
         date_time_fields = ['time']
 
@@ -51,6 +46,7 @@ class LoggerComponent(CoreComponentSession):
     """
     Logger management WAMP methods.
     """
+
     @chainable
     def on_run(self):
         yield self.call('mdstudio.auth.endpoint.ring0.set-status', {'status': True})
@@ -100,7 +96,7 @@ class LoggerComponent(CoreComponentSession):
         if connection_type == LogType.User:
             return ('username' in claims) == True
         elif connection_type == LogType.Group:
-            return ('groups' in claims) == True # @todo: Properly validate group permissions
+            return ('groups' in claims) == True  # @todo: Properly validate group permissions
         elif connection_type == LogType.GroupRole:
             raise NotImplemented()
 

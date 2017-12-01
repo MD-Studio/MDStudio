@@ -60,7 +60,7 @@ class SchemaComponent(CoreComponentSession):
             raise SchemaException('Schema type "{}" is not known'.format(schema_type))
 
         if not res:
-            error = 'Schema name "{}" with type "{}", and '\
+            error = 'Schema name "{}" with type "{}", and ' \
                     'version "{}" on "{}/{}" was not found'.format(schema_name, schema_type, version, vendor, component)
             raise SchemaException(error)
 

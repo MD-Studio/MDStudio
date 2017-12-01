@@ -1,3 +1,2 @@
-
 class SchemaException(Exception):
     pass

@@ -1,10 +1,7 @@
-import base64
-
-import hashlib
 from collections import OrderedDict
 
-import os
-from autobahn.wamp import PublishOptions
+import base64
+import hashlib
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -24,6 +21,7 @@ class DBComponent(CoreComponentSession):
     """
     Database management WAMP methods.
     """
+
     def pre_init(self):
 
         self.load_environment(OrderedDict([
@@ -38,8 +36,10 @@ class DBComponent(CoreComponentSession):
 
     def on_init(self):
 
-        assert self.component_config.settings['secret'], 'The database must have a secret set!\nPlease modify your configuration or set "MD_MONGO_SECRET"'
-        assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! Please make sure it is larger than it is now.'
+        assert self.component_config.settings['secret'], 'The database must have a secret set!\n' \
+                                                         'Please modify your configuration or set "MD_MONGO_SECRET"'
+        assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! ' \
+                                                                    'Please make sure it is larger than it is now.'
 
         self._set_secret()
 
@@ -363,7 +363,6 @@ class DBComponent(CoreComponentSession):
             raise NotImplemented()
 
         return False
-
 
     def _set_secret(self):
         secret = str.encode(self.component_config.settings['secret'])

@@ -9,7 +9,7 @@ from lie_schema.schema_repository import SchemaRepository
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
-from mdstudio.utc import to_utc_string, from_utc_string, now
+from mdstudio.utc import now
 
 
 class TestSchemaRepository(DBTestCase):
@@ -302,7 +302,8 @@ class TestSchemaRepository(DBTestCase):
                 ]
             })
 
-            self.assertRegex(str(e), "The new schema is not compatible with the old version that was already registered. Incompatible changes were")
+            self.assertRegex(str(e), "The new schema is not compatible with the old version that was "
+                                     "already registered. Incompatible changes were")
         self.assertFalse(completed)
 
     @test_chainable
@@ -316,7 +317,7 @@ class TestSchemaRepository(DBTestCase):
             'name': name,
             'version': version,
             'schema': {
-                    '$schema': 'http://json-schema.org/schema#'
+                '$schema': 'http://json-schema.org/schema#'
             }
         }, self.claims)
 
@@ -369,9 +370,9 @@ class TestSchemaRepository(DBTestCase):
                 ]
             })
 
-            self.assertRegex(str(e), "The new schema is not compatible with the old version that was already registered. Incompatible changes were")
+            self.assertRegex(str(e), "The new schema is not compatible with the old version "
+                                     "that was already registered. Incompatible changes were")
         self.assertFalse(completed)
-
 
     @test_chainable
     def test_upsert_new_incompatible3(self):
@@ -384,7 +385,7 @@ class TestSchemaRepository(DBTestCase):
             'name': name,
             'version': version,
             'schema': {
-                    '$schema': 'http://json-schema.org/schema#draft-4'
+                '$schema': 'http://json-schema.org/schema#draft-4'
             }
         }, self.claims)
 
@@ -438,7 +439,8 @@ class TestSchemaRepository(DBTestCase):
                 ]
             })
 
-            self.assertRegex(str(e), "The new schema is not compatible with the old version that was already registered. Incompatible changes were")
+            self.assertRegex(str(e), "The new schema is not compatible with the old version that was "
+                                     "already registered. Incompatible changes were")
         self.assertFalse(completed)
 
     @test_chainable
