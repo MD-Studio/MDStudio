@@ -20,7 +20,7 @@ class TestSchemaRepository(DBTestCase):
         self.service = SchemaComponent()
         self.type = self.fake.word()
         self.db = MongoClientWrapper("localhost", 27127).get_database('users~schemaTest')
-        self.rep = SchemaRepository(self.service, self.type, self.db)
+        self.rep = SchemaRepository(self.db, self.type)
         self.claims = {
             'username': self.fake.user_name(),
             'group': self.fake.user_name()
@@ -30,7 +30,7 @@ class TestSchemaRepository(DBTestCase):
             reactor.getThreadPool().start()
 
     def test_construction(self):
-        self.assertEqual(self.service, self.rep.session)
+        self.assertEqual(self.db, self.rep.wrapper)
         self.assertEqual(self.type, self.rep.type)
 
     @test_chainable
