@@ -9,11 +9,8 @@ node.
 TODO: Some of the axis methods don't work for directed graphs
 """
 
-from itertools import combinations
-
 from .graph import Graph
 from .graph_helpers import GraphException
-from .graph_algorithms import dijkstra_shortest_path
 from .graph_axis_methods import *
 
 
@@ -114,9 +111,9 @@ class GraphAxis(Graph):
         Return all leaf nodes in the (sub)graph
 
         Leaf nodes are identified as those nodes having one edge only.
-        This equals one adjacency node in a undirectional graph and no adjacency
-        nodes in a directed graph.
-        
+        This equals one adjacency node in a undirectional graph and
+        no adjacency nodes in a directed graph.
+
         :param include_root: include the root node if it is a leaf
         :type include_root:  bool
 
@@ -126,12 +123,12 @@ class GraphAxis(Graph):
                              graph object representing the selection
         :type return_nids:   bool
         """
-        
         if self.is_directed:
-            leaves = [node for node in self.nodes() if len(self.adjacency[node]) == 0]
+            leaves = [node for node in self.nodes()
+                      if len(self.adjacency[node]) == 0]
         else:
-            leaves = [node for node in self.nodes() if len(self.adjacency[node]) == 1]
-        
+            leaves = [node for node in self.nodes()
+                      if len(self.adjacency[node]) == 1]
         if not include_root and self.root in leaves:
             leaves.remove(self.root)
 
@@ -185,19 +182,40 @@ class GraphAxis(Graph):
         if return_nids:
             return np
         return self.getnodes(np)
+    
+    def all_parents(self, node=None, return_nids=False):
+        """
+        Get all parent nodes to the source node relative to the graph root
+    
+        :param node:         node to define parents of
+        :type node:          mixed
+        :param return_nids:  return parent nid instead of a new graph object
+                             representing the selection
+        :type return_nids:   bool
 
+        :return:             parent nodes
+        :rtype:              Graph object or list
+        """
+        
+        nid = node or self.nid
+        anp = node_all_parents(self, nid, self.root)
+        
+        if return_nids:
+            return anp
+        return self.getnodes(anp)
+        
     def siblings(self, node=None, return_nids=False):
         """
         Get the siblings of the source node
 
-        :param node: source node to start search from
-        :type node:  mixed
+        :param node:         source node to start search from
+        :type node:          mixed
         :param return_nids:  return a list of node ID's (nid) instead of a new
                              graph object representing the selection
         :type return_nids:   bool
 
-        :return:     sibling node nids
-        :rtype:      list
+        :return:             sibling nodes
+        :rtype:              Graph object or list
         """
 
         nid = node or self.nid

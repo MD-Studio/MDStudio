@@ -1,71 +1,27 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 
-SETTINGS = {
-    'amberhome': os.environ.get('AMBERHOME',None),
-    'amber_acpype': {
-        'charge_method': 'bcc',
-        'net_charge': 0,
-        'multiplicity': 1,
-        'atom_type': 'gaff',
-        'engine': 'tleap',
-        'outtop': 'all',
-        'max_time': 36000,
-        'chiral': False,
-        'sorted': False,
-        'direct': False,
-        'disambiguate': False,
-        'cnstop': False,
-        'gmx45': True,
-        'force': False
-    },
-    'amber_reduce': {
-        'flip': False,
-        'noflip': True,
-        'trim': False,
-        'nuclear': False,
-        'nooh': False,
-        'oh': True,
-        'his': False,
-        'noheth': False,
-        'rotnh3': False,
-        'norotnh3': True,
-        'rotexist': False,
-        'rotexoh': False,
-        'allalt': True,
-        'onlya': False,
-        'charges': False,
-        'norotmet': False,
-        'noadjust': False,
-        'nobuild': False,
-        'build': True,
-        'keep': False,
-        'maxaromdih': 10,
-        'nbonds': 3,
-        'model': 1,
-        'nterm': 1,
-        'density': 10,
-        'radius': 0,
-        'occcutoff': 0.01,
-        'h2oocccutoff': 0.66,
-        'h2obcutoff': 40,
-        'penalty': 1,
-        'hbregcutoff': 0.6,
-        'hbchargedcut': 0.8,
-        'badbumpcut': 0.4,
-        'metalbump': 0.865,
-        'nonmetalbump': 0.125,
-        'segidmap': None,
-        'xplor': False,
-        'oldpdb': False,
-        'bbmodel': False,
-        'nocon': False,
-        'limit': 600,
-        'showscore': False,
-        'fix': None,
-        'db': None,
-        'string': None,
-        'quiet': True
-    }
-}
+def _schema_to_data(schema, data=None, defdict=None):
+    
+    default_data = defdict or {}
+    
+    properties = schema.get('properties',{})
+    for key,value in properties.items():
+        if 'properties' in value:
+            default_data[key] = _schema_to_data(value)
+        elif 'default' in value:
+            default_data[key] = value.get('default')
+        else:
+            pass
+    
+    # Update with existing data
+    if data:
+        default_data.update(data)
+    
+    return default_data
+
+AMBER_SCHEMA = os.path.join(os.path.dirname(__file__), 'amber_schema.json')
+SETTINGS = _schema_to_data(json.load(open(AMBER_SCHEMA)))
+SETTINGS['amberhome'] = os.environ.get('AMBERHOME',None)

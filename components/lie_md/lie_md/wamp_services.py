@@ -6,42 +6,131 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import json
 import os
-import sys
-import random
+import tempfile
+import shutil
+import json
 
 from autobahn import wamp
-from autobahn.wamp.types import RegisterOptions
-from autobahn.twisted.util import sleep
-from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
-from autobahn.twisted.util import sleep
 
-from mdstudio.application_session import BaseApplicationSession
-from mdstudio.runner import main
-from mdstudio.token_application_session import TokenApplicationSession
+from lie_system import LieApplicationSession, WAMPTaskMetaData
+from lie_md import __rootpath__
+from lie_md.gromacs_topology_amber import correctItp
+from lie_md.gromacs_gromit import gromit_cmd
+from lie_md.settings import SETTINGS, GROMACS_LIE_SCHEMA
+
+gromacs_schema = json.load(open(GROMACS_LIE_SCHEMA))
 
 
-class MDWampApi(BaseApplicationSession):
-
+class MDWampApi(LieApplicationSession):
     """
     MD WAMP methods.
     """
-    jobid = 0
 
-    @wamp.register(u'liegroup.md.status', options=RegisterOptions(invoke=u'roundrobin'))
-    def md_status(self):
-        
-        return 'running job: {0}'.format(self.jobid)
+    require_config = ['system']
 
-    @wamp.register(u'liegroup.md.run', options=RegisterOptions(invoke=u'roundrobin'))
-    @inlineCallbacks
-    def md_run(self, structure):
+    @wamp.register(u'liestudio.gromacs.liemd')
+    def run_gromacs_liemd(
+            self, session={}, protein_file=None, ligand_file=None,
+            topology_file=None, **kwargs):
 
-        sl = random.randint(10, 200)
-        self.jobid = sl
-        self.log.info("Running md for structure. Simulate by sleep for {0} sec.".format(sl),
-                      lie_user='mvdijk', lie_session=338776455, lie_namespace='md')
-        yield sleep(sl)
-        self.log.info("Finished MD", lie_user='mvdijk', lie_session=338776455, lie_namespace='md')
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
 
-        returnValue({'result': structure})
+        # Load GROMACS configuration and update
+        gromacs_config = self.package_config.dict()
+
+        # Create workdir and save file
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        os.chdir(workdir)
+
+        # Store protein file if available
+        if protein_file:
+            protdsc = os.path.join(workdir, 'protein.pdb')
+            with open(protdsc, 'w') as inp:
+                inp.write(protein_file)
+
+        # Store ligand file if available
+        if ligand_file:
+            ligdsc = os.path.join(workdir, 'ligand.pdb')
+            try:
+                if os.path.isfile(ligand_file):
+                    shutil.copy(ligand_file, ligdsc)
+            except:
+                with open(ligdsc, 'w') as inp:
+                    inp.write(ligand_file)
+
+        # Save ligand topology files
+        if topology_file:
+            topdsc = os.path.join(workdir, 'ligtop.itp')
+            try:
+                if os.path.isfile(
+                        os.path.join(topology_file, 'input_GMX.itp')):
+                    shutil.copy(
+                        os.path.join(topology_file, 'input_GMX.itp'), topdsc)
+            except:        
+                with open(topdsc, 'w') as inp:
+                    inp.write(topology_file)
+
+        # Copy script files to the working directory
+        for script in ('getEnergies.py', 'gmx45md.sh'):
+            src = os.path.join(__rootpath__, 'scripts/{0}'.format(script))
+            dst = os.path.join(workdir, script)
+            shutil.copy(src, dst)
+
+        # Fix topology ligand
+        itpOut = 'ligand.itp'
+        results = correctItp(topdsc, itpOut, posre=True)
+
+        # Prepaire simulation
+        gromacs_config['charge'] = results['charge']
+        gmxRun = gromit_cmd(gromacs_config)
+
+        if protein_file:
+            gmxRun += '-f {0} '.format(os.path.basename(protdsc))
+
+        if ligand_file:
+            gmxRun += '-l {0},{1} '.format(
+                os.path.basename(ligdsc), os.path.basename(results['itp']))
+
+        # Prepaire post analysis (energy extraction)
+        GMXRC = 'mock_path_to_gmxrc'
+        eneRun = 'python getEnergies.py -gmxrc {0} -ene -o ligand.ene'.format(GMXRC)
+
+        # write executable
+        with open('run_md.sh', 'w') as outFile:
+            outFile.write("{0}\n".format(gmxRun))
+            outFile.write("{0}\n".format(eneRun))
+
+        session['status'] = 'completed'
+
+        return {'session': session, 'output': 'nothing'}
+
+
+def make(config):
+    """
+    Component factory
+
+    This component factory creates instances of the application component
+    to run.
+
+    The function will get called either during development using an
+    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
+    a Crossbar.io worker.
+    The LieApplicationSession class is initiated with an instance of the
+    ComponentConfig class by default but any class specific keyword arguments
+    can be consument as well to populate the class session_config and
+    package_config dictionaries.
+
+    :param config: Autobahn ComponentConfig object
+    """
+
+    if config:
+        return MDWampApi(config, package_config=SETTINGS)
+    else:
+        # if no config given, return a description of this WAMPlet ..
+        return {'label': 'LIEStudio Molecular Dynamics WAMPlet',
+                'description': 'WAMPlet proving LIEStudio molecular dynamics endpoints'}

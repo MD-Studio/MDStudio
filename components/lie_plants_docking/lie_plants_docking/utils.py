@@ -10,11 +10,31 @@ TODO: Should eventually make there way into the mdstudio module
 import os
 import subprocess
 import time
+import json
 
 from twisted.logger import Logger
 
 logging = Logger()
 
+
+def _schema_to_data(schema, data=None, defdict=None):
+    
+    default_data = defdict or {}
+    
+    properties = schema.get('properties',{})
+    
+    for key,value in properties.items():
+        if 'default' in value:
+            if 'properties' in value:
+                default_data[key] = _schema_to_data(value)
+            else:
+                default_data[key] = value.get('default')
+    
+    # Update with existing data
+    if data:
+        default_data.update(data)
+    
+    return default_data
 
 def prepaire_work_dir(path, user=None, create=False):
     """
@@ -76,7 +96,6 @@ def prepaire_work_dir(path, user=None, create=False):
 
     return dockdir
 
-
 def cmd_runner(cmd, workdir):
 
     # Get current directory
@@ -96,3 +115,6 @@ def cmd_runner(cmd, workdir):
     os.chdir(currdir)
 
     return output, errors
+
+PLANTS_DOCKING_SCHEMA = os.path.join(os.path.dirname(__file__), 'plants_docking_schema.json')
+settings = _schema_to_data(json.load(open(PLANTS_DOCKING_SCHEMA)))

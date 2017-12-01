@@ -213,3 +213,7 @@ components/*/data
 docker/.USERDONE
 /key.priv
 /key.pub
+
+# emacs
+*~
+venv

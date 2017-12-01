@@ -7,16 +7,20 @@ WAMP service methods the module exposes.
 """
 
 import os
-import sys
-import time
 import json
-import re
+import jsonschema
+import tempfile
+import shutil
 
-from   autobahn               import wamp
+from autobahn import wamp
 from mdstudio.application_session import BaseApplicationSession
-from   twisted.internet.defer import inlineCallbacks
 
-from   lie_amber              import *
+from lie_amber.settings import SETTINGS, AMBER_SCHEMA
+from lie_amber.ambertools import amber_acpype, amber_reduce
+from lie_system import LieApplicationSession, WAMPTaskMetaData
+
+amber_schema = json.load(open(AMBER_SCHEMA))
+
 
 class AmberWampApi(BaseApplicationSession):
     """
@@ -26,21 +30,63 @@ class AmberWampApi(BaseApplicationSession):
     require_config = ['system']
     
     @wamp.register(u'liestudio.amber.acpype')
-    def run_amber_acpype(self, mol, session=None, **kwargs):
+    def run_amber_acpype(self, structure=None, session=None, **kwargs):
+        
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
         
         # Load ACPYPE configuration and update
-        acpype_config = self.package_config.get('amber_acpype')
-        acpype_config.update(kwargs)
+        acpype_config = self.package_config.get('amber_acpype').dict()
+        
+        # Validate the configuration
+        jsonschema.validate(amber_schema, acpype_config)
+        
+        # Create workdir and save file
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        tmpfile = os.path.join(workdir,'input.mol2')
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        with open(tmpfile, 'w') as inp:
+            inp.write(structure)
         
         # Run ACPYPE
-        output = amber_acpype(mol, **acpype_config)
+        output = amber_acpype(tmpfile, workdir=workdir, **acpype_config)
         if not output:
-            session['status'] = 'FAILED'
+            session['status'] = 'failed'
         else:
-            session['status'] = 'DONE'
-            session['result'] = output
-            
-        return session
+            session['status'] = 'completed'
+        
+        return {'session':session, 'path':output}
+    
+    @wamp.register(u'liestudio.amber.reduce')
+    def run_amber_reduce(self, structure=None, session=None, **kwargs):
+        
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+        
+        # Load ACPYPE configuration and update
+        amber_reduce_config = self.package_config.get('amber_reduce').dict()
+        
+        # Validate the configuration
+        jsonschema.validate(amber_schema, amber_reduce_config)
+        
+        # Create workdir and save file
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        tmpfile = os.path.join(workdir,'input.mol2')
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        with open(tmpfile, 'w') as inp:
+            inp.write(structure)
+        
+        # Run ACPYPE
+        output = amber_reduce(tmpfile, **amber_reduce_config)
+        if not output:
+            session['status'] = 'failed'
+        else:
+            session['status'] = 'completed'
+        
+        return {'session':session, 'path':output}
+        
         
 def make(config):
     """

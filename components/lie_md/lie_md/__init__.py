@@ -19,6 +19,7 @@ __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 
-from .wamp_services import MDWampApi
+from .settings   import GROMACS_LIE_SCHEMA, SETTINGS
 
-wampapi = MDWampApi
+# Define module public API
+settings = SETTINGS

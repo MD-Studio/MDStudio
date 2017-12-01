@@ -36,8 +36,9 @@ setup(
     keywords='LIEStudio structures database',
     platforms=['Any'],
     packages=find_packages(),
+    package_data={'': ['*.json']},
     py_modules=[distribution_name],
-    install_requires=['twisted', 'autobahn', 'mdstudio'],
+    install_requires=['openbabel', 'biopython', 'jsonschema'],
     include_package_data=True,
     zip_safe=True,
     entry_points={

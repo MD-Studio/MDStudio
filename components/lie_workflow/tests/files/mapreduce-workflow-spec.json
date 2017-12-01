@@ -1,0 +1,197 @@
+{
+  "edge_attr": {}, 
+  "graph": {
+    "node_data_tag": "task_name", 
+    "description": "", 
+    "title": "MDstudio workflow", 
+    "create_time": 1501591760, 
+    "is_running": false, 
+    "is_directed": true, 
+    "edge_data_tag": "label", 
+    "is_masked": false, 
+    "root": 1, 
+    "auto_nid": true
+  }, 
+  "edges": {
+    "0": [
+      1, 
+      2
+    ], 
+    "1": [
+      9, 
+      10
+    ], 
+    "2": [
+      4, 
+      7
+    ], 
+    "3": [
+      5, 
+      6
+    ], 
+    "4": [
+      7, 
+      8
+    ], 
+    "5": [
+      6, 
+      9
+    ], 
+    "6": [
+      8, 
+      9
+    ], 
+    "7": [
+      4, 
+      5
+    ], 
+    "8": [
+      2, 
+      3
+    ], 
+    "9": [
+      3, 
+      4
+    ]
+  }, 
+  "time": 1501591760, 
+  "nodes": {
+    "1": {
+      "status": "ready", 
+      "task_type": "Start", 
+      "nid": 1, 
+      "retry_count": 0, 
+      "task_name": "start",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 1
+    }, 
+    "2": {
+      "status": "ready", 
+      "task_type": "Task", 
+      "nid": 2, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 2
+      }, 
+      "task_name": "task1",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 2
+    }, 
+    "3": {
+      "status": "ready", 
+      "task_type": "Task", 
+      "nid": 3, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 1
+      }, 
+      "task_name": "task2",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 3
+    }, 
+    "4": {
+      "status": "ready", 
+      "task_type": "Task", 
+      "nid": 4, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 3
+      }, 
+      "task_name": "task3",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 4
+    }, 
+    "5": {
+      "status": "ready", 
+      "task_type": "Task", 
+      "nid": 5, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 0
+      }, 
+      "task_name": "task4",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 5
+    }, 
+    "6": {
+      "status": "ready", 
+      "task_type": "Task", 
+      "nid": 6, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 1
+      }, 
+      "task_name": "task5",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 6
+    }, 
+    "7": {
+      "status": "ready", 
+      "task_type": "Task", 
+      "nid": 7, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 3
+      }, 
+      "task_name": "task6",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 7
+    }, 
+    "8": {
+      "status": "ready", 
+      "task_type": "Task",
+      "nid": 8, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 2
+      }, 
+      "task_name": "task7",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 8
+    }, 
+    "9": {
+      "status": "ready", 
+      "task_type": "Collect", 
+      "custom_func": "dummy_task_runners.reduce_function",
+      "nid": 9, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0
+      }, 
+      "task_name": "task8",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 9
+    }, 
+    "10": {
+      "status": "ready", 
+      "task_type": "Task", 
+      "nid": 10, 
+      "retry_count": 0, 
+      "input_data": {
+        "sleep": 0,
+        "add_number": 1
+      }, 
+      "task_name": "task9",
+      "breakpoint": false, 
+      "active": false, 
+      "_id": 10
+    }
+  }, 
+  "lie_graph_version": "0.1"
+}
