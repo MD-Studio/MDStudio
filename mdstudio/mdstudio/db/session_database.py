@@ -13,16 +13,9 @@ class SessionDatabaseWrapper(IDatabase):
 
     def __init__(self, session, connection_type=ConnectionType.User):
         # type: (CommonSession, ConnectionType) -> None
-        self.session = session
+        self.session = session  # type: CommonSession
 
-        self.claims = {
-            'connectionType': str(connection_type)
-        }
-
-        if connection_type == ConnectionType.Group:
-            self.claims['group'] = session.component_config.static.vendor
-        elif connection_type == ConnectionType.GroupRole:
-            raise NotImplemented()
+        self.connection_type = connection_type
 
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
@@ -268,4 +261,4 @@ class SessionDatabaseWrapper(IDatabase):
         return_value(Cursor(self, res, fields))
 
     def _call(self, uri, request):
-        return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request, claims=self.claims)
+        return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request, claims=self.session.call_context.get_db_claims(self.connection_type))

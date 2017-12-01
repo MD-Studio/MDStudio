@@ -2,8 +2,10 @@ from autobahn.wamp import auth, ApplicationError
 
 from mdstudio.api.call_exception import CallException
 from mdstudio.component.impl.common import CommonSession
+from mdstudio.db.connection import ConnectionType
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
@@ -54,6 +56,10 @@ class CoreComponentSession(CommonSession):
 
     def pre_init(self):
         self.log_type = LogType.Group
+        self.component_config.session['context'] = {
+            'group': 'mdstudio',
+            'role': self.component_config.static.component
+        }
 
     def on_connect(self):
         auth_methods = [u'ticket']
@@ -92,5 +98,9 @@ class CoreComponentSession(CommonSession):
 
         super(CoreComponentSession, self).load_settings()
 
+    @chainable
     def flush_logs(self, logs):
-        return self.call(u'mdstudio.logger.endpoint.log', {'logs': logs}, claims={'logType': str(LogType.Group), 'group': 'mdstudio'})
+        with self.group_context('mdstudio'):
+            result = yield self.call(u'mdstudio.logger.endpoint.log', {'logs': logs}, claims={'logType': str(LogType.Group)})
+
+        return_value(result)

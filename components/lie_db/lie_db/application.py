@@ -36,6 +36,8 @@ class DBComponent(CoreComponentSession):
 
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
 
+        super(DBComponent, self).pre_init()
+
     def on_init(self):
 
         assert self.component_config.settings['secret'], 'The database must have a secret set!\nPlease modify your configuration or set "MD_MONGO_SECRET"'
@@ -327,7 +329,7 @@ class DBComponent(CoreComponentSession):
 
             assert database_name.count('~') <= 1, 'Someone tried to spoof the key database!'
         elif connection_type == ConnectionType.GroupRole:
-            database_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
+            database_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['role'])
 
             assert database_name.count('~') <= 2, 'Someone tried to spoof the key database!'
         else:
@@ -358,12 +360,11 @@ class DBComponent(CoreComponentSession):
         if connection_type == ConnectionType.User:
             return ('username' in claims) == True
         elif connection_type == ConnectionType.Group:
-            raise NotImplemented()
+            return ('group' in claims) == True
         elif connection_type == ConnectionType.GroupRole:
-            raise NotImplemented()
+            return all(key in claims for key in ['group', 'role'])
 
         return False
-
 
     def _set_secret(self):
         secret = str.encode(self.component_config.settings['secret'])

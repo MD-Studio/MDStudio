@@ -9,7 +9,9 @@ class ActionRule(object):
         return any(a in self.actions for a in ('*', action))
 
 class PrefixRule(ActionRule):
-    def __init__(self, prefix, actions=['call']):
+    def __init__(self, prefix, actions=None):
+        if actions is None:
+            actions = ['call']
         self.prefix = prefix
         super(PrefixRule, self).__init__(actions)
 
@@ -17,15 +19,19 @@ class PrefixRule(ActionRule):
         return uri.startswith(self.prefix.format(uri=uri, **kw)) and super(PrefixRule, self).match(uri, action, **kw)
 
 class RegexRule(ActionRule):
-    def __init__(self, pattern, actions=['call']):
+    def __init__(self, pattern, actions=None):
+        if actions is None:
+            actions = ['call']
         self.pattern = pattern
-        self.actions = actions
+        super(RegexRule, self).__init__(actions)
 
     def match(self, uri, action, **kw):
         return super(RegexRule, self).match(uri, action, **kw) and re.match(self.pattern.format(uri=uri, **kw), uri)
 
 class ExactRule(ActionRule):
-    def __init__(self, uri, actions=['call']):
+    def __init__(self, uri, actions=None):
+        if actions is None:
+            actions = ['call']
         self.uri = uri
         super(ExactRule, self).__init__(actions)
 
@@ -37,21 +43,31 @@ class Authorizer(object):
         # Build ruleset for communication inside ring0
         self.ring0_rules = [
             PrefixRule('mdstudio.{role}.', ['*']),
-            PrefixRule('mdstudio.auth.endpoint.oauth.registerscopes.{role}'),
-            RegexRule('mdstudio\\.\\w+\\.endpoint\\.events\\.\\w+', ['subscribe']),
-            RegexRule('mdstudio\\.db\\.endpoint\\.\\w+'),
-            ExactRule('mdstudio.auth.endpoint.oauth.client.getusername'),
+            # PrefixRule('mdstudio.auth.endpoint.oauth.registerscopes'),
+            # RegexRule('mdstudio\\.\\w+\\.endpoint\\.events\\.\\w+', ['subscribe']),
+            # ExactRule('mdstudio.auth.endpoint.oauth.client.getusername'),
+            ExactRule('mdstudio.auth.endpoint.ring0.get-status'),
+            ExactRule('mdstudio.auth.endpoint.ring0.set-status')
+        ]
+
+        # Endpoints that are callable by anyone that is authenticated
+        self.authenticated_rules = [
+            RegexRule(r'mdstudio\.db\.endpoint\.\w+'),
             ExactRule('mdstudio.auth.endpoint.sign'),
             ExactRule('mdstudio.auth.endpoint.verify'),
             ExactRule('mdstudio.schema.endpoint.upload'),
             ExactRule('mdstudio.schema.endpoint.get'),
-            ExactRule('mdstudio.logger.endpoint.log'),
-            ExactRule('mdstudio.auth.endpoint.ring0.get-status'),
-            ExactRule('mdstudio.auth.endpoint.ring0.set-status')
+            ExactRule('mdstudio.logger.endpoint.log')
         ]
     
     def authorize_ring0(self, uri, action, role):
-        if any(rule.match(uri, action, role=role) for rule in self.ring0_rules):
+        if any(rule.match(uri, action, role=role) for rule in itertools.chain(self.ring0_rules, self.authenticated_rules)):
+            return {'allow': True, 'disclose': True}
+
+        return False
+    
+    def authorize_user(self, uri, action):
+        if any(rule.match(uri, action) for rule in self.authenticated_rules):
             return {'allow': True, 'disclose': True}
 
         return False

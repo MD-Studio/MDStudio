@@ -53,3 +53,10 @@ class ComponentSession(CommonSession):
             yield self.leave()
             
         yield super(ComponentSession, self).onJoin(details)
+
+    @chainable
+    def flush_logs(self, logs):
+        with self.default_context() as c:
+            result = yield self.call(u'mdstudio.logger.endpoint.log', {'logs': logs}, c.get_log_claims())
+
+        return_value(result)

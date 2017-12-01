@@ -60,6 +60,8 @@ class LoggerComponent(CoreComponentSession):
         self.logs = LogsRepository(self.db)
         self.component_waiters.append(self.ComponentWaiter(self, 'db'))
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
+        
+        super(LoggerComponent, self).pre_init()
 
     @register('mdstudio.logger.endpoint.log', 'log/log', {})
     @chainable
@@ -75,7 +77,8 @@ class LoggerComponent(CoreComponentSession):
         """
 
         try:
-            res = yield self.logs.logs(claims).insert_many(request['logs'])
+            with self.grouprole_context('mdstudio', 'logger'):
+                res = yield self.logs.logs(claims).insert_many(request['logs'])
         except CallException as e:
             return_value(APIResult(error='Database not online'))
         else:
@@ -96,12 +99,11 @@ class LoggerComponent(CoreComponentSession):
     def authorize_request(self, uri, claims):
         connection_type = LogType.from_string(claims['logType'])
 
-        # @todo: solve this using jsonschema
         if connection_type == LogType.User:
             return ('username' in claims) == True
         elif connection_type == LogType.Group:
-            return ('groups' in claims) == True # @todo: Properly validate group permissions
+            return ('group' in claims) == True
         elif connection_type == LogType.GroupRole:
-            raise NotImplemented()
+            return all(key in claims for key in ['group', 'role'])
 
         return False

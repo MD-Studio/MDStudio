@@ -77,7 +77,7 @@ class KeyRepository(object):
             request['group'] = claims['group']
         elif connection_type == ConnectionType.GroupRole:
             request['group'] = claims['group']
-            request['groupRole'] = claims['groupRole']
+            request['role'] = claims['role']
         else:
             raise NotImplemented('This distinction does not exist')
         return request
