@@ -1332,7 +1332,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         self.assertEqual((yield self.service.get_database({
             'connectionType': 'groupRole',
             'group': 'test-group',
-            'groupRole': 'test-group-role'
+            'role': 'test-group-role'
         }))._database_name, 'grouproles~test-group~test-group-role')
 
     @test_chainable
@@ -1343,7 +1343,7 @@ class TestDBComponent(DBTestCase, APITestCase):
             self.assertEqual((yield self.service.get_database({
                 'connectionType': 'groupRole',
                 'group': word,
-                'groupRole': role
+                'role': role
             }))._database_name, 'grouproles~{}~{}'.format(word, role))
 
     @test_chainable
@@ -1351,7 +1351,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.assertFailure(self.service.get_database({
             'connectionType': 'groupRoles',
             'group': 'test-group',
-            'groupRole': 'test-group-role'
+            'role': 'test-group-role'
         }), ValueError)
 
     def test_set_fields(self):

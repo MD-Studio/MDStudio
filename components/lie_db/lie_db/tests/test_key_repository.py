@@ -85,14 +85,14 @@ class TestKeyRepository(DBTestCase):
         claim = {
             'connectionType': 'groupRole',
             'group': 'test-group',
-            'groupRole': 'test-groupRole'
+            'role': 'test-groupRole'
         }
 
         yield self.db.insert_many('groupRole.keys', [
             {
                 'type': 'groupRole',
                 'group': 'test-group',
-                'groupRole': 'test-groupRole',
+                'role': 'test-groupRole',
                 'key': b'gAAAAABaHH9gLYfFcNwQ6A_wQNH9x94l4s239NG4pnwyf2-T3UQpkflMg_9bXIEeKSANDd3YWH1S5y_N4fA_Je8f43e5xAzwAvCE058x57lf7z9QI4ersiuQ8S08xjRv2kx8TUNzkWPP'
             }
         ])
@@ -144,12 +144,12 @@ class TestKeyRepository(DBTestCase):
         claim = {
             'connectionType': 'groupRole',
             'group': 'test-group',
-            'groupRole': 'test-groupRole'
+            'role': 'test-groupRole'
         }
         claim2 = {
             'connectionType': 'groupRole',
             'group': 'test-group2',
-            'groupRole': 'test-groupRole'
+            'role': 'test-groupRole'
         }
         self.assertEqual(self.rep.get_key(claim), self.rep.get_key(claim))
         self.assertEqual(self.rep.get_key(claim2), self.rep.get_key(claim2))
@@ -159,12 +159,12 @@ class TestKeyRepository(DBTestCase):
         claim = {
             'connectionType': 'groupRole',
             'group': 'test-group',
-            'groupRole': 'test-groupRole'
+            'role': 'test-groupRole'
         }
         claim2 = {
             'connectionType': 'groupRole',
             'group': 'test-group',
-            'groupRole': 'test-groupRole2'
+            'role': 'test-groupRole2'
         }
         self.assertEqual(self.rep.get_key(claim), self.rep.get_key(claim))
         self.assertEqual(self.rep.get_key(claim2), self.rep.get_key(claim2))

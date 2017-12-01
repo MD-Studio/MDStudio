@@ -51,7 +51,7 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
             db = yield self.service.get_database({
                 'connectionType': str(ConnectionType.GroupRole),
                 'group': group,
-                'groupRole': group_role
+                'role': group_role
             })
             self.service._client.get_database.assert_called_once_with('grouproles~{}~{}'.format(group, group_role))
             self.assertEqual(db, 'grouproles~{}~{}'.format(group, group_role))
