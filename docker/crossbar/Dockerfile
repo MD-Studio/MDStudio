@@ -1,0 +1,17 @@
+FROM python:3.6
+
+RUN pip install --upgrade pip pipenv
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+VOLUME /app
+WORKDIR /app
+
+STOPSIGNAL SIGTERM
+
+RUN echo "" >> ~/.bashrc && \
+    echo 'source ~/.bashrc_mdstudio' >> ~/.bashrc
+
+ADD .bashrc_mdstudio /root/.bashrc_mdstudio
+
+CMD ["bash", "/docker-entrypoint.sh"]

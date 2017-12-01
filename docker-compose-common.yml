@@ -1,0 +1,38 @@
+version: '2'
+services:
+    
+    base-py2:
+        build:
+            context: ./docker/component
+            dockerfile: Dockerfile.py2
+        volumes:
+            # mount server certificate for CA
+            - ./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem
+            # mount component base and component
+            - ./mdstudio:/app/mdstudio
+            # mount python cache
+            - /usr/local/lib/python2.7
+            - /.cache
+        environment:
+            - CROSSBAR_HOST=crossbar
+        env_file:
+        - .env
+        - .env-docker
+
+    base-py3:
+        build:
+            context: docker/component
+            dockerfile: Dockerfile.py3
+        volumes:
+            # mount server certificate for CA
+            - ./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem
+            # mount component base and component
+            - ./mdstudio:/app/mdstudio
+            # mount python cache
+            - /usr/local/lib/python3.5
+            - /.cache
+        environment:
+            - CROSSBAR_HOST=crossbar
+        env_file:
+        - .env
+        - .env-docker

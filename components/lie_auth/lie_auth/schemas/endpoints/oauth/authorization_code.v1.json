@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "OAuthAuthorizationCode",
+  "type": "object",
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "pattern": "[0-9a-fA-F]+",
+      "description": "MongoDB object ID for the user",
+      "minLength": 12,
+      "maxLength": 12
+    },
+    "scope": {
+      "type": "string"
+    },
+    "authorizationCode": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "expirationTime": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": false
+}

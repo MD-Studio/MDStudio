@@ -1,41 +1,69 @@
 version: '2'
 services:
 
-
-    applications:
-        image: tianon/true
-        volumes:
-            - .:/app
-            # cache directories for faster building times
-            #- /app/app/node_modules
-            - /root/.local/share/virtualenvs
-            - /root/.cache/pip
-            - /root/.npm
-
-
-    workspace:
+    crossbar:
+        # image: crossbario/crossbar
         build:
-            context: ./docker
-            dockerfile: Dockerfile
-            args:
-                - INSTALL_WORKSPACE_SSH=true
-        volumes_from:
-            - applications
+            context: ./docker/crossbar
         links:
             - mongo
         ports:
-            # use non standard ssh port
-            - "65432:22"
-            # show on normal http port
-            - "80:8080"
-            # needed for support on development
-            - "8080:8080"
-            # gulp serve
-            - "5000:5000"
-            - "3001:3001"
-            # sphinx autobuild
-            - "8000:8000"
-        tty: true
+            - 8080:8080
+        volumes:
+            - .:/app
+            - crossbar_pipcache:/root/.cache
+            - crossbar_pip:/usr/local/lib/python3.5/site-packages
+            - crossbar_pipenv:/root/.local/share/virtualenvs
+        environment:
+            - MD_GLOBAL_LOG=1
+        env_file:
+        - .env
+        - .env-docker
+
+    md:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py2
+        volumes:
+            # mount component
+            - ./components/lie_md:/app/components/lie_md
+            # mount config directory
+            - ./data/lie_md:/app/data/lie_md
+        environment:
+            - COMPONENT=lie_md
+        links:
+            - crossbar
+    
+    atb:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py3
+        volumes:
+            # mount component
+            - ./components/lie_atb:/app/components/lie_atb
+            # mount config directory
+            - ./data/lie_atb:/app/data/lie_atb
+        environment:
+            - COMPONENT=lie_atb
+        links:
+            - crossbar
+    
+    cli:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py3
+        volumes:
+            # mount component
+            - ./components/lie_cli:/app/components/lie_cli
+            # mount config directory
+            - ./data/lie_cli:/app/data/lie_cli
+            # mount cache volumes
+            - cli_pipcache:/root/.cache
+            - cli_pip:/usr/local/lib/python3.5/site-packages
+        environment:
+            - COMPONENT=lie_cli
+        links:
+            - crossbar
 
     mongo:
         image: mongo:latest
@@ -45,6 +73,17 @@ services:
         volumes:
             - mongo:/data/db
 
+
 volumes:
     mongo:
+        driver: "local"
+    crossbar_pipcache:
+        driver: "local"
+    crossbar_pip:
+        driver: "local"
+    crossbar_pipenv:
+        driver: "local"
+    cli_pipcache:
+        driver: "local"
+    cli_pip:
         driver: "local"
