@@ -23,12 +23,14 @@
 
 from setuptools import setup, find_packages
 
+
 def pipenv_requires():
     from pipenv.project import Project
     from pipenv.utils import convert_deps_to_pip
 
     pfile = Project(chdir=True).parsed_pipfile
-    return convert_deps_to_pip(pfile['packages'], r = False)
+    return convert_deps_to_pip(pfile['packages'], r=False)
+
 
 distribution_name = 'lie_schema'
 
@@ -37,8 +39,8 @@ setup(
     version='1.0.0',
     license='Apache Software License 2.0',
     description='PyMongo database drivers for the MDStudio application',
-    author='Marc van Dijk - VU University - Amsterdam,'\
-           'Paul Visscher - Zefiros Software (www.zefiros.eu),'\
+    author='Marc van Dijk - VU University - Amsterdam,' \
+           'Paul Visscher - Zefiros Software (www.zefiros.eu),' \
            'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
     author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
     url='https://github.com/MD-Studio/MDStudio',

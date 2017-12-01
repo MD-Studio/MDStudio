@@ -44,9 +44,9 @@ class TestCacheDict(TestCase):
         sleep(1)
 
         with self.assertRaises(KeyError):
-            x = self.d['test']
+            _ = self.d['test']
         with self.assertRaises(KeyError):
-            x = self.d['test2']
+            _ = self.d['test2']
 
     def test_expiry_reset(self):
         self.d = CacheDict(2)

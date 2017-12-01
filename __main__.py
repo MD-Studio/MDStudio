@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     try:
         with open('crossbar_config.yml', 'r') as cc:
-            config = yaml.load(cc)
+            config = yaml.safe_load(cc)
 
         ring0_config = [{
             "type": "class",

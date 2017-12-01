@@ -9,7 +9,6 @@ from mdstudio.unittest.db import DBTestCase
 
 
 class TesDBComponentAuthorize(DBTestCase, APITestCase):
-
     fake = Faker()
 
     def setUp(self):
@@ -61,6 +60,6 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
     def test_get_database_other(self):
 
         db = self.service.get_database({
-            'connectionType':  self.fake.slug()
+            'connectionType': self.fake.slug()
         })
         yield self.assertFailure(db, ValueError)

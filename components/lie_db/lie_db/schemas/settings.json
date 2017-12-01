@@ -18,8 +18,14 @@
           "minlength": 20
         }
       },
-      "required": ["host", "port", "secret"]
+      "required": [
+        "host",
+        "port",
+        "secret"
+      ]
     }
   },
-  "required": ["settings"]
+  "required": [
+    "settings"
+  ]
 }

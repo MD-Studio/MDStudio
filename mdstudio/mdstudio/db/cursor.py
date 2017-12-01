@@ -12,12 +12,13 @@ from mdstudio.deferred.return_value import return_value
 
 query = query
 
+
 class CursorRefreshingError(Exception):
     def __init__(self):
         self.message = "Yield or wait for the callback of the previous result."
 
-class Cursor:
 
+class Cursor:
     # type: str
     _id = None
 

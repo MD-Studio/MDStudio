@@ -5,12 +5,16 @@ from autobahn.wamp import auth
 from mdstudio.api.scram import SCRAM
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.db.connection import ConnectionType
+from mdstudio.db.database import IDatabase
 from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
 class ComponentSession(CommonSession):
+    # type: IDatabase
+    db = None
+
     def on_connect(self):
         auth_methods = [u'wampcra']
         authid, self.client_nonce = SCRAM.authid(self.component_config.session.username)

@@ -37,6 +37,7 @@ setup(
     keywords='LIEStudio CLI',
     platforms=['Any'],
     packages=find_packages(),
+    package_data={'': ['*.json']},
     py_modules=[distribution_name],
     install_requires=['mdstudio'],
     test_suite="tests.module_test_suite",

@@ -6,20 +6,22 @@ import copy
 import hashlib
 import pytz
 import random
+import six
 from bson import ObjectId
 from pymongo import ReturnDocument
 from pymongo.cursor import Cursor
 
+from mdstudio.compat import unicode
 from mdstudio.db.cache_dict import CacheDict
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, SortOperators, \
     ProjectionOperators, AggregationOperator
 from mdstudio.db.exception import DatabaseException
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
-from mdstudio.compat import unicode
 from mdstudio.logging.logger import Logger
 
 
+# noinspection PyShadowingBuiltins
 class MongoDatabaseWrapper(IDatabase):
     _database_name = None
     _db = None
@@ -369,18 +371,18 @@ class MongoDatabaseWrapper(IDatabase):
         else:
             _prepare_obj(doc)
 
-        def _recurse(doc):
-            if isinstance(doc, dict):
-                iter = doc.items()
-            elif isinstance(doc, list):
-                iter = enumerate(doc)
+        def _recurse(document):
+            if isinstance(document, dict):
+                iter = document.items()
+            elif isinstance(document, list):
+                iter = enumerate(document)
             else:
                 return
 
             for key, value in iter:
 
                 if isinstance(value, date) and not isinstance(value, datetime):
-                    doc[key] = datetime(doc[key].year, doc[key].month, doc[key].day, tzinfo=pytz.utc)
+                    document[key] = datetime(document[key].year, document[key].month, document[key].day, tzinfo=pytz.utc)
                 if isinstance(value, datetime):
                     pass
                 else:
@@ -393,10 +395,10 @@ class MongoDatabaseWrapper(IDatabase):
         if not sort:
             return sort
 
-        def _convert_mode(mode):
-            if isinstance(mode, (str, unicode)):
-                mode = SortMode.Desc if mode == "desc" else SortMode.Asc
-            return int(mode)
+        def _convert_mode(mode_str):
+            if isinstance(mode_str, six.text_type):
+                mode_str = SortMode.Desc if mode_str == "desc" else SortMode.Asc
+            return int(mode_str)
 
         sort = copy.deepcopy(sort)
         if isinstance(sort, list):
@@ -413,6 +415,7 @@ class MongoDatabaseWrapper(IDatabase):
 
         # We have to deal with mock cursors and command cursors
         try:
+            # noinspection PyProtectedMember
             size = cursor._refresh()
 
             for _ in range(size):

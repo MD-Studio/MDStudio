@@ -15,9 +15,9 @@ def make_deferred(method):
     :param method:
     :return:
     """
+
     def wrapper(*args, **kwargs):
         assert currentThread().getName() == 'MainThread'
         return Chainable(deferToThread(method, *args, **kwargs))
 
     return wrapper
-

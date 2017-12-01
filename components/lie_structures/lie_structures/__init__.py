@@ -3,7 +3,7 @@
 """
 package:  lie_structures
 
-LIEStudio structure database module
+LIEStudio small molecule cheminformatics functions
 """
 
 import os
@@ -18,3 +18,6 @@ __licence__ = 'Apache Software License 2.0'
 __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
+
+from .settings import STRUCTURES_SCHEMA as structures_schema
+from .settings import settings

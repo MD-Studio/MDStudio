@@ -11,6 +11,7 @@ from oauthlib.common import generate_client_id as generate_secret
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from lie_auth.user_repository import UserRepository, PermissionType
+from mdstudio.api.endpoint import endpoint
 from mdstudio.api.scram import SCRAM
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.deferred.chainable import chainable
@@ -21,7 +22,6 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from mdstudio.api.register import register
 from mdstudio.utc import now
 from mdstudio.db.model import Model
 from .oauth.request_validator import OAuthRequestValidator
@@ -117,11 +117,11 @@ class AuthComponent(CoreComponentSession):
 
         return {'claims': claims}
 
-    @register('mdstudio.auth.endpoint.ring0.set-status', {}, {})
+    @endpoint('mdstudio.auth.endpoint.ring0.set-status', {}, {})
     def ring0_set_status(self, request, claims=None):
         self.status_list[claims['username']] = request['status']
 
-    @register('mdstudio.auth.endpoint.ring0.get-status', {}, {})
+    @endpoint('mdstudio.auth.endpoint.ring0.get-status', {}, {})
     def ring0_get_status(self, request, claims=None):
         return self.status_list.get(request['component'], False)
 
@@ -250,7 +250,6 @@ class AuthComponent(CoreComponentSession):
         # assert (yield self.user_repository.add_permission_rule(group.name, group_role5.name, 'componentPermissions', component.name, PermissionType.FullAccess, full_namespace=True))
 
     # @todo: write a better replacement
-    # @register(u'mdstudio.auth.endpoint.oauth.registerscopes', {}, {}, match='prefix')
     # @inlineCallbacks
     # def register_scopes(self, request, **kwargs):
     #     for scope in request['scopes']:
@@ -364,7 +363,7 @@ class AuthComponent(CoreComponentSession):
 
         return_value(authorization)
 
-    @register(u'mdstudio.auth.endpoint.oauth.client.create', 'oauth/client/client-request', 'oauth/client/client-response')
+    @endpoint(u'mdstudio.auth.endpoint.oauth.client.create', 'oauth/client/client-request', 'oauth/client/client-response')
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)
@@ -382,7 +381,7 @@ class AuthComponent(CoreComponentSession):
             'secret': clientInfo['secret']
         })
 
-    @register(u'mdstudio.auth.endpoint.oauth.client.getusername', {}, {})
+    @endpoint(u'mdstudio.auth.endpoint.oauth.client.getusername', {}, {})
     @inlineCallbacks
     def get_oauth_client_username(self, request):
         client = yield self._get_client(request['clientId'])

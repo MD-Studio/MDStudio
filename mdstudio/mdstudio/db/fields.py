@@ -5,13 +5,13 @@ from typing import List, Callable, Optional, Union, Iterable, Mapping
 import base64
 import hashlib
 import pytz
+import six
 from copy import deepcopy
 
 import six
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
-from mdstudio.compat import unicode
 from mdstudio.db.exception import DatabaseException
 from mdstudio.utc import from_utc_string, from_date_string
 
@@ -219,13 +219,12 @@ class Fields(object):
                     subdoc[key] = parser(self, subdoc[key], subdoc, key, **kwargs)
 
     def parse_date_time(self, val, sub, key, *args, **kwargs):
-        if isinstance(val, (str, unicode)):
+        if isinstance(val, six.text_type):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
             if not val.tzinfo:
-                raise DatabaseException(
-                    "No timezone information found. All datetime info should be stored in UTC format, "
-                    "please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
+                raise DatabaseException("No timezone information found. All datetime info should be stored in UTC format, "
+                                        "please use 'mdstudio.utc.now()' and 'mdstudio.utc.to_utc_string()'")
             if val.tzinfo != pytz.utc:
                 val = val.astimezone(pytz.utc)
             return val
@@ -233,7 +232,7 @@ class Fields(object):
             raise DatabaseException("Failed to parse datetime field '{}' with key '{}'".format(val, key))
 
     def parse_date(self, val, sub, key, *args, **kwargs):
-        if isinstance(val, (str, unicode)):
+        if isinstance(val, six.text_type):
             return from_date_string(val)
         elif isinstance(val, datetime.datetime):
             return val.date()
@@ -243,7 +242,7 @@ class Fields(object):
             raise DatabaseException("Failed to parse date field '{}' with key {}".format(val, key))
 
     def parse_encrypted(self, val, *args, **kwargs):
-        if isinstance(val, (str, unicode)):
+        if isinstance(val, six.text_type):
             val = val.encode()
         try:
             if isinstance(val, bytes):
@@ -256,7 +255,7 @@ class Fields(object):
             return val
 
     def parse_hashed(self, val, sub, key, *args, **kwargs):
-        if isinstance(val, (str, unicode)):
+        if isinstance(val, six.text_type):
             sval = val.encode()
         else:
             sval = deepcopy(val)
@@ -276,7 +275,7 @@ class Fields(object):
             return val
 
     def decrypt(self, val, sub, key, *args, **kwargs):
-        if isinstance(val, (str, unicode)):
+        if isinstance(val, six.text_type):
             val = val.encode()
         if isinstance(val, bytes):
             prefix = '{}:'.format(self._encrypted_prefix)
@@ -284,9 +283,8 @@ class Fields(object):
                 if prefix in val.decode('utf-8'):
                     val = kwargs['encryptor'].decrypt(val.replace(prefix.encode(), b'', 1))
                 else:
-                    raise DatabaseException(
-                        'Trying to decrypt an unencrypted field with key "{key}", please check your insert statements!'.format(
-                            key=key))
+                    raise DatabaseException('Trying to decrypt an unencrypted field with key "{key}", '
+                                            'please check your insert statements!'.format(key=key))
             except Exception as ex:
                 raise DatabaseException('Failed to decrypt field {key}:\n{exp_str}'.format(key=key, exp_str=str(ex)))
             else:

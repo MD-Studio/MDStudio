@@ -9,6 +9,7 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
+# noinspection PyShadowingBuiltins
 class SessionDatabaseWrapper(IDatabase):
 
     def __init__(self, session, connection_type=ConnectionType.User):

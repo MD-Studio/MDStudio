@@ -1,6 +1,5 @@
-from unittest import TestCase
-
 from datetime import datetime, timedelta
+from unittest import TestCase
 
 import pytz
 from faker import Faker
@@ -9,7 +8,6 @@ from mdstudio.utc import now, today, from_utc_string, to_utc_string, to_date_str
 
 
 class TestUTC(TestCase):
-
     faker = Faker()
 
     def test_now(self):

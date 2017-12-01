@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "LogRequest",
+  "type": "object",
+  "properties": {
+    "logs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "debug",
+              "info",
+              "warn",
+              "error",
+              "critical"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "time": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

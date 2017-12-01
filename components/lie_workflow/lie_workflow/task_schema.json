@@ -1,0 +1,67 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://liestudio/schemas/workflowtask.json",
+    "title": "Task",
+    "description": "Workflow Task schema",
+    "type": "object",
+    "properties": {
+        "active": {
+            "description": "Is the current task active or not",
+            "type": "boolean",
+            "default": false
+        },
+        "breakpoint": {
+            "description": "Add a breakpoint for the task. The workflow will only continue if explicitly instructed",
+            "type": "boolean",
+            "default": false
+        },
+        "custom_func": {
+            "type": "string",
+            "description": "Custom Python function to run in a (local) task runner",
+            "pattern": "^\\w+(\\.\\w+)*$"
+        },
+        "data_mapping": {
+            "description": "Keyword mapping between output/input data attribute names",
+            "type": "object"
+        },
+        "input_data": {
+            "description": "All required input and optional configuration to the service as key/value pairs",
+            "type": "object",
+            "default": {}
+        },
+        "output_data": {
+            "description": "All output returned by the task",
+            "type": "object"
+        },
+        "retry_count": {
+            "description": "Number of times the task should be resubmitted when it failed",
+            "type": "integer",
+            "default": 0
+        },
+        "session": {
+            "description": "Session specific data",
+            "type": "object"
+        },
+        "status": {
+            "description": "The status of the current task",
+            "type": "string",
+            "default": "ready",
+            "enum": ["ready","submitted","running","failed","aborted","completed","disabled"]
+        },
+        "store_output": {
+            "description": "Store the output of the task to disk",
+            "type": "boolean",
+            "default": false
+        },
+        "task_id": {
+            "type": "string",
+            "description": "Unique ID used to identify the task in the system"
+        },
+        "uri": {
+            "type": "string",
+            "description": "LIEStudio microservice method uri",
+            "pattern": "^\\w+(\\.\\w+)*$"
+        }
+    },
+    "required": ["active", "breakpoint", "retry_count", "status"]
+}

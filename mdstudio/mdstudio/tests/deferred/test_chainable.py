@@ -1,7 +1,6 @@
-import twisted
+from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from twisted.trial.unittest import TestCase
-from twisted.internet import reactor
 
 from mdstudio.deferred.chainable import Chainable, chainable, test_chainable
 from mdstudio.deferred.make_deferred import make_deferred
@@ -55,6 +54,7 @@ class ChainableTestClass:
         return_value(res)
 
 
+# noinspection PyUnresolvedReferences
 class TestChainable(TestCase):
     def setUp(self):
         if not reactor.getThreadPool().started:

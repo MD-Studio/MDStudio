@@ -16,7 +16,6 @@ from mdstudio.deferred.chainable import chainable
 
 
 class SchemaRepository(object):
-
     class Schemas(Model):
         """
         Schema:
@@ -89,9 +88,8 @@ class SchemaRepository(object):
         try:
             Draft4Validator.check_schema(schema['schema'])
         except SchemaError as e:
-            raise SchemaException('Schema does not conform to jsonschema draft 4, '\
-                'see http://json-schema.org/ for more info:\n{}\n\n{}'.format(pformat(schema['schema']), e.message))
-
+            raise SchemaException('Schema does not conform to jsonschema draft 4, ' \
+                                  'see http://json-schema.org/ for more info:\n{}\n\n{}'.format(pformat(schema['schema']), e.message))
 
         schema_str = self.schema_to_string(schema['schema'])
         hash = self.hash_schema(schema_str)

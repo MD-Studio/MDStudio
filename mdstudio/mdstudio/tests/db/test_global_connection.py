@@ -13,10 +13,8 @@ class GlobalConnectionTest(TestCase):
         self.assertEqual(connection._session, {'test': {'testobject'}})
         self.assertIs(connection, GlobalConnection())
 
-
     def test_get_wrapper(self):
         connection = GlobalConnection({'test': {'testobject'}})
         result = connection.get_wrapper(ConnectionType.User)
         self.assertIsInstance(result, SessionDatabaseWrapper)
         self.assertEqual(result.session, {'test': {'testobject'}})
-

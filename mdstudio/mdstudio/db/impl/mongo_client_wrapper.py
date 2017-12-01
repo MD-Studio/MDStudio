@@ -6,7 +6,6 @@ from mdstudio.logging.logger import Logger
 
 
 class MongoClientWrapper(object):
-
     logger = Logger()
 
     def __init__(self, host, port):

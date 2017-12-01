@@ -196,8 +196,8 @@ class GraphDict(colabc.MutableMapping, dict):
     TODO: should the GraphDict comparison methods return a new GraphDict
           object with the intersection, difference, symmetric-difference
           or union of the two graphs instead of the keys and leave the
-          respective key,value or item based comparison methods upto the
-          KeyView, ValueView and ItemView respectivly?
+          respective key,value or item based comparison methods up to the
+          KeyView, ValueView and ItemView respectively?
     """
 
     __slots__ = ('_storage', '_view')
@@ -352,7 +352,8 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Implement class __len__
 
-        Returns the number of items in the _storage or the selective view on it.
+        Returns the number of items in the _storage or the selective
+        view on it.
         """
 
         if self.is_view:
@@ -402,8 +403,10 @@ class GraphDict(colabc.MutableMapping, dict):
 
         Returns a string representation of the object meta-data
         """
+        msg = '<{0} object {1}: {2} items, is_view: {3}>'
 
-        return '<{0} object {1}: {2} items, is_view: {3}>'.format(self.__class__.__name__, id(self), len(self), self.is_view)
+        return msg.format(
+            self.__class__.__name__, id(self), len(self), self.is_view)
 
     def __setitem__(self, key, value):
         """
@@ -465,7 +468,8 @@ class GraphDict(colabc.MutableMapping, dict):
 
         return_dict = self._storage
         if self.is_view and not return_full:
-            return_dict = dict([(k, v) for k, v in return_dict.items() if k in self._view])
+            return_dict = {
+                k: v for k, v in return_dict.items() if k in self._view}
 
         return return_dict
 
@@ -551,7 +555,7 @@ class GraphDict(colabc.MutableMapping, dict):
         (propper = True)
 
         :param propper: ensure that both key lists are not the same.
-        :type propper:  bool, True by default
+        :type propper:  :py:bool
         """
 
         self_keys = set(self.keys())
@@ -567,7 +571,7 @@ class GraphDict(colabc.MutableMapping, dict):
         (propper = True)
 
         :param propper: ensure that both key lists are not the same.
-        :type propper:  bool, True by default
+        :type propper:  :py:bool
         """
 
         self_keys = set(self.keys())
@@ -579,8 +583,8 @@ class GraphDict(colabc.MutableMapping, dict):
 
     def items(self):
         """
-        Implement Python 3 dictionary like 'items' method that returns a DictView
-        class.
+        Implement Python 3 dictionary like 'items' method that returns a
+        DictView class.
 
         :return: dictionary items as tuple of key/value pairs
         :rtype:  DictView instance
@@ -662,7 +666,7 @@ class GraphDict(colabc.MutableMapping, dict):
         Update key/value pairs in also updating the view if needed
 
         :param other: other key/value pairs
-        :type other:  :py:class:dict
+        :type other:  :py:dict
         """
 
         self._storage.update(other)

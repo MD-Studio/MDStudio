@@ -20,9 +20,10 @@ except ImportError:
 DocumentType = Dict
 AggregationOperator = Dict
 ProjectionOperators = Dict
-SortOperators = Optional[Union[List[Tuple[str, SortMode]],Tuple[str, SortMode]]]
+SortOperators = Optional[Union[List[Tuple[str, SortMode]], Tuple[str, SortMode]]]
 
 
+# noinspection PyShadowingBuiltins
 @six.add_metaclass(abc.ABCMeta)
 class IDatabase(object):
 

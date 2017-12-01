@@ -1,4 +1,3 @@
-from cryptography.fernet import Fernet
 from faker import Faker
 from twisted.internet import reactor
 
@@ -10,12 +9,11 @@ from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
 
 
+# noinspection PyCompatibility
 class TestKeyRepository(DBTestCase):
-
     fake = Faker()
 
     def setUp(self):
-
         self.service = DBComponent()
         self.service.component_config.settings['secret'] = "secret password"
         self.service._set_secret()
@@ -40,10 +38,12 @@ class TestKeyRepository(DBTestCase):
         }
 
         key = self.rep.get_key(claim)
-        self.assertEqual(key,  self.rep.get_key(claim))
+        self.assertEqual(key, self.rep.get_key(claim))
 
     def test_decrypt_key_fixed(self):
-        self.assertEqual(self.rep._decrypt_key(b'gAAAAABaHIEz5dSxp5hCh4i9-hCTjjmCnGJXlknw1Wb4BMzjOejud0fXoP55tOO1Lay6bLOq6s-NfudK7lJSrH7KccKzgX0EQQ=='), b'test')
+        self.assertEqual(
+            self.rep._decrypt_key(b'gAAAAABaHIEz5dSxp5hCh4i9-hCTjjmCnGJXlknw1Wb4BMzjOejud0fXoP55tOO1Lay6bLOq6s-NfudK7lJSrH7KccKzgX0EQQ=='),
+            b'test')
 
     @test_chainable
     def test_get_key_fixed(self):
@@ -60,7 +60,7 @@ class TestKeyRepository(DBTestCase):
             }
         ])
         key = self.rep.get_key(claim)
-        self.assertEqual(key,  b'9EA6E072aFKxdZ1GkCR_pYc0M5ELouDs9d1fm2bYoMw=')
+        self.assertEqual(key, b'9EA6E072aFKxdZ1GkCR_pYc0M5ELouDs9d1fm2bYoMw=')
 
     @test_chainable
     def test_get_key_fixed2(self):
@@ -78,7 +78,7 @@ class TestKeyRepository(DBTestCase):
         ])
 
         key = self.rep.get_key(claim)
-        self.assertEqual(key,  b'-cx1mKYdvY604rsE41iEgVqtOzOaaULGV9ANTqUjxpE=')
+        self.assertEqual(key, b'-cx1mKYdvY604rsE41iEgVqtOzOaaULGV9ANTqUjxpE=')
 
     @test_chainable
     def test_get_key_fixed3(self):
@@ -98,7 +98,7 @@ class TestKeyRepository(DBTestCase):
         ])
 
         key = self.rep.get_key(claim)
-        self.assertEqual(key,  b'QGpvJnz-skkMHtlpB5eR2-7LLQFqhlG89sMjuF1oRbE=')
+        self.assertEqual(key, b'QGpvJnz-skkMHtlpB5eR2-7LLQFqhlG89sMjuF1oRbE=')
 
     def test_get_key_update(self):
         claim = {
@@ -107,7 +107,7 @@ class TestKeyRepository(DBTestCase):
         }
 
         key = self.rep.get_key(claim)
-        self.assertEqual(key,  self.rep.get_key(claim))
+        self.assertEqual(key, self.rep.get_key(claim))
 
         self.service.component_config.settings['secret'] = "new secret"
         self.service._set_secret()
@@ -123,9 +123,9 @@ class TestKeyRepository(DBTestCase):
             'connectionType': 'user',
             'username': 'test-user2'
         }
-        self.assertEqual(self.rep.get_key(claim),  self.rep.get_key(claim))
-        self.assertEqual(self.rep.get_key(claim2),  self.rep.get_key(claim2))
-        self.assertNotEqual(self.rep.get_key(claim),  self.rep.get_key(claim2))
+        self.assertEqual(self.rep.get_key(claim), self.rep.get_key(claim))
+        self.assertEqual(self.rep.get_key(claim2), self.rep.get_key(claim2))
+        self.assertNotEqual(self.rep.get_key(claim), self.rep.get_key(claim2))
 
     def test_get_key_differs2(self):
         claim = {
@@ -136,9 +136,9 @@ class TestKeyRepository(DBTestCase):
             'connectionType': 'group',
             'group': 'test-group2'
         }
-        self.assertEqual(self.rep.get_key(claim),  self.rep.get_key(claim))
-        self.assertEqual(self.rep.get_key(claim2),  self.rep.get_key(claim2))
-        self.assertNotEqual(self.rep.get_key(claim),  self.rep.get_key(claim2))
+        self.assertEqual(self.rep.get_key(claim), self.rep.get_key(claim))
+        self.assertEqual(self.rep.get_key(claim2), self.rep.get_key(claim2))
+        self.assertNotEqual(self.rep.get_key(claim), self.rep.get_key(claim2))
 
     def test_get_key_differs3(self):
         claim = {
@@ -151,9 +151,9 @@ class TestKeyRepository(DBTestCase):
             'group': 'test-group2',
             'groupRole': 'test-groupRole'
         }
-        self.assertEqual(self.rep.get_key(claim),  self.rep.get_key(claim))
-        self.assertEqual(self.rep.get_key(claim2),  self.rep.get_key(claim2))
-        self.assertNotEqual(self.rep.get_key(claim),  self.rep.get_key(claim2))
+        self.assertEqual(self.rep.get_key(claim), self.rep.get_key(claim))
+        self.assertEqual(self.rep.get_key(claim2), self.rep.get_key(claim2))
+        self.assertNotEqual(self.rep.get_key(claim), self.rep.get_key(claim2))
 
     def test_get_key_differs4(self):
         claim = {
@@ -166,6 +166,6 @@ class TestKeyRepository(DBTestCase):
             'group': 'test-group',
             'groupRole': 'test-groupRole2'
         }
-        self.assertEqual(self.rep.get_key(claim),  self.rep.get_key(claim))
-        self.assertEqual(self.rep.get_key(claim2),  self.rep.get_key(claim2))
-        self.assertNotEqual(self.rep.get_key(claim),  self.rep.get_key(claim2))
+        self.assertEqual(self.rep.get_key(claim), self.rep.get_key(claim))
+        self.assertEqual(self.rep.get_key(claim2), self.rep.get_key(claim2))
+        self.assertNotEqual(self.rep.get_key(claim), self.rep.get_key(claim2))

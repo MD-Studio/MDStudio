@@ -1,20 +1,18 @@
 import inspect
 import json
 import os
-import re
 from collections import OrderedDict
-from copy import deepcopy
-
 import yaml
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp import PublishOptions, ApplicationError
 from autobahn.wamp.request import Publication
 from twisted.python.failure import Failure
+from twisted.python.failure import Failure
 
 from mdstudio.api.api_result import APIResult
-from mdstudio.api.call_exception import CallException
 from mdstudio.api.context import UserContext, GroupRoleContext, GroupContext
 from mdstudio.api.converter import convert_obj_to_json
+from mdstudio.api.exception import CallException
 from mdstudio.api.schema import validate_json_schema
 from mdstudio.collection import merge_dicts, dict_property
 from mdstudio.deferred.chainable import chainable
@@ -141,7 +139,7 @@ class CommonSession(ApplicationSession):
 
         try:
             result = yield make_original_call()
-        except ApplicationError as e:
+        except ApplicationError:
             result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 
         if 'expired' in result:
@@ -149,7 +147,7 @@ class CommonSession(ApplicationSession):
 
             try:
                 result = yield make_original_call()
-            except ApplicationError as e:
+            except ApplicationError:
                 result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 
         if 'expired' in result:
@@ -280,7 +278,7 @@ class CommonSession(ApplicationSession):
 
             if os.path.isfile(settings_file):
                 with open(settings_file, 'r') as f:
-                    merge_dicts(self.component_config.to_dict(), yaml.load(f))
+                    merge_dicts(self.component_config.to_dict(), yaml.safe_load(f))
 
     def validate_settings(self):
         for path in self.settings_schemas():

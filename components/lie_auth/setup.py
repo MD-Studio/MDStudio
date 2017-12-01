@@ -39,8 +39,8 @@ setup(
     version='1.0.0',
     license='Apache Software License 2.0',
     description='Authentication and authorization management for the MDStudio application',
-    author='Marc van Dijk - VU University - Amsterdam,'\
-           'Paul Visscher - Zefiros Software (www.zefiros.eu),'\
+    author='Marc van Dijk - VU University - Amsterdam,' \
+           'Paul Visscher - Zefiros Software (www.zefiros.eu),' \
            'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
     author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
     url='https://github.com/MD-Studio/MDStudio',
