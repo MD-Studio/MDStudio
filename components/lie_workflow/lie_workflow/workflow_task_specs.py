@@ -6,7 +6,6 @@ file: task_specs.py
 Graph node task classes
 """
 
-import random
 import logging
 import jsonschema
 import itertools
@@ -81,6 +80,19 @@ class _TaskBase(object):
         self.nodes[self.nid]['session'] = updated_session.dict()
         return self.nodes[self.nid]['session']
 
+    def _process_reference(self, ref):
+        """
+        Resolve reference
+        """
+
+        if ref.startswith('$'):
+            split = ref.strip('$').split('.')
+            ref_nid = int(split[0])
+            ref_key = split[1]
+
+            return self._full_graph.nodes[ref_nid]['output_data'].get(ref_key, None)
+        return ref
+
     def get_input(self):
         """
         Prepaire the input data
@@ -90,12 +102,10 @@ class _TaskBase(object):
         for key, value in self.nodes[self.nid].get('input_data', {}).items():
 
             # Resolve reference
-            if isinstance(value, str) and value.startswith('$'):
-                split = value.strip('$').split('.')
-                ref_nid = int(split[0])
-                ref_key = split[1]
-
-                input_dict[key] = self._full_graph.nodes[ref_nid]['output_data'].get(ref_key, None)
+            if isinstance(value, str):
+                input_dict[key] = self._process_reference(value)
+            elif isinstance(value, list):
+                input_dict[key] = [self._process_reference(v) for v in value]
             else:
                 input_dict[key] = value
 
