@@ -215,7 +215,7 @@ class TestCommonSession(TestCase):
 
         with Patcher() as patcher:
             file = os.path.join(self.session.component_root_path(), 'settings.yml')
-            patcher.fs.CreateFile(file, contents='{"test": 2}')
+            patcher.fs.CreateFile(file, contents='{"settings": {"test": 2}}')
             self.session = TestSession()
 
             self.assertEqual(self.session.component_config.settings['test'], 2)
@@ -227,8 +227,8 @@ class TestCommonSession(TestCase):
         with Patcher() as patcher:
             file = os.path.join(self.session.component_root_path(), 'settings.json')
             file2 = os.path.join(self.session.component_root_path(), 'settings.yml')
-            patcher.fs.CreateFile(file, contents='{"test": 2}')
-            patcher.fs.CreateFile(file2, contents='{"test": 3}')
+            patcher.fs.CreateFile(file, contents='{"settings": {"test": 2}}')
+            patcher.fs.CreateFile(file2, contents='{"settings": {"test": 3}}')
             self.session = TestSession()
 
             self.assertEqual(self.session.component_config.settings['test'], 3)
@@ -240,8 +240,8 @@ class TestCommonSession(TestCase):
         with Patcher() as patcher:
             file = os.path.join(self.session.component_root_path(), 'settings.yml')
             file2 = os.path.join(self.session.component_root_path(), '.settings.json')
-            patcher.fs.CreateFile(file, contents='{"test": 2}')
-            patcher.fs.CreateFile(file2, contents='{"test": 3}')
+            patcher.fs.CreateFile(file, contents='{"settings": {"test": 2}}')
+            patcher.fs.CreateFile(file2, contents='{"settings": {"test": 3}}')
             self.session = TestSession()
 
             self.assertEqual(self.session.component_config.settings['test'], 3)
@@ -253,8 +253,8 @@ class TestCommonSession(TestCase):
         with Patcher() as patcher:
             file = os.path.join(self.session.component_root_path(), '.settings.json')
             file2 = os.path.join(self.session.component_root_path(), '.settings.yml')
-            patcher.fs.CreateFile(file, contents='{"test": 2}')
-            patcher.fs.CreateFile(file2, contents='{"test": 3}')
+            patcher.fs.CreateFile(file, contents='{"settings": {"test": 2}}')
+            patcher.fs.CreateFile(file2, contents='{"settings": {"test": 3}}')
             self.session = TestSession()
 
             self.assertEqual(self.session.component_config.settings['test'], 3)

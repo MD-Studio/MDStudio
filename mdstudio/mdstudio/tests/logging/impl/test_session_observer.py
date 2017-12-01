@@ -41,7 +41,7 @@ class SessionObserverTests(DBTestCase):
             'message': 'Collecting logs on session test session'
         }])
         self.assertEqual(self.observer.flushing, False)
-        self.assertEqual(self.observer.recovery_file_path, '/logs/recovery.json')
+        self.assertEqual(os.path.abspath(self.observer.recovery_file_path), os.path.abspath('/logs/recovery.json'))
 
     def test_call(self):
         t = now()
