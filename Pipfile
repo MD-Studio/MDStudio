@@ -6,7 +6,7 @@ verify_ssl = true
 
 [packages]
 
-crossbar = ">=16.10.1"
+crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "eca9729dfd0b79abeadc8919d6bafab6273b1d3e"}
 pipenv = "*"
 mdstudio = {path = "mdstudio/", editable = true}
 lie-auth = {path = "components/lie_auth/", editable = true}

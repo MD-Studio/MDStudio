@@ -103,7 +103,7 @@ workers:
           anonymous:
             role: public
             type: static
-          ticket:
+          wampcra:
             authenticator: mdstudio.auth.endpoint.login
             type: dynamic
         type: websocket

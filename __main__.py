@@ -40,9 +40,9 @@ if __name__ == '__main__':
             ('logger', 'Logger')
         ]).items()]
 
-        wampcra_config = {
+        ticket_config = {
             "type": "static",
-            "users": OrderedDict((role, {'role': role, 'secret': role}) for role in ['auth', 'db', 'schema', 'logger'])
+            "principals": OrderedDict((role, {'role': role, 'ticket': role}) for role in ['auth', 'db', 'schema', 'logger'])
         }
 
         parser = argparse.ArgumentParser(description='MDstudio application startup script')
@@ -56,7 +56,7 @@ if __name__ == '__main__':
             else:
                 ring0_config = None
 
-            config['workers'][0]['transports'][0]['paths']['ws']['auth'].update({'wampcra': wampcra_config})
+            config['workers'][0]['transports'][0]['paths']['ws']['auth'].update({'ticket': ticket_config})
 
         if ring0_config:
             config['workers'][0]['components'] = ring0_config
