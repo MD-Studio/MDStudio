@@ -10,7 +10,7 @@ from autobahn import wamp
 from autobahn.wamp import ApplicationError
 
 from mdstudio.api.api_result import APIResult
-from mdstudio.api.call_exception import CallException
+from mdstudio.api.exception import CallException
 from mdstudio.api.register import register
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.model import Model

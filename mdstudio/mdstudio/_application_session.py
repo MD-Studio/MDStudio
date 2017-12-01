@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import inspect
-import itertools
 import json
 import os
 import re
 
-import time
 import twisted
 from autobahn import wamp
 from autobahn.twisted.wamp import ApplicationSession
-from autobahn.wamp import auth, cryptosign
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.logger import Logger
@@ -18,11 +14,9 @@ from twisted.python.failure import Failure
 from twisted.python.logfile import DailyLogFile
 
 from mdstudio.api.call_exception import CallException
-from mdstudio.api.schema import Schema, validate_json_schema
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.logging import WampLogObserver, PrintingObserver
-from mdstudio.util import resolve_config
 
 
 class BaseApplicationSession(ApplicationSession):

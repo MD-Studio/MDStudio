@@ -1,6 +1,6 @@
 from autobahn.wamp import auth, ApplicationError
 
-from mdstudio.api.call_exception import CallException
+from mdstudio.api.exception import CallException
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable

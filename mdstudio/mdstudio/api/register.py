@@ -64,9 +64,6 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
         # print('Input on {uri} is not checked'.format(uri=uri))
         input_schema = InlineSchema({})
     elif isinstance(input_schema, (str, unicode)):
-        if not re.match('\\w+://.*', input_schema):
-            input_schema = 'endpoint://{}'.format(input_schema)
-
         input_schema = EndpointSchema(input_schema)
     elif isinstance(input_schema, dict):
         input_schema = InlineSchema(input_schema)
@@ -75,9 +72,6 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
         # print('Output on {uri} is not checked'.format(uri=uri))
         output_schema = InlineSchema({})
     elif isinstance(output_schema, (str, unicode)):
-        if not re.match('\\w+://.*', output_schema):
-            output_schema = 'endpoint://{}'.format(output_schema)
-
         output_schema = EndpointSchema(output_schema)
     elif isinstance(output_schema, dict):
         output_schema = InlineSchema(output_schema)
@@ -87,9 +81,6 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
     if not claim_schema:
         pass
     elif isinstance(claim_schema, (str, unicode)):
-        if not re.match(r'\w+://.*', claim_schema):
-            claim_schema = 'claims://{}'.format(claim_schema)
-
         claim_schema = ClaimSchema(claim_schema)
         claim_schemas.append(claim_schema)
     elif isinstance(claim_schema, dict):
