@@ -49,14 +49,14 @@ class CoreComponentSession(CommonSession):
 
     def __init__(self, config=None):
         self.component_waiters = []
-        self.db = SessionDatabaseWrapper(self)
+        self.db = SessionDatabaseWrapper(self, ConnectionType.User)
         super(CoreComponentSession, self).__init__(config)
 
     def pre_init(self):
         self.log_type = LogType.Group
 
     def on_connect(self):
-        auth_methods = [u'wampcra']
+        auth_methods = [u'ticket']
         authid = self.component_config.session.username
         auth_role = authid
 
@@ -78,17 +78,10 @@ class CoreComponentSession(CommonSession):
         yield super(CoreComponentSession, self)._on_join()
 
     def on_challenge(self, challenge):
-        if challenge.method == u'wampcra':
-            # Salted password
-            if u'salt' in challenge.extra:
-                key = auth.derive_key(self.component_config.session.authid, challenge.extra['salt'],
-                                      challenge.extra['iterations'], challenge.extra['keylen'])
-            else:
-                key = self.component_config.session.username
-
-            return auth.compute_wcs(key.encode('utf8'), challenge.extra['challenge'].encode('utf8'))
+        if challenge.method == u'ticket':
+            return self.component_config.session.username
         else:
-            raise Exception("Core components should only use wampcra for authentication, attempted to use {}".format(challenge.method))
+            raise Exception("Core components should only use ticket for authentication for development, attempted to use {}".format(challenge.method))
 
     onChallenge = on_challenge
 

@@ -64,6 +64,9 @@ class Chainable(object):
     def addCallback(self, *args, **kwargs):
         return Chainable(self.__deferred.addCallback(*args, **kwargs))
 
+    def transform(self, modifier, *args, **kwargs):
+        return Chainable(self.__deferred.addCallback(modifier, *args, **kwargs))
+
     def addErrback(self, *args, **kwargs):
         return Chainable(self.__deferred.addErrback(*args, **kwargs))
 

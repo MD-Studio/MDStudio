@@ -103,56 +103,49 @@ class AuthComponent(CoreComponentSession):
     def user_login(self, realm, authid, details):
         assert authid
         authmethod = details.get(u'authmethod', None)
+        assert authmethod == u'wampcra', 'Only wampcra is supported for login, please use the ComponentSession'
 
-        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod}}',
-                      realm=realm, authid=authid, authmethod=authmethod)
+        authid = authid.strip()
+        username, client_nonce = SCRAM.split_authid(authid)
+        server_nonce = details['session']
 
-        username = authid.strip()
-        user = yield self._get_user(username)
+        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod}, phase: {authphase}', realm=realm, authid=username, authmethod=authmethod, authphase=details['authphase'])
 
-        # WAMP-ticket authetication
-        if authmethod == u'ticket':
-            is_valid = self._validate_user_login(user, username, details['ticket'])
-            if is_valid:
-                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user)}
+        user = yield self.user_repository.find_user(username, with_authentication=True)
+
+        if user is not None:
+            user_auth = user.authentication
+            stored_key = SCRAM.str_to_binary(user_auth['storedKey'])
+            server_key = SCRAM.str_to_binary(user_auth['serverKey'])
+
+            if details['authphase'] == 'preChallenge':
+                auth_ticket = {
+                    'role': 'user',
+                    'iterations': user_auth['iterations'],
+                    'salt': user_auth['salt'],
+                    'secret': SCRAM.binary_to_str(stored_key)
+                }
             else:
-                # Not a valid user, try  to find a matching client
-                client = yield self._get_client(username)
-                if client:
-                    client['scope'] = ' '.join(client.pop('scopes'))
-                    http_basic = self._http_basic_authentication(username, details['ticket'])
-                    credentials = {u'client': client,
-                                   u'http_basic': self._http_basic_authentication(client[u'clientId'], client[u'secret'])}
+                auth_message = SCRAM.auth_message(client_nonce, server_nonce)
+                client_signature = SCRAM.client_signature(stored_key, auth_message)
+                client_proof = SCRAM.str_to_binary(details['signature'])
+                client_key = SCRAM.client_proof(client_proof, client_signature)
 
-                    headers, body, status = self.oauth_backend_server.create_token_response(
-                        u'mdstudio.auth.endpoint.login',
-                        headers={u'Authorization': http_basic},
-                        grant_type_for_scope=u'client_credentials',
-                        credentials=credentials)
+                if SCRAM.stored_key(client_key) == stored_key:
+                    auth_ticket = {
+                        'authid': username,
+                        'success': True,
+                        'extra': {
+                            'serverProof': SCRAM.binary_to_str(SCRAM.server_proof(server_key, auth_message))
+                        }
+                    }
 
-                    if status == 200:
-                        user = {u'_id': client[u'_id']}
-                        auth_ticket = {u'realm': realm, u'role': 'oauthclient', u'extra': {u'access_token': json.loads(body).get('accessToken')}}
-                    else:
-                        raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
+                    # Log authorization
+                    self.log.info('Access granted. user: {user}', user=username)
                 else:
-                    raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
-
-        # WAMP-CRA authentication
-        elif authmethod == u'wampcra':
-            if user:
-                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user),
-                               u'secret': user[u'password']}
-            else:
-                raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
-
+                    auth_ticket = False
         else:
-            raise ApplicationError("No such authentication method known: {0}".format(authmethod))
-
-        yield self._start_session(user[u'_id'], details.get(u'session', 0), auth_ticket[u'extra'].get('access_token'))
-
-        # Log authorization
-        self.log.info('Access granted. user: {user}', user=authid)
+            raise ApplicationError("No such user")
 
         returnValue(auth_ticket)
 

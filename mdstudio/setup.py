@@ -40,7 +40,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['twisted','autobahn', 'pyyaml', 'jsonschema[format]', 'oauthlib', 'pytz', 'python-dateutil', 'asq', 'typing', 'node-semver'],
+    install_requires=['twisted','autobahn', 'pyyaml', 'jsonschema[format]', 'oauthlib', 'pytz', 'python-dateutil', 'asq', 'typing', 'node-semver', 'passlib'],
     test_suite="tests",
     include_package_data=True,
     zip_safe=True,

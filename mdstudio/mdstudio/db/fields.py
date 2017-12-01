@@ -1,10 +1,13 @@
+import collections
 import datetime
-from typing import List, Callable, Optional, Union
+from typing import List, Callable, Optional, Union, Iterable, Mapping
 
 import base64
 import hashlib
 import pytz
 from copy import deepcopy
+
+import six
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
@@ -15,17 +18,28 @@ from mdstudio.utc import from_utc_string, from_date_string
 
 def timestamp_properties(prefixes=None):
     suffixes = ['createdAt', 'updatedAt', 'deletedAt']
-
-    def join(prefix):
-        if prefix == '':
-            return suffixes
+    def join(p, s):
+        if p == '':
+            return s
         else:
-            return ('{}.{}'.format(prefix, suffix) for suffix in suffixes)
+            return '{}.{}'.format(p, s)
 
+    def flatten_prefixes(pfs):
+        if isinstance(pfs, six.text_type):
+            for s in suffixes:
+                yield join(pfs, s)
+        elif isinstance(pfs, collections.Mapping):
+            for k, v in pfs.items():
+                for p2 in flatten_prefixes(v):
+                    yield join(k, p2)
+        elif isinstance(pfs, collections.Iterable):
+            for p1 in pfs:
+                for p2 in flatten_prefixes(p1):
+                    yield p2
     if prefixes is None:
         return suffixes
     else:
-        return [prop for prefix in prefixes for prop in join(prefix)]
+        return [prop for prop in flatten_prefixes(prefixes)]
 
 
 class Fields(object):
@@ -284,7 +298,7 @@ class Fields(object):
         from cryptography.fernet import Fernet
         try:
             encryptor = Fernet(self._get_key(claims))
-        except Exception:
+        except Exception:  # @todo: filter this
             raise DatabaseException('Failed to create a Fernet encryption class due to an incorrect key.')
         else:
             return encryptor

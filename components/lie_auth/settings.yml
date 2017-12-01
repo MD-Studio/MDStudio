@@ -1,0 +1,12 @@
+settings:
+  provisioning:
+    users:
+    - username: mdadmin
+      password: this_should_be_replaced_for_production!@#$%^&*()_+1234567890-=
+      email: admin@mdstudio.eu
+    groups:
+    - groupName: mdgroup
+      owner: mdadmin
+      components:
+      - md
+      - cli
