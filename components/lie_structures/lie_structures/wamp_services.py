@@ -21,7 +21,7 @@ from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_structures import settings
 from lie_structures.settings import _schema_to_data, STRUCTURES_SCHEMA, BIOPYTHON_SCHEMA
 from lie_structures.cheminfo_utils import (
-     mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write)
+     mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write, mol_combine_rotations)
 
 STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))
 BIOPYTHON_SCHEMA = json.load(open(BIOPYTHON_SCHEMA))
@@ -313,6 +313,42 @@ class StructuresWampApi(LieApplicationSession):
         attributes['session'] = session
 
         return attributes
+
+    @wamp.register(u'liestudio.structure.rotate')
+    def rotate_structures(self, session=None, **kwargs):
+        """
+        Rotate the structure around an axis defined by x,y,z
+        """
+
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+
+        # Load configuration and update
+        config = self.package_config.lie_structures.dict()
+        config.update(kwargs)
+
+        # Validate against JSON schema
+        jsonschema.validate(config, STRUCTURES_SCHEMA)
+
+        # Read in the molecule
+        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
+                             from_file=config.get('from_file', False))
+
+        rotations = config.get('rotations')
+        if rotations:
+            output_file = mol_combine_rotations(molobject, rotations=rotations)
+
+            if 'workdir' in config:
+                file_path = os.path.join(config.get('workdir'), 'rotations.mol2')
+                with open(file_path, 'w') as otp:
+                    otp.write(output_file)
+                output_file = file_path
+
+            session['status'] = 'completed'
+            return {'session': session, 'mol': output_file}
+
+        session['status'] = 'failed'
+        return {'session': session}
 
 
 def make(config):
