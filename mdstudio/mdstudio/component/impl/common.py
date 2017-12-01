@@ -2,16 +2,14 @@ import inspect
 import json
 from collections import OrderedDict
 
-import re
-from copy import deepcopy
-
 import os
-
+import re
 import yaml
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp import PublishOptions, ApplicationError
 from autobahn.wamp.request import Publication
-from twisted.internet import reactor
+from copy import deepcopy
+from twisted.python.failure import Failure
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.converter import convert_obj_to_json
@@ -20,13 +18,9 @@ from mdstudio.api.schema import validate_json_schema
 from mdstudio.collection import merge_dicts
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
-from twisted.python.failure import Failure
-
-from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.impl.session_observer import SessionLogObserver
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
-from mdstudio.utc import now
 
 
 class CommonSession(ApplicationSession):

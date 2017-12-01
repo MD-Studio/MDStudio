@@ -2,6 +2,7 @@ from twisted.internet import defer
 
 from twisted.internet.defer import Deferred
 
+
 class Chainable(object):
     @property
     def __class__(self):
@@ -109,6 +110,7 @@ class Chainable(object):
         else:
             raise NotImplementedError("This execution path should not be taken")
 
+
 def chainable(f):
     # Allow syntax like the inlineCallbacks, but instead return a Chainable with the result
     def _chainable(*args, **kwargs):
@@ -116,6 +118,7 @@ def chainable(f):
         return Chainable(deferred)
 
     return _chainable
+
 
 def test_chainable(f):
     return defer.inlineCallbacks(f)

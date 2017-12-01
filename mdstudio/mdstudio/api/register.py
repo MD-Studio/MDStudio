@@ -1,20 +1,18 @@
 import json
-import re
 from typing import Union, Optional, Callable
 
-import os
 from autobahn import wamp
 from autobahn.wamp import RegisterOptions
 from jsonschema import ValidationError
-from mdstudio.api.converter import convert_obj_to_json
 
 from mdstudio.api.api_result import APIResult
+from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, \
     MDStudioClaimSchema, InlineSchema
+from mdstudio.compat import unicode
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
-from mdstudio.compat import unicode
 
 SchemaType = Union[str, dict, ISchema]
 
@@ -61,7 +59,6 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
         input_schema = InlineSchema(input_schema)
 
     if not output_schema:
-        # print('Output on {uri} is not checked'.format(uri=uri))
         output_schema = InlineSchema({})
     elif isinstance(output_schema, (str, unicode)):
         output_schema = EndpointSchema(output_schema)
@@ -94,6 +91,7 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
             else:
                 claims = claims['claims']
 
+                s = None
                 try:
                     for s in claim_schemas:
                         validate_json_schema(s.to_schema(), claims)

@@ -4,15 +4,13 @@ import os
 from faker import Faker
 from jsonschema import ValidationError
 from mock import mock
-
-from mdstudio.api.exception import RegisterException
-from mdstudio.deferred.chainable import test_chainable
-
-from mdstudio.unittest.db import DBTestCase
 from pyfakefs.fake_filesystem_unittest import Patcher, TestCase
 
+from mdstudio.api.exception import RegisterException
 from mdstudio.api.schema import ISchema, ResourceSchema, EndpointSchema, HttpsSchema, InlineSchema, ClaimSchema, validate_json_schema, \
     MDStudioClaimSchema
+from mdstudio.deferred.chainable import test_chainable
+from mdstudio.unittest.db import DBTestCase
 
 
 class ISchemaTests(DBTestCase):

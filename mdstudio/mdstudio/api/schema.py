@@ -1,11 +1,10 @@
-import re
-import os
-
-import jsonschema
 import json
 
+import jsonschema
+import os
+import re
 import six
-from jsonschema import FormatChecker, ValidationError
+from jsonschema import FormatChecker
 
 from mdstudio.api.exception import RegisterException
 from mdstudio.api.singleton import Singleton
@@ -123,13 +122,14 @@ class HttpsSchema(ISchema):
 
 class EndpointSchema(ISchema):
     type_name = 'endpoint'
+
     def __init__(self, uri, versions=None):
         super(EndpointSchema, self).__init__()
         uri_decomposition = re.match(r'([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
         if not uri_decomposition:
             raise RegisterException('An {0} schema uri must be in the form "{0}://<schema path>(/v<versions>), '
-                                    'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
-                                    'We got "endpoint://{1}".'.format(self.type_name, uri))
+                                    'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-"'
+                                    ' characters are supported. We got "endpoint://{1}".'.format(self.type_name, uri))
         self.schema_path = uri_decomposition.group(1)
 
         uri_versions = uri_decomposition.group(3)
@@ -143,12 +143,12 @@ class EndpointSchema(ISchema):
         if self.cached:
             return_value(True)
 
+        ldir = os.path.join(session.component_schemas_path(), self.schema_subdir)
         try:
-            dir = os.path.join(session.component_schemas_path(), self.schema_subdir)
-            self._retrieve_local(dir, self.schema_path, self.versions)
+            self._retrieve_local(ldir, self.schema_path, self.versions)
         except FileNotFoundError as ex:
             raise RegisterException('Tried to access schema "{}/{}" with versions {}, '
-                                    'but the schema was not found:\n{}'.format(dir, self.schema_path, self.versions, str(ex)))
+                                    'but the schema was not found:\n{}'.format(ldir, self.schema_path, self.versions, str(ex)))
 
         success = True
 
@@ -167,7 +167,8 @@ class EndpointSchema(ISchema):
 
 
 class ClaimSchema(EndpointSchema):
-    type_name =  'claims'
+    type_name = 'claims'
+
     def __init__(self, uri, versions=None):
         super(ClaimSchema, self).__init__(uri, versions)
         self.schema_subdir = 'claims'
@@ -188,9 +189,10 @@ class ResourceSchema(ISchema):
         super(ResourceSchema, self).__init__()
         uri_decomposition = re.match(r'([\w\-]+)/([\w\-]+)/([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
         if not uri_decomposition:
-            raise RegisterException('An resource schema uri must be in the form "resource://<vendor>/<component>/<schema path>(/v<versions>), '
-                                    'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
-                                    'We got "resource://{}".'.format(uri))
+            raise RegisterException(
+                'An resource schema uri must be in the form "resource://<vendor>/<component>/<schema path>(/v<versions>), '
+                'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
+                'We got "resource://{}".'.format(uri))
         self.vendor = uri_decomposition.group(1)
         self.component = uri_decomposition.group(2)
         self.schema_path = uri_decomposition.group(3)

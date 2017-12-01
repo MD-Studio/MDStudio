@@ -1,4 +1,4 @@
-from autobahn.wamp import auth, ApplicationError
+from autobahn.wamp import auth
 
 from mdstudio.api.exception import CallException
 from mdstudio.component.impl.common import CommonSession
