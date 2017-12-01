@@ -15,17 +15,6 @@ from pandas import DataFrame, read_csv
 from pylie import LIEDataFrame
 
 
-def get_case_pose_tuples(dataframe):
-    """
-    Extract list of case-pose tuples from the dataframe
-    """
-
-    cases = dataframe['case'].values.astype(int)
-    poses = dataframe['poses'].values
-
-    return zip(cases, poses)
-
-
 class TestLIEDataFrameBase(unittest2.TestCase):
     filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files'))
     tempfiles = []
@@ -164,7 +153,7 @@ class TestLIEDataFrameBase(unittest2.TestCase):
         self.liedata.trainset = trainsetp
         self.assertListEqual(self.liedata.trainset.cases, sorted(trainset+[43, 62]))
 
-        cp = get_case_pose_tuples(self.liedata.trainset)
+        cp = self.liedata.trainset.casepose
         self.assertEqual(len(self.liedata.trainset), len(cp))
 
         # Non-existing cases or case-pose combinations are filtered
@@ -198,7 +187,7 @@ class TestLIEDataFrameBase(unittest2.TestCase):
         self.liedata.testset = testsetp
         self.assertListEqual(self.liedata.testset.cases, sorted(testset+[43, 62]))
 
-        cp = get_case_pose_tuples(self.liedata.testset)
+        cp = self.liedata.testset.casepose
         self.assertEqual(len(self.liedata.testset), len(cp))
 
         # Non-existing cases or case-pose combinations are filtered
@@ -230,7 +219,7 @@ class TestLIEDataFrameBase(unittest2.TestCase):
         self.liedata.outliers = outlierp
         self.assertListEqual(self.liedata.outliers.cases, sorted(outlier+[43, 62]))
 
-        cp = get_case_pose_tuples(self.liedata.outliers)
+        cp = self.liedata.outliers.casepose
         self.assertEqual(len(self.liedata.outliers), len(cp))
 
         # Non-existing cases or case-pose combinations are filtered
@@ -262,7 +251,7 @@ class TestLIEDataFrameBase(unittest2.TestCase):
         self.liedata.inliers = inliersp
         self.assertListEqual(self.liedata.inliers.cases, sorted(inliers+[43, 62]))
 
-        cp = get_case_pose_tuples(self.liedata.inliers)
+        cp = self.liedata.inliers.casepose
         self.assertEqual(len(self.liedata.inliers), len(cp))
 
         # Non-existing cases or case-pose combinations are filtered

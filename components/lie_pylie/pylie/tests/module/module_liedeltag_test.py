@@ -15,6 +15,7 @@ from pandas import read_csv,pivot_table
 from pylie import LIEDataFrame
 from pylie.model.liedataframe import lie_deltag
 
+
 class TestLIEDeltag(unittest2.TestCase):
     filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files'))
 

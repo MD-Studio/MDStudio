@@ -373,7 +373,7 @@ class LIEModelBuilder(LIEDataFrameBase):
         :return: Pivot table as new Pandas DataFrame
         """
 
-        if type(dataframe) == LIEDataFrame:
+        if isinstance(dataframe, LIEDataFrame):
             pivot = pivot_table(dataframe, values=column, index=['case'], columns=['poses'])
         else:
             pivot = numpy.array([[dataframe[column]]])
@@ -463,7 +463,6 @@ class LIEModelBuilder(LIEDataFrameBase):
             # average over the last X iterations.
             # On convergence, pick case with lowest RSD
             # Do check for oscillation and report.
-
             window = (self.loc[self['L1'] == run, self.settings.param_labels]).sum(axis=1).rolling(
                 window=self.settings.window_size).mean()
             if (window.loc[index + i + 1] - window.loc[index + i]) ** 2 < self.settings.conv_cutoff:
@@ -508,9 +507,8 @@ class LIEModelBuilder(LIEDataFrameBase):
         a subset of dataframe indexes
         """
 
-        if indexes:
-            if type(indexes) != list:
-                indexes = [int(indexes)]
+        if indexes and not isinstance(indexes, list):
+            indexes = [int(indexes)]
         else:
             indexes = self.index.values
 
@@ -830,44 +828,6 @@ class LIEModelBuilder(LIEDataFrameBase):
             poserecord.to_csv('poses_model_{0}.csv'.format(index))
 
         return baseset
-
-    def rlm_unique_optimize(self, index, superset=None, **kwargs):
-        # Update class settings from kwargs dict
-        self.settings.update(kwargs)
-
-        # Sample sets
-        clusters = dict([(n, self.get_cases(n)) for n in index])
-
-        # Set superset
-        baseset = self.union(index)
-        if not superset:
-            superset = list((set(self.dataframe.cases)).difference(set(baseset)))
-
-        # Enrich sets with cases from superset first
-        for cluster in clusters:
-            label = self.loc[cluster, 'L0']
-            enriched = self.mcresample(cluster, superset)
-            clusters[cluster] = enriched
-
-        # Report cases not part of any cluster
-        baseset = []
-        for i, cluster in clusters.items():
-            baseset.extend(cluster)
-        baseset = set(baseset)
-        superset = list((set(superset)).difference(baseset))
-
-        print("Outliers: ", superset)
-
-        # Now try to make enriched clusters unique as much as possible
-        for cluster in clusters:
-
-            others = []
-            for c in clusters:
-                if c != cluster: others.extend(clusters[c])
-            overlap = set(clusters[cluster]).difference(set(others))
-
-            enriched = self.mcresample(cluster, overlap)
-            clusters[cluster] = enriched
 
     def rlm_optimize(self, index, **kwargs):
         """

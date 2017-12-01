@@ -27,6 +27,7 @@ class _Common(object):
     """
 
     _metadata = {}
+    plot_functions = {}
 
     @property
     def size(self):
@@ -76,7 +77,6 @@ class _Common(object):
         plotting functions.
         """
 
-        self.plot_functions = {}
         pfunc = ['plot_general_']
         if hasattr(self, '_class_name'):
             pfunc.append('plot_{0}_'.format(self._class_name))
@@ -84,7 +84,9 @@ class _Common(object):
         for func in dir(plotting):
             for n in pfunc:
                 if func.startswith(n):
-                    self.plot_functions[func.replace(n, '')] = getattr(plotting, func)
+                    func_name = func.replace(n, '')
+                    if not func_name in self.plot_functions:
+                        self.plot_functions[func_name] = getattr(plotting, func)
 
     def get_columns(self, columns, flags=0):
         """
@@ -126,9 +128,7 @@ class LIESeriesBase(_Common, Series):
         super(LIESeriesBase, self).__init__(*args, **kwargs)
 
         # Register plotting functions for custom series.
-        # Only the first time so the user can modify the plotting functions dict later
-        if not self._class_name == 'series' and not hasattr(self, 'plot_functions'):
-            self._init_plot_functions()
+        self._init_plot_functions()
 
     def __setattr__(self, key, value):
 
@@ -234,9 +234,7 @@ class LIEDataFrameBase(_Common, DataFrame):
                 self[self._column_names.get(col, col)].fillna(0, inplace=True)
 
         # Register plotting functions for custom dataframes.
-        # Only the first time so the user can modify the plotting functions dict later
-        if not self._class_name == 'dataframe' and not hasattr(self, 'plot_functions'):
-            self._init_plot_functions()
+        self._init_plot_functions()
 
         # Get copy of the global configuration for this class once so the user
         # can modify the configuration dict later
@@ -325,7 +323,6 @@ class LIEDataFrameBase(_Common, DataFrame):
     def cases(self):
         """
         Return a unique list of case ID's in the current LIEDataFrame.
-        Method is exposed as property of the class.
 
         :return: list of case ID's in the LIEDataFrame
         :rtype:  :py:list
@@ -336,13 +333,24 @@ class LIEDataFrameBase(_Common, DataFrame):
             return sorted(cases)
 
     @property
+    def casepose(self):
+        """
+        Return a unique list of case ID - pose combinations in the current
+        LIEDataFrame.
+
+        :return: list of cae ID - pose tuples
+        :rtype:  :py:list
+        """
+
+        if self._column_names['case'] in self.columns and self._column_names['poses'] in self.columns:
+            return zip(self['case'].values.astype(int), self['poses'].values)
+
+    @property
     def trainset(self):
         """
         Return new LIEDataFrame with all cases labeled as train cases.
         This equals all cases with an integer value higher than 0 in the
         train_mask column.
-
-        Method is exposed as property with associated setter method
 
         :return: new LIEDataFrame with training set cases
         :rtype:  LIEDataFrame

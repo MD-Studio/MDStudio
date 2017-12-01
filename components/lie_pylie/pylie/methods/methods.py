@@ -39,38 +39,6 @@ def get_boltzmann_poses(df, tol=0.2, plot=False):
     return lowweight
 
 
-def mahalanobis(dataframe):
-    """
-    Calculate Mahalanobis distance and return as new Series using the index
-    of the input dataFrame
-    """
-
-    # Remove all NaN values
-    nonan = dataframe.dropna(how='all').values
-
-    # Estimate the covariance matrix
-    inv_covariance_xy = numpy.linalg.inv(numpy.cov(nonan[:, 0], nonan[:, 1], rowvar=0))
-
-    # Center each value by the mean by subtracting the mean from i in array x
-    # and y.
-    xy_mean = numpy.mean(nonan[:, 0]), numpy.mean(nonan[:, 1])
-    x_diff = numpy.array([x_i - xy_mean[0] for x_i in nonan[:, 0]])
-    y_diff = numpy.array([y_i - xy_mean[1] for y_i in nonan[:, 1]])
-
-    # Join the x_diff and y_diff arrays into (10 x 2) array
-    diff_xy = numpy.transpose([x_diff, y_diff])
-
-    # Calculate the Mahalanobis distance
-    maha_dist = []
-    for i in range(len(diff_xy)):
-        maha_dist.append(numpy.sqrt(numpy.dot(numpy.dot(numpy.transpose(diff_xy[i]), inv_covariance_xy), diff_xy[i])))
-
-    # TODO: We need to correct the return vector for missing values removed
-    # in the beginning.
-
-    return numpy.array(maha_dist)
-
-
 def multivariate_gaussian(dataframe, confidence=0.975, returnellipse=False, **kwargs):
     """
     Perform multivariate Gaussian distribution outlier detection.
@@ -82,12 +50,17 @@ def multivariate_gaussian(dataframe, confidence=0.975, returnellipse=False, **kw
     Optionally return an matplotlib Ellipse object representing the fitted
     confidance interval
 
-    @param class dataframe: pandas DataFrame instance with multivariate data
-    @param float confidence: the confidence interval to fit on, 0.975 by default
-    @param bool returnellipse: if to return matplotlib Ellipse object
-    @param kwargs: any additional keyword arguments will be passed to Ellipse
+    :param dataframe:     pandas DataFrame instance with multivariate data
+    :type dataframe:      LIEDataFrame
+    :param confidence:    the confidence interval to fit on, 0.975 by default
+    :type confidence:     :py:float
+    :param returnellipse: if to return matplotlib Ellipse object
+    :type returnellipse:  :py:bool
+    :param kwargs:        any additional keyword arguments will be passed to
+                          Ellipse
 
-    @return mixed: array of outliers (0 or 1), optional Ellipse object
+    :return:              array of outliers (0 or 1), optional Ellipse object
+    :rtype:               :numpy:array
     """
 
     # Check if there are Nan's in the dataframe. Remove if found, issue warning

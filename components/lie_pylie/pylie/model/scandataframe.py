@@ -235,6 +235,7 @@ class LIEScanDataFrame(LIEDataFrameBase):
         return dataframe
 
     def get_optimal_range(self, column='error'):
+
         matrix = self.get_matrix(column=column)
 
         cases = []
@@ -337,14 +338,21 @@ class LIEScanDataFrame(LIEDataFrameBase):
 
     def get_cases(self, alpha, beta, error=5):
         """
-        Get cases in alpha/beta range lower than error
+        Get cases in alpha/beta range lower than error.
+
+        The method returns every case that matches the error cutoff in the
+        matrix defined by the parameter range. This likely contains duplicates.
+        Use set to get the unique case IDs or a counter or histogram function
+        to get information on the frequency of occurrence for each case.
 
         :param alpha: Alpha parameter range (start,stop)
-        :ptype alpha: list
+        :ptype alpha: :py:list
         :param beta:  Beta parameter range (start,stop)
-        :ptype beta:  list
+        :ptype beta:  :py:list
         :param error: Absolute error cutoff
-        :ptype error: float
+        :ptype error: :py:float
+
+        :rtype:       :py:list
         """
 
         cases = self[(self['alpha'] > alpha[0]) & (self['alpha'] < alpha[1]) & (self['beta'] > beta[0]) &

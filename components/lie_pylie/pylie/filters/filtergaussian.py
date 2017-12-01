@@ -25,7 +25,12 @@ class FilterGaussian(object):
     def filter(self):
         """
         Pose filtering using multivariate Gaussian Distribution analysis of
-        the VdW and Coul components of the full dataset.
+        the VdW and Coul components of the full data set.
+
+        Outliers are registered by adding 1 to the filter_mask columns for
+        outlier poses. Running the filter method multiple times using
+        different settings will cumulative add the filter count for the
+        poses.
 
         Returns
         -------
@@ -41,7 +46,7 @@ class FilterGaussian(object):
             edgecolor='red',
             facecolor='none')
 
-        # Register outliers
+        # Register outliers.
         self.liedataframe['filter_mask'] = self.liedataframe['filter_mask'].values + numpy.array(outliers)
 
         # Check outliers for any cases leading to all but one pose to be marked as
