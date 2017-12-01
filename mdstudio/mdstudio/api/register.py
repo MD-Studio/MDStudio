@@ -42,22 +42,14 @@ def register(uri, input_schema, output_schema, claim_schema=None, options=None, 
     Store the schema definition and custom scopes in attributes of the function for later processing.
 
     :param uri:             WAMP uri to register on
-    :type uri:              str
     :param input_schema:    JSON schema to check the input.
-    :type input_schema:     ISchema
     :param output_schema:   JSON schema to check the output.
-    :type output_schema:    ISchema
     :param details_arg:     Boolean indicating whether the wrapped function expects a details argument
                             (will be set in the RegisterOptions).
-    :type details_arg:      bool
     :param match:           Matching approach for the uri. Defaults to 'exact' in crossbar.
-    :type match:            str
     :param options:         Options for registration. Created if not provided.
-    :type options:          wamp.RegisterOptions
     :param scope:           Custom scope name within this namespace. If none is provided, only exact uri permission grants access.
-    :type scope:            str
     :return:                Wrapped function with extra attributes
-    :rtype:                 function
     """
 
     if not input_schema:

@@ -122,13 +122,14 @@ class HttpsSchema(ISchema):
 
 
 class EndpointSchema(ISchema):
+    type_name = 'endpoint'
     def __init__(self, uri, versions=None):
         super(EndpointSchema, self).__init__()
         uri_decomposition = re.match(r'([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
         if not uri_decomposition:
-            raise RegisterException('An endpoint schema uri must be in the form "endpoint://<schema path>(/v<versions>), '
+            raise RegisterException('An {0} schema uri must be in the form "{0}://<schema path>(/v<versions>), '
                                     'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
-                                    'We got "endpoint://{}".'.format(uri))
+                                    'We got "endpoint://{1}".'.format(self.type_name, uri))
         self.schema_path = uri_decomposition.group(1)
 
         uri_versions = uri_decomposition.group(3)
@@ -166,6 +167,7 @@ class EndpointSchema(ISchema):
 
 
 class ClaimSchema(EndpointSchema):
+    type_name =  'claims'
     def __init__(self, uri, versions=None):
         super(ClaimSchema, self).__init__(uri, versions)
         self.schema_subdir = 'claims'
