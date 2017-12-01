@@ -6,34 +6,33 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import os
-import sys
 import random
 
 from autobahn import wamp
+from autobahn.twisted.util import sleep
 from autobahn.wamp.types import RegisterOptions
-from autobahn.twisted.util import sleep
-from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
-from autobahn.twisted.util import sleep
+from twisted.internet.defer import inlineCallbacks, returnValue
 
-from mdstudio.application_session import BaseApplicationSession
-from mdstudio.runner import main
-from mdstudio.token_application_session import TokenApplicationSession
+from mdstudio.component.session import ComponentSession
 
 
-class MDWampApi(BaseApplicationSession):
+class MDWampApi(ComponentSession):
 
     """
     MD WAMP methods.
     """
     jobid = 0
 
-    @wamp.register(u'liegroup.md.status', options=RegisterOptions(invoke=u'roundrobin'))
+    def pre_init(self):
+        self.component_config.static.vendor = 'mdgroup'
+        self.component_config.static.component = 'md'
+
+    @wamp.register(u'mdgroup.md.endpoint.status', options=RegisterOptions(invoke=u'roundrobin'))
     def md_status(self):
         
         return 'running job: {0}'.format(self.jobid)
 
-    @wamp.register(u'liegroup.md.run', options=RegisterOptions(invoke=u'roundrobin'))
+    @wamp.register(u'mdgroup.md.endpoint.run', options=RegisterOptions(invoke=u'roundrobin'))
     @inlineCallbacks
     def md_run(self, structure):
 
