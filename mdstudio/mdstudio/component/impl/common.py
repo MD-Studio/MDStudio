@@ -133,7 +133,7 @@ class CommonSession(ApplicationSession):
 
         try:
             result = yield make_original_call()
-        except ApplicationError as e:
+        except ApplicationError:
             result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 
         if 'expired' in result:
@@ -141,7 +141,7 @@ class CommonSession(ApplicationSession):
 
             try:
                 result = yield make_original_call()
-            except ApplicationError as e:
+            except ApplicationError:
                 result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 
         if 'expired' in result:

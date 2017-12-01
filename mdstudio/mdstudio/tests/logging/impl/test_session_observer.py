@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-import time
+
 import os
 from autobahn.wamp import ApplicationError, TransportLost
 from mock import mock, call
@@ -322,7 +322,7 @@ class SessionObserverTests(DBTestCase):
 
     @test_chainable
     def test_start_flushing4(self):
-        with Patcher() as patcher:
+        with Patcher() as _:
             self.observer.session = self.session
             self.observer.sleep = mock.MagicMock()
             self.observer.flushing = True

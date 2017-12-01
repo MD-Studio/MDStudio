@@ -3,6 +3,7 @@ from twisted.internet import defer
 from twisted.internet.defer import Deferred
 
 
+# noinspection PyPep8Naming
 class Chainable(object):
     @property
     def __class__(self):

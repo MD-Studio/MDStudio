@@ -1,5 +1,4 @@
 # coding=utf-8
-from datetime import datetime
 
 import mock
 import pytz
@@ -14,14 +13,11 @@ from mdstudio.db.model import Model
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.db.sort_mode import SortMode
-
-
-# noinspection PyCallByClass
 from mdstudio.deferred.chainable import chainable
 
 
+# noinspection PyCallByClass,PyTypeChecker
 class ModelTests(TestCase):
-
     faker = Faker()
 
     def setUp(self):
@@ -647,9 +643,7 @@ class ModelTests(TestCase):
                                                       sort=None,
                                                       fields=Fields(date_times=['createdAt']))
 
-
         self.model.fields.assert_called_once_with(None)
-
 
     # noinspection PyCallByClass
     @chainable
@@ -1011,13 +1005,13 @@ class ModelTests(TestCase):
         })
 
         self.wrapper.find_one_and_update.assert_called_once_with(self.collection,
-                                                      filter={'_id': 'test_id'},
-                                                      update=self.document2,
-                                                      upsert=False,
-                                                      projection=None,
-                                                      sort=None,
-                                                      return_updated=False,
-                                                      fields=Fields(date_times=['createdAt']))
+                                                                 filter={'_id': 'test_id'},
+                                                                 update=self.document2,
+                                                                 upsert=False,
+                                                                 projection=None,
+                                                                 sort=None,
+                                                                 return_updated=False,
+                                                                 fields=Fields(date_times=['createdAt']))
 
         self.model.fields.assert_called_once_with(None)
 
@@ -1159,13 +1153,13 @@ class ModelTests(TestCase):
         })
 
         self.wrapper.find_one_and_replace.assert_called_once_with(self.collection,
-                                                      filter={'_id': 'test_id'},
-                                                      replacement=self.document2,
-                                                      upsert=False,
-                                                      projection=None,
-                                                      sort=None,
-                                                      return_updated=False,
-                                                      fields=Fields(date_times=['createdAt']))
+                                                                  filter={'_id': 'test_id'},
+                                                                  replacement=self.document2,
+                                                                  upsert=False,
+                                                                  projection=None,
+                                                                  sort=None,
+                                                                  return_updated=False,
+                                                                  fields=Fields(date_times=['createdAt']))
 
         self.model.fields.assert_called_once_with(None)
 
@@ -1257,10 +1251,10 @@ class ModelTests(TestCase):
         })
 
         self.wrapper.find_one_and_delete.assert_called_once_with(self.collection,
-                                                      filter={'_id': 'test_id'},
-                                                      projection=None,
-                                                      sort=None,
-                                                      fields=Fields(date_times=['createdAt']))
+                                                                 filter={'_id': 'test_id'},
+                                                                 projection=None,
+                                                                 sort=None,
+                                                                 fields=Fields(date_times=['createdAt']))
 
         self.model.fields.assert_called_once_with(None)
 

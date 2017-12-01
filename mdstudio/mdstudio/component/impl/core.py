@@ -38,14 +38,15 @@ class CoreComponentSession(CommonSession):
                 except CallException:
                     yield sleep(0.1)
                 except Exception as e:
-                    self.log.error('Component {component} not online, and caught unrecognized exception {exc}.', component=self.component, exc=e)
+                    self.log.error('Component {component} not online, and caught '
+                                   'unrecognized exception {exc}.', component=self.component, exc=e)
                     yield sleep(1)
                 else:
                     yield sleep(0.1)
 
             if tried:
-                self.log.info('{waitee} is now online, continuing execution for {waiter}', waitee=self.component, waiter=self.session.class_name())
-
+                self.log.info('{waitee} is now online, continuing '
+                              'execution for {waiter}', waitee=self.component, waiter=self.session.class_name())
 
     def __init__(self, config=None):
         self.component_waiters = []
@@ -74,7 +75,7 @@ class CoreComponentSession(CommonSession):
 
         for waiter in self.component_waiters:
             yield waiter.wait()
-            
+
         yield super(CoreComponentSession, self)._on_join()
 
     def on_challenge(self, challenge):

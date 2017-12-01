@@ -15,7 +15,7 @@
     <PathMappingSettings>
       <option name="pathMappings">
         <list>
-          <mapping local-root="/" remote-root="/app" />
+          <mapping local-root="$PROJECT_DIR$" remote-root="/app" />
         </list>
       </option>
     </PathMappingSettings>
@@ -23,6 +23,7 @@
     <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
+    <option name="MODULE_MODE" value="false" />
     <method />
   </configuration>
 </component>

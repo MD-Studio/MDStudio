@@ -14,14 +14,14 @@ def today():
     return datetime.now(tz=pytz.utc).date()
 
 
-def to_utc_string(datetime):
-    # type: (datetime) -> str
-    return datetime.astimezone(pytz.utc).isoformat()
+def to_utc_string(ldatetime):
+    # type: (ldatetime) -> str
+    return ldatetime.astimezone(pytz.utc).isoformat()
 
 
-def to_date_string(date):
-    # type: (date) -> str
-    return date.isoformat()
+def to_date_string(ldate):
+    # type: (ldate) -> str
+    return ldate.isoformat()
 
 
 def from_utc_string(dt):
@@ -33,9 +33,9 @@ def from_utc_string(dt):
     return parsed.astimezone(pytz.utc)
 
 
-def from_date_string(date):
-    # type: (str) -> date
-    parsed = parsedate(date)
+def from_date_string(ldate):
+    # type: (str) -> ldate
+    parsed = parsedate(ldate)
     # fix for python < 3.6
     if not parsed.tzinfo:
         parsed = parsed.replace(tzinfo=pytz.utc)

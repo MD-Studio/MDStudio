@@ -589,6 +589,7 @@ class SessionDatabaseWrapperTests(TestCase):
         }, claims={'connectionType': 'user'})
 
 
+# noinspection PyPep8
 class TestSessionDatabaseWrapperDeferred(TestCase):
     def test_extract(self):
         d = {

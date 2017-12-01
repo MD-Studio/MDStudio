@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import os
-
 import pytz
 
 
@@ -24,8 +23,6 @@ class PrintingLogObserver(object):
             'message': message,
             'ws': max(0, 35 - len(pid))
         }
-
-        # log_struct['ws'] = ' ' * max((0, 35 - len(log_struct['source']) - len(log_struct['pid'])))
 
         self.fp.write('{time} [{source:<{ws}} {pid}]  {message}\n'.format(**log_struct))
 

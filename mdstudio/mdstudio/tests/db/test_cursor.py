@@ -6,6 +6,8 @@ from twisted.internet.defer import Deferred
 from mdstudio.db.cursor import Cursor, CursorRefreshingError
 from mdstudio.deferred.chainable import chainable
 
+
+# noinspection PyPep8
 class CursorTests(TestCase):
     def setUp(self):
         self.wrapper = mock.Mock()

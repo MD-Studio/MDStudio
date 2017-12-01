@@ -9,7 +9,6 @@ from mdstudio.utc import now, today, from_utc_string, to_utc_string, to_date_str
 
 
 class TestUTC(TestCase):
-
     faker = Faker()
 
     def test_now(self):

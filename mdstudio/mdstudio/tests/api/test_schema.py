@@ -49,7 +49,7 @@ class ISchemaTests(DBTestCase):
 
                 base_path = self.faker.file_path()
                 schema_path = self.faker.file_path()
-                versions = {self.faker.random_number(3) for i in range(self.faker.random_number(2))}
+                versions = {self.faker.random_number(3) for _ in range(self.faker.random_number(2))}
                 versions.add(self.faker.random_number(3))
                 contents = {}
                 for v in versions:
@@ -132,7 +132,7 @@ class ISchemaTests(DBTestCase):
 
         for i in range(50):
             contents = []
-            for i in range(1 + self.faker.random_number(1)):
+            for _ in range(1 + self.faker.random_number(1)):
                 content = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
                 content['$ref'] = 'http://' + self.faker.domain_name()
                 contents.append(content)
@@ -154,8 +154,8 @@ class ISchemaTests(DBTestCase):
                 base_path = self.faker.file_path()
 
                 base_contents = []
-                for i in range(1 + self.faker.random_number(1)):
-                    versions = {self.faker.random_number(3) for i in range(self.faker.random_number(1))}
+                for _ in range(1 + self.faker.random_number(1)):
+                    versions = {self.faker.random_number(3) for _ in range(self.faker.random_number(1))}
                     versions.add(self.faker.random_number(3))
                     for v in versions:
                         content = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
@@ -188,8 +188,8 @@ class ISchemaTests(DBTestCase):
                 base_path = self.faker.file_path()
 
                 base_contents = []
-                for i in range(1 + self.faker.random_number(1)):
-                    versions = {self.faker.random_number(3) for i in range(self.faker.random_number(1))}
+                for _ in range(1 + self.faker.random_number(1)):
+                    versions = {self.faker.random_number(3) for _ in range(self.faker.random_number(1))}
                     versions.add(self.faker.random_number(3))
                     for v in versions:
                         content = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
@@ -304,7 +304,7 @@ class ISchemaTests(DBTestCase):
 
                 base_path = self.faker.file_path()
                 schema_path = self.faker.file_path()
-                versions = {self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))}
+                versions = {self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))}
                 contents = {}
                 for v in versions:
                     content = self.faker.pydict(4, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
@@ -418,7 +418,7 @@ class EndpointSchemaTests(DBTestCase):
 
         for i in range(50):
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = EndpointSchema('{}/v{}'.format(path, ','.join(str(x) for x in versions)))
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions)
@@ -429,7 +429,7 @@ class EndpointSchemaTests(DBTestCase):
 
         for i in range(50):
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = EndpointSchema('{}/{}'.format(path, ','.join('v' + str(x) for x in versions)))
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions)
@@ -440,7 +440,7 @@ class EndpointSchemaTests(DBTestCase):
 
         for i in range(50):
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = EndpointSchema('{}/{}'.format(path, ','.join(str(x) for x in versions)))
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions)
@@ -451,8 +451,8 @@ class EndpointSchemaTests(DBTestCase):
 
         for i in range(50):
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
-            versions2 = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
+            versions2 = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = EndpointSchema('{}/v{}'.format(path, ','.join(str(x) for x in versions)), versions=versions2)
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions2)
@@ -463,8 +463,8 @@ class EndpointSchemaTests(DBTestCase):
 
         for i in range(50):
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
-            versions2 = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
+            versions2 = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = EndpointSchema('{}/{}'.format(path, ','.join('v' + str(x) for x in versions)), versions=versions2)
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions2)
@@ -475,8 +475,8 @@ class EndpointSchemaTests(DBTestCase):
 
         for i in range(50):
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
-            versions2 = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
+            versions2 = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = EndpointSchema('{}/{}'.format(path, ','.join(str(x) for x in versions)), versions=versions2)
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions2)
@@ -623,7 +623,7 @@ class ResourceSchemaTests(DBTestCase):
             vendor = self.faker.word()
             component = self.faker.word()
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = ResourceSchema('{}/{}/{}/v{}'.format(vendor, component, path, ','.join(str(x) for x in versions)))
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions)
@@ -635,7 +635,7 @@ class ResourceSchemaTests(DBTestCase):
             vendor = self.faker.word()
             component = self.faker.word()
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = ResourceSchema('{}/{}/{}/{}'.format(vendor, component, path, ','.join('v' + str(x) for x in versions)))
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions)
@@ -647,7 +647,7 @@ class ResourceSchemaTests(DBTestCase):
             vendor = self.faker.word()
             component = self.faker.word()
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = ResourceSchema('{}/{}/{}/{}'.format(vendor, component, path, ','.join(str(x) for x in versions)))
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions)
@@ -659,8 +659,8 @@ class ResourceSchemaTests(DBTestCase):
             vendor = self.faker.word()
             component = self.faker.word()
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
-            versions2 = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
+            versions2 = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = ResourceSchema('{}/{}/{}/v{}'.format(vendor, component, path, ','.join(str(x) for x in versions)), versions=versions2)
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions2)
@@ -672,8 +672,8 @@ class ResourceSchemaTests(DBTestCase):
             vendor = self.faker.word()
             component = self.faker.word()
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
-            versions2 = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
+            versions2 = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = ResourceSchema('{}/{}/{}/{}'.format(vendor, component, path, ','.join('v' + str(x) for x in versions)),
                                     versions=versions2)
             self.assertEqual(schema.schema_path, path)
@@ -686,8 +686,8 @@ class ResourceSchemaTests(DBTestCase):
             vendor = self.faker.word()
             component = self.faker.word()
             path = self.faker.file_path().replace('.', '/')
-            versions = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
-            versions2 = list({self.faker.random_number(3) for i in range(2 + self.faker.random_number(1))})
+            versions = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
+            versions2 = list({self.faker.random_number(3) for _ in range(2 + self.faker.random_number(1))})
             schema = ResourceSchema('{}/{}/{}/{}'.format(vendor, component, path, ','.join(str(x) for x in versions)), versions=versions2)
             self.assertEqual(schema.schema_path, path)
             self.assertEqual(schema.versions, versions2)
@@ -726,7 +726,7 @@ class ResourceSchemaTests(DBTestCase):
     def test_flatten(self):
 
         for i in range(50):
-            with Patcher() as patcher:
+            with Patcher() as _:
                 vendor = self.faker.word()
                 component = self.faker.word()
 

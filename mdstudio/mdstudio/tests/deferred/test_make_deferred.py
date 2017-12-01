@@ -6,6 +6,7 @@ from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.deferred.return_value import return_value
 
 
+# noinspection PyUnresolvedReferences
 class TestMakeDeferred(TestCase):
     def setUp(self):
         if not reactor.getThreadPool().started:
@@ -20,9 +21,9 @@ class TestMakeDeferred(TestCase):
 
         test = Test()
 
-        testTest = test.test()
-        self.assertIsInstance(testTest, Chainable)
-        self.assertEqual(3, (yield testTest))
+        test_test = test.test()
+        self.assertIsInstance(test_test, Chainable)
+        self.assertEqual(3, (yield test_test))
 
         return_value({})
 

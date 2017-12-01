@@ -1,7 +1,6 @@
 # coding=utf-8
 import datetime
 
-import binascii
 import pytz
 from copy import deepcopy
 from cryptography.fernet import Fernet
@@ -13,6 +12,7 @@ from mdstudio.db.exception import DatabaseException
 from mdstudio.utc import now
 
 
+# noinspection PyCompatibility
 class FieldsTests(TestCase):
     def test_merge(self):
         field = Fields(dates=['date1'], date_times=['datetime1'], encrypted=['encrypted1'])
@@ -52,7 +52,7 @@ class FieldsTests(TestCase):
         document = {
             'date': '2017-10-26T09:16:00+00:00'
         }
-        f = Fields(date_times=['date','date'])
+        f = Fields(date_times=['date', 'date'])
         f.convert_call(document)
         self.assertEqual(document, {
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)

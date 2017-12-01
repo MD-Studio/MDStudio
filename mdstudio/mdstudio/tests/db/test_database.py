@@ -1,18 +1,13 @@
 # coding=utf-8
-import datetime
-
-import pytz
-from copy import deepcopy
 
 import mock
 from twisted.trial.unittest import TestCase
 
 from mdstudio.db.database import IDatabase
-from mdstudio.db.exception import DatabaseException
 from mdstudio.deferred.chainable import chainable
-from mdstudio.utc import now
 
 
+# noinspection PyPep8,PyUnresolvedReferences
 class DatabaseTests(TestCase):
     @mock.patch.multiple(IDatabase, __abstractmethods__=set())
     @chainable

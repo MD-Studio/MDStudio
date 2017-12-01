@@ -17,6 +17,7 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
+# noinspection PyShadowingBuiltins
 class Model(object):
 
     # type: IDatabase

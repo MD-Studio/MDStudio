@@ -37,10 +37,12 @@ class SessionLogObserver(object):
 
         self.recovery_file_path = os.path.join(session.component_root_path(), 'logs', 'recovery.json')
 
+        # noinspection PyUnresolvedReferences
         twisted.python.log.addObserver(self)
         self.log.info('Collecting logs on session {session}', session=session)
         self.flusher = task.LoopingCall(self.flush_logs)
 
+        # noinspection PyUnresolvedReferences
         reactor.addSystemEventTrigger('before', 'shutdown', self.store_recovery)
 
     def __call__(self, event):
@@ -80,6 +82,7 @@ class SessionLogObserver(object):
         count = len(self.logs)
 
         if count > 0:
+            # noinspection PyBroadException
             try:
                 yield self.session.flush_logs(self.logs)
                 self.logs = []
@@ -115,6 +118,7 @@ class SessionLogObserver(object):
         recovery = self.recovery_file(session)
 
         if os.path.isfile(recovery):
+            # noinspection PyBroadException
             try:
                 with open(recovery, 'r') as recovery_file:
                     self.logs = json.load(recovery_file)

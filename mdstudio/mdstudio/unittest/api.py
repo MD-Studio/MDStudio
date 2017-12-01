@@ -1,6 +1,7 @@
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
+
 class APITestCase(object):
 
     @chainable

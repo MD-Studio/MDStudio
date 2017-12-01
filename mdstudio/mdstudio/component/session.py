@@ -1,10 +1,14 @@
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.db.connection import ConnectionType
+from mdstudio.db.database import IDatabase
 from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.deferred.chainable import chainable
 
 
 class ComponentSession(CommonSession):
+    # type: IDatabase
+    db = None
+
     def on_connect(self):
         auth_methods = ['ticket']
         authid = self.component_config.session.username
