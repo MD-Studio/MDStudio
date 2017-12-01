@@ -273,7 +273,7 @@ class CommonSession(ApplicationSession):
 
             if os.path.isfile(settings_file):
                 with open(settings_file, 'r') as f:
-                    merge_dicts(self.component_config.settings, yaml.load(f))
+                    merge_dicts(self.component_config.settings, yaml.safe_load(f))
 
     def validate_settings(self):
         for path in self.settings_schemas():
