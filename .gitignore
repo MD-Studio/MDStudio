@@ -211,3 +211,5 @@ app/gulpfile.js.map
 app/bower_components/*
 components/*/data
 docker/.USERDONE
+/key.priv
+/key.pub
