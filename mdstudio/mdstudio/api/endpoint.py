@@ -31,7 +31,7 @@ def validation_error(schema, instance, error, prefix, uri):
         )
 
 
-def register(uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
+def endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
     # type: (str, SchemaType, SchemaType, Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
     """
     Decorator for more complete WAMP uri registration

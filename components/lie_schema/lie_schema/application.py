@@ -2,7 +2,7 @@ import json
 
 from lie_schema.exception import SchemaException
 from lie_schema.schema_repository import SchemaRepository
-from mdstudio.api.register import register
+from mdstudio.api.endpoint import endpoint
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
@@ -21,7 +21,7 @@ class SchemaComponent(CoreComponentSession):
         self.claims = SchemaRepository(self.db, 'claims')
         self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
 
-    @register(u'mdstudio.schema.endpoint.upload', {}, {})
+    @endpoint(u'mdstudio.schema.endpoint.upload', {}, {})
     @chainable
     def schema_upload(self, request, claims=None, **kwargs):
         vendor = claims['vendor']
@@ -41,7 +41,7 @@ class SchemaComponent(CoreComponentSession):
                 yield self.claims.upsert(vendor, component, schema, claims)
 
     # @todo: validate using json schema draft
-    @register(u'mdstudio.schema.endpoint.get', {}, {})
+    @endpoint(u'mdstudio.schema.endpoint.get', {}, {})
     @chainable
     def schema_get(self, request, claims=None, **kwargs):
         vendor = claims['vendor']

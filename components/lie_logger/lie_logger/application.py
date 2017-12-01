@@ -11,7 +11,7 @@ from autobahn.wamp import ApplicationError
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.exception import CallException
-from mdstudio.api.register import register
+from mdstudio.api.endpoint import endpoint
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
@@ -61,7 +61,7 @@ class LoggerComponent(CoreComponentSession):
         self.component_waiters.append(self.ComponentWaiter(self, 'db'))
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
 
-    @register('mdstudio.logger.endpoint.log', 'log/log', {})
+    @endpoint('mdstudio.logger.endpoint.log', 'log/log', {})
     @chainable
     def log_event(self, request, claims=None):
         """
@@ -81,7 +81,7 @@ class LoggerComponent(CoreComponentSession):
         else:
             return_value(len(res))
 
-    @register(u'mdstudio.logger.endpoint.get', {}, {})
+    @endpoint(u'mdstudio.logger.endpoint.get', {}, {})
     def get_log_events(self, user):
         """
         Retrieve structured log events from the database

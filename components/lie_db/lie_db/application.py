@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from lie_db.key_repository import KeyRepository
-from mdstudio.api.register import register
+from mdstudio.api.endpoint import endpoint
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.fields import Fields
@@ -55,13 +55,13 @@ class DBComponent(CoreComponentSession):
 
         yield super(DBComponent, self)._on_join()
 
-    @register(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', scope='write')
+    @endpoint(u'mdstudio.db.endpoint.more', 'cursor/more-request/v1', 'cursor/more-response/v1', scope='write')
     def more(self, request, claims=None):
         database = self.get_database(claims)
 
         return database.more(request['cursorId'], claims=claims)
 
-    @register(u'mdstudio.db.endpoint.rewind',
+    @endpoint(u'mdstudio.db.endpoint.rewind',
               'cursor/rewind-request',
               'cursor/rewind-response', scope='write')
     def rewind(self, request, claims=None):
@@ -69,7 +69,7 @@ class DBComponent(CoreComponentSession):
 
         return database.rewind(request['cursorId'], claims=claims)
 
-    @register(u'mdstudio.db.endpoint.insert_one',
+    @endpoint(u'mdstudio.db.endpoint.insert_one',
               'insert/insert-one-request',
               'insert/insert-one-response',
               scope='write')
@@ -81,7 +81,7 @@ class DBComponent(CoreComponentSession):
 
         return database.insert_one(request['collection'], request['insert'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.insert_many',
+    @endpoint(u'mdstudio.db.endpoint.insert_many',
               'insert/insert-many-request',
               'insert/insert-many-response',
               scope='write')
@@ -93,7 +93,7 @@ class DBComponent(CoreComponentSession):
 
         return database.insert_many(request['collection'], request['insert'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.replace_one',
+    @endpoint(u'mdstudio.db.endpoint.replace_one',
               'replace/replace-one-request',
               'replace/replace-one-response',
               scope='write')
@@ -108,7 +108,7 @@ class DBComponent(CoreComponentSession):
         return database.replace_one(request['collection'], request['filter'],
                                     request['replacement'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.count',
+    @endpoint(u'mdstudio.db.endpoint.count',
               'count/count-request',
               'count/count-response', scope='read')
     def count(self, request, claims=None):
@@ -134,7 +134,7 @@ class DBComponent(CoreComponentSession):
 
         return database.count(**kwargs)
 
-    @register(u'mdstudio.db.endpoint.update_one',
+    @endpoint(u'mdstudio.db.endpoint.update_one',
               'update/update-one-request',
               'update/update-one-response',
               scope='write')
@@ -150,7 +150,7 @@ class DBComponent(CoreComponentSession):
         return database.update_one(request['collection'], request['filter'],
                                    request['update'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.update_many',
+    @endpoint(u'mdstudio.db.endpoint.update_many',
               'update/update-many-request',
               'update/update-many-response',
               scope='write')
@@ -166,7 +166,7 @@ class DBComponent(CoreComponentSession):
         return database.update_many(request['collection'], request['filter'],
                                     request['update'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.find_one',
+    @endpoint(u'mdstudio.db.endpoint.find_one',
               'find/find-one-request',
               'find/find-one-response', scope='read')
     def find_one(self, request, claims=None):
@@ -184,7 +184,7 @@ class DBComponent(CoreComponentSession):
 
         return database.find_one(request['collection'], request['filter'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.find_many',
+    @endpoint(u'mdstudio.db.endpoint.find_many',
               'find/find-many-request',
               'find/find-many-response', scope='read')
     def find_many(self, request, claims=None):
@@ -204,7 +204,7 @@ class DBComponent(CoreComponentSession):
 
         return database.find_many(request['collection'], request['filter'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.find_one_and_update',
+    @endpoint(u'mdstudio.db.endpoint.find_one_and_update',
               'find/find-one-and-update-request',
               'find/find-one-and-update-response',
               scope='read')
@@ -226,7 +226,7 @@ class DBComponent(CoreComponentSession):
         return database.find_one_and_update(request['collection'], request['filter'],
                                             request['update'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.find_one_and_replace',
+    @endpoint(u'mdstudio.db.endpoint.find_one_and_replace',
               'find/find-one-and-replace-request',
               'find/find-one-and-replace-response',
               scope='read')
@@ -248,7 +248,7 @@ class DBComponent(CoreComponentSession):
         return database.find_one_and_replace(request['collection'], request['filter'],
                                              request['replacement'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.find_one_and_delete',
+    @endpoint(u'mdstudio.db.endpoint.find_one_and_delete',
               'find/find-one-and-delete-request',
               'find/find-one-and-delete-response',
               scope='read')
@@ -265,7 +265,7 @@ class DBComponent(CoreComponentSession):
 
         return database.find_one_and_delete(request['collection'], request['filter'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.distinct',
+    @endpoint(u'mdstudio.db.endpoint.distinct',
               'distinct/distinct-request',
               'distinct/distinct-response',
               scope='read')
@@ -280,7 +280,7 @@ class DBComponent(CoreComponentSession):
 
         return database.distinct(request['collection'], request['field'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.aggregate',
+    @endpoint(u'mdstudio.db.endpoint.aggregate',
               'aggregate/aggregate-request',
               'aggregate/aggregate-response',
               scope='read')
@@ -288,7 +288,7 @@ class DBComponent(CoreComponentSession):
         database = self.get_database(claims)
         return database.aggregate(request['collection'], request['pipeline'])
 
-    @register(u'mdstudio.db.endpoint.delete_one',
+    @endpoint(u'mdstudio.db.endpoint.delete_one',
               'delete/delete-one',
               'delete/delete-response',
               scope='delete')
@@ -301,7 +301,7 @@ class DBComponent(CoreComponentSession):
 
         return database.delete_one(request['collection'], request['filter'], **kwargs)
 
-    @register(u'mdstudio.db.endpoint.delete_many',
+    @endpoint(u'mdstudio.db.endpoint.delete_many',
               'delete/delete-many',
               'delete/delete-response',
               scope='delete')
