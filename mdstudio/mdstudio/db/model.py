@@ -1,9 +1,6 @@
 # coding=utf-8
 from typing import Optional, Union, Dict, Any, List
 
-from autobahn.twisted import ApplicationSession
-from twisted.internet.defer import Deferred
-
 from mdstudio.db.collection import Collection
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.cursor import Cursor
@@ -12,8 +9,7 @@ from mdstudio.db.database import DocumentType, ProjectionOperators, SortOperator
 from mdstudio.db.fields import Fields
 from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
-from mdstudio.db.session_database import SessionDatabaseWrapper
-from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
 
 
@@ -41,7 +37,7 @@ class Model(object):
             self.collection = collection
 
     def insert_one(self, insert, fields=None):
-        # type: (DocumentType, Optional[Fields]) -> Union[str, Deferred]
+        # type: (DocumentType, Optional[Fields]) -> Union[str, Chainable]
         fields = self.fields(fields)
         insert_one = self.wrapper.insert_one(self.collection,
                                              insert=insert,
@@ -49,7 +45,7 @@ class Model(object):
         return self.wrapper.extract(insert_one, 'id')
 
     def insert_many(self, insert, fields=None):
-        # type: (List[DocumentType], Optional[Fields]) -> Union[List[str], Deferred]
+        # type: (List[DocumentType], Optional[Fields]) -> Union[List[str], Chainable]
         fields = self.fields(fields)
         insert_many = self.wrapper.insert_many(self.collection,
                                                insert=insert,
@@ -67,7 +63,7 @@ class Model(object):
         return self.wrapper.transform(replace_one, ReplaceOneResponse)
 
     def count(self, filter=None, skip=None, limit=None, fields=None, cursor_id=None, with_limit_and_skip=False):
-        # type: (Optional[DocumentType], Optional[int], Optional[int], Optional[Fields], Optional[str], bool) -> Union[int, Deferred]
+        # type: (Optional[DocumentType], Optional[int], Optional[int], Optional[Fields], Optional[str], bool) -> Union[int, Chainable]
         fields = self.fields(fields)
         count = self.wrapper.count(self.collection,
                                    filter=filter,
@@ -79,7 +75,7 @@ class Model(object):
         return self.wrapper.extract(count, 'total')
 
     def update_one(self, filter, update, upsert=False, fields=None):
-        # type: (DocumentType, DocumentType, bool, Optional[Fields]) -> Union[UpdateOneResponse, Deferred]
+        # type: (DocumentType, DocumentType, bool, Optional[Fields]) -> Union[UpdateOneResponse, Chainable]
         fields = self.fields(fields)
         update_one = self.wrapper.update_one(self.collection,
                                              filter=filter,
@@ -89,7 +85,7 @@ class Model(object):
         return self.wrapper.transform(update_one, UpdateOneResponse)
 
     def update_many(self, filter, update, upsert=False, fields=None):
-        # type: (DocumentType, DocumentType, bool, Optional[Fields]) -> Union[UpdateManyResponse, Deferred]
+        # type: (DocumentType, DocumentType, bool, Optional[Fields]) -> Union[UpdateManyResponse, Chainable]
         fields = self.fields(fields)
         update_many = self.wrapper.update_many(self.collection,
                                                filter=filter,
@@ -100,7 +96,7 @@ class Model(object):
 
     @chainable
     def find_one(self, filter, projection=None, skip=None, sort=None, fields=None):
-        # type: (DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[Fields]) -> Union[Optional[dict], Deferred]
+        # type: (DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one(self.collection,
                                        filter=filter,
@@ -128,7 +124,7 @@ class Model(object):
 
     @chainable
     def find_one_and_update(self, filter, update, upsert=False, projection=None, sort=None, return_updated=False, fields=None):
-        # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Union[Optional[dict], Deferred]
+        # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one_and_update(self.collection,
                                                   filter=filter,
@@ -145,7 +141,7 @@ class Model(object):
 
     @chainable
     def find_one_and_replace(self, filter, replacement, upsert=False, projection=None, sort=None, return_updated=False, fields=None):
-        # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Union[Optional[dict], Deferred]
+        # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one_and_replace(self.collection,
                                                    filter=filter,
@@ -163,7 +159,7 @@ class Model(object):
 
     @chainable
     def find_one_and_delete(self, filter, projection=None, sort=None, fields=None):
-        # type: (DocumentType, Optional[ProjectionOperators], SortOperators, Optional[Fields]) -> Union[Optional[dict], Deferred]
+        # type: (DocumentType, Optional[ProjectionOperators], SortOperators, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one_and_delete(self.collection,
                                                   filter=filter,
@@ -177,7 +173,7 @@ class Model(object):
         return_value(result)
 
     def distinct(self, field, filter=None, fields=None):
-        # type: (str, Optional[DocumentType], Optional[Fields]) -> Union[List[dict], Deferred]
+        # type: (str, Optional[DocumentType], Optional[Fields]) -> Union[List[dict], Chainable]
         fields = self.fields(fields)
         results = self.wrapper.distinct(self.collection,
                                         field=field,
@@ -192,7 +188,7 @@ class Model(object):
         return self.wrapper.make_cursor(results, None)
 
     def delete_one(self, filter, fields=None):
-        # type: (DocumentType, Optional[Fields]) -> Union[int, Deferred]
+        # type: (DocumentType, Optional[Fields]) -> Union[int, Chainable]
         fields = self.fields(fields)
         delete_one = self.wrapper.delete_one(self.collection,
                                              filter=filter,
@@ -200,7 +196,7 @@ class Model(object):
         return self.wrapper.extract(delete_one, 'count')
 
     def delete_many(self, filter, fields=None):
-        # type: (DocumentType, Optional[Fields]) -> Union[int, Deferred]
+        # type: (DocumentType, Optional[Fields]) -> Union[int, Chainable]
         fields = self.fields(fields)
         delete_many = self.wrapper.delete_many(self.collection,
                                                filter=filter,
