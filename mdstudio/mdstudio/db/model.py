@@ -1,7 +1,6 @@
 # coding=utf-8
 from typing import Optional, Union, Dict, Any, List
 
-from autobahn.twisted import ApplicationSession
 from twisted.internet.defer import Deferred
 
 from mdstudio.db.collection import Collection
@@ -12,14 +11,12 @@ from mdstudio.db.database import DocumentType, ProjectionOperators, SortOperator
 from mdstudio.db.fields import Fields
 from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
-from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 
 # noinspection PyShadowingBuiltins
 class Model(object):
-
     # type: IDatabase
     wrapper = None
 

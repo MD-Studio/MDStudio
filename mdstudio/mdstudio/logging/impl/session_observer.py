@@ -19,8 +19,6 @@ from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
 from mdstudio.utc import to_utc_string
 
-LOGLEVELS = ['debug', 'info', 'warn', 'error', 'critical']
-
 
 @six.add_metaclass(Singleton)
 class SessionLogObserver(object):

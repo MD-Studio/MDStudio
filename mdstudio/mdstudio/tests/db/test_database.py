@@ -31,4 +31,3 @@ class DatabaseTests(TestCase):
         }
         self.assertEqual(db.extract(d, 'test'), 2)
         self.assertEqual(db.extract(d, 'test2'), 3)
-

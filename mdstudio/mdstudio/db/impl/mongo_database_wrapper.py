@@ -10,13 +10,13 @@ from bson import ObjectId
 from pymongo import ReturnDocument
 from pymongo.cursor import Cursor
 
+from mdstudio.compat import unicode
 from mdstudio.db.cache_dict import CacheDict
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, SortOperators, \
     ProjectionOperators, AggregationOperator
 from mdstudio.db.exception import DatabaseException
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
-from mdstudio.compat import unicode
 from mdstudio.logging.logger import Logger
 
 

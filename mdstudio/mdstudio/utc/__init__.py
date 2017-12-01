@@ -1,6 +1,6 @@
-import pytz
 from datetime import datetime, date
 
+import pytz
 from dateutil.parser import parse as parsedate
 
 

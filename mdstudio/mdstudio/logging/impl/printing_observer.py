@@ -25,4 +25,3 @@ class PrintingLogObserver(object):
         }
 
         self.fp.write('{time} [{source:<{ws}} {pid}]  {message}\n'.format(**log_struct))
-

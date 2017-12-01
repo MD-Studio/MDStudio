@@ -1,7 +1,7 @@
 # coding=utf-8
 import mock
-from twisted.trial.unittest import TestCase
 from twisted.internet.defer import Deferred
+from twisted.trial.unittest import TestCase
 
 from mdstudio.db.cursor import Cursor, CursorRefreshingError
 from mdstudio.deferred.chainable import chainable

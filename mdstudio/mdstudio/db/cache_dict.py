@@ -16,8 +16,8 @@
 # limitations under the License.
 
 import time
-from threading import RLock
 from collections import OrderedDict
+from threading import RLock
 
 
 class CacheDict(OrderedDict):

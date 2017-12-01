@@ -1,6 +1,5 @@
-from unittest import TestCase
-
 from datetime import datetime, timedelta
+from unittest import TestCase
 
 import pytz
 from faker import Faker
