@@ -12,7 +12,7 @@ from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
 
 
-class TestWampService(DBTestCase, APITestCase):
+class TestSchemaComponent(DBTestCase, APITestCase):
     faker = Faker()
 
     def setUp(self):

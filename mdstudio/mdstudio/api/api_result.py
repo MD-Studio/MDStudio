@@ -13,3 +13,19 @@ class APIResult(dict):
 
         if expired is not None:
             self['expired'] = expired
+
+    @property
+    def result(self):
+        return self['result']
+
+    @property
+    def error(self):
+        return self['error']
+
+    @property
+    def warning(self):
+        return self['warning']
+
+    @property
+    def expired(self):
+        return self['expired']

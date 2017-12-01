@@ -6,6 +6,7 @@ import copy
 import hashlib
 import pytz
 import random
+import six
 from bson import ObjectId
 from pymongo import ReturnDocument
 from pymongo.cursor import Cursor
@@ -395,7 +396,7 @@ class MongoDatabaseWrapper(IDatabase):
             return sort
 
         def _convert_mode(mode_str):
-            if isinstance(mode_str, (str, unicode)):
+            if isinstance(mode_str, six.text_type):
                 mode_str = SortMode.Desc if mode_str == "desc" else SortMode.Asc
             return int(mode_str)
 

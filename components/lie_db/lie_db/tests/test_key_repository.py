@@ -9,6 +9,7 @@ from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
 
 
+# noinspection PyCompatibility
 class TestKeyRepository(DBTestCase):
     fake = Faker()
 

@@ -22,7 +22,8 @@
             "type": "string"
           },
           "time": {
-            "format": "date-time"
+            "format": "date-time",
+            "type": "string"
           },
           "message": {
             "type": "string"

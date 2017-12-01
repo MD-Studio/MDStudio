@@ -1,6 +1,7 @@
 import json
 from typing import Union, Optional, Callable
 
+import six
 from autobahn import wamp
 from autobahn.wamp import RegisterOptions
 from jsonschema import ValidationError
@@ -53,14 +54,14 @@ def endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, 
     if not input_schema:
         # print('Input on {uri} is not checked'.format(uri=uri))
         input_schema = InlineSchema({})
-    elif isinstance(input_schema, (str, unicode)):
+    elif isinstance(input_schema, six.text_type):
         input_schema = EndpointSchema(input_schema)
     elif isinstance(input_schema, dict):
         input_schema = InlineSchema(input_schema)
 
     if not output_schema:
         output_schema = InlineSchema({})
-    elif isinstance(output_schema, (str, unicode)):
+    elif isinstance(output_schema, six.text_type):
         output_schema = EndpointSchema(output_schema)
     elif isinstance(output_schema, dict):
         output_schema = InlineSchema(output_schema)
@@ -69,7 +70,7 @@ def endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, 
 
     if not claim_schema:
         pass
-    elif isinstance(claim_schema, (str, unicode)):
+    elif isinstance(claim_schema, six.text_type):
         claim_schema = ClaimSchema(claim_schema)
         claim_schemas.append(claim_schema)
     elif isinstance(claim_schema, dict):
