@@ -8,7 +8,6 @@ from copy import deepcopy
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
-from lie_db.key_repository import KeyRepository
 from mdstudio.compat import unicode
 from mdstudio.db.exception import DatabaseException
 from mdstudio.utc import from_utc_string, from_date_string
