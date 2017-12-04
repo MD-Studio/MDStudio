@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-file: cheminfo_utils.py
+file: cheminfo_molhandle.py
 
-Cinfony driven cheminformatics utility functions
+Cinfony driven cheminformatics molecule read, write and manipulate functions
 """
 
 import os
@@ -14,7 +14,7 @@ from twisted.logger import Logger
 
 logging = Logger()
 packages = {'pybel': None, 'indy': None, 'rdk': None, 'cdk': None,
-            'webel': None, 'opsin': None, 'jchem': None}
+            'webel': None, 'opsin': None, 'jchem': None, 'silverwebel': None}
 
 for package in packages:
     try:
@@ -34,7 +34,7 @@ def mol_read(
 
     toolkit_driver = packages.get(toolkit, fallback)
 
-    # Get molecular file format from file extention if path
+    # Get molecular file format from file extension if path
     if not mol_format and from_file:
         mol_format = mol.split('.')[-1] or None
 
@@ -68,7 +68,8 @@ def mol_write(molobject, mol_format=None, file_path=None, fallback='webel'):
     toolkit_driver = packages.get(molobject.toolkit, fallback)
 
     mol_format = mol_format or getattr(molobject, 'mol_format', None)
-    assert mol_format in toolkit_driver.informats, logging.error('Molecular file format "{0}" not supported by {1}'.format(mol_format, toolkit))
+    assert mol_format in toolkit_driver.informats, logging.error('Molecular file format "{0}" not supported by {1}'.
+                                                                 format(mol_format, molobject.toolkit))
 
     output = molobject.write(mol_format, file_path, overwrite=True)
 
