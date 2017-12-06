@@ -21,3 +21,27 @@ __rootpath__ = os.path.dirname(__file__)
 
 from .settings import STRUCTURES_SCHEMA as structures_schema
 from .settings import settings
+from .cheminfo_pkgmanager import CinfonyPackageManager
+
+packages = {'pybel': None,
+    'indy': {
+        'INDIGO_PATH': '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/indigo-python-1.3.0beta.r16-mac'
+    },
+    'rdk': {
+        'RDKIT_PATH': '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/RDkit'
+    },
+    'cdk': {
+        'JPYPE_JVM': '/System/Library/Frameworks/JavaVM.framework/JavaVM',
+        'JVM_LD_LIB': '/System/Library/Frameworks/JavaVM.framework/Libraries',
+        'CDK_JAR_PATH': '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/cdk-1.4.15.jar'
+    },
+    'webel': None,
+    'opsin': {
+        'JPYPE_JVM': '/System/Library/Frameworks/JavaVM.framework/JavaVM',
+        'OPSIN_JAR_PATH': '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/opsin-1.3.0-jar-with-dependencies.jar'
+    },
+    'jchem': None,
+    'silverwebel': None
+}
+
+toolkits = CinfonyPackageManager(packages)
