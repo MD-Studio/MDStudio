@@ -20,7 +20,7 @@ from Bio.PDB.PDBParser import PDBParser
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_structures import settings
 from lie_structures.settings import _schema_to_data, STRUCTURES_SCHEMA, BIOPYTHON_SCHEMA
-from lie_structures.cheminfo_utils import (
+from lie_structures.cheminfo_handle import (
      mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write, mol_combine_rotations)
 
 STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))

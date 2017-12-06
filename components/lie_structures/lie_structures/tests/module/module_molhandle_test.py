@@ -4,14 +4,13 @@
 Unit tests for the Open Babel methods
 """
 
-import os
 import unittest2
 import filecmp
 
-from lie_structures.cheminfo_utils import *
+from lie_structures.cheminfo_molhandle import *
 
 
-class CheminfoTests(unittest2.TestCase):
+class CheminfoMolhandleTests(unittest2.TestCase):
 
     tmp_files = []
     currpath = os.path.dirname(__file__)
@@ -121,7 +120,7 @@ class CheminfoTests(unittest2.TestCase):
         self.tmp_files.append(out)
         mol_write(mol_make3D(mol), file_path=out, mol_format='mol2')
         self.assertTrue(filecmp.cmp(out, os.path.join(self.currpath, '../files/ccncc_1d.mol2')))
-    
+
     def test_rotation(self):
         
         mol = mol_read(self.ligand, mol_format='mol2')
