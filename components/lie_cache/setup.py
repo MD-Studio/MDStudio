@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# package: lie_cli
+# package: lie_cache
 # file: setup.py
 #
-# Part of ‘lie_cli’, a package providing cli access for the LIEStudio
+# Part of ‘lie_cache’, a package providing MongoDB access for the MDStudio
 # package.
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
@@ -23,25 +23,31 @@
 
 from setuptools import setup, find_packages
 
-distribution_name = 'lie_cli'
+
+def pipenv_requires():
+    from pipenv.project import Project
+    from pipenv.utils import convert_deps_to_pip
+
+    pfile = Project(chdir=True).parsed_pipfile
+    return convert_deps_to_pip(pfile['packages'], r=False)
 
 
+distribution_name = 'lie_cache'
 setup(
     name=distribution_name,
     version='1.0.0',
     license='Apache Software License 2.0',
-    description='CLI component for the LIEStudio application',
+    description='Redis drivers for the MDStudio application',
     author='Marc van Dijk - VU University - Amsterdam,' \
            'Paul Visscher - Zefiros Software (www.zefiros.eu),' \
            'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
     author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
     url='https://github.com/MD-Studio/MDStudio',
-    keywords='LIEStudio CLI',
+    keywords='MongoDB PyMongo MDStudio database',
     platforms=['Any'],
     packages=find_packages(),
-    package_data={'': ['*.json']},
     py_modules=[distribution_name],
-    install_requires=['mdstudio'],
+    install_requires=pipenv_requires(),
     test_suite="tests",
     include_package_data=True,
     zip_safe=True,
@@ -49,7 +55,7 @@ setup(
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
-        'Topic :: System',
+        'Topic :: Database',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
     ],

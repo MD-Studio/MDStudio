@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "CacheSettings",
+  "type": "object",
+  "properties": {
+    "settings": {
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "port": {
+              "type": "integer"
+            },
+            "host": {
+              "type": "string"
+            },
+            "required": [
+              "host",
+              "port"
+            ]
+          },
+          "default": [
+            {
+              "host": "redis",
+              "port": 7000
+            },
+            {
+              "host": "redis",
+              "port": 7001
+            }
+          ]
+        }
+      }
+    }
+  },
+  "required": [
+    "settings"
+  ]
+}

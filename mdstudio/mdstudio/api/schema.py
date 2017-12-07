@@ -4,7 +4,7 @@ import jsonschema
 import os
 import re
 import six
-from jsonschema import FormatChecker
+from jsonschema import FormatChecker, Draft4Validator
 
 from mdstudio.api.exception import RegisterException
 from mdstudio.api.singleton import Singleton
@@ -240,5 +240,22 @@ class ResourceSchema(ISchema):
             })
 
 
+def extend_with_default(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for property, subschema in properties.items():
+            if "default" in subschema:
+                instance.setdefault(property, subschema["default"])
+
+        for error in validate_properties(validator, properties, instance, schema):
+            yield error
+
+    return jsonschema.validators.extend(validator_class, {"properties": set_defaults})
+
+
+DefaultValidatingDraft4Validator = extend_with_default(Draft4Validator)
+
+
 def validate_json_schema(schema_def, instance):
-    jsonschema.validate(instance, schema_def, format_checker=FormatChecker())
+    DefaultValidatingDraft4Validator(schema_def, format_checker=FormatChecker()).validate(instance)

@@ -35,6 +35,7 @@ if __name__ == '__main__':
             "role": role
         } for role, component in OrderedDict([
             ('auth', 'Auth'),
+            ('cache', 'Cache'),
             ('db', 'DB'),
             ('schema', 'Schema'),
             ('logger', 'Logger')

@@ -9,12 +9,12 @@
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^(namespace-)?[a-zA-Z0-9_\\.]+$",
+          "pattern": "^[a-zA-Z0-9_\\.]+$",
           "minLength": 2
         },
         "namespace": {
           "type": "string",
-          "pattern": "^(namespace-)?[a-zA-Z0-9_\\.]+$"
+          "pattern": "^[a-zA-Z0-9_\\.]+$"
         }
       },
       "required": [

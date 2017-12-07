@@ -37,7 +37,7 @@ class SessionLogObserver(object):
 
         # noinspection PyUnresolvedReferences
         twisted.python.log.addObserver(self)
-        self.log.info('Collecting logs on session {session}', session=session)
+        self.log.info('Collecting logs on session "{session}"', session=session.__class__.__name__)
         self.flusher = task.LoopingCall(self.flush_logs)
 
         # noinspection PyUnresolvedReferences
