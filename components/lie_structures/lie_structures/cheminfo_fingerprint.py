@@ -11,6 +11,7 @@ import logging
 from itertools import combinations
 from twisted.logger import Logger
 from scipy.spatial.distance import squareform
+from numpy import array
 
 from . import toolkits
 
@@ -126,4 +127,4 @@ def mol_fingerprint_pairwise_similarity(fps, toolkit, metric='tanimoto'):
     for comb in combinations(fps, 2):
         condensed_matrix.append(mol_fingerprint_comparison(comb[0], comb[1], toolkit, metric=metric))
 
-    return squareform(condensed_matrix)
+    return squareform(array(condensed_matrix))

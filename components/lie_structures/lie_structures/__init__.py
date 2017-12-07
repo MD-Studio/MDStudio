@@ -4,6 +4,13 @@
 package:  lie_structures
 
 LIEStudio small molecule cheminformatics functions
+
+TODO: Include pydpi package?
+TODO: Incluce PyBioMed package?
+TODO: Include pychem (ChemoPy) package?
+TODO: Integrate Cambridge Structural Database, using CSD Python API
+TODO: Integrate PaDEL-Descriptor package?
+TODO: Integrate PyDescriptor package?
 """
 
 import os

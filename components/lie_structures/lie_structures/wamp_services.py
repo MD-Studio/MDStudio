@@ -20,14 +20,15 @@ from Bio.PDB.PDBParser import PDBParser
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_structures import settings
 from lie_structures.settings import _schema_to_data, STRUCTURES_SCHEMA, BIOPYTHON_SCHEMA
-from lie_structures.cheminfo_handle import (
+from lie_structures.cheminfo_molhandle import (
      mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write, mol_combine_rotations)
+from lie_structures.cheminfo_wamp.cheminfo_descriptors_wamp import CheminfoDescriptorsWampApi
 
 STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))
 BIOPYTHON_SCHEMA = json.load(open(BIOPYTHON_SCHEMA))
 
 
-class StructuresWampApi(LieApplicationSession):
+class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi):
     """
     Structure database WAMP methods.
     """
