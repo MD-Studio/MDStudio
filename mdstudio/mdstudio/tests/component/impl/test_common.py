@@ -244,7 +244,7 @@ class TestCommonSession(TestCase):
             patcher.fs.CreateFile(file2, contents='{"settings": {"test": 3}}')
             self.session = TestSession()
 
-            self.assertEqual(self.session.component_config.settings['test'], 3)
+            self.assertEqual(self.session.component_config.settings['test'], 2)
 
     def test_load_settings_dot_yaml_over_dot_json(self):
         class TestSession(CommonSession):
@@ -290,12 +290,74 @@ class TestCommonSession(TestCase):
                          os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../schemas')))
 
     def test_settings_files(self):
-        self.assertEqual(self.session.settings_files(), [
-            'settings.json',
-            'settings.yml',
-            '.settings.json',
-            '.settings.yml'
-        ])
+
+        with mock.patch.dict('os.environ'):
+            os.environ = {}
+            self.assertEqual(self.session.settings_files(), [
+                'settings.json',
+                '.settings.json',
+                'settings.yml',
+                '.settings.yml'
+            ])
+
+    def test_settings_files2(self):
+
+        with mock.patch.dict('os.environ'):
+            os.environ = {
+                'MD_CONFIG_ENVIRONMENTS': 'docker'
+            }
+            self.assertEqual(self.session.settings_files(), [
+                'settings.json',
+                '.settings.json',
+                'settings.yml',
+                '.settings.yml',
+                'settings.docker.json',
+                '.settings.docker.json',
+                'settings.docker.yml',
+                '.settings.docker.yml'
+            ])
+
+    def test_settings_files3(self):
+
+        with mock.patch.dict('os.environ'):
+            os.environ = {
+                'MD_CONFIG_ENVIRONMENTS': 'docker,dev'
+            }
+            self.assertEqual(self.session.settings_files(), [
+                'settings.json',
+                '.settings.json',
+                'settings.yml',
+                '.settings.yml',
+                'settings.docker.json',
+                '.settings.docker.json',
+                'settings.docker.yml',
+                '.settings.docker.yml',
+                'settings.dev.json',
+                '.settings.dev.json',
+                'settings.dev.yml',
+                '.settings.dev.yml'
+            ])
+
+    def test_settings_files4(self):
+
+        with mock.patch.dict('os.environ'):
+            os.environ = {
+                'MD_CONFIG_ENVIRONMENTS': 'docker,dev,'
+            }
+            self.assertEqual(self.session.settings_files(), [
+                'settings.docker.json',
+                '.settings.docker.json',
+                'settings.docker.yml',
+                '.settings.docker.yml',
+                'settings.dev.json',
+                '.settings.dev.json',
+                'settings.dev.yml',
+                '.settings.dev.yml',
+                'settings.json',
+                '.settings.json',
+                'settings.yml',
+                '.settings.yml'
+            ])
 
     def test_settings_schemas(self):
         self.assertEqual(self.session.settings_schemas(), [

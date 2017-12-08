@@ -928,6 +928,41 @@ class ValidateTests(TestCase):
     def test_validate_json_schema(self):
         validate_json_schema({'format': 'uri', 'type': 'string'}, 'https://example.com')
 
+    def test_validate_json_schema_default(self):
+        doc = {'test': 2}
+        validate_json_schema({
+            'type': 'object',
+            'properties': {
+                'test': {
+                    'type': 'integer'
+                },
+                'test2': {
+                    'type': 'integer',
+                    'default': 5
+                }
+            }
+        }, doc)
+        self.assertEqual(doc, {
+            'test': 2,
+            'test2': 5
+        })
+
+    def test_validate_json_schema_default2(self):
+        doc = {'test': "string"}
+        self.assertRaises(ValidationError, validate_json_schema, {
+            'type': 'object',
+            'properties': {
+                'test': {
+                    'type': 'integer',
+                    'default': 5
+                },
+                'test2': {
+                    'type': 'integer',
+                    'default': 5
+                }
+            }
+        }, doc)
+
     def test_validate_json_schema_fail(self):
         self.assertRaises(ValidationError, validate_json_schema, {'format': 'uri', 'type': 'string'}, 2)
 
@@ -941,7 +976,7 @@ class MDStudioClaimSchemaTests(TestCase):
             session = mock.MagicMock()
             session.mdstudio_schemas_path = mock.MagicMock(return_value='schemas')
 
-            patcher.fs.CreateFile('schemas/claims.json', contents='{"test": "json"}')
+            patcher.fs.CreateFile('schemas/claims.v1.json', contents='{"test": "json"}')
             schema = MDStudioClaimSchema(session)
             self.assertIs(schema, MDStudioClaimSchema(session))
             self.assertEqual(schema.to_schema(), {'test': 'json'})

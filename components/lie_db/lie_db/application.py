@@ -26,11 +26,13 @@ class DBComponent(CoreComponentSession):
 
         self.load_environment(OrderedDict([
             ('host', (['MD_MONGO_HOST'], None)),
-            ('port', (['MD_MONGO_PORT'], None)),
+            ('port', (['MD_MONGO_PORT'], None, int)),
             ('secret', (['MD_MONGO_SECRET'], None))
         ]))
 
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
+
+        self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
 
         super(DBComponent, self).pre_init()
 
@@ -40,9 +42,6 @@ class DBComponent(CoreComponentSession):
                                                          'Please modify your configuration or set "MD_MONGO_SECRET"'
         assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! ' \
                                                                     'Please make sure it is larger than it is now.'
-
-        self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
-
         self._set_secret()
 
         self.database_lock = Lock()
