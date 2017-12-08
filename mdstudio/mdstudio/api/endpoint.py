@@ -73,7 +73,7 @@ class WampEndpoint(object):
         if 'error' in result:
             return_value(result)
 
-        result_errors = self.validate_result(result.result)
+        result_errors = self.validate_result(result.data)
         if result_errors:
             return_value(result_errors)
 
@@ -135,7 +135,7 @@ class WampEndpoint(object):
 
     @staticmethod
     def _to_schema(schema, schema_type, default_schema=None):
-        if isinstance(schema, six.text_type):
+        if isinstance(schema, (six.text_type, str)):
             schema = schema_type(schema)
         elif isinstance(schema, dict):
             schema = InlineSchema(schema)

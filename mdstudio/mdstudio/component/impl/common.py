@@ -141,7 +141,7 @@ class CommonSession(ApplicationSession):
             res = yield super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs)
 
             if not isinstance(res, dict):
-                res = APIResult(result=res)
+                res = APIResult(res)
 
             return_value(res)
 
