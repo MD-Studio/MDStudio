@@ -56,4 +56,4 @@ class SessionCacheWrapper(ICache):
         return self._call('forget', request)
 
     def _call(self, uri, request):
-        return self.session.call('mdstudio.cache.endpoint.{}'.format(uri), request, claims=self.session.call_context.get_cache_claims(self.connection_type))
+        return self.session.call('mdstudio.cache.endpoint.{}'.format(uri), request, claims=self.session.call_context.get_cache_claims(self.cache_type))
