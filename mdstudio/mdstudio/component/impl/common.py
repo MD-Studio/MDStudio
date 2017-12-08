@@ -167,10 +167,10 @@ class CommonSession(ApplicationSession):
         if 'warning' in result:
             self.log.warn(result['warning'])
 
-        if 'result' not in result:
-            result['result'] = None
+        if 'data' not in result:
+            result['data'] = None
 
-        return_value(result['result'])
+        return_value(result['data'])
 
     @chainable
     def publish(self, topic, claims=None, options=None):
@@ -433,7 +433,23 @@ class CommonSession(ApplicationSession):
 
     @classmethod
     def settings_files(cls):
-        return ['settings.json', 'settings.yml', '.settings.json', '.settings.yml']
+        extensions = ['json', 'yml']
+        prefixes = ['', '.']
+        envs = cls.environments()
+        if '' not in envs:
+            envs.insert(0, '')
+        result = []
+        for env in envs:
+            if env:
+                env = '.{}'.format(env)
+            for ext in extensions:
+                for p in prefixes:
+                    result.append('{}settings{}.{}'.format(p,env,ext))
+        return result
+
+    @classmethod
+    def environments(cls):
+        return os.getenv('MD_CONFIG_ENVIRONMENTS', '').split(',')
 
     @classmethod
     def settings_schemas(cls):

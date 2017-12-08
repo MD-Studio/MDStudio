@@ -150,6 +150,7 @@ class WampEndpoint(object):
 
 
 def endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
+    # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
     def wrap_f(f):
         return WampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
 

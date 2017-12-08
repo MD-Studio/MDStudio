@@ -1,8 +1,9 @@
 from autobahn.wamp import auth
 
 from mdstudio.api.exception import CallException
+from mdstudio.cache.session_cache import SessionCacheWrapper
 from mdstudio.component.impl.common import CommonSession
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
@@ -53,6 +54,7 @@ class CoreComponentSession(CommonSession):
     def __init__(self, config=None):
         self.component_waiters = []
         self.db = SessionDatabaseWrapper(self, ConnectionType.User)
+        self.cache = SessionCacheWrapper(self, ConnectionType.User)
         super(CoreComponentSession, self).__init__(config)
 
     def pre_init(self):

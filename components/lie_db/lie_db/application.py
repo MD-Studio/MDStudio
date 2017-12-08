@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from lie_db.key_repository import KeyRepository
 from mdstudio.api.endpoint import endpoint
 from mdstudio.component.impl.core import CoreComponentSession
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.fields import Fields
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import chainable
@@ -25,12 +25,10 @@ class DBComponent(CoreComponentSession):
     def pre_init(self):
 
         self.load_environment(OrderedDict([
-            ('host', (['MD_MONGO_HOST'], 'localhost')),
-            ('port', (['MD_MONGO_PORT'], 27017, int)),
+            ('host', (['MD_MONGO_HOST'], None)),
+            ('port', (['MD_MONGO_PORT'], None)),
             ('secret', (['MD_MONGO_SECRET'], None))
         ]))
-
-        self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
 
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
 
@@ -42,6 +40,8 @@ class DBComponent(CoreComponentSession):
                                                          'Please modify your configuration or set "MD_MONGO_SECRET"'
         assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! ' \
                                                                     'Please make sure it is larger than it is now.'
+
+        self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
 
         self._set_secret()
 

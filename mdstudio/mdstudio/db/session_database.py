@@ -1,7 +1,7 @@
 # coding=utf-8
 from typing import Dict, Any, List, Optional
 
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, ProjectionOperators, \
     SortOperators, AggregationOperator

@@ -54,3 +54,12 @@ class CacheDict(OrderedDict):
         except KeyError:
             pass
         return False
+
+    def purge(self):
+
+        with self.lock:
+            n = time.time()
+            for k,v in self.items():
+                if (n - v[1]) > self.max_age:
+                    del v
+

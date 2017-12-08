@@ -75,7 +75,7 @@ class AuthComponent(CoreComponentSession):
         else:
             group_role = None
 
-        if role in ['db', 'schema', 'auth', 'logger']:
+        if role in ['db', 'cache', 'schema', 'auth', 'logger']:
             claims['username'] = role
 
             if group is not None:

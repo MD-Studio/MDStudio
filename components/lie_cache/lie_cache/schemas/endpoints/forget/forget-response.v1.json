@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "ForgetResponse",
+  "type": "object",
+  "properties": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

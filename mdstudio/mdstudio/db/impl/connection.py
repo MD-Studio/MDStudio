@@ -2,13 +2,15 @@ import six
 
 from mdstudio.api.singleton import Singleton
 from mdstudio.db.session_database import SessionDatabaseWrapper
+from mdstudio.session import GlobalSession
 
 
 @six.add_metaclass(Singleton)
 class GlobalConnection(object):
-    def __init__(self, session=None):
-        assert session, "Tried to get session without initialising first"
-        self._session = session
+    def __init__(self):
+        assert GlobalSession().session, "Tried to get session without initialising first"
+        self._session = GlobalSession().session
 
-    def get_wrapper(self, connection_type):
-        return SessionDatabaseWrapper(self._session, connection_type)
+    @staticmethod
+    def get_wrapper(connection_type):
+        return SessionDatabaseWrapper(GlobalConnection()._session, connection_type)

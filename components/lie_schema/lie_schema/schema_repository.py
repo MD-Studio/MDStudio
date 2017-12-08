@@ -8,7 +8,7 @@ from jsonschema import Draft4Validator, SchemaError
 
 import mdstudio.utc as utc
 from lie_schema.exception import SchemaException
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.database import IDatabase
 from mdstudio.db.model import Model
 from mdstudio.db.session_database import SessionDatabaseWrapper

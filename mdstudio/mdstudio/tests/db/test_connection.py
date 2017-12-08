@@ -1,7 +1,7 @@
 # coding=utf-8
 import unittest
 
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 
 
 class ConnectionTypeTests(unittest.TestCase):
