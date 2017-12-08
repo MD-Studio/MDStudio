@@ -1,21 +1,22 @@
 import inspect
 import json
 import os
+import re
 from collections import OrderedDict
 from copy import deepcopy
+from hashlib import sha512
 
-import re
 import yaml
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp import PublishOptions, ApplicationError
 from autobahn.wamp.request import Publication
-from twisted.python.failure import Failure
 from twisted.python.failure import Failure
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.context import UserContext, GroupRoleContext, GroupContext
 from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.exception import CallException
+from mdstudio.api.request_hash import request_hash
 from mdstudio.api.schema import validate_json_schema
 from mdstudio.collection import merge_dicts, dict_property
 from mdstudio.deferred.chainable import chainable
@@ -125,18 +126,22 @@ class CommonSession(ApplicationSession):
     @chainable
     def call(self, procedure, request, claims=None, **kwargs):
         claims = self.call_context.get_claims(claims)
-
-        signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
+        claims['uri'] = procedure
+        claims['action'] = 'call'
 
         request = deepcopy(request)
         convert_obj_to_json(request)
+
+        claims['requestHash'] = request_hash(request)
+
+        signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
         @chainable
         def make_original_call():
             res = yield super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs)
 
             if not isinstance(res, dict):
-                res = APIResult(result=res)
+                res = APIResult(res)
 
             return_value(res)
 
@@ -213,6 +218,16 @@ class CommonSession(ApplicationSession):
     @chainable
     def on_join(self):
         registrations = yield self.register(self)
+        for _, endpoint in self.__class__.__dict__.items():
+            from mdstudio.api.endpoint import WampEndpoint
+            if isinstance(endpoint, WampEndpoint):
+                yield endpoint.input_schema.flatten(self)
+                yield endpoint.output_schema.flatten(self)
+                for s in endpoint.claim_schemas:
+                    yield s.flatten(self)
+
+                endpoint.set_instance(self)
+                yield self.register(endpoint, endpoint.uri)
 
         yield self._on_join()
 

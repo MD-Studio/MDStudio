@@ -14,8 +14,7 @@ services:
             - .:/app
             - crossbar_pipcache:/root/.cache
             - crossbar_pipenv:/root/.local/share/virtualenvs
-        environment:
-            - MD_GLOBAL_LOG=1
+            - .docker.env:/app/.env
         env_file:
             - .docker.env
 
@@ -69,6 +68,18 @@ services:
         ports:
             - "7000:7000"
             - "7001:7001"
+        volumes:
+            - redis:/data/db
+
+
+    redis-local:
+        build:
+            context: docker/docker-redis-cluster
+            args:
+                redis_version: '3.2.9'
+        ports:
+            - "7010:7010"
+            - "7011:7011"
         volumes:
             - redis:/data/db
 

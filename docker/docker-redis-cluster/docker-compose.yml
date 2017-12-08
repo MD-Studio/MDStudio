@@ -1,0 +1,10 @@
+version: '2'
+services:
+  redis-cluster:
+    build:
+      context: .
+      args:
+        redis_version: '3.2.9'
+    hostname: server
+    ports:
+      - '7000-7007:7000-7007'

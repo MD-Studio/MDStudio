@@ -395,7 +395,7 @@ class MongoDatabaseWrapper(IDatabase):
             return sort
 
         def _convert_mode(mode_str):
-            if isinstance(mode_str, six.text_type):
+            if isinstance(mode_str, (six.text_type, str)):
                 mode_str = SortMode.Desc if mode_str == "desc" else SortMode.Asc
             return int(mode_str)
 

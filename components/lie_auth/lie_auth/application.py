@@ -102,7 +102,7 @@ class AuthComponent(CoreComponentSession):
         else:
             raise NotImplementedError('Implement this (for oauth clients)')
 
-        claims['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+        claims['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=1)
 
         return_value(jwt_encode(claims, self.jwt_key))
 
