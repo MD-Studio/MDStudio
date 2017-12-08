@@ -7,7 +7,7 @@ from mdstudio.cache.cache import ICache
 class SessionCacheWrapper(ICache):
 
     def __init__(self, session, cache_type=CacheType.User):
-        # type: (CommonSession, ConnectionType) -> None
+        # type: (CommonSession, CacheType) -> None
         self.session = session  # type: CommonSession
         self.cache_type = cache_type
 
