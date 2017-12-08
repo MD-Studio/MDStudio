@@ -42,7 +42,6 @@ class DBComponent(CoreComponentSession):
                                                                     'Please make sure it is larger than it is now.'
 
         self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
-        print(self.component_config.to_dict())
 
         self._set_secret()
 

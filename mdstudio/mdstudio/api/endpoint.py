@@ -32,8 +32,8 @@ def validation_error(schema, instance, error, prefix, uri):
         )
 
 
-def endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
-    # type: (str, SchemaType, SchemaType, Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
+def endpoint(uri, input_schema, output_schema=None, claim_schema=None, options=None, scope=None):
+    # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
     """
     Decorator for more complete WAMP uri registration
 
@@ -51,16 +51,13 @@ def endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, 
     :return:                Wrapped function with extra attributes
     """
 
-    if not input_schema:
-        # print('Input on {uri} is not checked'.format(uri=uri))
-        input_schema = InlineSchema({})
-    elif isinstance(input_schema, six.text_type):
+    if isinstance(input_schema, six.text_type):
         input_schema = EndpointSchema(input_schema)
     elif isinstance(input_schema, dict):
         input_schema = InlineSchema(input_schema)
 
     if not output_schema:
-        output_schema = InlineSchema({})
+        output_schema = InlineSchema({'type': 'null'})
     elif isinstance(output_schema, six.text_type):
         output_schema = EndpointSchema(output_schema)
     elif isinstance(output_schema, dict):

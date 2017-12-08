@@ -177,7 +177,7 @@ class ClaimSchema(EndpointSchema):
 @six.add_metaclass(Singleton)
 class MDStudioClaimSchema(object):
     def __init__(self, session):
-        with open(os.path.join(session.mdstudio_schemas_path(), 'claims.json'), 'r') as base_claims_file:
+        with open(os.path.join(session.mdstudio_schemas_path(), 'claims.v1.json'), 'r') as base_claims_file:
             self.schema = json.load(base_claims_file)
 
     def to_schema(self):

@@ -162,10 +162,10 @@ class CommonSession(ApplicationSession):
         if 'warning' in result:
             self.log.warn(result['warning'])
 
-        if 'result' not in result:
-            result['result'] = None
+        if 'data' not in result:
+            result['data'] = None
 
-        return_value(result['result'])
+        return_value(result['data'])
 
     @chainable
     def publish(self, topic, claims=None, options=None):

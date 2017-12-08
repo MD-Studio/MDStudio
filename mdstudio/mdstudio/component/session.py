@@ -3,12 +3,14 @@ import json
 from autobahn.wamp import auth
 
 from mdstudio.api.scram import SCRAM
+from mdstudio.cache.impl.connection import GlobalCache
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.db.connection import ConnectionType
 from mdstudio.db.database import IDatabase
 from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
+from mdstudio.session import GlobalSession
 
 
 class ComponentSession(CommonSession):
@@ -45,7 +47,12 @@ class ComponentSession(CommonSession):
     @chainable
     def on_join(self):
         yield super(ComponentSession, self).on_join()
-        self.db = GlobalConnection(self).get_wrapper(ConnectionType.User)
+
+        # notify that this is our session
+        GlobalSession(self)
+
+        self.db = GlobalConnection.get_wrapper(ConnectionType.User)
+        self.cache = GlobalCache.get_wrapper(ConnectionType.User)
 
     @chainable
     def onJoin(self, details):

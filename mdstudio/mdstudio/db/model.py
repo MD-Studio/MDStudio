@@ -26,9 +26,9 @@ class Model(object):
     encrypted_fields = []
 
     def __init__(self, wrapper=None, collection=None, connection_type=None):
-        # type: (IDatabase, Union[str, Dict[str, str], Optional[Collection]]) -> None
+        # type: (Optional[IDatabase], Optional[str], Optional[Collection], Optional[ConnectionType]) -> None
         self._check_wrapper(wrapper)
-        self.wrapper = wrapper or GlobalConnection().get_wrapper(connection_type or self.connection_type)
+        self.wrapper = wrapper or GlobalConnection.get_wrapper(connection_type or self.connection_type)
 
         if issubclass(self.__class__, Model) and self.__class__ != Model and collection is None:
             self.collection = self.__class__.__name__.lower()

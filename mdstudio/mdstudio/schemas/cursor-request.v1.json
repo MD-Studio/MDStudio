@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Cursor request schema for your api",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "next": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "properties": {
+        "previous": {
+          "type": "string"
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

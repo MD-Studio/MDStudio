@@ -1,9 +1,9 @@
 class APIResult(dict):
-    def __init__(self, result=None, error=None, warning=None, expired=None):
+    def __init__(self, data=None, error=None, warning=None, expired=None):
         super(APIResult, self).__init__()
 
-        if result is not None:
-            self['result'] = result
+        if data is not None:
+            self['data'] = data
 
         if error is not None:
             self['error'] = error
@@ -15,8 +15,8 @@ class APIResult(dict):
             self['expired'] = expired
 
     @property
-    def result(self):
-        return self['result']
+    def data(self):
+        return self['data']
 
     @property
     def error(self):

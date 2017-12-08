@@ -19,17 +19,7 @@
               "host",
               "port"
             ]
-          },
-          "default": [
-            {
-              "host": "redis",
-              "port": 7000
-            },
-            {
-              "host": "redis",
-              "port": 7001
-            }
-          ]
+          }
         }
       }
     }

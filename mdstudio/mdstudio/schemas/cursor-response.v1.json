@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "Cursor response schema for your api",
+    "type": "object",
+    "properties": {
+        "data": {},
+        "paging": {
+            "properties": {
+                "next": {
+                    "type": "string"
+                },
+                "previous": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": ["paging"],
+    "additionalProperties": false
+  }

@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from mdstudio.cache.cache_type import CacheType
 from mdstudio.db.connection import ConnectionType
 from mdstudio.logging.log_type import LogType
 
@@ -19,6 +20,9 @@ class IContext(object):
         return NotImplementedError('Subclass should implement this')
 
     def get_log_claims(self, log_type):
+        return NotImplementedError('Subclass should implement this')
+
+    def get_cache_claims(self, log_type):
         return NotImplementedError('Subclass should implement this')
 
     def __enter__(self):
@@ -43,6 +47,11 @@ class UserContext(IContext):
 
         return self.get_claims({'logType': str(log_type)})
 
+    def get_cache_claims(self, cache_type=CacheType.User):
+        assert cache_type == CacheType.User, 'Only user connections are allowed in the UserContext'
+
+        return self.get_claims({'cacheType': str(cache_type)})
+
 
 class GroupContext(UserContext):
     def __init__(self, session, group_name):
@@ -64,6 +73,11 @@ class GroupContext(UserContext):
 
         return self.get_claims({'logType': str(log_type)})
 
+    def get_cache_claims(self, cache_type=CacheType.Group):
+        assert cache_type in [CacheType.User, CacheType.Group], 'Only user and group connections are allowed in the GroupContext'
+
+        return self.get_claims({'cacheType': str(cache_type)})
+
 
 class GroupRoleContext(GroupContext):
     def __init__(self, session, group_name, role_name):
@@ -80,3 +94,6 @@ class GroupRoleContext(GroupContext):
 
     def get_log_claims(self, log_type=LogType.GroupRole):
         return self.get_claims({'logType': str(log_type)})
+
+    def get_cache_claims(self, cache_type=CacheType.GroupRole):
+        return self.get_claims({'cacheType': str(cache_type)})
