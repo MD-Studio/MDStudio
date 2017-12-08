@@ -16,7 +16,7 @@ class APIResult(dict):
 
     @property
     def result(self):
-        return self['result']
+        return self.get('result', None)
 
     @property
     def error(self):

@@ -183,6 +183,9 @@ class MDStudioClaimSchema(object):
     def to_schema(self):
         return self.schema
 
+    def flatten(self, session):
+        return True
+
 
 class ResourceSchema(ISchema):
     def __init__(self, uri, versions=None):

@@ -59,7 +59,8 @@ class CoreComponentSession(CommonSession):
         self.log_type = LogType.Group
         self.component_config.session['context'] = {
             'group': 'mdstudio',
-            'role': self.component_config.static.component
+            'role': self.component_config.static.component,
+            'username': self.component_config.static.component
         }
 
     def on_connect(self):
