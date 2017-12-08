@@ -1,15 +1,15 @@
 from typing import Optional, Any, List, Union, Tuple
 
+from mdstudio.cache import CacheType
 from mdstudio.cache.cache import ICache
-from mdstudio.cache.connection import ConnectionType
 
 
 class SessionCacheWrapper(ICache):
 
-    def __init__(self, session, connection_type=ConnectionType.User):
+    def __init__(self, session, cache_type=CacheType.User):
         # type: (CommonSession, ConnectionType) -> None
         self.session = session  # type: CommonSession
-        self.connection_type = connection_type
+        self.cache_type = cache_type
 
     def put(self, key, value, expiry=None):
         # type: (str, Any, Optional[int]) -> dict

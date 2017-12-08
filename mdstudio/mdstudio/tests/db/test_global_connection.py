@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.db.session_database import SessionDatabaseWrapper
 

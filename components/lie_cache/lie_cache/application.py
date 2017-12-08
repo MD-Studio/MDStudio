@@ -3,7 +3,7 @@ from rediscluster import StrictRedisCluster
 from mdstudio.api.endpoint import endpoint
 from mdstudio.cache.impl.redis_client_wrapper import RedisClientWrapper
 from mdstudio.component.impl.core import CoreComponentSession
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.deferred.chainable import chainable
 
 

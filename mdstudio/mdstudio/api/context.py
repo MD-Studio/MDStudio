@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from mdstudio.cache.cache_type import CacheType
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.logging.log_type import LogType
 
 

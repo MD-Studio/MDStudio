@@ -2,7 +2,7 @@
 from typing import Optional, Union, Dict, Any, List
 
 from mdstudio.db.collection import Collection
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import DocumentType, ProjectionOperators, SortOperators, IDatabase, \
     AggregationOperator
