@@ -97,10 +97,11 @@ def decompose(args):
     mdp_dict = parseMdp(mdpIn)
 
     # create decomposition mdp, ndx and run rerun
-    gro = findFile(args.dataDir, ext='gro', pref='*sol')
-    ndx = findFile(args.dataDir, ext='ndx', pref='*-sol')
-    trr = findFile(args.dataDir, ext='trr', pref='*MD.part*')
-    top = findFile(args.dataDir, ext='top', pref='*-sol')
+    args_dict = vars(args)
+    gro = search_file_in_args(args_dict, ext='gro', pref='*sol')
+    ndx = search_file_in_args(args_dict, ext='ndx', pref='*-sol')
+    trr = search_file_in_args(args_dict, ext='trr', pref='*MD.part*')
+    top = search_file_in_args(args_dict, ext='top', pref='*-sol')
     files = Files(gro, ndx, trr, top, mdpIn, None)
 
     energy_file = decomp(mdp_dict, args, files)
@@ -465,6 +466,20 @@ def process_line(line):
     return key, value.rstrip()
 
 
+def search_file_in_args(args_dict, ext=None, pref=None):
+    """
+    Search if a file was passed as an argument otherwise look for it
+    on the workdir.
+
+    :params args: command line arguments
+    :returns: path to file
+    """
+    if ext in args_dict:
+        return args_dict[ext]
+    else:
+        return findFile(args.dataDir, ext='gro', pref='*sol')
+
+
 def call_subprocess(cmd, env=None):
     """
     Execute shell command `cmd`, using the environment `env`
@@ -506,9 +521,18 @@ if __name__ == "__main__":
         help='GMXRC file for environment loading')
 
     parser_dec.add_argument(
-        '-res', '--residues', required=False, dest='resList',
+        '-res', '--residues', required=True, dest='resList',
         help='list of residue for which to decompose interaction energies (e.g.1 "1,2,3")',
         type=parseResidues)
+
+    parser_dec.add_argument(
+        '-gro', require=False, help='*.gro file')
+    parser_dec.add_argument(
+        '-ndx', require=False, help='*.ndx file')
+    parser_dec.add_argument(
+        '-trr', require=False, help='*.trr file')
+    parser_dec.add_argument(
+        '-trr', require=False, help='*.top file')
 
     # Arguments for both parsers
     for p in [parser_energy, parser_dec]:
@@ -519,5 +543,4 @@ if __name__ == "__main__":
             '-o', '--output', dest='outName', default='energy.out')
 
     args = parser.parse_args()
-
     main(args)
