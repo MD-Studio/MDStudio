@@ -14,8 +14,8 @@ examples of execution:
 For decomposition, configuration as in mdpName='md-prod-out.mdp' is used.
 Rerun is performed for the trajectory: ext='trr',pref='*?MD*'
 template index file is: ext='ndx',pref='*?sol'
-gro file for getting aton umber for residue is: ext='gro',pref='*?sol'
 top file is: 'top',pref='*?sol'
+gro file for getting aton umber for residue is: ext='gro',pref='*?sol'
 '''
 
 import argparse
@@ -93,11 +93,11 @@ def decompose(args):
         log_and_quit('gmx executable was not found')
 
     # parse MD mdp
-    mdpIn = findFile(args.dataDir, ext='mdp', pref='md-prod-out')
+    args_dict = vars(args)
+    mdpIn = findFile(args_dict, ext='mdp', pref='md-prod-out')
     mdp_dict = parseMdp(mdpIn)
 
     # create decomposition mdp, ndx and run rerun
-    args_dict = vars(args)
     gro = search_file_in_args(args_dict, ext='gro', pref='*sol')
     ndx = search_file_in_args(args_dict, ext='ndx', pref='*-sol')
     trr = search_file_in_args(args_dict, ext='trr', pref='*MD.part*')
@@ -477,7 +477,7 @@ def search_file_in_args(args_dict, ext=None, pref=None):
     if ext in args_dict:
         return args_dict[ext]
     else:
-        return findFile(args.dataDir, ext='gro', pref='*sol')
+        return findFile(args_dict['dataDir'], ext='gro', pref='*sol')
 
 
 def call_subprocess(cmd, env=None):
@@ -525,14 +525,17 @@ if __name__ == "__main__":
         help='list of residue for which to decompose interaction energies (e.g.1 "1,2,3")',
         type=parseResidues)
 
+    # Gromacs output files
     parser_dec.add_argument(
-        '-gro', require=False, help='*.gro file')
+        '-gro', require=False, help='path to*.gro file')
     parser_dec.add_argument(
-        '-ndx', require=False, help='*.ndx file')
+        '-ndx', require=False, help='path to*.ndx file')
     parser_dec.add_argument(
-        '-trr', require=False, help='*.trr file')
+        '-trr', require=False, help='path to*.trr file')
     parser_dec.add_argument(
-        '-trr', require=False, help='*.top file')
+        '-top', require=False, help='path to*.top file')
+    parser_dec.add_argument(
+        '-mdp', require=False, help='path to*.mdp file')
 
     # Arguments for both parsers
     for p in [parser_energy, parser_dec]:
