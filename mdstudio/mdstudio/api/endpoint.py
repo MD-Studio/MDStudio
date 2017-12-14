@@ -85,7 +85,7 @@ class WampEndpoint(object):
         return_value(result)
 
     def call_wrapped(self, request, claims):
-        return self.wrapped(self.instance, request, claims['claims'])
+        return self.wrapped(self.instance, request, claims)
 
     def validate_claims(self, claims, request):
         if 'error' in claims:
