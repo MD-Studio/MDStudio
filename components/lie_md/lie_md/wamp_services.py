@@ -9,11 +9,13 @@ WAMP service methods the module exposes.
 import json
 import shutil
 import json
+from pprint import pprint
 
 from autobahn import wamp
 from autobahn.wamp.types import RegisterOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from mdstudio.api.endpoint import endpoint
 from mdstudio.component.session import ComponentSession
 from lie_md.gromacs_gromit import gromit_cmd
 from lie_md.settings import SETTINGS, GROMACS_LIE_SCHEMA
@@ -28,6 +30,19 @@ class MDWampApi(ComponentSession):
     def pre_init(self):
         self.component_config.static.vendor = 'mdgroup'
         self.component_config.static.component = 'md'
+
+    @endpoint(u'mdgroup.md.endpoint.testing', {}, {})
+    def foobar(self, request, claims):
+        pprint(claims)
+        pprint(request)
+        return 'yay'
+
+    def on_run(self):
+        with self.grouprole_context('mdgroup', 'owners'):
+            self.call(u'mdgroup.md.endpoint.testing', {'foo': 'bar'}, {'wef': 1}).transform(pprint)
+
+    def authorize_request(self, uri, claims):
+        return True
 
     @wamp.register(u'mdgroup.md.endpoint.gromacs.liemd')
     def run_gromacs_liemd(

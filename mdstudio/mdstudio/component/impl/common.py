@@ -19,7 +19,7 @@ from mdstudio.api.exception import CallException
 from mdstudio.api.request_hash import request_hash
 from mdstudio.api.schema import validate_json_schema
 from mdstudio.collection import merge_dicts, dict_property
-from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.impl.session_observer import SessionLogObserver
 from mdstudio.logging.log_type import LogType
@@ -136,14 +136,12 @@ class CommonSession(ApplicationSession):
 
         signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
-        @chainable
+        if signed_claims is None:
+            claims.pop('requestHash')
+            raise CallException('Claims were not signed. You are not authorized for signing: \n{}'.format(json.dumps(claims, indent=2)))
+
         def make_original_call():
-            res = yield super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs)
-
-            if not isinstance(res, dict):
-                res = APIResult(res)
-
-            return_value(res)
+            return Chainable(super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs))
 
         try:
             result = yield make_original_call()
@@ -167,10 +165,7 @@ class CommonSession(ApplicationSession):
         if 'warning' in result:
             self.log.warn(result['warning'])
 
-        if 'data' not in result:
-            result['data'] = None
-
-        return_value(result['data'])
+        return_value(result.get('data', None))
 
     @chainable
     def publish(self, topic, claims=None, options=None):
