@@ -94,11 +94,16 @@ class AuthComponent(CoreComponentSession):
 
             claims['username'] = user.name
 
-            if group is not None and (yield self.user_repository.check_membership(user.name, group, group_role)):
-                claims['group'] = group
+            g, c, _, e = claims['uri'].split('.', 3)
 
-                if group_role is not None:
-                    claims['role'] = group_role
+            if group is not None:
+                if g == group and (yield self.user_repository.check_permission(user.name, g, c, e, claims['action'], group_role)):
+                    claims['group'] = group
+
+                    if group_role is not None:
+                        claims['role'] = group_role
+                else:
+                    return_value(None)
         else:
             raise NotImplementedError('Implement this (for oauth clients)')
 
@@ -223,6 +228,13 @@ class AuthComponent(CoreComponentSession):
                     else:
                         p = yield self.user_repository.find_permission_rule(g.name, 'owner', 'groupResourcePermission', component)
                         assert p.full_namespace
+            '''for client in provisioning.get('clients', []):
+                client_id = self.user_repository.generate_token()
+                client_secret = self.user_repository.generate_token()
+
+                c = yield self.user_repository.create_client(client['username'], {
+
+                })'''
 
         # @todo: use this for testing
         # user = yield self.user_repository.create_user('foo', 'bar', 'foo@bar')

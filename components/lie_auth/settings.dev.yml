@@ -10,3 +10,12 @@ settings:
         components:
           - md
           - cli
+    clients:
+      - username: mdadmin
+        clientId: Ek@la7\xOhex;5;I$)G'+W<}DL|8h<
+        clientSecret: =%FnPYV<U"uh34=[q?TUYZlzIJiLo!
+        groups:
+          - groupName: mdgroup
+            roles:
+              owner:
+                mdgroup.md.endpoint.testing: ['register']

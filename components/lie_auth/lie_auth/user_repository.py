@@ -1,8 +1,12 @@
+import random
 from enum import Enum
 from pprint import pprint
 from uuid import uuid4
 
 import dictdiffer
+import itertools
+
+import os
 import pytz
 from copy import deepcopy
 
@@ -14,14 +18,21 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.utc import now
 
-
 def random_uuid():
     return str(uuid4())
 
 
-class DictWithTimestamps(dict):
+class ModelInstance(dict):
+    @classmethod
+    def from_dict(cls, instance):
+        inst = cls()
+        inst.update(instance or {})
+        return inst
+
+
+class InstanceWithTimestamps(ModelInstance):
     def __init__(self, created_at=None, updated_at=None, deleted_at=None, **kwargs):
-        super(DictWithTimestamps, self).__init__(**kwargs)
+        super(InstanceWithTimestamps, self).__init__(**kwargs)
         created_at = created_at or kwargs.get('createdAt', None)
         updated_at = updated_at or kwargs.get('updatedAt', None)
         deleted_at = deleted_at or kwargs.get('deletedAt', None)
@@ -41,12 +52,6 @@ class DictWithTimestamps(dict):
     updated_at = dict_property('updatedAt')
     deleted_at = dict_property('deletedAt')
 
-    @classmethod
-    def from_dict(cls, instance):
-        inst = cls()
-        inst.update(instance)
-        return inst
-
 class PermissionType(Enum):
     ComponentNamespace = 0
     NamedScope = 1
@@ -55,26 +60,15 @@ class PermissionType(Enum):
 
 
 class UserRepository(object):
+    _CLIENT_ID_CHARACTER_SET = r'!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}'
+
     class Users(Model):
-        """
-        {
-            'username': <username>,
-            'displayName': <displayName>,
-            'handle': <handle>,
-            'password': <hashedPassword>,
-            'email': <encryptedEmail>,
-            'timezone': <timezone>,
-            'createdAt': <createdAt>,
-            'updatedAt': <updatedAt>,
-            'deletedAt': <deletedAt>
-        }
-        """
         connection_type = ConnectionType.User
 
         encrypted_fields = ['email', 'authentication.storedKey', 'authentication.serverKey', 'authentication.salt']
         date_time_fields = timestamp_properties()
 
-        class Instance(DictWithTimestamps):
+        class Instance(InstanceWithTimestamps):
             name = dict_property('username')
             username = dict_property('username')
             display_name = dict_property('displayName')
@@ -86,108 +80,60 @@ class UserRepository(object):
     class Sessions(Model):
         connection_type = ConnectionType.User
 
+    class Clients(Model):
+        connection_type = ConnectionType.User
+
+        date_time_fields = timestamp_properties([
+            '',
+            {
+                'groups': [
+                    '',
+                    'roles'
+                ]
+            }
+        ])
+
+        class Instance(InstanceWithTimestamps):
+            class Group(InstanceWithTimestamps):
+                class Role(InstanceWithTimestamps):
+                    class Permission(InstanceWithTimestamps):
+                        actions = dict_property('actions')
+
+                        def __init__(self, actions=None, created_at=None):
+                            self.actions = actions
+
+                            super(UserRepository.Clients.Instance.Group.Role.Permission, self).__init__(created_at=created_at)
+
+                    permissions = dict_property('permissions')
+
+                    def __init__(self, permissions=None, created_at=None):
+                        self.permissions = permissions
+
+                        super(UserRepository.Clients.Instance.Group.Role, self).__init__(created_at=created_at)
+
+                handle = dict_property('handle')
+                roles = dict_property('roles')
+
+                def __init__(self, handle=None, roles=None, created_at=None):
+                    self.handle = handle
+                    self.roles = roles
+
+                    super(UserRepository.Clients.Instance.Group, self).__init__(created_at=created_at)
+
+            handle = dict_property('handle')
+            user = dict_property('userHandle')
+            authentication = dict_property('authentication')
+            groups = dict_array_property('groups', Group)
+
+            def __init__(self, handle=None, user=None, groups=None, created_at=None, **kwargs):
+                self.handle = handle
+                self.user = user
+                self.groups = groups
+
+                super(UserRepository.Clients.Instance, self).__init__(created_at=created_at)
+
+
     class Groups(Model):
-        """
-        {
-            'groupName': <groupName>,
-            'displayName': <displayName>,
-            'handle': <handle>,
-            'roles': [
-                {
-                    'roleName': <roleName>,
-                    'owners': [<userHandle>],
-                    'permissions': {
-                        'componentPermissions': [ $componentPermission$ ],
-                        'roleResourcePermissions': {
-                            'oneOf': [
-                                $componentPermissions$,
-                                <bool>
-                            ]
-                        },
-                        groupResourcePermissions': {
-                            'oneOf': [
-                                $componentPerissions$,
-                                <bool>
-                            ]
-                        }
-                    }
-                }
-            },
-            'members': [
-                {
-                    'handle': <userHandle>,
-                    'roles': [<roleName>],
-                    'createdAt': <createdAt>,
-                    'updatedAt': <updatedAt>
-                }
-            ],
-            'components': [
-                {
-                    'componentName': <componentName>,
-                    'handle': <handle>
-                    'ownerRoles': [<roleName>],
-                    'createdAt': <createdAt>,
-                    'updatedAt': <updatedAt>
-                }
-            ],
-            'createdAt': <createdAt>,
-            'updatedAt': <updatedAt>,
-            'deletedAt': <deletedAt>
-        }
-
-        $roleMemberPermissions$: {
-            'handle': <userHandle>,
-            'roleResourcePermissions': [ $componentPermissions$ ]
-        }
-
-
-        $componentPermision$: {
-            'handle': <handle>,
-            'manage': <bool>,
-            'remove': <bool>,
-            'namespace': [<action>],
-            'scopes': [
-                {
-                    'scope': <scopeName>,
-                    'actions': [<action>]
-                }
-            ],
-            'endpoints': [
-                {
-                    'endpoint': <endpoint>,
-                    'actions': [<action>]
-                }
-            ]
-        }
-
-
-
-                        'addMember': {
-                            'oneOf': [
-                                [<roles>],
-                                <bool>
-                            ]
-                        }
-                        'removeMember': {
-                            'oneOf': [
-                                [<roles>],
-                                <bool>
-                            ]
-                        },
-                        'addRoles': <bool>,
-                        'removeRoles': <bool>,
-                        'manageRoles': {
-                            'oneOf': [
-                                {
-                                    'roleName': <roleName>,
-                                    'remove': <bool>
-                                },
-                                <bool>
-                            ]
-                        },
-                        'addComponents': <bool>,
-                        'removeComponents': <bool>
-        """
         connection_type = ConnectionType.User
         date_time_fields = timestamp_properties([
             '',
@@ -202,17 +148,17 @@ class UserRepository(object):
             'components'
         ])
 
-        class Instance(DictWithTimestamps):
-            class Role(DictWithTimestamps):
-                class Member(DictWithTimestamps):
+        class Instance(InstanceWithTimestamps):
+            class Role(InstanceWithTimestamps):
+                class Member(InstanceWithTimestamps):
                     handle = dict_property('handle')
 
                     def __init__(self, handle, **kwargs):
                         super(UserRepository.Groups.Instance.Role.Member, self).__init__(**kwargs)
                         self.handle = handle
 
-                class Permissions(dict):
-                    class ComponentPermission(DictWithTimestamps):
+                class Permissions(ModelInstance):
+                    class ComponentPermission(InstanceWithTimestamps):
                         namespace = dict_property('namespace')
                         full_namespace = dict_property('fullNamespace')
                         scopes = dict_array_property('scopes')
@@ -224,12 +170,6 @@ class UserRepository(object):
                             self.namespace = namespace or []
                             self.scopes = scopes or {}
                             self.endpoints = endpoints or {}
-
-                    @classmethod
-                    def from_dict(cls, instance):
-                        inst = cls()
-                        inst.update(instance)
-                        return inst
 
                     component_permissions = dict_property('componentPermissions')
                     role_resource_permissions = dict_property('roleResourcePermissions')
@@ -255,7 +195,7 @@ class UserRepository(object):
                     self.members = members
                     self.permissions = permissions
 
-            class Member(DictWithTimestamps):
+            class Member(InstanceWithTimestamps):
                 handle = dict_property('handle')
                 roles = dict_property('roles')
 
@@ -264,7 +204,7 @@ class UserRepository(object):
                     self.handle = handle
                     self.roles = roles
 
-            class Component(DictWithTimestamps):
+            class Component(InstanceWithTimestamps):
                 name = dict_property('componentName')
                 handle = dict_property('handle')
                 owner_roles = dict_property('owner_roles')
@@ -439,7 +379,8 @@ class UserRepository(object):
         return_value(group is not None)
 
     @chainable
-    def check_permission(self, username, group_name, component, uri, action):
+    def check_permission(self, username, group_name, component, uri, action, role_name=None):
+        # @todo: check
         user_handle = yield self.find_user(username).handle
 
         roles_filter = {
@@ -468,12 +409,19 @@ class UserRepository(object):
             }
         }
 
+        if role_name:
+            roles_filter['roles']['$elemMatch']['roleName'] = role_name
+
         _Group = UserRepository.Groups.Instance
 
-        group = yield self.groups.find_one(roles_filter, fields=self._permission_timestamps('componentPermissions', component))\
+        # @todo: subgroups
+        group = yield self.groups.find_one(roles_filter, fields=self._group_permission_timestamps('componentPermissions', component))\
                                  .transform(UserRepository.Groups.Instance.from_dict)  # type: _Group
 
         permission = False
+
+        if not group:
+            return_value(False)
 
         for role in group.roles:  # type: _Group.Role
             if component in role.permissions.component_permissions:
@@ -482,9 +430,9 @@ class UserRepository(object):
                 # @todo: check if endpoint is in named scope
                 if permissions.full_namespace:
                     permission = True
-                elif any(v in permissions.namespace for v in ('*', action)):
+                elif any(v in permissions.namespace for v in itertools.chain(action, '*')):
                     permission = True
-                elif any(v in permissions.endpoints.get(uri, []) for v in ('*', action)):
+                elif any(v in permissions.endpoints.get(uri, []) for v in itertools.chain(action, '*')):
                     permission = True
 
         return_value(permission)
@@ -617,7 +565,7 @@ class UserRepository(object):
     @chainable
     def create_component(self, group_name, role_name, component_name):
         created_at = now()
-        fields = self._permission_timestamps('componentPermissions', component_name)
+        fields = self._group_permission_timestamps('componentPermissions', component_name)
 
         role_handle = yield self.find_role(group_name, role_name).handle
 
@@ -683,7 +631,7 @@ class UserRepository(object):
         _ComponentPermission = UserRepository.Groups.Instance.Role.Permissions.ComponentPermission
 
         created_at = now()
-        fields = self._permission_timestamps(permission_set, component_name)
+        fields = self._group_permission_timestamps(permission_set, component_name)
         permission_scope_or_uri = permission_scope_or_uri.replace('.', '/') if permission_scope_or_uri is not None else None
 
         if permission_actions is not None and not isinstance(permission_actions, list):
@@ -823,9 +771,61 @@ class UserRepository(object):
 
         return_value(UserRepository.Groups.Instance.Role.Permissions.ComponentPermission.from_dict(permission) if permission else None)
 
+    @chainable
+    def create_client(self, username, client_id, authentication, group_role_permissions):
+        created_at = now()
+
+        client_handle = random_uuid()
+        user_handle = yield self.find_user(username).handle
+
+        _Client = UserRepository.Clients.Instance
+
+        groups = []
+        timestamp_fields = {}
+
+        for group, role_permissions in group_role_permissions.items():
+            group_handle = self.find_group(group).handle
+            roles = {}
+
+            for role, permissions in role_permissions.items():
+                role_handle = self.find_role(group, role).handle
+
+                role_perms = {}
+                role_timestamps = ['']
+
+                for uri, actions in permissions.items():
+                    g, c, _, e = uri.split('.', 3)
+
+                    # @todo: support subgroups
+                    if g == group and self.check_permission(username, g, c, uri, actions, role):
+                        role_perms[uri] = _Client.Group.Role.Permission(actions, created_at=created_at)
+                        role_timestamps.append(uri)
+
+                roles[role_handle] = role_perms
+                timestamp_fields[role_handle] = role_timestamps
+
+            group_perms = _Client.Group(group_handle, roles, created_at=created_at)
+            groups.append(group_perms)
+
+        client = _Client(client_handle, user_handle, groups, created_at=created_at)
+
+        created = yield self.clients.find_one_and_update({}, {
+            '$setOnInsert': client
+        }, upsert=True, return_updated=True, projection={'_id': False}, fields=self._client_permission_timestamps(timestamp_fields))
+
+        return_value(_Client.from_dict(created) if created else None)
+
+    @chainable
+    def find_client(self, client_id):
+        pass
+
     @staticmethod
-    def _permission_timestamps(permission_set, component_name):
+    def _group_permission_timestamps(permission_set, component_name):
         return Fields(timestamp_properties({'roles.permissions': {permission_set: component_name}}))
+
+    @staticmethod
+    def _client_permission_timestamps(role_timestamps):
+        return Fields(timestamp_properties({'groups.roles': role_timestamps}))
 
     @staticmethod
     def _group_update_times(update, updated_at):
@@ -889,6 +889,11 @@ class UserRepository(object):
 
         return entry
 
+    @classmethod
+    def generate_token(cls, length=30):
+        char_count = len(cls._CLIENT_ID_CHARACTER_SET)
+        return ''.join(cls._CLIENT_ID_CHARACTER_SET[i % char_count] for i in os.urandom(length))
+
     @property
     def sessions(self):
         return self.Sessions(self.wrapper)
@@ -896,3 +901,7 @@ class UserRepository(object):
     @property
     def groups(self):
         return self.Groups(self.wrapper)
+
+    @property
+    def clients(self):
+        return self.Clients(self.wrapper)
