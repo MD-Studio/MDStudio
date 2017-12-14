@@ -97,7 +97,7 @@ def decompose(args):
     mdpIn = findFile(args_dict, ext='mdp', pref='md-prod-out')
     mdp_dict = parseMdp(mdpIn)
 
-    # create decomposition mdp, ndx and run rerun
+    # search for gromacs output files
     gro = search_file_in_args(args_dict, ext='gro', pref='*sol')
     ndx = search_file_in_args(args_dict, ext='ndx', pref='*-sol')
     trr = search_file_in_args(args_dict, ext='trr', pref='*MD.part*')
