@@ -1,13 +1,18 @@
 import json
-from typing import Union
+import uuid
+from datetime import timedelta
+from typing import Union, Optional, Callable
 
 import six
+from autobahn.wamp import RegisterOptions
+from copy import deepcopy
 from jsonschema import ValidationError
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.request_hash import request_hash
-from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, MDStudioClaimSchema, InlineSchema
+from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, MDStudioClaimSchema, InlineSchema, \
+    MDStudioSchema
 from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
 
@@ -67,7 +72,7 @@ class WampEndpoint(object):
         if request_errors:
             return_value(request_errors)
 
-        result = yield self.wrapped(self.instance, request, claims['claims'])
+        result = yield self.call_wrapped(request, claims['claims'])
         result = result if isinstance(result, APIResult) else APIResult(result)
 
         if 'error' in result:
@@ -78,6 +83,9 @@ class WampEndpoint(object):
             return_value(result_errors)
 
         return_value(result)
+
+    def call_wrapped(self, request, claims):
+        return self.wrapped(self.instance, request, claims['claims'])
 
     def validate_claims(self, claims, request):
         if 'error' in claims:
@@ -139,7 +147,7 @@ class WampEndpoint(object):
             schema = schema_type(schema)
         elif isinstance(schema, dict):
             schema = InlineSchema(schema)
-        elif isinstance(schema, schema_type):
+        elif isinstance(schema, (schema_type, InlineSchema)):
             schema = schema
         elif not schema:
             schema = InlineSchema({} if default_schema == {} else default_schema or {'type': 'null'})
@@ -149,9 +157,76 @@ class WampEndpoint(object):
         return schema
 
 
-def endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
+class CursorWampEndpoint(WampEndpoint):
+    def __init__(self, wrapped_f, uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
+        input_schema = InlineSchema({
+            'oneOf': [
+                self._to_schema(input_schema, EndpointSchema),
+                self._to_schema('cursor-request/v1', MDStudioSchema),
+            ]
+        })
+        output_schema = InlineSchema({
+            'allOf': [
+                self._to_schema(output_schema, EndpointSchema),
+                {
+                    'properties': {
+                        'results': self._to_schema('cursor-response/v1', MDStudioSchema)
+                    }
+                }
+            ]
+        })
+        super(CursorWampEndpoint, self).__init__(wrapped_f, uri, input_schema, output_schema, claim_schema, options, scope)
+
+    @chainable
+    def call_wrapped(self, request, claims):
+
+        meta = None
+        id = None
+        if 'next' in request:
+            id = request['next']
+        elif 'previous' in request:
+            id = request['previous']
+
+        if id:
+            meta = json.loads(self.instance.session.cache.extract('cursor#{}'.format(id)))
+            if meta.get('uuid') != id:
+                return_value(APIResult(error='You tried to get a cursor that either doesn\'t exist, or is expired. Please check your code.'))
+
+        result, prev, nxt = yield self.wrapped(self.instance, request, claims['claims'], meta)
+
+        paging = {
+            'uri': self.uri
+        }
+
+        if prev:
+            prev_uuid = uuid.uuid4()
+            prev['uuid'] = prev_uuid
+            paging['previous'] = prev_uuid
+            self.instance.session.cache.put('cursor#{}'.format(prev_uuid), timedelta(minutes=10), json.dumps(prev))
+        if next:
+            next_uuid = uuid.uuid4()
+            nxt['uuid'] = next_uuid
+            paging['next'] = next_uuid
+            self.instance.session.cache.put('cursor#{}'.format(next_uuid), timedelta(minutes=10), json.dumps(nxt))
+
+
+        return_value({
+            'results': result,
+            'paging': paging
+        })
+
+
+def endpoint(uri, input_schema, output_schema=None, claim_schema=None, options=None, scope=None):
     # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
     def wrap_f(f):
         return WampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
+
+    return wrap_f
+
+
+def cursor_endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
+    # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
+    def wrap_f(f):
+        return CursorWampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
 
     return wrap_f

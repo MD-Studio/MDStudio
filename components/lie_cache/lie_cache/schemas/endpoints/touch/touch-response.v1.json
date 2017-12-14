@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/schema#",
-  "title": "ForgetResponse",
+  "title": "TouchResponse",
   "type": "object",
   "properties": {
-    "forgotten": {
+    "touched": {
       "type": "integer",
       "minimum": 0
     }

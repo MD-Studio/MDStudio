@@ -47,6 +47,26 @@ class SessionCacheWrapper(ICache):
             'key': key
         })
 
+    def extract(self, key):
+        # type: (str) -> dict
+        return self._call('extract', {
+            'key': key
+        })
+
+    def has(self, key):
+        # type: (str) -> dict
+        return self._call('has', {
+            'key': key
+        })
+
+    def touch(self, keys):
+        # type: (Union[List[str], str]) -> dict
+        if isinstance(keys, list):
+            request = {'keys': keys}
+        else:
+            request = {'key': keys}
+        return self._call('touch', request)
+
     def forget(self, keys):
         # type: (Union[List[str], str]) -> dict
         if isinstance(keys, list):

@@ -1,11 +1,10 @@
 {
   "$schema": "http://json-schema.org/schema#",
-  "title": "ForgetResponse",
+  "title": "HasRequest",
   "type": "object",
   "properties": {
-    "forgotten": {
-      "type": "integer",
-      "minimum": 0
+    "exists": {
+      "type": "boolean"
     }
   },
   "additionalProperties": false

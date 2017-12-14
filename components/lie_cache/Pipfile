@@ -4,8 +4,5 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-redis-py-cluster = "*"
-hiredis = "*"
-
-[dev-packages]
 mdstudio = {path = "../../mdstudio/", editable = true}
+local = {path = "./", editable = true}

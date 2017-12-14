@@ -73,6 +73,18 @@ class Cursor:
         return self.count(True)
 
     @chainable
+    def batch(self):
+
+        results = []
+        if len(self._data) > 1:
+            for i in range(len(self._data) - 1):
+                result = self._data.popleft()
+                if self._fields:
+                    self._fields.convert_call(result)
+                results.append(result)
+        return results
+
+    @chainable
     def for_each(self, func):
         # type: (Callable[[Dict[str,Any]], None]) -> None
         for o in self:

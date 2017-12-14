@@ -22,6 +22,21 @@ class ICache(object):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def extract(self, key):
+        # type: (str) -> dict
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def has(self, key):
+        # type: (str) -> dict
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def touch(self, keys):
+        # type: (str) -> dict
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def forget(self, keys):
         # type: (Union[List[str], str]) -> dict
         raise NotImplementedError

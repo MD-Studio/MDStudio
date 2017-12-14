@@ -38,6 +38,25 @@ class CacheComponent(CoreComponentSession):
         key = self.get_key(request['key'], claims)
         return self._cache.get(key)
 
+    @endpoint(u'mdstudio.cache.endpoint.extract', 'extract/extract-request/v1', 'extract/extract-response/v1', scope='write')
+    def extract(self, request, claims=None):
+        key = self.extract_key(request['key'], claims)
+        return self._cache.extract(key)
+
+    @endpoint(u'mdstudio.cache.endpoint.has', 'has/has-request/v1', 'has/has-response/v1', scope='read')
+    def has(self, request, claims=None):
+        key = self.has_key(request['key'], claims)
+        return self._cache.has(key)
+
+    @endpoint(u'mdstudio.cache.endpoint.touch', 'touch/touch-request/v1', 'touch/touch-response/v1', scope='write')
+    def touch(self, request, claims=None):
+        if 'key' in request:
+            keys = self.get_key(request['key'], claims)
+        else:
+            keys = [self.get_key(key, claims) for key in request['keys']]
+
+        return self._cache.touch(keys)
+
     @endpoint(u'mdstudio.cache.endpoint.forget', 'forget/forget-request/v1', 'forget/forget-response/v1', scope='write')
     def forget(self, request, claims=None):
         if 'key' in request:
@@ -65,7 +84,7 @@ class CacheComponent(CoreComponentSession):
         else:
             raise NotImplemented('This distinction does not exist')
 
-        return '{}#{}'.format(namespace, key)
+        return '{}:{}'.format(namespace, key)
 
     def authorize_request(self, uri, claims):
         connection_type = ConnectionType.from_string(claims['connectionType'])

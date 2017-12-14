@@ -1,12 +1,9 @@
 {
   "$schema": "http://json-schema.org/schema#",
-  "title": "ForgetResponse",
+  "title": "ExtractRequest",
   "type": "object",
   "properties": {
-    "forgotten": {
-      "type": "integer",
-      "minimum": 0
-    }
+    "result": {}
   },
   "additionalProperties": false
 }

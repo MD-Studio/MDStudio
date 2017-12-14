@@ -9,7 +9,7 @@
 #
 # Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the '"'License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -22,15 +22,6 @@
 # limitations under the License.
 
 from setuptools import setup, find_packages
-
-
-def pipenv_requires():
-    from pipenv.project import Project
-    from pipenv.utils import convert_deps_to_pip
-
-    pfile = Project(chdir=True).parsed_pipfile
-    return convert_deps_to_pip(pfile['packages'], r=False)
-
 
 distribution_name = 'lie_cache'
 setup(
@@ -47,8 +38,11 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=pipenv_requires(),
-    test_suite="tests",
+    install_requires=[
+        'redis-py-cluster',
+        'hiredis'
+    ],
+    test_suite='tests',
     include_package_data=True,
     zip_safe=True,
     classifiers=[

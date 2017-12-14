@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Optional, List, Tuple, Any, Union
 
 from mdstudio.cache.cache import ICache
@@ -19,10 +20,12 @@ class Cache(object):
 
     def set(self, key, value, expiry=None):
         # type: (str, Any, Optional[int]) -> bool
+        expiry = self._convert_expiry(expiry)
         return self.wrapper.set(key, value, expiry)['success']
 
     def set_many(self, values, expiry=None):
         # type: (List[Tuple[str, Any]], Optional[int]) -> bool
+        expiry = self._convert_expiry(expiry)
         return self.wrapper.set(values, expiry)['success']
 
     def get(self, key):
@@ -32,6 +35,13 @@ class Cache(object):
     def delete(self, keys):
         # type: (Union[List[str], str]) -> int
         return self.wrapper.get(keys)['count']
+
+    def _convert_expiry(self, expiry):
+        # type: (Union[timedelta, int]) -> int
+
+        if isinstance(expiry, timedelta):
+            return int(expiry.total_seconds())
+        return expiry
 
     def _check_wrapper(self, wrapper):
         assert isinstance(wrapper, ICache), 'Wrapper should inherit ICache'

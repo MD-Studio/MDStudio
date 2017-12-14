@@ -8,15 +8,16 @@
         "next": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "properties": {
         "previous": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     }
-  ],
-  "additionalProperties": false
+  ]
 }

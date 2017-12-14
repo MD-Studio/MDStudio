@@ -3,7 +3,7 @@
     "title": "Cursor response schema for your api",
     "type": "object",
     "properties": {
-        "data": {},
+        "results": {},
         "paging": {
             "properties": {
                 "next": {
@@ -11,8 +11,14 @@
                 },
                 "previous": {
                     "type": "string"
+                },
+                "uri": {
+                    "type": "string"
                 }
-            }
+            },
+            "required": [
+                "uri"
+            ]
         }
     },
     "required": ["paging"],

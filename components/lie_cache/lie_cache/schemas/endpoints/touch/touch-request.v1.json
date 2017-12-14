@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/schema#",
-  "title": "ForgetRequest",
+  "title": "TouchRequest",
   "type": "object",
   "oneOf": [
     {

@@ -34,6 +34,18 @@ class RedisClientWrapper(ICache):
         }
 
     @make_deferred
+    def extract(self, key):
+        # type: (str) -> dict
+
+        with self.client.pipeline() as pipe:
+            result = pipe.get(key)
+            pipe.delete()
+
+        return {
+            'result': result
+        }
+
+    @make_deferred
     def get(self, key):
         # type: (str) -> dict
 
@@ -42,13 +54,33 @@ class RedisClientWrapper(ICache):
         }
 
     @make_deferred
+    def has(self, key):
+        # type: (str) -> dict
+
+        return {
+            'has': self.client.exists(key)
+        }
+
+    @make_deferred
+    def touch(self, keys):
+        # type: (Union[List[str], str]) -> dict
+        if isinstance(keys, list):
+            count = self.client.touch(*keys)
+        else:
+            count = self.client.touch(keys)
+
+        return {
+            'touched': count
+        }
+
+    @make_deferred
     def forget(self, keys):
         # type: (Union[List[str], str]) -> dict
         if isinstance(keys, list):
-            count = self.client.get(*keys)
+            count = self.client.delete(*keys)
         else:
-            count = self.client.get(keys)
+            count = self.client.delete(keys)
 
         return {
-            'count': count
+            'forgotten': count
         }
