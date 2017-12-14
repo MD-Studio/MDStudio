@@ -527,15 +527,15 @@ if __name__ == "__main__":
 
     # Gromacs output files
     parser_dec.add_argument(
-        '-gro', require=False, help='path to*.gro file')
+        '-gro', required=False, help='path to*.gro file')
     parser_dec.add_argument(
-        '-ndx', require=False, help='path to*.ndx file')
+        '-ndx', required=False, help='path to*.ndx file')
     parser_dec.add_argument(
-        '-trr', require=False, help='path to*.trr file')
+        '-trr', required=False, help='path to*.trr file')
     parser_dec.add_argument(
-        '-top', require=False, help='path to*.top file')
+        '-top', required=False, help='path to*.top file')
     parser_dec.add_argument(
-        '-mdp', require=False, help='path to*.mdp file')
+        '-mdp', required=False, help='path to*.mdp file')
 
     # Arguments for both parsers
     for p in [parser_energy, parser_dec]:
