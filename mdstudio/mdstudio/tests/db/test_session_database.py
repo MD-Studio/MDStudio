@@ -268,7 +268,7 @@ class SessionDatabaseWrapperTests(TestCase):
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one', {
             'collection': 'col',
             'filter': {'_id': 50},
-            'sort': [('_id', SortMode.Asc)]
+            'sort': [['_id', 'asc']]
         }, claims={'connectionType': 'user'})
 
     def test_find_one_date_time(self):
@@ -323,7 +323,7 @@ class SessionDatabaseWrapperTests(TestCase):
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many', {
             'collection': 'col',
             'filter': {'_id': 50},
-            'sort': [('_id', SortMode.Asc)]
+            'sort': [['_id', 'asc']]
         }, claims={'connectionType': 'user'})
 
     def test_find_many_date_time(self):
@@ -403,7 +403,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
-            'sort': [('_id', SortMode.Asc)],
+            'sort': [['_id', 'asc']],
             'returnUpdated': False,
             'upsert': False
         }, claims={'connectionType': 'user'})
@@ -474,7 +474,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
-            'sort': [('_id', SortMode.Asc)],
+            'sort': [['_id', 'asc']],
             'returnUpdated': False,
             'upsert': False
         }, claims={'connectionType': 'user'})
@@ -502,7 +502,7 @@ class SessionDatabaseWrapperTests(TestCase):
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_delete', {
             'collection': 'col',
             'filter': {'_id': 50},
-            'sort': [('_id', SortMode.Asc)],
+            'sort': [['_id', 'asc']],
         }, claims={'connectionType': 'user'})
 
     def test_find_one_and_delete_date_time(self):

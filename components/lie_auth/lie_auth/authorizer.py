@@ -57,7 +57,8 @@ class Authorizer(object):
             ExactRule('mdstudio.auth.endpoint.verify'),
             ExactRule('mdstudio.schema.endpoint.upload'),
             ExactRule('mdstudio.schema.endpoint.get'),
-            ExactRule('mdstudio.logger.endpoint.log')
+            ExactRule('mdstudio.logger.endpoint.push-logs'),
+            ExactRule('mdstudio.logger.endpoint.events-logs')
         ]
     
     def authorize_ring0(self, uri, action, role):

@@ -1,6 +1,7 @@
 # coding=utf-8
 from typing import Optional, Union, Dict, Any, List
 
+from mdstudio.api.paginate import paginate_cursor
 from mdstudio.db.collection import Collection
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.cursor import Cursor
@@ -8,6 +9,7 @@ from mdstudio.db.database import DocumentType, ProjectionOperators, SortOperator
     AggregationOperator
 from mdstudio.db.fields import Fields
 from mdstudio.db.impl.connection import GlobalConnection
+from mdstudio.db.index import Index
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
@@ -15,6 +17,32 @@ from mdstudio.deferred.return_value import return_value
 
 # noinspection PyShadowingBuiltins
 class Model(object):
+
+    class Paginate:
+
+        def __init__(self, model):
+            self.model = model
+
+        @chainable
+        def find_many(self, filter, *args, **kwargs):
+            # type: (DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[Fields]) -> Cursor
+
+            @chainable
+            def get_results(filter, paging, meta, self=self, args=args, **kwargs):
+
+                if paging or isinstance(paging, dict):
+                    paging['total'] = yield self.model.count(filter)
+                    paging['page'] = meta['page']
+                    paging['lastPage'] = paging['total'] // (meta['page'] * meta['limit'] - 1)
+
+                results = yield self.model.find_many(filter, *args, **kwargs['db']).to_list()
+                return_value(results)
+
+            results, prev_meta, next_meta = yield paginate_cursor(filter, get_results, **kwargs)
+
+            return_value((results, prev_meta, next_meta))
+
+
     # type: IDatabase
     wrapper = None
 
@@ -35,6 +63,8 @@ class Model(object):
         else:
             assert collection, "No collection name was given!"
             self.collection = collection
+
+        self.paginate = self.Paginate(self)
 
     def insert_one(self, insert, fields=None):
         # type: (DocumentType, Optional[Fields]) -> Union[str, Chainable]
@@ -202,6 +232,22 @@ class Model(object):
                                                filter=filter,
                                                fields=fields)
         return self.wrapper.extract(delete_many, 'count')
+
+    def create_indexes(self, collection, indexes):
+        # type: (DocumentType, List[Index]) -> Any
+
+        create_indexes = self.wrapper.create_indexes(collection, indexes)
+        return self.wrapper.extract(create_indexes, 'names')
+
+    def drop_all_indexes(self, collection):
+        # type: (DocumentType) -> Any
+
+        self.wrapper.drop_all_indexes(collection)
+
+    def drop_indexes(self, collection, indexes):
+        # type: (DocumentType, List[Index]) -> Any
+
+        self.wrapper.drop_indexes(collection, indexes)
 
     def fields(self, other=None):
         own_fields = Fields(date_times=self.date_time_fields, dates=self.date_fields, encrypted=self.encrypted_fields)

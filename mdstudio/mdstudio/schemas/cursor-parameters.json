@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Cursor request parameters",
+  "type": "object",
+  "properties": {
+    "paging": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "addPageInfo": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  }
+}

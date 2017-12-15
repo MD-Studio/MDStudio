@@ -8,13 +8,14 @@ import pytz
 import random
 import six
 from bson import ObjectId
-from pymongo import ReturnDocument
+from pymongo import ReturnDocument, IndexModel
 from pymongo.cursor import Cursor
 
 from mdstudio.collection.cache_dict import CacheDict
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, SortOperators, \
     ProjectionOperators, AggregationOperator
 from mdstudio.db.exception import DatabaseException
+from mdstudio.db.index import Index
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.make_deferred import make_deferred
 from mdstudio.logging.logger import Logger
@@ -331,6 +332,43 @@ class MongoDatabaseWrapper(IDatabase):
         return {
             'count': count
         }
+
+    @make_deferred
+    def create_indexes(self, collection, indexes):
+        # type: (CollectionType, str, List[Index]) -> Any
+        db_collection = self._get_collection(collection)
+
+        names = []
+        if db_collection:
+            models = []
+            for i in models:
+                models.append(IndexModel(**i.to_dict(create=True, to_mongo=True)))
+
+            names = db_collection.create_indexes(models)
+        return {
+            'names': names
+        }
+
+    @make_deferred
+    def drop_indexes(self, collection, indexes):
+        # type: (CollectionType, str, List[Index]) -> Any
+        db_collection = self._get_collection(collection)
+
+        if db_collection:
+            models = []
+            for i in models:
+                if i.name:
+                    db_collection.drop_index(i.name)
+                else:
+                    db_collection.drop_index(**i.to_dict(create=False, to_mongo=True))
+
+    @make_deferred
+    def drop_all_indexes(self, collection):
+        # type: (CollectionType, str) -> Any
+        db_collection = self._get_collection(collection)
+
+        if db_collection:
+            db_collection.drop_indexes()
 
     def _prepare_for_json(self, doc):
         if doc:
