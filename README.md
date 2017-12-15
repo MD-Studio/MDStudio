@@ -25,6 +25,10 @@ To use the docker environment you have to start the container:
 
     >> ./start.sh
 
+To start a **development** container use:
+
+    >> ./start-dev.sh
+
 This command will spin up the complete environment including MongoDB, and logs in into the 
 container. When you want to exit this mode just use `>> exit` to exit. Containers can be
 stopped using:
@@ -57,7 +61,8 @@ The application has currently been successfully tested with Python versions: 2.7
 The only external dependencies are:
 
  * [MongoDB](https://www.mongodb.com) - A NoSQL database.
- * [Pipenv](https://github.com/kennethreitz/pipenv) - A python virtual environment manager
+ * [Pipenv](https://github.com/kennethreitz/pipenv) - A python virtual environment manager.
+ * [Redis](https://redis.io/) - A fast caching layer.
 
 ### Installation
 Install the virtual environment with:
