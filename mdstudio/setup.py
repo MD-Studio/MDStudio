@@ -52,7 +52,8 @@ setup(
         'typing',
         'node-semver',
         'passlib',
-        'pywin32 >= 1.0;platform_system=="Windows"'
+        'service_identity',  # For Twisted host TLS verification
+        'pypiwin32 >= 1.0;platform_system=="Windows"'
     ],
     test_suite="tests",
     include_package_data=True,

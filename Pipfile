@@ -6,8 +6,7 @@ verify_ssl = true
 
 [packages]
 
-crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "eca9729dfd0b79abeadc8919d6bafab6273b1d3e"}
-pipenv = "*"
+crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "da6c3d220ba6d8b3fc8c1b9ec00eda48b3a8d57b"}
 mdstudio = {path = "mdstudio/", editable = true}
 lie-auth = {path = "components/lie_auth/", editable = true}
 lie-cache = {path = "components/lie_cache/", editable = true}

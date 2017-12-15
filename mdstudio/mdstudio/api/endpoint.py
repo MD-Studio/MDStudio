@@ -1,12 +1,14 @@
 import json
 import uuid
 from datetime import timedelta
+from types import GeneratorType
 from typing import Union, Optional, Callable
 
 import six
 from autobahn.wamp import RegisterOptions
 from copy import deepcopy
 from jsonschema import ValidationError
+from twisted.internet.defer import _inlineCallbacks, Deferred
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.converter import convert_obj_to_json
@@ -52,8 +54,7 @@ class WampEndpoint(object):
         self.instance = instance
 
     def __call__(self, request, signed_claims=None):
-        result = self.execute(request, signed_claims)  # type: Chainable
-        return result.transform(convert_obj_to_json)
+        return self.execute(request, signed_claims)  # type: Chainable
 
     @chainable
     def execute(self, request, signed_claims):
@@ -72,8 +73,20 @@ class WampEndpoint(object):
         if request_errors:
             return_value(request_errors)
 
-        result = yield self.call_wrapped(request, claims['claims'])
+        result = self.call_wrapped(request, claims['claims'])
+        if isinstance(result, GeneratorType):
+            result = _inlineCallbacks(None, result, Deferred())
+        result = yield result
+
         result = result if isinstance(result, APIResult) else APIResult(result)
+        convert_obj_to_json(result)
+
+        if 'error' in result:
+            return_value(result)
+
+        result_errors = self.validate_result(result.data)
+        if result_errors:
+            return_value(result_errors)
 
         if 'error' in result:
             return_value(result)
