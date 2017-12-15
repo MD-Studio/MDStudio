@@ -226,7 +226,7 @@ class CommonSession(ApplicationSession):
 
                 endpoint.set_instance(self)
                 try:
-                    yield self.register(endpoint, endpoint.uri)
+                    yield endpoint.register()
                     successful += 1
                 except:
                     failures += 1

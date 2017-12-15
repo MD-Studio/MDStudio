@@ -79,11 +79,11 @@ volumes:
         driver: "local"
     redis:
         driver: "local"
-    redis:
-        driver: "local"
     workspace_pipcache:
         driver: "local"
     workspace_pipenv:
+        driver: "local"
+    crossbar_pipcache:
         driver: "local"
     crossbar_pipcache:
         driver: "local"

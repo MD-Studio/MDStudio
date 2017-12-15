@@ -35,15 +35,17 @@ def validation_error(schema, instance, error, prefix, uri):
 
 class WampEndpoint(object):
     def __init__(self, wrapped_f, uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
-        self.uri = uri
+        from mdstudio.component.impl.common import CommonSession
+
+        self.uri_suffix = uri
+        self.uri = None
         self.options = options
         self.scope = scope
-        self.instance = None
+        self.instance = None  # type: CommonSession
         self.wrapped = wrapped_f
         self.input_schema = self._to_schema(input_schema, EndpointSchema)
         self.output_schema = self._to_schema(output_schema, EndpointSchema)
 
-        from mdstudio.component.impl.common import CommonSession
         self.claim_schemas = [MDStudioClaimSchema(CommonSession)]
 
         claim_schema = self._to_schema(claim_schema, ClaimSchema, {})
@@ -52,6 +54,14 @@ class WampEndpoint(object):
 
     def set_instance(self, instance):
         self.instance = instance
+        self.uri = u'{}.{}.endpoint.{}'.format(
+            self.instance.component_config.static.vendor,
+            self.instance.component_config.static.component,
+            self.uri_suffix
+        )
+
+    def register(self):
+        return self.instance.register(self, self.uri)
 
     def __call__(self, request, signed_claims=None):
         return self.execute(request, signed_claims)  # type: Chainable

@@ -31,16 +31,6 @@ class MDWampApi(ComponentSession):
         self.component_config.static.vendor = 'mdgroup'
         self.component_config.static.component = 'md'
 
-    @endpoint(u'mdgroup.md.endpoint.testing', {}, {})
-    def foobar(self, request, claims):
-        pprint(claims)
-        pprint(request)
-        return 'yay'
-
-    def on_run(self):
-        with self.grouprole_context('mdgroup', 'owners'):
-            self.call(u'mdgroup.md.endpoint.testing', {'foo': 'bar'}, {'wef': 1}).transform(pprint)
-
     def authorize_request(self, uri, claims):
         return True
 

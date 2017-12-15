@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-alias helpme='(/app/docker/workspace/helpme.sh)'
+alias helpme='(/app/docker/crossbar/helpme.sh)'
 alias update='(pipenv install --skip-lock --dev --sequential)'
 
-[[ "$WELCOMESHOWN" != "1" ]] && source /app/docker/workspace/welcome.sh
+[[ "$WELCOMESHOWN" != "1" ]] && source /app/docker/crossbar/welcome.sh

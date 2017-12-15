@@ -22,7 +22,7 @@ class CacheComponent(CoreComponentSession):
 
         yield super(CacheComponent, self)._on_join()
 
-    @endpoint(u'mdstudio.cache.endpoint.put', 'put/put-request/v1', 'put/put-response/v1', scope='write')
+    @endpoint('put', 'put/put-request/v1', 'put/put-response/v1', scope='write')
     def put(self, request, claims=None):
         if 'key' in request:
             key = self.get_key(request['key'], claims)
@@ -33,22 +33,22 @@ class CacheComponent(CoreComponentSession):
                 values.append((self.get_key(key['key'], claims), key['value']))
             return self._cache.put_many(values, request.get('expiry'))
 
-    @endpoint(u'mdstudio.cache.endpoint.get', 'get/get-request/v1', 'get/get-response/v1', scope='read')
+    @endpoint('get', 'get/get-request/v1', 'get/get-response/v1', scope='read')
     def get(self, request, claims=None):
         key = self.get_key(request['key'], claims)
         return self._cache.get(key)
 
-    @endpoint(u'mdstudio.cache.endpoint.extract', 'extract/extract-request/v1', 'extract/extract-response/v1', scope='write')
+    @endpoint('extract', 'extract/extract-request/v1', 'extract/extract-response/v1', scope='write')
     def extract(self, request, claims=None):
         key = self.extract_key(request['key'], claims)
         return self._cache.extract(key)
 
-    @endpoint(u'mdstudio.cache.endpoint.has', 'has/has-request/v1', 'has/has-response/v1', scope='read')
+    @endpoint('has', 'has/has-request/v1', 'has/has-response/v1', scope='read')
     def has(self, request, claims=None):
         key = self.has_key(request['key'], claims)
         return self._cache.has(key)
 
-    @endpoint(u'mdstudio.cache.endpoint.touch', 'touch/touch-request/v1', 'touch/touch-response/v1', scope='write')
+    @endpoint('touch', 'touch/touch-request/v1', 'touch/touch-response/v1', scope='write')
     def touch(self, request, claims=None):
         if 'key' in request:
             keys = self.get_key(request['key'], claims)
@@ -57,7 +57,7 @@ class CacheComponent(CoreComponentSession):
 
         return self._cache.touch(keys)
 
-    @endpoint(u'mdstudio.cache.endpoint.forget', 'forget/forget-request/v1', 'forget/forget-response/v1', scope='write')
+    @endpoint('forget', 'forget/forget-request/v1', 'forget/forget-response/v1', scope='write')
     def forget(self, request, claims=None):
         if 'key' in request:
             keys = self.get_key(request['key'], claims)
