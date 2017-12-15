@@ -40,6 +40,7 @@ and make sure it matches this screen.
 ![Configuration settings](docs/img/pycharm-config.png)
 
 Note specifically:
+
 |                      |                                                            |
 |----------------------|------------------------------------------------------------|
 | Interpreter path     | `/root/.local/share/virtualenvs/app-4PlAip0Q/bin/python`   |
