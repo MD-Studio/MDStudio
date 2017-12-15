@@ -129,5 +129,4 @@ class Cursor:
         self._data = deque(more['results'])
         self._alive = self._id is not None and more['alive'] and len(self._data) > 0
         self._refreshing = False
-        print('refreshing')
         return_value(last_entry)
