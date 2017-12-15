@@ -261,4 +261,4 @@ class Model(object):
         return fields
 
     def _check_wrapper(self):
-        assert isinstance(elf.wrapper, IDatabase), 'Wrapper should inherit IDatabase'
+        assert isinstance(self.wrapper, IDatabase), 'Wrapper should inherit IDatabase'
