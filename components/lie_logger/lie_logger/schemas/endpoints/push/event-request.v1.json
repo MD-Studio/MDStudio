@@ -1,27 +1,33 @@
 {
   "$schema": "http://json-schema.org/schema#",
   "title": "EventRequest",
-  "allOf": [
-    {
-      "type": "object",
-      "properties": {
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "not": {
-              "enum": ["logs"]
+  "type": "object",
+  "properties": {
+    "event":{
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "not": {
+                  "enum": ["logs"]
+                },
+                "default": []
+              }
+            },
+            "meta": {
+              "type": "object"
             }
-          }
+          },
+          "additionalProperties": false
         },
-        "meta": {
-          "type": "object"
+        {
+          "$ref": "resource://mdstudio/logger/event/v1"
         }
-      },
-      "additionalProperties": false
-    },
-    {
-      "$ref": "resource://mdstudio/logger/event/v1"
-    }
-  ]
+      ]
+    } 
+  }
 }

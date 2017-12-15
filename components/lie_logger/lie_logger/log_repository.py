@@ -2,6 +2,7 @@ from typing import List
 
 from copy import deepcopy
 
+from mdstudio.api.claims import whois
 from mdstudio.api.paginate import paginate_cursor
 from mdstudio.db.model import Model
 from mdstudio.deferred.chainable import chainable
@@ -37,7 +38,7 @@ class LogRepository(object):
         logs = deepcopy(logs)
         for i, l in enumerate(logs):
             logs[i]['createdAt'] = n
-            logs[i]['createdBy'] = claims
+            logs[i]['createdBy'] = whois(claims, 'logType')
             logs[i]['tags'] = tags
         return self.logs(claims).insert_many(logs)
 

@@ -83,3 +83,38 @@ class TestLoggerComponent(DBTestCase, APITestCase):
         }, self.claims)
         self.assertIsInstance(output, APIResult)
         self.assertEqual(output.error, 'The database is not online, please try again later.')
+
+    @test_chainable
+    def test_push_event(self):
+
+        self.service.logs.insert = mock.MagicMock(wraps=lambda c, r, tags: r)
+        dic1 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
+
+        dic1['level'] = 'info'
+        tags = self.faker.pylist(10, True, 'str')
+        dic1['tags'] =tags
+
+        output = yield self.assertApi(self.service, 'push_event', {
+            'event': dic1
+        }, self.claims)
+        self.assertEqual(output, 1)
+        self.service.logs.insert.assert_has_calls([
+            call(self.claims, [dic1], tags)
+        ])
+
+    @test_chainable
+    def test_push_event_error(self):
+        def raise_(ex):
+            raise ex
+
+        self.service.logs.insert = mock.MagicMock(wraps=lambda c, r, tags: raise_(CallException))
+        dic1 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
+
+        dic1['level'] = 'info'
+        dic1['tags'] = self.faker.pylist(10, True, 'str')
+
+        output = yield self.assertApi(self.service, 'push_event', {
+            'event': dic1
+        }, self.claims)
+        self.assertIsInstance(output, APIResult)
+        self.assertEqual(output.error, 'The database is not online, please try again later.')

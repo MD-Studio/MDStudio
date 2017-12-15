@@ -82,12 +82,13 @@ class LoggerComponent(CoreComponentSession):
     def push_event(self, request, claims=None):
         try:
             with self.grouprole_context('mdstudio', 'logger'):
-                tags = request.pop('tags')
-                res = yield self.logs.insert(self._clean_claims(claims), self._map_level(request), tags)
+                event = request['event']
+                tags = event.pop('tags')
+                res = yield self.logs.insert(self._clean_claims(claims), [self._map_level(event)], tags)
         except CallException as _:
             return_value(APIResult(error='The database is not online, please try again later.'))
         else:
-            return_value(res)
+            return_value(len(res))
 
     def authorize_request(self, uri, claims):
         connection_type = LogType.from_string(claims['logType'])

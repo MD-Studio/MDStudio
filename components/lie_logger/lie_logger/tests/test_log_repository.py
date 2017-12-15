@@ -22,7 +22,8 @@ class TestLogRepository(DBTestCase):
         self.claims = {
             'logType': 'user',
             'username': self.faker.user_name(),
-            'group': self.faker.user_name()
+            'group': self.faker.user_name(),
+            'role': None
         }
 
         if not reactor.getThreadPool().started:

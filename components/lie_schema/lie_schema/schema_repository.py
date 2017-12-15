@@ -8,6 +8,7 @@ from jsonschema import Draft4Validator, SchemaError
 
 import mdstudio.utc as utc
 from lie_schema.exception import SchemaException
+from mdstudio.api.claims import whois
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.database import IDatabase
 from mdstudio.db.model import Model
@@ -179,10 +180,7 @@ class SchemaRepository(object):
                         'hash': hash,
                         'schema': schema_str,
                         'createdAt': utc.now(),
-                        'createdBy': {
-                            'username': claims.get('username'),
-                            'groups': claims.get('groups')
-                        }
+                        'createdBy': whois(claims)
                     }
                 }
             }, upsert=True, return_updated=True)
