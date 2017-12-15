@@ -8,7 +8,7 @@ from mdstudio.utc import now, from_utc_string
 
 
 class EchoComponent(ComponentSession):
-    @endpoint('mdgroup.echo.endpoint.hello', 'hello-request', 'hello-response')
+    @endpoint('hello', 'hello-request', 'hello-response')
     def hello(self, request, claims):
         return_time = now()
         request['message']['sendTime'] = send_time = from_utc_string(request['message']['sendTime'])

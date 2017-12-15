@@ -66,7 +66,7 @@ class LoggerComponent(CoreComponentSession):
 
             return self.logs.get(filter, claims, **kwargs)
 
-    @endpoint('mdstudio.logger.endpoint.push-logs', 'push/logs-request/v1', 'push/logs-response/v1')
+    @endpoint('push-logs', 'push/logs-request/v1', 'push/logs-response/v1')
     @chainable
     def push_logs(self, request, claims=None):
         try:
@@ -77,7 +77,7 @@ class LoggerComponent(CoreComponentSession):
         else:
             return_value(len(res))
 
-    @endpoint('mdstudio.logger.endpoint.push-event', 'push/event-request/v1', 'push/event-response/v1')
+    @endpoint('push-event', 'push/event-request/v1', 'push/event-response/v1')
     @chainable
     def push_event(self, request, claims=None):
         try:
