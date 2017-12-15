@@ -9,6 +9,8 @@ services:
       - './data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem'
       # mount component base and component
       - './mdstudio:/app/mdstudio'
+      - /root/.local/share/virtualenvs
+      - /root/.cache
     environment:
       - CROSSBAR_HOST=crossbar
     env_file:
@@ -22,6 +24,8 @@ services:
       - './data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem'
       # mount component base and component
       - './mdstudio:/app/mdstudio'
+      - /root/.local/share/virtualenvs
+      - /root/.cache
     environment:
       - CROSSBAR_HOST=crossbar
     env_file:

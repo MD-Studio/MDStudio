@@ -1,8 +1,23 @@
 version: '2'
 services:
 
+    workspace:
+        build:
+            context: ./docker/workspace
+        links:
+            - mongo
+            - redis
+        ports:
+            - 8080:8080
+        volumes:
+            - .:/app
+            - workspace_pipcache:/root/.cache
+            - workspace_pipenv:/root/.local/share/virtualenvs
+            - .docker.env:/app/.env
+        env_file:
+            - .docker.env
+
     crossbar:
-        # image: crossbario/crossbar
         build:
             context: ./docker/crossbar
         links:
@@ -18,49 +33,25 @@ services:
         env_file:
             - .docker.env
 
-    md:
-        extends:
-            file: docker-compose-common.yml
-            service: base-py2
-        volumes:
-            # mount component
-            - ./components/lie_md:/app/components/lie_md
-        environment:
-            - COMPONENT=lie_md
-        links:
-            - crossbar
-    
-    atb:
+    echo:
         extends:
             file: docker-compose-common.yml
             service: base-py3
         volumes:
             # mount component
-            - ./components/lie_atb:/app/components/lie_atb
+            - ./components/lie_echo:/app/components/lie_echo
         environment:
-            - COMPONENT=lie_atb
-        links:
-            - crossbar
-    
-    cli:
-        extends:
-            file: docker-compose-common.yml
-            service: base-py3
-        volumes:
-            # mount component
-            - ./components/lie_cli:/app/components/lie_cli
-        environment:
-            - COMPONENT=lie_cli
+            - COMPONENT=lie_echo
         links:
             - crossbar
 
     mongo:
         image: mongo:latest
-        command: mongod  --noauth
         ports:
             - "27017:27017"
         volumes:
             - mongo:/data/db
+        command: mongod  --noauth --bind_ip_all
 
 
     redis:
@@ -88,9 +79,11 @@ volumes:
         driver: "local"
     redis:
         driver: "local"
-    crossbar_pipcache:
+    workspace_pipcache:
         driver: "local"
-    crossbar_pip:
+    workspace_pipenv:
+        driver: "local"
+    crossbar_pipcache:
         driver: "local"
     crossbar_pipenv:
         driver: "local"

@@ -19,6 +19,7 @@
       <sourceFolder url="file://$MODULE_DIR$/mdstudio" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/components/lie_pylie" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/components/lie_cache" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_echo" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="MDStudio - Docker-Compose" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

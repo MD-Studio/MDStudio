@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a858732dfa823aeb4438c22a0774de383a517dc289a280cfffdb17c44073fbf8"
+            "sha256": "63792a1ac138bd792a118f03e9592c25f89147e78b466063fffb9bb90481008c"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -28,10 +28,10 @@
     "default": {
         "asn1crypto": {
             "hashes": [
-                "sha256:654b7db3b120e23474e9a1e5e38d268c77e58a9e17d2cb595456c37309846494",
-                "sha256:0874981329cfebb366d6584c3d16e913f2a0eb026c9463efcc4aaf42a9d94d70"
+                "sha256:2f1adbb7546ed199e3c90ef23ec95c5cf3585bac7d11fb7eb562a3fe89c64e87",
+                "sha256:9d5c20441baf0cb60a4ac34cc447c6c189024b6b4c6cd7877034f4965c464e49"
             ],
-            "version": "==0.23.0"
+            "version": "==0.24.0"
         },
         "asq": {
             "hashes": [
@@ -60,13 +60,6 @@
                 "sha256:3c1fd04ecf08ac87b4dd3feae409542e9bf7827257097b2b6ed5692f69d6f6a8"
             ],
             "version": "==0.6.0"
-        },
-        "certifi": {
-            "hashes": [
-                "sha256:244be0d93b71e93fc0a0a479862051414d0e00e16435707e5bf5000f92e04694",
-                "sha256:5ec74291ca1136b40f0379e1128ff80e866597e4e2c1e755739a913bbc3613c0"
-            ],
-            "version": "==2017.11.5"
         },
         "cffi": {
             "hashes": [
@@ -104,13 +97,6 @@
             ],
             "markers": "platform_python_implementation != 'PyPy'",
             "version": "==1.11.2"
-        },
-        "chardet": {
-            "hashes": [
-                "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691",
-                "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"
-            ],
-            "version": "==3.0.4"
         },
         "constantly": {
             "hashes": [
@@ -158,13 +144,6 @@
             ],
             "version": "==0.7.0"
         },
-        "flake8": {
-            "hashes": [
-                "sha256:c7841163e2b576d435799169b78703ad6ac1bbb0f199994fc05f700b2a90ea37",
-                "sha256:7253265f7abd8b313e3892944044a365e3f4ac3fcdcfb4298f55ee9ddf188ba0"
-            ],
-            "version": "==3.5.0"
-        },
         "hiredis": {
             "hashes": [
                 "sha256:ca958e13128e49674aa4a96f02746f5de5973f39b57297b84d59fd44d314d5b5"
@@ -201,30 +180,33 @@
         },
         "lie-auth": {
             "editable": true,
-            "path": "components/lie_auth/"
+            "git": "ssh://git@intra.zefiros.eu/source/VU-local.git",
+            "ref": "3bd7421b8172d03d6c46538fec6b4ab2e6241942",
+            "subdirectory": "components/lie_auth"
         },
         "lie-cache": {
             "editable": true,
-            "path": "components/lie_cache/"
+            "git": "ssh://git@intra.zefiros.eu/source/VU-local.git",
+            "ref": "3bd7421b8172d03d6c46538fec6b4ab2e6241942",
+            "subdirectory": "components/lie_cache"
         },
         "lie-db": {
             "editable": true,
-            "path": "components/lie_db/"
+            "git": "ssh://git@intra.zefiros.eu/source/VU-local.git",
+            "ref": "3bd7421b8172d03d6c46538fec6b4ab2e6241942",
+            "subdirectory": "components/lie_db"
         },
         "lie-logger": {
             "editable": true,
-            "path": "components/lie_logger/"
+            "git": "ssh://git@intra.zefiros.eu/source/VU-local.git",
+            "ref": "3bd7421b8172d03d6c46538fec6b4ab2e6241942",
+            "subdirectory": "components/lie_logger"
         },
         "lie-schema": {
             "editable": true,
-            "path": "components/lie_schema/"
-        },
-        "mccabe": {
-            "hashes": [
-                "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42",
-                "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"
-            ],
-            "version": "==0.6.1"
+            "git": "ssh://git@intra.zefiros.eu/source/VU-local.git",
+            "ref": "3bd7421b8172d03d6c46538fec6b4ab2e6241942",
+            "subdirectory": "components/lie_schema"
         },
         "mdstudio": {
             "editable": true,
@@ -250,38 +232,11 @@
             ],
             "version": "==1.7.1"
         },
-        "pew": {
-            "hashes": [
-                "sha256:f2d94e6266986372ea122654af7268357fe7a7c487156e6a0f3e86aaea946173",
-                "sha256:bcb7dce35b9fd05024b772094e54b44740d2a523dd0e199a6a1b336804e112c7"
-            ],
-            "version": "==1.1.1"
-        },
-        "pipenv": {
-            "hashes": [
-                "sha256:d1a4fc095d653142d8bb72d12acaffa2000ee35fbaf884e4ae9063b72e259d87"
-            ],
-            "version": "==9.0.0"
-        },
-        "pycodestyle": {
-            "hashes": [
-                "sha256:6c4245ade1edfad79c3446fadfc96b0de2759662dc29d07d80a6f27ad1ca6ba9",
-                "sha256:682256a5b318149ca0d2a9185d365d8864a768a28db66a84a2ea946bcc426766"
-            ],
-            "version": "==2.3.1"
-        },
         "pycparser": {
             "hashes": [
                 "sha256:99a8ca03e29851d96616ad0404b4aad7d9ee16f25c9f9708a11faf2810f7b226"
             ],
             "version": "==2.18"
-        },
-        "pyflakes": {
-            "hashes": [
-                "sha256:08bd6a50edf8cffa9fa09a463063c425ecaaf10d1eb0335a7e8b1401aef89e6f",
-                "sha256:8d616a382f243dbf19b54743f280b80198be0bca3a5396f1d2e1fca6223e8805"
-            ],
-            "version": "==1.6.0"
         },
         "pyjwt": {
             "hashes": [
@@ -395,13 +350,6 @@
             ],
             "version": "==1.3.4"
         },
-        "requests": {
-            "hashes": [
-                "sha256:6a1b267aa90cac58ac3a765d067950e7dbbf75b1da07e895d1f594193a40a38b",
-                "sha256:9c443e7324ba5b85070c4a818ade28bfabedf16ea10206da1132edaa6dda237e"
-            ],
-            "version": "==2.18.4"
-        },
         "rfc3987": {
             "hashes": [
                 "sha256:eb58b75dcc029c43d4be6dc2518fdd37c816c3acb2be1680f8a44071a2483b10",
@@ -444,26 +392,6 @@
                 "sha256:d514bd84b284dd3e844f0305ac07511f097e325171f6cc4a20878d11ad771849"
             ],
             "version": "==3.6.2"
-        },
-        "urllib3": {
-            "hashes": [
-                "sha256:06330f386d6e4b195fbfc736b297f58c5a892e4440e54d294d7004e3a9bbea1b",
-                "sha256:cc44da8e1145637334317feebd728bd869a35285b93cbb4cca2577da7e62db4f"
-            ],
-            "version": "==1.22"
-        },
-        "virtualenv": {
-            "hashes": [
-                "sha256:39d88b533b422825d644087a21e78c45cf5af0ef7a99a1fc9fbb7b481e5c85b0",
-                "sha256:02f8102c2436bb03b3ee6dede1919d1dac8a427541652e5ec95171ec8adbc93a"
-            ],
-            "version": "==15.1.0"
-        },
-        "virtualenv-clone": {
-            "hashes": [
-                "sha256:6b3be5cab59e455f08c9eda573d23006b7d6fb41fae974ddaa2b275c93cc4405"
-            ],
-            "version": "==0.2.6"
         },
         "webcolors": {
             "hashes": [

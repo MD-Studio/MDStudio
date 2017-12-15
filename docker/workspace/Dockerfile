@@ -11,10 +11,10 @@ WORKDIR /app
 STOPSIGNAL SIGTERM
 
 RUN echo "" >> ~/.bashrc && \
-    echo 'source ~/.bashrc_crossbar' >> ~/.bashrc
+    echo 'source ~/.bashrc_mdstudio' >> ~/.bashrc
 
 ENV PYENV_SHELL=/bin/bash
 
-ADD .bashrc_crossbar /root/.bashrc_crossbar
+ADD .bashrc_mdstudio /root/.bashrc_mdstudio
 
 CMD ["bash", "/docker-entrypoint.sh"]
