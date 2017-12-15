@@ -8,7 +8,7 @@ WAMP service methods the module exposes.
 
 from autobahn import wamp
 from cerise_interface import (
-    call_cerise_gromacs, create_cerise_config)
+    call_cerise_gromit, create_cerise_config)
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_md.settings import SETTINGS
 from md_config import set_gromacs_input
@@ -34,37 +34,46 @@ class MDWampApi(LieApplicationSession):
 
     @wamp.register(u'liestudio.gromacs.liemd')
     def run_gromacs_liemd(
-            self, session={}, path_cerise_config=None,
-            cwl_workflow=None, **kwargs):
+            self, session={}, path_cerise_config=None, cwl_workflow=None,
+            protein_pdb=None, protein_top=None, ligand_pdb=None,
+            ligand_top=None, include=[], residues=None, **kwargs):
         """
-        Call gromacs using the Cerise-client infrastructure:
+        Call gromit using the Cerise-client infrastructure:
         http://cerise-client.readthedocs.io/en/master/index.html
 
-        it expects the following keywords files for gromacs:
+        This function expects the following keywords files to call gromit:
             * protein_pdb
             * protein_top
-            * protein_itp
             * ligand_pdb
             * ligand_top
-            * ligand_itp
-            * include_itp
+
+        Further include files (e.g. *itp files) can be included as a list:
+        include=[atom_types.itp, another_itp.itp]
+
+        To perform the energy decomposition a list of the numerical residues
+        identifiers is expected, for example:
+        residues=[1, 5, 7, 8]
         """
-        workdir = kwargs['workdir']
+        workdir = kwargs.get('workdir', os.getcwd())
 
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
         session['workdir'] = workdir
 
-        # Load GROMACS configuration and update
+        # Load GROMACS configuration and update it
+        input_dict = {
+            'protein_pdb': protein_pdb, 'protein_top': protein_top,
+            'ligand_pdb': ligand_pdb, ligand_top: 'ligand_top',
+            'include': include, 'residues': residues}
         gromacs_config = set_gromacs_input(
-            self.package_config.dict(), workdir, kwargs)
+            self.package_config.dict(), workdir, input_dict)
 
         # Cerise Configuration
         cerise_config = create_cerise_config(
             path_cerise_config, session, cwl_workflow)
 
         # Run the MD and retrieve the energies
-        output = call_cerise_gromacs(
+        output = call_cerise_gromit(
             gromacs_config, cerise_config, self.db['cerise'])
 
         session['status'] = 'completed'

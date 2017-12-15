@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# from lie_md.gromacs_gromit import gromit_cmd
 from collections import defaultdict
 from twisted.logger import Logger
 import cerise_client.service as cc
 import hashlib
 import json
+import numpy as np
 import os
 from os.path import join
 from time import sleep
@@ -17,7 +17,15 @@ logger = Logger()
 def create_cerise_config(
         path_to_config, session, cwl_workflow):
     """
-    Configuration to run MD jobs.
+    Creates a Cerise service using the `path_to_config`
+    yaml file, together with the `cwl_workflow` to run
+    and store the meta information in the session.
+
+    :param path_to_config: Path to the data use to
+    initialize a Cerise service.
+    :param session: Current Wamp session
+    :param cwl_workflow: File containing the CWL workflow.
+    :returns: Dict containing the Cerise config.
     """
     with open(path_to_config, 'r') as f:
         config = json.load(f)
@@ -33,7 +41,7 @@ def create_cerise_config(
     return config
 
 
-def call_cerise_gromacs(
+def call_cerise_gromit(
         gromacs_config, cerise_config, cerise_db):
     """
     Use cerise to run gromacs in a remote cluster, see:
@@ -45,13 +53,16 @@ def call_cerise_gromacs(
     and call a cerise-client process.
     :param cerise_db: MongoDB collection to keep the information
     related to the Cerise services and jobs.
+    :returns: Dict with the output paths.
     """
     srv_data = retrieve_service_from_db(
         cerise_config, gromacs_config['ligand_pdb'], cerise_db)
 
     if srv_data is None:
-        srv_data = create_new_srv_job(
-            gromacs_config, cerise_config, cerise_db)
+        # Create a new service if one is not already running
+        srv = create_service(cerise_config)
+        srv_data = submit_new_job(
+            srv, gromacs_config, cerise_config, cerise_db)
 
     # is the job still running?
     elif srv_data['job_state'] == 'Running':
@@ -69,25 +80,17 @@ def call_cerise_gromacs(
 
 def retrieve_service_from_db(config, ligand_pdb, cerise_db):
     """
-    Check if there is an alive service in the database.
+    Check if there is an alive service in the db.
+
+    :param config: Service metadata.
+    :param ligand_db: Path to the ligand geometry.
+    :param cerise_db: Connector to the DB.
     """
     query = {
         'ligand_md5': compute_md5(ligand_pdb),
         'name': config['docker_name']}
 
     return cerise_db.find_one(query)
-
-
-def create_new_srv_job(gromacs_config, cerise_config, cerise_db):
-    """
-    Create a new service if one is not already running
-    and initialize a job
-    """
-    srv = create_service(cerise_config)
-    srv_data = submit_new_job(
-        srv, gromacs_config, cerise_config, cerise_db)
-
-    return srv_data
 
 
 def create_service(config):
@@ -107,7 +110,9 @@ def create_service(config):
 
 def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
     """
-    Create a new job and regiter it.
+    Create a new job using the provided `srv` and `cerise_config`.
+    The job's input is extracted from the `gromacs_config`  and
+    the job metadata is stored in the DB using `cerise_db`.
     """
     logger.info("Creating Cerise-client job")
     job = create_lie_job(srv, gromacs_config, cerise_config)
@@ -134,7 +139,9 @@ def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
 
 
 def restart_srv_job(srv_data):
-    """ use a dictionary to restart a service """
+    """
+    Use a dictionary to restart a Cerise service
+    """
     srv = cc.service_from_dict(srv_data)
     cc.start_managed_service(srv)
 
@@ -143,22 +150,11 @@ def restart_srv_job(srv_data):
     logger.info("Job {} already running".format(job.id))
 
 
-def wait_extract_clean(job, srv, cerise_config, cerise_db):
-    """
-    Wait for the job to finish, extract the output and cleanup.
-    """
-    job = wait_for_job(job, cerise_config['log'])
-    output = get_output(job, cerise_config)
-    cleanup(job, srv, cerise_db)
-
-    return output
-
-
 def extract_simulation_info(
         srv_data, cerise_config, cerise_db):
     """
-    Wait for a job to finish if the job is already done
-    return the information retrieve from the db.
+    Wait for a job to finish, if the job is already done
+    return the information retrieved from the db.
     """
     logger.info("Extracting output from: {}".format(
         cerise_config['workdir']))
@@ -169,7 +165,7 @@ def extract_simulation_info(
         output = wait_extract_clean(
             job, srv, cerise_config, cerise_db)
 
-        # Update data in the repo
+        # Update data in the db
         srv_data.update(output)
         srv_data['job_state'] = job.state
         update_srv_info_at_db(srv_data, cerise_db)
@@ -180,11 +176,23 @@ def extract_simulation_info(
     return srv_data
 
 
+def wait_extract_clean(job, srv, cerise_config, cerise_db):
+    """
+    Wait for the `job` to finish, extract the output and cleanup.
+    """
+    job = wait_for_job(job, cerise_config['log'])
+    output = get_output(job, cerise_config)
+    cleanup(job, srv, cerise_db)
+
+    return output
+
+
 def is_output_available(srv_data):
     """
     Check if there are some output files.
     """
-    outputs = ['gromiterr', 'gromitout', 'gromacslog', 'trajectory']
+    outputs = ['decompose_err', 'decompose_out', 'energyout',
+               'energyerr', 'gromiterr', 'gromitout']
     return any(x in srv_data for x in outputs)
 
 
@@ -222,17 +230,41 @@ def create_lie_job(srv, gromacs_config, cerise_config):
     job = srv.create_job(job_name)
 
     # Copy gromacs input files
-    job = copy_files_to_remote(job, gromacs_config)
+    job = add_input_lie(job, gromacs_config)
 
-    return set_input(job, gromacs_config)
+    return set_input_lie(job, gromacs_config)
 
 
-def set_input(job, gromacs_config):
+def add_input_lie(job, gromacs_config):
     """
-    Set input variables
+    Tell to Cerise which files to copy.
+    """
+    # Add files to cerise job
+    files = ['protein_pdb', 'protein_top',
+             'ligand_pdb', 'ligand_top']
+    for name in files:
+        job.add_input_file(name, gromacs_config[name])
+
+    # Secondary files are all include as part of the protein
+    # topology. Just to include them whenever the protein topology
+    # is used
+    if gromacs_config['include']:
+        for file_path in gromacs_config['include']:
+            job.add_secondary_file('protein_top', file_path)
+
+    return job
+
+
+def set_input_lie(job, gromacs_config):
+    """
+    Set input variables: force_field, simulation time
+    and residues to compute the lie energy.
     """
     job.set_input('force_field', gromacs_config['forcefield'])
     job.set_input('sim_time', gromacs_config['sim_time'])
+    residues = gromacs_config['residues']
+    job.set_input('residues', np.array2string(
+        np.array(residues), separator=',')[1:-1])
 
     return job
 
@@ -321,55 +353,51 @@ def get_output(job, config):
     """
     retrieve output information from the job.
     """
+    def save_data(files):
+        return {
+            key: copy_output_from_remote(
+                job.outputs.get(key), config, output_dict[key])
+            for key in files}
+
     output_dict = {
         'gromitout': 'gromit_{}.out', 'gromiterr': 'gromit_{}.err',
         'gromacslog': 'gromacs_{}.log', 'trajectory': 'traj_{}.trr',
         'energy': 'energy_{}.edr'}
 
     if job.state == 'Success':
-        return {
-            key: copy_output_from_remote(val, config, output_dict[key])
-            for key, val in job.outputs.items()}
-
+        success = ['trajectory', 'energy', 'energy_dataframe',
+                   'decompose_dataframe']
+        return save_data(success)
     else:
-        return None
+        failure = ['gromitout', 'gromiterr', 'energyout', 'energyerr',
+                   'decompose_err', 'decompose_out']
+        return save_data(failure)
 
 
 def copy_output_from_remote(val, config, fmt):
     """
     Copy output files to the localhost.
     """
-    task_id = config['task_id']
-    workdir = config['workdir']
+    if val is None:
+        path = None
+    else:
+        task_id = config['task_id']
+        workdir = config['workdir']
 
-    path = join(workdir, fmt.format(task_id))
-    val.save_as(path)
+        path = join(workdir, fmt.format(task_id))
+        val.save_as(path)
 
     return path
 
 
 def compute_md5(file_name):
     """
-    Compute the md5 for a given file name
+    Compute the md5 for a given `file_name`.
     """
     with open(file_name) as f:
         xs = f.read()
 
     return hashlib.md5(xs).hexdigest()
-
-
-def copy_files_to_remote(job, gromacs_config):
-    """
-    Tell to Cerise which files to copy.
-    """
-    # copy_files to remote worker
-    files = ['protein_pdb', 'protein_top', 'protein_itp',
-             'ligand_pdb', 'ligand_top', 'ligand_itp',
-             'include_itp']
-    for name in files:
-        job.add_input_file(name, gromacs_config[name])
-
-    return job
 
 
 def check_cwl_workflow(cwl_workflow):
@@ -381,9 +409,3 @@ def check_cwl_workflow(cwl_workflow):
     else:
         root = os.path.dirname(__file__)
         return join(root, 'data/md_workflow.cwl')
-
-
-def retrieve_energies(workdir):
-    """
-    """
-    pass

@@ -10,12 +10,12 @@ import shutil
 logger = Logger()
 
 
-def set_gromacs_input(gromacs_config, workdir, input_dict):
+def set_gromacs_input(gromacs_config, workdir, input_files):
     """
     Create input files for gromacs.
     """
     # Check if all the data is available
-    gromacs_config = check_input(gromacs_config, input_dict)
+    gromacs_config = check_input(gromacs_config, input_files)
 
     # correct topology
     gromacs_config = fix_topology_ligand(gromacs_config, workdir)
@@ -27,8 +27,8 @@ def check_input(gromacs_config, dict_input):
     """
     Check if all the data required to run gromacs is present
     """
-    file_names = ['protein_pdb', 'protein_top', 'protein_itp',
-                  'ligand_pdb', 'ligand_top', 'ligand_itp', 'include_itp']
+    file_names = ['protein_pdb', 'protein_top', 'ligand_pdb',
+                  'ligand_top']
 
     for f in file_names:
         path = dict_input.get(f, None)
@@ -38,6 +38,9 @@ def check_input(gromacs_config, dict_input):
             logger.error("{}: {} not a valid file path".format(f, path))
             raise RuntimeError("the following files are required by the \
             liestudio.gromacs.liemd function: {}".format(file_names))
+
+    # include files
+    gromacs_config['include'] = dict_input['include']
 
     return gromacs_config
 
