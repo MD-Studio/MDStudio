@@ -218,3 +218,4 @@ docker/.USERDONE
 *~
 venv
 .env
+**/.settings.*.yml
