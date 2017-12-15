@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "description": "This is how the Echo component responds to your greeting",
+    "properties": {
+        "message": {
+            "$ref": "resource://mdgroup/echo/hello-message/v1",
+            "description": "The Echo component will return your greeting in the same format as it was sent"
+        },
+        "returnTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The datetime the Echo component initiated the return"
+        }
+    },
+    "required": ["message", "returnTime"],
+    "additionalProperties": false
+}

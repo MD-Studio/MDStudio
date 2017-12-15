@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "UpdateManyResponse",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
+    },
+    "update": {
+      "$ref": "resource://mdstudio/db/document/v1"
+    },
+    "filter": {
+      "$ref": "resource://mdstudio/db/filter/v1"
+    },
+    "upsert": {
+      "type": "boolean",
+      "default": false
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    }
+  },
+  "required": [
+    "collection",
+    "update"
+  ],
+  "additionalProperties": false
+}

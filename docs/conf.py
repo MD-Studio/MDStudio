@@ -88,7 +88,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**/*_py3.py']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -174,11 +174,6 @@ html_static_path = ['_static']
 # The empty string is equivalent to '%b %d, %Y'.
 #
 # html_last_updated_fmt = None
-
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
-#
-html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
 #
@@ -359,13 +354,16 @@ Components
 
     for i in glob.glob('../components/lie_*/lie_*/'):
         if not 'egg-info' in i:
-            names = re.match(r'../components/lie_.*/(lie_(.*))/', i)
+            names = re.match(r'../components/(lie_(.*))/lie_.*', i)
             module_name = names.group(1)
             name = names.group(2)
+
             file = "components/{}.rst".format(module_name)
             if os.path.isfile(file):
                 os.remove(file)
 
-            os.system("sphinx-apidoc --module-first --private --force -o components/{} {}/".format(name, i))
+            sys.path.append("../components/{}".format(module_name))
 
-            mod.write("   components/{}/modules.rst\n".format(name))
+            os.system("sphinx-apidoc --module-first --private --force -o components/{0} {1}/ {1}/*_py3.py".format(module_name, i))
+
+            mod.write("   components/{}/modules.rst\n".format(module_name))

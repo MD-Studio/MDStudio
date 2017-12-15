@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Cursor response schema for your api",
+  "type": "object",
+  "properties": {
+    "results": {},
+    "paging": {
+      "properties": {
+        "next": {
+          "type": "string"
+        },
+        "previous": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lastPage": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "uri"
+      ]
+    },
+    "additionalProperties": false
+  },
+  "required": [
+    "paging"
+  ],
+  "additionalProperties": false
+}
