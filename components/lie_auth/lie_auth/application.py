@@ -125,11 +125,11 @@ class AuthComponent(CoreComponentSession):
 
         return {'claims': claims}
 
-    @endpoint('mdstudio.auth.endpoint.ring0.set-status', {}, {})
+    @endpoint('ring0.set-status', {}, {})
     def ring0_set_status(self, request, claims=None):
         self.status_list[claims['username']] = request['status']
 
-    @endpoint('mdstudio.auth.endpoint.ring0.get-status', {}, {})
+    @endpoint('ring0.get-status', {}, {})
     def ring0_get_status(self, request, claims=None):
         return self.status_list.get(request['component'], False)
 
@@ -378,7 +378,7 @@ class AuthComponent(CoreComponentSession):
 
         return_value(authorization)
 
-    @endpoint(u'mdstudio.auth.endpoint.oauth.client.create', 'oauth/client/client-request', 'oauth/client/client-response')
+    @endpoint('oauth.client.create', 'oauth/client/client-request', 'oauth/client/client-response')
     @inlineCallbacks
     def create_oauth_client(self, request, details=None):
         user = yield self._get_user(details.caller_authid)
@@ -396,7 +396,7 @@ class AuthComponent(CoreComponentSession):
             'secret': clientInfo['secret']
         })
 
-    @endpoint(u'mdstudio.auth.endpoint.oauth.client.getusername', {}, {})
+    @endpoint('oauth.client.getusername', {}, {})
     @inlineCallbacks
     def get_oauth_client_username(self, request):
         client = yield self._get_client(request['clientId'])

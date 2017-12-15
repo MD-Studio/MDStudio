@@ -23,7 +23,7 @@ class SchemaComponent(CoreComponentSession):
         
         super(SchemaComponent, self).pre_init()
 
-    @endpoint(u'mdstudio.schema.endpoint.upload', {}, {})
+    @endpoint('upload', {}, {})
     @chainable
     def schema_upload(self, request, claims=None, **kwargs):
         vendor = claims['vendor']
@@ -43,7 +43,7 @@ class SchemaComponent(CoreComponentSession):
                 yield self.claims.upsert(vendor, component, schema, claims)
 
     # @todo: validate using json schema draft
-    @endpoint(u'mdstudio.schema.endpoint.get', {}, {})
+    @endpoint('get', {}, {})
     @chainable
     def schema_get(self, request, claims=None, **kwargs):
         vendor = claims['vendor']
