@@ -15,8 +15,8 @@ class Cache(object):
 
     def __init__(self, wrapper=None, cache_type=None):
         # type: (Optional[ICache], Optional[CacheType]) -> None
-        self._check_wrapper(wrapper)
         self.wrapper = wrapper or GlobalCache.get_wrapper(cache_type or self.cache_type)
+        self._check_wrapper()
 
     def set(self, key, value, expiry=None):
         # type: (str, Any, Optional[int]) -> bool
@@ -43,5 +43,5 @@ class Cache(object):
             return int(expiry.total_seconds())
         return expiry
 
-    def _check_wrapper(self, wrapper):
-        assert isinstance(wrapper, ICache), 'Wrapper should inherit ICache'
+    def _check_wrapper(self):
+        assert isinstance(self.wrapper, ICache), 'Wrapper should inherit ICache'
