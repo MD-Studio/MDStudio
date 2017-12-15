@@ -11,14 +11,18 @@ import tempfile
 import json
 import jsonschema
 
-from pandas import read_csv
+from pandas import read_csv, read_json, read_excel, read_table, concat, DataFrame
 from autobahn import wamp
 
-from pylie import LIEMDFrame, pylie_config
+from pylie import LIEMDFrame, LIEDataFrame, pylie_config
 from pylie.filters.filtersplines import FilterSplines
+from pylie.filters.filtergaussian import FilterGaussian
 from lie_system import LieApplicationSession, WAMPTaskMetaData
 
 pylie_schema = json.load(open(os.path.join(os.path.dirname(__file__), 'pylie_schema.json')))
+
+PANDAS_IMPORTERS = {'csv': read_csv, 'json': read_json, 'xlsx': read_excel, 'tbl': read_table}
+PANDAS_EXPORTERS = {'csv': 'to_csv', 'json': 'to_json', 'xlsx': 'to_excel', 'tbl': 'to_string'}
 
 
 class PylieWampApi(LieApplicationSession):
@@ -30,6 +34,114 @@ class PylieWampApi(LieApplicationSession):
     """
 
     require_config = ['system']
+
+    def _get_config(self, config, name):
+
+        ref_config = pylie_config.get(name).dict()
+        ref_config.update(config)
+
+        # Validate the configuration
+        jsonschema.validate(pylie_schema, ref_config)
+
+        return ref_config
+
+    def _import_to_dataframe(self, infile):
+
+        if not os.path.isfile(infile):
+            self.log.error('No such file: {0}'.format(infile))
+            return
+
+        ext = infile.split('.')[-1]
+        if ext not in PANDAS_IMPORTERS:
+            self.log.error('Unsupported file format: {0}'.format(ext))
+            return
+
+        df = PANDAS_IMPORTERS[ext](infile)
+        if 'Unnamed: 0' in df:
+            del df['Unnamed: 0']
+
+        return df
+
+    def _export_dataframe(self, df, outfile, file_format='csv'):
+
+        if file_format not in PANDAS_EXPORTERS:
+            self.log.error('Unsupported file format: {0}'.format(file_format))
+            return False
+
+        if hasattr(df, PANDAS_EXPORTERS[file_format]):
+            method = getattr(df, PANDAS_EXPORTERS[file_format])
+
+            # Export to file
+            with open(outfile, 'w') as outf:
+                method(outf)
+
+            return True
+        return False
+
+    @wamp.register(u'liestudio.pylie.liedeltag')
+    def calculate_lie_deltag(self, dataframe=None, alpha=0.5, beta=0.5, gamma=0.0, kBt=2.49, session=None, **kwargs):
+
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+
+        # Filter DataFrame
+        dfobject = LIEDataFrame(self._import_to_dataframe(dataframe))
+        dg_calc = dfobject.liedeltag(params=[alpha, beta, gamma], kBt=kBt)
+
+        # Create workdir to save file
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+            self.logger.debug('Create working directory: {0}'.format(workdir), **session)
+
+        # Save dataframe
+        file_format = kwargs.get('file_format', 'csv')
+        filepath = os.path.join(workdir, 'liedeltag.{0}'.format(file_format))
+        if self._export_dataframe(dg_calc, filepath, file_format=file_format):
+            session['status'] = 'completed'
+            return {'session': session, 'liedeltag_file': filepath, 'liedeltag': dg_calc.to_dict()}
+
+        session['status'] = 'failed'
+        return {'session': session}
+
+    @wamp.register(u'liestudio.pylie.concat_dataframes')
+    def concat_dataframes(self, dataframes=None, ignore_index=True, axis=0, join='outer', session=None, **kwargs):
+        """
+        Combine multiple tabular DataFrames into one new DataFrame using
+        the Python Pandas library.
+
+        :param dataframes: DataFrames to combine
+        :type dataframes:  :py:list
+        """
+
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+
+        # Import all files
+        dfs = []
+        for dataframe in dataframes:
+            dfobject = self._import_to_dataframe(dataframe)
+            if isinstance(dfobject, DataFrame):
+                dfs.append(dfobject)
+
+        # Concatenate dataframes
+        if len(dfs) > 1:
+            concat_df = concat(dfs, ignore_index=ignore_index, axis=axis, join=join)
+            session['status'] = 'completed'
+
+            # Create workdir to save file
+            workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+            if not os.path.isdir(workdir):
+                os.mkdir(workdir)
+                self.logger.debug('Create working directory: {0}'.format(workdir), **session)
+
+            file_format = kwargs.get('file_format', 'csv')
+            filepath = os.path.join(workdir, 'joined.{0}'.format(file_format))
+            if self._export_dataframe(concat_df, filepath, file_format=file_format):
+                return {'session': session, 'concat_mdframe': filepath}
+
+        session['status'] = 'failed'
+        return {'session': session}
 
     @wamp.register(u'liestudio.pylie.calculate_lie_average')
     def calculate_lie_average(self, mdframe=None, session=None, **kwargs):
@@ -47,11 +159,7 @@ class PylieWampApi(LieApplicationSession):
         session = WAMPTaskMetaData(metadata=session).dict()
 
         # Load MDFrame import configuration and update
-        filter_config = pylie_config.get('LIEMDFrame').dict()
-        filter_config.update(kwargs)
-
-        # Validate the configuration
-        jsonschema.validate(pylie_schema, filter_config)
+        filter_config = self._get_config(kwargs, 'LIEMDFrame')
 
         if not mdframe or not os.path.isfile(mdframe):
             self.logger.error('MDFrame csv file does not exist: {0}'.format(mdframe), **session)
@@ -84,6 +192,46 @@ class PylieWampApi(LieApplicationSession):
 
         return output
 
+    @wamp.register(u'liestudio.pylie.gaussian_filter')
+    def filter_gaussian(self, dataframe=None, confidence=0.975, plot=True, session=None, **kwargs):
+        """
+        Use multivariate Gaussian Distribution analysis to filter VdW/Elec
+        values
+        :param dataframe: DataFrame to filter
+        :type dataframe:  :pylie:LIEDataFrame
+        """
+
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session).dict()
+
+        # Filter DataFrame
+        dfobject = LIEDataFrame(self._import_to_dataframe(dataframe))
+        gaussian = FilterGaussian(dfobject, confidence=confidence)
+        filtered = gaussian.filter()
+        self.log.info("Filter detected {0} outliers.".format(len(filtered.outliers.cases)))
+
+        # Create workdir to save file
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+            self.logger.debug('Create working directory: {0}'.format(workdir), **session)
+
+        # Plot results
+        if plot:
+            outp = os.path.join(workdir, 'gauss_filter.pdf')
+            p = gaussian.plot()
+            p.savefig(outp)
+
+        # Save filtered dataframe
+        file_format = kwargs.get('file_format', 'csv')
+        filepath = os.path.join(workdir, 'gauss_filter.{0}'.format(file_format))
+        if self._export_dataframe(filtered, filepath, file_format=file_format):
+            session['status'] = 'completed'
+            return {'session': session, 'gauss_filter': filepath}
+
+        session['status'] = 'failed'
+        return {'session': session}
+
     @wamp.register(u'liestudio.pylie.filter_stable_trajectory')
     def filter_stable_trajectory(self, mdframe=None, session=None, **kwargs):
         """
@@ -99,9 +247,8 @@ class PylieWampApi(LieApplicationSession):
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
 
-        # Load MDFrame import configuration and update
-        filter_config = pylie_config.get('FilterSplines').dict()
-        filter_config.update(kwargs)
+        # Load FilterSplines configuration and update
+        filter_config = self._get_config(kwargs, 'FilterSplines')
 
         # Validate the configuration
         jsonschema.validate(pylie_schema, filter_config)
@@ -156,12 +303,23 @@ class PylieWampApi(LieApplicationSession):
     @wamp.register(u'liestudio.pylie.collect_energy_trajectories')
     def import_mdene_files(self, bound_trajectory=None, unbound_trajectory=None, session=None, **kwargs):
         """
-        Import GROMACS MD trajectory energy files into a LIEMDFrame
+        Import GROMACS MD trajectory energy files into a LIEMDFrame.
+
+        The constructed LIEMDFrame should represents simulations for the same
+        system with one simulation for the unbound state of the ligand and one
+        or more simulations for the bound system with the ligand in potentially
+        multiple binding poses.
 
         :param bound_trajectory: one or multiple Gromacs energy trajectory
                                  file paths for bound systems
         :param unbound_trajectory: one or multiple Gromacs energy trajectory
                                  file paths for unbound systems
+        :param lie_vdw_header:   header name for VdW energies
+        :type lie_vdw_header:    str
+        :param lie_ele_header:   header name for coulomb energies
+        :type lie_ele_header:    :py:str
+        :param case:             case ID
+        :type case:              :py:int
         :param session:          WAMP session information
         :type session:           :py:dict
         """
@@ -170,11 +328,7 @@ class PylieWampApi(LieApplicationSession):
         session = WAMPTaskMetaData(metadata=session).dict()
 
         # Load MDFrame import configuration and update
-        mdframe_config = pylie_config.get('LIEMDFrame').dict()
-        mdframe_config.update(kwargs)
-
-        # Validate the configuration
-        jsonschema.validate(pylie_schema, mdframe_config)
+        mdframe_config = self._get_config(kwargs, 'LIEMDFrame')
 
         # Create workdir to save file
         workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))

@@ -212,6 +212,9 @@ class CommonSession(ApplicationSession):
 
     @chainable
     def on_join(self):
+        failures = 0
+        successful = 0
+
         registrations = yield self.register(self)
         for _, endpoint in self.__class__.__dict__.items():
             from mdstudio.api.endpoint import WampEndpoint
@@ -222,22 +225,27 @@ class CommonSession(ApplicationSession):
                     yield s.flatten(self)
 
                 endpoint.set_instance(self)
-                yield self.register(endpoint, endpoint.uri)
+                try:
+                    yield self.register(endpoint, endpoint.uri)
+                    successful += 1
+                except:
+                    failures += 1
 
         yield self._on_join()
 
-        failures = 0
         for r in registrations:
             if isinstance(r, Failure):
                 self.log.info("ERROR: {class_name}: {message}", class_name=self.class_name(), message=r.value)
-                failures = failures + 1
+                failures += 1
+            else:
+                successful += 1
 
         if failures > 0:
             self.log.info("ERROR {class_name}: failed to register {procedures} procedures", procedures=failures,
                           class_name=self.class_name())
 
         self.log.info("{class_name}: {procedures} procedures successfully registered",
-                      procedures=len(registrations) - failures, class_name=self.class_name())
+                      procedures=successful, class_name=self.class_name())
 
     @chainable
     def onJoin(self, details):

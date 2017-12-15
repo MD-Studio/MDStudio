@@ -6,3 +6,4 @@ echo 'This container comes with some commands to make your work less complicated
 echo ''
 echo 'Usage:'
 echo '    helpme          Show this'
+echo '    update          Update pip packages'

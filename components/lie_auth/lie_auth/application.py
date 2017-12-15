@@ -97,7 +97,10 @@ class AuthComponent(CoreComponentSession):
             g, c, _, e = claims['uri'].split('.', 3)
 
             if group is not None:
-                if g == group and (yield self.user_repository.check_permission(user.name, g, c, e, claims['action'], group_role)):
+                if self.authorizer.authorize_user(claims['uri'], claims['action']) or (
+                        g == group and
+                        (yield self.user_repository.check_permission(user.name, g, c, e, claims['action'], group_role))
+                ):
                     claims['group'] = group
 
                     if group_role is not None:

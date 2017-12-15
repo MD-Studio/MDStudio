@@ -238,7 +238,7 @@ class WorkflowSpec(object):
 
         return nid
 
-    def connect_task(self, task1, task2, data_mapping=None):
+    def connect_task(self, task1, task2, **kwargs):
         """
         Connect tasks by task ID (graph nid)
 
@@ -252,15 +252,15 @@ class WorkflowSpec(object):
         :type task2:          :py:int
         :param data_mapping:  output-input data mapping
         :type data_mapping:   :py:dict
+        :param data_select:   restrict input to selected keywords
+        :type data_select:    :py:list
         """
+
         wf_nodes = self.workflow.nodes
         assert task1 in wf_nodes, 'Task {0} not in workflow'.format(task1)
         assert task2 in wf_nodes, 'Task {0} not in workflow'.format(task2)
 
-        if data_mapping:
-            self.workflow.add_edge(task1, task2, data_mapping=data_mapping)
-        else:
-            self.workflow.add_edge(task1, task2, data_mapping)
+        self.workflow.add_edge(task1, task2, **kwargs)
 
     def get_task(self, nid):
         """
