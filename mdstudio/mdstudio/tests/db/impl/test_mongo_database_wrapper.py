@@ -14,7 +14,7 @@ from mdstudio.db.cursor import Cursor, query
 from mdstudio.db.exception import DatabaseException
 from mdstudio.db.fields import Fields
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
-from mdstudio.db.model import Model
+from mdstudio.service.model import Model
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase

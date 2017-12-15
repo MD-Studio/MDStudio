@@ -77,7 +77,7 @@ class TestSchemaRepository(DBTestCase):
             'builds': [
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'c89a148be40e6752261e3038609a4b68de22fa3bfdaf32f884edffb8480b9bbe',
@@ -136,7 +136,7 @@ class TestSchemaRepository(DBTestCase):
             'builds': [
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'c89a148be40e6752261e3038609a4b68de22fa3bfdaf32f884edffb8480b9bbe',
@@ -201,7 +201,7 @@ class TestSchemaRepository(DBTestCase):
             'builds': [
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'c89a148be40e6752261e3038609a4b68de22fa3bfdaf32f884edffb8480b9bbe',
@@ -293,7 +293,7 @@ class TestSchemaRepository(DBTestCase):
                 'builds': [
                     {
                         'createdBy': {
-                            'groups': None,
+                            'group': self.claims['group'],
                             'username': self.claims['username']
                         },
                         'hash': 'c89a148be40e6752261e3038609a4b68de22fa3bfdaf32f884edffb8480b9bbe',
@@ -361,7 +361,7 @@ class TestSchemaRepository(DBTestCase):
                 'builds': [
                     {
                         'createdBy': {
-                            'groups': None,
+                            'group': self.claims['group'],
                             'username': self.claims['username']
                         },
                         'hash': '180c4463f342b46548551cb463b6834363fa7e2d150f2bd4035190625b374602',
@@ -430,7 +430,7 @@ class TestSchemaRepository(DBTestCase):
                 'builds': [
                     {
                         'createdBy': {
-                            'groups': None,
+                            'group': self.claims['group'],
                             'username': self.claims['username']
                         },
                         'hash': '4a8a0f916a35c4c3afd395692030eb3476b97e981ed1cfa80e66b9dbf60fcc23',
@@ -500,7 +500,7 @@ class TestSchemaRepository(DBTestCase):
             'builds': [
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'cae29d113f1ea59118a51a9bb3b52340bd494b166631a9f3cee998f1e2690ba7',
@@ -508,7 +508,7 @@ class TestSchemaRepository(DBTestCase):
                 },
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'ac03e973037b7a48543a99ebfa6cbf2eecd86b0a26014fea510f7f743769977c',
@@ -581,7 +581,7 @@ class TestSchemaRepository(DBTestCase):
             'builds': [
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'cae29d113f1ea59118a51a9bb3b52340bd494b166631a9f3cee998f1e2690ba7',
@@ -589,7 +589,7 @@ class TestSchemaRepository(DBTestCase):
                 },
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'ac03e973037b7a48543a99ebfa6cbf2eecd86b0a26014fea510f7f743769977c',
@@ -662,7 +662,7 @@ class TestSchemaRepository(DBTestCase):
             'builds': [
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'cae29d113f1ea59118a51a9bb3b52340bd494b166631a9f3cee998f1e2690ba7',
@@ -711,7 +711,7 @@ class TestSchemaRepository(DBTestCase):
             'builds': [
                 {
                     'createdBy': {
-                        'groups': None,
+                        'group': self.claims['group'],
                         'username': self.claims['username']
                     },
                     'hash': 'ac03e973037b7a48543a99ebfa6cbf2eecd86b0a26014fea510f7f743769977c',

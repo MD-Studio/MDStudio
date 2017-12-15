@@ -9,7 +9,7 @@ from twisted.trial.unittest import TestCase
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase
 from mdstudio.db.fields import Fields
-from mdstudio.db.model import Model
+from mdstudio.service.model import Model
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.db.sort_mode import SortMode

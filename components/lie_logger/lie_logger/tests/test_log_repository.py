@@ -1,5 +1,4 @@
 from datetime import timedelta
-from pprint import pprint
 
 from faker import Faker
 from twisted.internet import reactor
@@ -9,7 +8,7 @@ from lie_logger.log_repository import LogRepository
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
-from mdstudio.utc import from_utc_string, now
+from mdstudio.utc import now
 
 
 class TestLogRepository(DBTestCase):
@@ -22,8 +21,7 @@ class TestLogRepository(DBTestCase):
         self.claims = {
             'logType': 'user',
             'username': self.faker.user_name(),
-            'group': self.faker.user_name(),
-            'role': None
+            'group': self.faker.user_name()
         }
 
         if not reactor.getThreadPool().started:

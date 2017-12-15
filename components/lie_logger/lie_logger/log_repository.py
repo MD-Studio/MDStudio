@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from mdstudio.api.claims import whois
 from mdstudio.api.paginate import paginate_cursor
-from mdstudio.db.model import Model
+from mdstudio.service.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.log_type import LogType

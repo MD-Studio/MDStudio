@@ -11,7 +11,7 @@ from lie_schema.exception import SchemaException
 from mdstudio.api.claims import whois
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.database import IDatabase
-from mdstudio.db.model import Model
+from mdstudio.service.model import Model
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
 
