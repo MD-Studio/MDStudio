@@ -13,7 +13,7 @@ from copy import deepcopy
 from mdstudio.collection import dict_property, dict_array_property
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.fields import timestamp_properties, Fields
-from mdstudio.db.model import Model
+from mdstudio.service.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.utc import now

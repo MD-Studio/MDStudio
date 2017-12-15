@@ -216,11 +216,14 @@ class WorkflowRunner(_WorkflowQueryMethods):
             msg = 'Task {0} ({1}): Output of {2} parent tasks available, continue'
             logging.info(msg.format(task.nid, task.task_name, len(parent_tasks)))
             
-            # Collect output of previous tasks and apply data mapper
+            # Collect output of previous tasks and apply data mapper and data
+            # selection if needed
             for tid in parent_tasks:
                 mapper = self.workflow.edges[(tid, task.nid)].get('data_mapping', {})
+                select = self.workflow.edges[(tid, task.nid)].get('data_select',
+                                            self.workflow.nodes[tid]['output_data'].keys())
                 new_dict = {mapper.get(k, k): '${0}.{1}'.format(tid, k) for k, v in
-                            self.workflow.nodes[tid]['output_data'].items()}
+                            self.workflow.nodes[tid]['output_data'].items() if k in select}
                 collected_output.append(new_dict)
         else:
             logging.info(
@@ -319,7 +322,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             for ntask in next_tasks:
                 # Get output from all tasks connected to new task
                 output = self._collect_input(ntask)
-                if not output is None:
+                if output is not None:
                     if 'input_data' not in ntask.nodes[ntask.nid]:
                         ntask.nodes[ntask.nid]['input_data'] = {}
                 

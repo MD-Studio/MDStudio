@@ -8,7 +8,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from oauthlib import oauth2
 from oauthlib import common
 
-from mdstudio.db.model import Model
+from mdstudio.service.model import Model
 
 from .client import OAuthClient
 

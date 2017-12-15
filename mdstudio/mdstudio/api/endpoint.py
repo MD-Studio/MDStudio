@@ -98,6 +98,13 @@ class WampEndpoint(object):
         if result_errors:
             return_value(result_errors)
 
+        if 'error' in result:
+            return_value(result)
+
+        result_errors = self.validate_result(result.data)
+        if result_errors:
+            return_value(result_errors)
+
         return_value(result)
 
     def call_wrapped(self, request, claims):

@@ -23,7 +23,7 @@ except ImportError:
     import urllib.parse as urlparse
 
 from mdstudio.utc import now
-from mdstudio.db.model import Model
+from mdstudio.service.model import Model
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
 
