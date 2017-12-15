@@ -49,13 +49,16 @@ class TestLoggerComponent(DBTestCase, APITestCase):
         m.assert_called_once()
 
     @test_chainable
-    def test_log_event(self):
+    def test_push_logs(self):
 
         self.service.logs.insert = mock.MagicMock(wraps=lambda c, r: r)
         dic1 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
         dic2 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
 
-        output = yield self.assertApi(self.service, 'log_event', {
+        dic1['level'] = 'info'
+        dic2['level'] = 'warn'
+
+        output = yield self.assertApi(self.service, 'push_logs', {
             'logs': [dic1, dic2]
         }, self.claims)
         self.assertEqual(output, 2)
@@ -64,7 +67,7 @@ class TestLoggerComponent(DBTestCase, APITestCase):
         ])
 
     @test_chainable
-    def test_log_event_error(self):
+    def test_push_logs_error(self):
         def raise_(ex):
             raise ex
 
@@ -72,7 +75,10 @@ class TestLoggerComponent(DBTestCase, APITestCase):
         dic1 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
         dic2 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
 
-        output = yield self.assertApi(self.service, 'log_event', {
+        dic1['level'] = 'info'
+        dic2['level'] = 'warn'
+
+        output = yield self.assertApi(self.service, 'push_logs', {
             'logs': [dic1, dic2]
         }, self.claims)
         self.assertIsInstance(output, APIResult)

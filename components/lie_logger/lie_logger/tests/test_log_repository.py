@@ -90,6 +90,9 @@ class TestLogRepository(DBTestCase):
         yield self.rep.insert(self.claims, [dic1, dic2])
         all = yield self.db.find_many('users~{}'.format(self.claims['username']), {}, projection={'_id': False})['results']
 
+        dic1['tags'] = ['logs']
+        dic2['tags'] = ['logs']
+
         self.assertLessEqual(now() - all[0]['createdAt'], timedelta(seconds=1))
         del all[0]['createdAt']
         dic1['createdBy'] = self.claims

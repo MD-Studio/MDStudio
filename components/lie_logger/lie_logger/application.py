@@ -26,11 +26,6 @@ class LoggerComponent(CoreComponentSession):
         yield self.call('mdstudio.auth.endpoint.ring0.set-status', {'status': True})
         yield super(LoggerComponent, self).on_run()
 
-        page = {'limit': 5}
-        pprint(
-            (yield self.get_logs.wrapped(self, {}, {'logType': 'group', 'group': 'mdstudio', 'username': 'logger'}, paging=page, meta={})))
-        print(page)
-
     def pre_init(self):
         self.logs = LogRepository(self.db)
         self.db_waiter = self.ComponentWaiter(self, 'db')
