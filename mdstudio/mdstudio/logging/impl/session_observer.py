@@ -1,6 +1,7 @@
 # coding=utf-8
 import json
 from datetime import datetime
+from threading import RLock
 
 import os
 import pytz
@@ -13,7 +14,6 @@ from twisted.python.failure import Failure
 from mdstudio.api.exception import CallException
 from mdstudio.api.singleton import Singleton
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.lock import Lock
 from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
@@ -29,8 +29,8 @@ class SessionLogObserver(object):
         self.sessions = []
         self.log_type = log_type
         self.logs = []
-        self.lock = Lock()
-        self.flusher_lock = Lock()
+        self.lock = RLock()
+        self.flusher_lock = RLock()
         self.flushing = False
 
         self.recovery_file_path = os.path.join(session.component_root_path(), 'logs', 'recovery.json')

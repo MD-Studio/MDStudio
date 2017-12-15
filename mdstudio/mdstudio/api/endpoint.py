@@ -167,7 +167,12 @@ class CursorWampEndpoint(WampEndpoint):
     def __init__(self, wrapped_f, uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
         input_schema = InlineSchema({
             'oneOf': [
-                self._to_schema(input_schema, EndpointSchema),
+                {
+                    'allOf': [
+                        self._to_schema(input_schema, EndpointSchema),
+                        self._to_schema('cursor-parameters/v1', MDStudioSchema)
+                    ]
+                },
                 self._to_schema('cursor-request/v1', MDStudioSchema),
             ]
         })
@@ -197,12 +202,16 @@ class CursorWampEndpoint(WampEndpoint):
             meta = json.loads(self.instance.session.cache.extract('cursor#{}'.format(id)))
             if meta.get('uuid') != id:
                 return_value(APIResult(error='You tried to get a cursor that either doesn\'t exist, or is expired. Please check your code.'))
-
-        result, prev, nxt = yield self.wrapped(self.instance, request, claims['claims'], meta)
+            if not meta:
+                meta = None
 
         paging = {
             'uri': self.uri
         }
+        if 'paging' in request and 'limit' in request['paging']:
+            paging['limit'] = request['paging']['limit']
+
+        result, prev, nxt = yield self.wrapped(self.instance, request, claims['claims'], **{'paging': paging, 'meta': meta})
 
         if prev:
             prev_uuid = uuid.uuid4()
@@ -215,6 +224,10 @@ class CursorWampEndpoint(WampEndpoint):
             paging['next'] = next_uuid
             self.instance.session.cache.put('cursor#{}'.format(next_uuid), timedelta(minutes=10), json.dumps(nxt))
 
+        if not ('paging' in request or 'addPageInfo' in request['paging'] or request['paging']['addPageInfo']):
+            paging = {
+                'uri': paging['uri']
+            }
 
         return_value({
             'results': result,

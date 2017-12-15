@@ -22,7 +22,8 @@ class TestLogRepository(DBTestCase):
         self.claims = {
             'logType': 'user',
             'username': self.faker.user_name(),
-            'group': self.faker.user_name()
+            'group': self.faker.user_name(),
+            'role': None
         }
 
         if not reactor.getThreadPool().started:
@@ -89,6 +90,9 @@ class TestLogRepository(DBTestCase):
         dic2 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
         yield self.rep.insert(self.claims, [dic1, dic2])
         all = yield self.db.find_many('users~{}'.format(self.claims['username']), {}, projection={'_id': False})['results']
+
+        dic1['tags'] = ['logs']
+        dic2['tags'] = ['logs']
 
         self.assertLessEqual(now() - all[0]['createdAt'], timedelta(seconds=1))
         del all[0]['createdAt']

@@ -5,6 +5,7 @@ import hashlib
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from mdstudio.db.database import IDatabase
 
 from lie_db.key_repository import KeyRepository
 from mdstudio.api.endpoint import endpoint
@@ -12,6 +13,7 @@ from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.fields import Fields
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
+from mdstudio.db.index import Index
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
 from mdstudio.deferred.return_value import return_value
@@ -315,8 +317,34 @@ class DBComponent(CoreComponentSession):
 
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 
+    @endpoint(u'mdstudio.db.endpoint.create_indexes',
+              'index/create-request/v1',
+              'index/create-response/v1',
+              scope='index')
+    def create_indexes(self, request, claims=None):
+        database = self.get_database(claims)
+
+        return database.create_indexes(request['collection'], [Index.from_dict(d) for d in request['indexes']])
+
+    @endpoint(u'mdstudio.db.endpoint.drop-indexes',
+              'index/drop-request/v1',
+              scope='index')
+    def drop_indexes(self, request, claims=None):
+        database = self.get_database(claims)
+
+        return database.drop_indexes(request['collection'], [Index.from_dict(d) for d in request['indexes']])
+
+    @endpoint(u'mdstudio.db.endpoint.drop-all-indexes',
+              'index/drop-all-request/v1',
+              scope='index')
+    def drop_all_indexes(self, request, claims=None):
+        database = self.get_database(claims)
+
+        return database.drop_all_indexes(request['collection'])
+
     @chainable
     def get_database(self, claims):
+        # type: (dict) -> IDatabase
         connection_type = ConnectionType.from_string(claims['connectionType'])
 
         if connection_type == ConnectionType.User:

@@ -1,11 +1,12 @@
-import json
-
-from copy import deepcopy
 from typing import List
 
-from mdstudio.api.sort_mode import SortMode
-from mdstudio.collection import merge_dicts
+from copy import deepcopy
+
+from mdstudio.api.claims import whois
+from mdstudio.api.paginate import paginate_cursor
 from mdstudio.db.model import Model
+from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.log_type import LogType
 from mdstudio.utc import now
 
@@ -27,58 +28,28 @@ class LogRepository(object):
     def __init__(self, db):
         self.db = db
 
-    def insert(self, claims, logs):
+    def insert(self, claims, logs, tags=None):
         # type: (dict, List[dict]) -> List[str]
+
+        if not tags:
+            tags = ['logs']
 
         n = now()
         logs = deepcopy(logs)
         for i, l in enumerate(logs):
             logs[i]['createdAt'] = n
-            logs[i]['createdBy'] = claims
+            logs[i]['createdBy'] = whois(claims, 'logType')
+            logs[i]['tags'] = tags
         return self.logs(claims).insert_many(logs)
 
-    def get(self, filter, meta, claims):
+    @chainable
+    def get(self, filter, claims, **kwargs):
+        results, prev_meta, next_meta = yield self.logs(claims).paginate.find_many(filter, **kwargs)
 
-        if not meta:
-            meta = {
-                'request': json.dumps(filter),
-                'pageSize': 50,
-                'sortMode': str(SortMode.Desc)
-            }
+        for o in results:
+            del o['_id']
 
-        if 'fromId' in meta:
-            merge_dicts(filter, {
-                '_id': {
-                    '$gte': meta['fromId'],
-                    '$lte': meta['lastId']
-                }
-            })
-        elif 'lastId' in meta:
-            merge_dicts(filter, {
-                '_id': {
-                    '$lt': meta['lastId']
-                }
-            })
-        # security fail over
-        meta['pageSize'] = min(meta['pageSize'], 100)
-
-        results = self.logs(claims).find_many(filter, **{'limit': meta['pageSize'], 'sort': [('_id', SortMode.from_string(meta['sortMode']))]}).to_list()
-
-        next_meta = deepcopy(meta)
-        del next_meta['fromId']
-        del next_meta['lastId']
-        merge_dicts(next_meta, {
-            'lastId': results[len(results) - 1]['_id'],
-        })
-        prev_meta = deepcopy(meta)
-        del prev_meta['fromId']
-        del prev_meta['lastId']
-        merge_dicts(next_meta, {
-            'fromId': results[0]['_id'],
-            'lastId': results[len(results) - 1]['_id'],
-        })
-
-        return results, prev_meta, next_meta
+        return_value((results, prev_meta, next_meta))
 
     def logs(self, claims):
         return self.Logs(self.db, collection=self.get_log_collection_name(claims))

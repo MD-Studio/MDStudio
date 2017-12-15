@@ -105,6 +105,6 @@ class CoreComponentSession(CommonSession):
     @chainable
     def flush_logs(self, logs):
         with self.group_context('mdstudio'):
-            result = yield self.call(u'mdstudio.logger.endpoint.log', {'logs': logs}, claims={'logType': str(LogType.Group)})
+            result = yield self.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, claims={'logType': str(LogType.Group)})
 
         return_value(result)

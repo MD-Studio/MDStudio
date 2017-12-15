@@ -11,6 +11,7 @@
         "type": "string"
       },
       {
+        "type": "string",
         "enum": [
           "asc",
           "desc"
