@@ -1,10 +1,15 @@
 # coding=utf-8
+import copy
 from typing import Dict, Any, List, Optional
 
-from mdstudio.db.connection import ConnectionType
+import six
+
+from mdstudio.db.sort_mode import SortMode
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, ProjectionOperators, \
     SortOperators, AggregationOperator
+from mdstudio.db.index import Index
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
@@ -14,16 +19,9 @@ class SessionDatabaseWrapper(IDatabase):
 
     def __init__(self, session, connection_type=ConnectionType.User):
         # type: (CommonSession, ConnectionType) -> None
-        self.session = session
+        self.session = session  # type: CommonSession
 
-        self.claims = {
-            'connectionType': str(connection_type)
-        }
-
-        if connection_type == ConnectionType.Group:
-            self.claims['group'] = session.component_config.static.vendor
-        elif connection_type == ConnectionType.GroupRole:
-            raise NotImplemented()
+        self.connection_type = connection_type
 
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
@@ -136,7 +134,7 @@ class SessionDatabaseWrapper(IDatabase):
         if skip:
             request['skip'] = skip
         if sort:
-            request['sort'] = sort
+            request['sort'] = self._prepare_sortmode(sort)
         if fields:
             request['fields'] = fields.to_dict()
 
@@ -156,7 +154,7 @@ class SessionDatabaseWrapper(IDatabase):
         if limit:
             request['limit'] = limit
         if sort:
-            request['sort'] = sort
+            request['sort'] = self._prepare_sortmode(sort)
         if fields:
             request['fields'] = fields.to_dict()
 
@@ -176,7 +174,7 @@ class SessionDatabaseWrapper(IDatabase):
         if projection:
             request['projection'] = projection
         if sort:
-            request['sort'] = sort
+            request['sort'] = self._prepare_sortmode(sort)
         if fields:
             request['fields'] = fields.to_dict()
 
@@ -196,7 +194,7 @@ class SessionDatabaseWrapper(IDatabase):
         if projection:
             request['projection'] = projection
         if sort:
-            request['sort'] = sort
+            request['sort'] = self._prepare_sortmode(sort)
         if fields:
             request['fields'] = fields.to_dict()
 
@@ -212,7 +210,7 @@ class SessionDatabaseWrapper(IDatabase):
         if projection:
             request['projection'] = projection
         if sort:
-            request['sort'] = sort
+            request['sort'] = self._prepare_sortmode(sort)
         if fields:
             request['fields'] = fields.to_dict()
 
@@ -263,10 +261,57 @@ class SessionDatabaseWrapper(IDatabase):
 
         return self._call('delete_many', request)
 
+    def create_indexes(self, collection, indexes):
+        # type: (CollectionType, str, List[Index]) -> Any
+        indexes = []
+
+        for i in indexes:
+            indexes.append(i.to_dict(create=True, to_mongo=False))
+
+        return self._call('create_indexes', {
+            'collection': collection,
+            'indexes': indexes
+        })
+
+    def drop_indexes(self, collection, indexes):
+        # type: (CollectionType, str, List[Index]) -> Any
+        db_collection = self._get_collection(collection)
+        indexes = []
+
+        for i in indexes:
+            indexes.append(i.to_dict(create=False, name_exclusive=True, to_mongo=False))
+
+        return self._call('drop_indexes', {
+            'collection': collection,
+            'indexes': indexes
+        })
+
+    def drop_all_indexes(self, collection):
+        # type: (CollectionType, str) -> Any
+        db_collection = self._get_collection(collection)
+
+        if db_collection:
+            db_collection.drop_indexes()
+
     @chainable
     def make_cursor(self, results, fields):
         res = yield results
         return_value(Cursor(self, res, fields))
 
+    def _prepare_sortmode(self, sort):
+
+        if not sort:
+            return sort
+
+        sort = copy.deepcopy(sort)
+        if isinstance(sort, list):
+            for i, (name, mode) in enumerate(sort):
+                sort[i] = [name, str(mode)]
+        else:
+            sort = [[sort[0], str(sort[1])]]
+        return sort
+
+
     def _call(self, uri, request):
-        return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request, claims=self.claims)
+        return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request,
+                                 claims=self.session.call_context.get_db_claims(self.connection_type))

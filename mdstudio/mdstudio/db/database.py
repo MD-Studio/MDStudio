@@ -6,6 +6,7 @@ import six
 
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.fields import Fields
+from mdstudio.db.index import Index
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
@@ -21,6 +22,7 @@ DocumentType = Dict
 AggregationOperator = Dict
 ProjectionOperators = Dict
 SortOperators = Optional[Union[List[Tuple[str, SortMode]], Tuple[str, SortMode]]]
+IndexKeys = Union[List[Tuple[str, SortMode]], Tuple[str, SortMode]]
 
 
 # noinspection PyShadowingBuiltins
@@ -112,6 +114,21 @@ class IDatabase(object):
     @abc.abstractmethod
     def delete_many(self, collection, filter, fields=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Any
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def create_indexes(self, collection, indices):
+        # type: (CollectionType, List[Index]) -> Any
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def drop_all_indexes(self, collection):
+        # type: (CollectionType) -> Any
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def drop_indexes(self, collection, indexes):
+        # type: (CollectionType, List[Index]) -> Any
         raise NotImplementedError
 
     @chainable

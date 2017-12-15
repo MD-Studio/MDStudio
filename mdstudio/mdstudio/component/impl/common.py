@@ -1,22 +1,25 @@
 import inspect
 import json
-from collections import OrderedDict
-
 import os
 import re
+from collections import OrderedDict
+from copy import deepcopy
+from hashlib import sha512
+
 import yaml
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp import PublishOptions, ApplicationError
 from autobahn.wamp.request import Publication
-from copy import deepcopy
 from twisted.python.failure import Failure
 
 from mdstudio.api.api_result import APIResult
+from mdstudio.api.context import UserContext, GroupRoleContext, GroupContext
 from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.exception import CallException
+from mdstudio.api.request_hash import request_hash
 from mdstudio.api.schema import validate_json_schema
-from mdstudio.collection import merge_dicts
-from mdstudio.deferred.chainable import chainable
+from mdstudio.collection import merge_dicts, dict_property
+from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.impl.session_observer import SessionLogObserver
 from mdstudio.logging.log_type import LogType
@@ -26,34 +29,15 @@ from mdstudio.logging.logger import Logger
 class CommonSession(ApplicationSession):
     class Config(object):
         class Static(dict):
-            @property
-            def vendor(self):
-                return self.get('vendor')
-
-            @property
-            def component(self):
-                return self.get('component')
+            vendor = dict_property('vendor')
+            component = dict_property('component')
 
         class Session(dict):
-            @property
-            def username(self):
-                return self.get('username')
-
-            @property
-            def password(self):
-                return self.get('password')
-
-            @property
-            def realm(self):
-                return self.get('realm')
-
-            @property
-            def role(self):
-                return self.get('role')
-
-            @property
-            def session_id(self):
-                return self.get('session_id')
+            username = dict_property('username')
+            password = dict_property('password')
+            realm = dict_property('realm')
+            role = dict_property('role')
+            session_id = dict_property('session_id')
 
         def __init__(self):
             self.static = self.Static()
@@ -73,9 +57,12 @@ class CommonSession(ApplicationSession):
     def __init__(self, config=None):
         self.log = Logger(namespace=self.__class__.__name__)
         self.log_type = LogType.User
+        self.call_context = None
+        self.default_call_context = None
+        self.call_context_stack = []
 
         self.component_config = self.Config()
-        self.function_scopes = self.extract_custom_scopes()
+        self.function_scopes = self.extract_custom_scopes()  # @todo: register these
         self.load_environment(self.session_env_mapping, attribute='session')
 
         self.load_settings()
@@ -91,6 +78,18 @@ class CommonSession(ApplicationSession):
 
         if config:
             config.realm = u'{}'.format(self.component_config.session.realm)
+
+        context = self.component_config.session.get('context', None)
+
+        if context is None:
+            call_context = UserContext(self)
+        else:
+            if 'role' in context:
+                call_context = GroupRoleContext(self, context['group'], context['role'])
+            else:
+                call_context = GroupContext(self, context['group'])
+
+        self.call_context = self.default_call_context = call_context
 
         self.on_init()
 
@@ -111,25 +110,38 @@ class CommonSession(ApplicationSession):
 
         return False
 
+    def default_context(self):
+        return self.default_call_context
+
+    def user_context(self):
+        return UserContext(self)
+
+    def group_context(self, group_name):
+        return GroupContext(self, group_name)
+
+    def grouprole_context(self, group_name, group_role):
+        return GroupRoleContext(self, group_name, group_role)
+
     # noinspection PyMethodOverriding
     @chainable
     def call(self, procedure, request, claims=None, **kwargs):
-        if claims is None:
-            claims = {}
-
-        signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
+        claims = self.call_context.get_claims(claims)
+        claims['uri'] = procedure
+        claims['action'] = 'call'
 
         request = deepcopy(request)
         convert_obj_to_json(request)
 
-        @chainable
+        claims['requestHash'] = request_hash(request)
+
+        signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
+
+        if signed_claims is None:
+            claims.pop('requestHash')
+            raise CallException('Claims were not signed. You are not authorized for signing: \n{}'.format(json.dumps(claims, indent=2)))
+
         def make_original_call():
-            res = yield super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs)
-
-            if not isinstance(res, dict):
-                res = APIResult(result=res)
-
-            return_value(res)
+            return Chainable(super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs))
 
         try:
             result = yield make_original_call()
@@ -153,15 +165,11 @@ class CommonSession(ApplicationSession):
         if 'warning' in result:
             self.log.warn(result['warning'])
 
-        if 'result' not in result:
-            result['result'] = None
-
-        return_value(result['result'])
+        return_value(result.get('data', None))
 
     @chainable
     def publish(self, topic, claims=None, options=None):
-        if claims is None:
-            claims = {}
+        claims = self.call_context.get_claims(claims)
 
         signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
@@ -205,6 +213,18 @@ class CommonSession(ApplicationSession):
     @chainable
     def on_join(self):
         registrations = yield self.register(self)
+        for _, endpoint in self.__class__.__dict__.items():
+            from mdstudio.api.endpoint import WampEndpoint
+            if isinstance(endpoint, WampEndpoint):
+                yield endpoint.input_schema.flatten(self)
+                yield endpoint.output_schema.flatten(self)
+                for s in endpoint.claim_schemas:
+                    yield s.flatten(self)
+
+                endpoint.set_instance(self)
+                yield self.register(endpoint, endpoint.uri)
+
+        yield self._on_join()
 
         failures = 0
         for r in registrations:
@@ -218,8 +238,6 @@ class CommonSession(ApplicationSession):
 
         self.log.info("{class_name}: {procedures} procedures successfully registered",
                       procedures=len(registrations) - failures, class_name=self.class_name())
-
-        yield self._on_join()
 
     @chainable
     def onJoin(self, details):
@@ -273,7 +291,7 @@ class CommonSession(ApplicationSession):
 
             if os.path.isfile(settings_file):
                 with open(settings_file, 'r') as f:
-                    merge_dicts(self.component_config.settings, yaml.load(f))
+                    merge_dicts(self.component_config.to_dict(), yaml.safe_load(f))
 
     def validate_settings(self):
         for path in self.settings_schemas():
@@ -305,12 +323,17 @@ class CommonSession(ApplicationSession):
             'resources': self._collect_schemas('resources')
         }
 
-        yield self.call(u'mdstudio.schema.endpoint.upload', {
-            'component': self.component_config.static.component,
-            'schemas': schemas
-        }, claims={'vendor': self.component_config.static.vendor})
-
-        self.log.info('Uploaded schemas for {package}', package=self.class_name())
+        if schemas['endpoints'] or schemas['resources']:
+            try:
+                with self.group_context(self.component_config.static.vendor):
+                    yield self.call(u'mdstudio.schema.endpoint.upload', {
+                        'component': self.component_config.static.component,
+                        'schemas': schemas
+                    }, claims={'vendor': self.component_config.static.vendor})
+            except CallException as e:
+                self.log.error('Error during schema uploading: {message}', message=str(e))
+            else:
+                self.log.info('Uploaded schemas for {package}', package=self.class_name())
 
     def _collect_schemas(self, *sub_paths):
         schemas = []
@@ -355,6 +378,18 @@ class CommonSession(ApplicationSession):
             except AttributeError:
                 pass
 
+    # @todo
+    @chainable
+    def _register_scopes(self):
+        return_value(True)
+        if self.function_scopes:
+            res = yield self.call(
+                'mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
+                {'scopes': self.function_scopes})
+
+            self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
+                          package=self.component_info['package_name'])
+
     @property
     def session_env_mapping(self):
         return OrderedDict([
@@ -393,7 +428,23 @@ class CommonSession(ApplicationSession):
 
     @classmethod
     def settings_files(cls):
-        return ['settings.json', 'settings.yml', '.settings.json', '.settings.yml']
+        extensions = ['json', 'yml']
+        prefixes = ['', '.']
+        envs = cls.environments()
+        if '' not in envs:
+            envs.insert(0, '')
+        result = []
+        for env in envs:
+            if env:
+                env = '.{}'.format(env)
+            for ext in extensions:
+                for p in prefixes:
+                    result.append('{}settings{}.{}'.format(p,env,ext))
+        return result
+
+    @classmethod
+    def environments(cls):
+        return os.getenv('MD_CONFIG_ENVIRONMENTS', '').split(',')
 
     @classmethod
     def settings_schemas(cls):

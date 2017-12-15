@@ -23,15 +23,6 @@
 
 from setuptools import setup, find_packages
 
-
-def pipenv_requires():
-    from pipenv.project import Project
-    from pipenv.utils import convert_deps_to_pip
-
-    pfile = Project(chdir=True).parsed_pipfile
-    return convert_deps_to_pip(pfile['packages'], r=False)
-
-
 distribution_name = 'lie_logger'
 
 setup(
@@ -48,7 +39,9 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=pipenv_requires(),
+    install_requires=[
+        'dictdiffer'
+    ],
     test_suite="tests",
     include_package_data=True,
     zip_safe=True,

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "TouchRequest",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\.]+$",
+          "maxLength": 12
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_\\.]+$",
+            "maxLength": 12
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

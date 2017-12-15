@@ -5,13 +5,15 @@ import hashlib
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from mdstudio.db.database import IDatabase
 
 from lie_db.key_repository import KeyRepository
 from mdstudio.api.endpoint import endpoint
 from mdstudio.component.impl.core import CoreComponentSession
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.fields import Fields
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
+from mdstudio.db.index import Index
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
 from mdstudio.deferred.return_value import return_value
@@ -25,14 +27,16 @@ class DBComponent(CoreComponentSession):
     def pre_init(self):
 
         self.load_environment(OrderedDict([
-            ('host', (['MD_MONGO_HOST'], 'localhost')),
-            ('port', (['MD_MONGO_PORT'], 27017, int)),
+            ('host', (['MD_MONGO_HOST'], None)),
+            ('port', (['MD_MONGO_PORT'], None, int)),
             ('secret', (['MD_MONGO_SECRET'], None))
         ]))
 
+        self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
+
         self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
 
-        self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
+        super(DBComponent, self).pre_init()
 
     def on_init(self):
 
@@ -40,7 +44,6 @@ class DBComponent(CoreComponentSession):
                                                          'Please modify your configuration or set "MD_MONGO_SECRET"'
         assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! ' \
                                                                     'Please make sure it is larger than it is now.'
-
         self._set_secret()
 
         self.database_lock = Lock()
@@ -314,8 +317,34 @@ class DBComponent(CoreComponentSession):
 
         return database.delete_many(request['collection'], request['filter'], **kwargs)
 
+    @endpoint(u'mdstudio.db.endpoint.create_indexes',
+              'index/create-request/v1',
+              'index/create-response/v1',
+              scope='index')
+    def create_indexes(self, request, claims=None):
+        database = self.get_database(claims)
+
+        return database.create_indexes(request['collection'], [Index.from_dict(d) for d in request['indexes']])
+
+    @endpoint(u'mdstudio.db.endpoint.drop-indexes',
+              'index/drop-request/v1',
+              scope='index')
+    def drop_indexes(self, request, claims=None):
+        database = self.get_database(claims)
+
+        return database.drop_indexes(request['collection'], [Index.from_dict(d) for d in request['indexes']])
+
+    @endpoint(u'mdstudio.db.endpoint.drop-all-indexes',
+              'index/drop-all-request/v1',
+              scope='index')
+    def drop_all_indexes(self, request, claims=None):
+        database = self.get_database(claims)
+
+        return database.drop_all_indexes(request['collection'])
+
     @chainable
     def get_database(self, claims):
+        # type: (dict) -> IDatabase
         connection_type = ConnectionType.from_string(claims['connectionType'])
 
         if connection_type == ConnectionType.User:
@@ -327,7 +356,7 @@ class DBComponent(CoreComponentSession):
 
             assert database_name.count('~') <= 1, 'Someone tried to spoof the key database!'
         elif connection_type == ConnectionType.GroupRole:
-            database_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
+            database_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['role'])
 
             assert database_name.count('~') <= 2, 'Someone tried to spoof the key database!'
         else:
@@ -358,9 +387,9 @@ class DBComponent(CoreComponentSession):
         if connection_type == ConnectionType.User:
             return ('username' in claims) == True
         elif connection_type == ConnectionType.Group:
-            raise NotImplemented()
+            return ('group' in claims) == True
         elif connection_type == ConnectionType.GroupRole:
-            raise NotImplemented()
+            return all(key in claims for key in ['group', 'role'])
 
         return False
 

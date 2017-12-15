@@ -19,7 +19,7 @@ class SessionObserverTests(DBTestCase):
     def setUp(self):
         SessionLogObserver._instance = None
         self.session = mock.MagicMock()
-        self.session.__str__ = mock.MagicMock(return_value='test session')
+        self.session.__str__ = mock.MagicMock(return_value='"MagicMock"')
         self.session.component_root_path = mock.MagicMock(return_value='/')
 
         self.observer = SessionLogObserver(self.session)
@@ -38,10 +38,10 @@ class SessionObserverTests(DBTestCase):
         self.assertEqual(self.observer.logs, [{
             'level': 'info',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver',
-            'message': 'Collecting logs on session test session'
+            'message': 'Collecting logs on session "MagicMock"'
         }])
         self.assertEqual(self.observer.flushing, False)
-        self.assertEqual(self.observer.recovery_file_path, '/logs/recovery.json')
+        self.assertEqual(os.path.abspath(self.observer.recovery_file_path), os.path.abspath('/logs/recovery.json'))
 
     def test_call(self):
         t = now()
@@ -98,7 +98,7 @@ class SessionObserverTests(DBTestCase):
             self.assertEqual(self.observer.logs, [{
                 'level': 'info',
                 'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver',
-                'message': 'Collecting logs on session test session'
+                'message': 'Collecting logs on session "MagicMock"'
             }])
 
             yield self.observer.store_recovery()
@@ -107,7 +107,7 @@ class SessionObserverTests(DBTestCase):
                 self.assertEqual(json.load(f), [{
                     'level': 'info',
                     'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver',
-                    'message': 'Collecting logs on session test session'
+                    'message': 'Collecting logs on session "MagicMock"'
                 }])
 
     @test_chainable
@@ -131,7 +131,7 @@ class SessionObserverTests(DBTestCase):
         self.session.flush_logs.assert_called_once_with([{
             'level': 'info',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver',
-            'message': 'Collecting logs on session test session'
+            'message': 'Collecting logs on session "MagicMock"'
         }])
 
     @test_chainable
@@ -147,7 +147,7 @@ class SessionObserverTests(DBTestCase):
         yield self.observer.flush_logs()
         self.assertEqual(self.observer.logs, [{
             'level': 'info',
-            'message': 'Collecting logs on session test session',
+            'message': 'Collecting logs on session "MagicMock"',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver'
         }])
         self.observer.sleep.assert_has_calls([
@@ -168,7 +168,7 @@ class SessionObserverTests(DBTestCase):
         yield self.observer.flush_logs()
         self.assertEqual(self.observer.logs, [{
             'level': 'info',
-            'message': 'Collecting logs on session test session',
+            'message': 'Collecting logs on session "MagicMock"',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver'
         }])
         self.observer.sleep.assert_has_calls([
@@ -188,7 +188,7 @@ class SessionObserverTests(DBTestCase):
         yield self.observer.flush_logs()
         self.assertEqual(self.observer.logs, [{
             'level': 'info',
-            'message': 'Collecting logs on session test session',
+            'message': 'Collecting logs on session "MagicMock"',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver'
         }])
         self.observer.sleep.assert_has_calls([
@@ -209,7 +209,7 @@ class SessionObserverTests(DBTestCase):
         yield self.observer.flush_logs()
         self.assertEqual(self.observer.logs, [{
             'level': 'info',
-            'message': 'Collecting logs on session test session',
+            'message': 'Collecting logs on session "MagicMock"',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver'
         }])
         self.observer.sleep.assert_has_calls([
@@ -231,7 +231,7 @@ class SessionObserverTests(DBTestCase):
         yield self.observer.flush_logs()
         self.assertEqual(self.observer.logs, [{
             'level': 'info',
-            'message': 'Collecting logs on session test session',
+            'message': 'Collecting logs on session "MagicMock"',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver'
         }])
         self.observer.log.error.assert_called_once()
@@ -288,7 +288,7 @@ class SessionObserverTests(DBTestCase):
         self.session.flush_logs.assert_called_once_with([{
             'level': 'info',
             'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver',
-            'message': 'Collecting logs on session test session'
+            'message': 'Collecting logs on session "MagicMock"'
         }])
 
         self.assertEqual(self.observer.session, self.session)

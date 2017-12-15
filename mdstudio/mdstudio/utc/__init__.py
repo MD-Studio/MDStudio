@@ -6,7 +6,8 @@ from dateutil.parser import parse as parsedate
 
 def now():
     # type: () -> datetime
-    return datetime.now(tz=pytz.utc)
+    dt = datetime.now(tz=pytz.utc)
+    return dt.replace(microsecond=(dt.microsecond // 1000) * 1000)
 
 
 def today():

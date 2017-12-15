@@ -20,6 +20,8 @@ class SchemaComponent(CoreComponentSession):
         self.resources = SchemaRepository(self.db, 'resources')
         self.claims = SchemaRepository(self.db, 'claims')
         self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
+        
+        super(SchemaComponent, self).pre_init()
 
     @endpoint(u'mdstudio.schema.endpoint.upload', {}, {})
     @chainable
@@ -67,11 +69,8 @@ class SchemaComponent(CoreComponentSession):
         return_value(json.loads(res['schema']))
 
     def authorize_request(self, uri, claims):
-        if uri == u'mdstudio.schema.endpoint.status':
-            return True
-
         # @todo: check if user is part of group (in usermode)
-        if claims['vendor'] in claims['groups']:
+        if claims['vendor'] == claims.get('group', None):
             return True
         # @todo: allow group/user specific access
 

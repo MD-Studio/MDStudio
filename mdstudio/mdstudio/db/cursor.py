@@ -7,7 +7,7 @@ from asq.queryables import Queryable
 from twisted.internet.defer import succeed
 
 from mdstudio.db.fields import Fields
-from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
 
 query = query
@@ -54,7 +54,7 @@ class Cursor:
             result = self._data.popleft()
             if self._fields:
                 self._fields.convert_call(result)
-            return succeed(result)
+            return Chainable(succeed(result))
         elif self.alive:
             self._refreshing = True
             return self._refresh()
@@ -62,7 +62,7 @@ class Cursor:
             result = self._data.popleft()
             if self._fields:
                 self._fields.convert_call(result)
-            return succeed(result)
+            return Chainable(succeed(result))
         else:
             raise StopIteration
 
@@ -71,6 +71,18 @@ class Cursor:
 
     def __len__(self):
         return self.count(True)
+
+    @chainable
+    def batch(self):
+
+        results = []
+        if len(self._data) > 1:
+            for i in range(len(self._data) - 1):
+                result = self._data.popleft()
+                if self._fields:
+                    self._fields.convert_call(result)
+                results.append(result)
+        return results
 
     @chainable
     def for_each(self, func):

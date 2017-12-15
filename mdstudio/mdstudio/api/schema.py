@@ -4,7 +4,7 @@ import jsonschema
 import os
 import re
 import six
-from jsonschema import FormatChecker
+from jsonschema import FormatChecker, Draft4Validator
 
 from mdstudio.api.exception import RegisterException
 from mdstudio.api.singleton import Singleton
@@ -73,6 +73,7 @@ class ISchema(object):
     def _schema_factory(schema_type, schema_path):
         factory_dict = {
             'resource': ResourceSchema,
+            'mdstudio': MDStudioSchema,
             'endpoint': EndpointSchema,
             'https': HttpsSchema,
             'http': HttpsSchema
@@ -128,7 +129,7 @@ class EndpointSchema(ISchema):
         uri_decomposition = re.match(r'([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
         if not uri_decomposition:
             raise RegisterException('An {0} schema uri must be in the form "{0}://<schema path>(/v<versions>), '
-                                    'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-"'
+                                    'where <versions> is a comma separated list of version numbers. Only alphanumberic, and "/_-"'
                                     ' characters are supported. We got "endpoint://{1}".'.format(self.type_name, uri))
         self.schema_path = uri_decomposition.group(1)
 
@@ -143,7 +144,10 @@ class EndpointSchema(ISchema):
         if self.cached:
             return_value(True)
 
-        ldir = os.path.join(session.component_schemas_path(), self.schema_subdir)
+        ldir = self.search_dir(session)
+        if self.schema_subdir:
+            ldir = os.path.join(ldir, self.schema_subdir)
+
         try:
             self._retrieve_local(ldir, self.schema_path, self.versions)
         except FileNotFoundError as ex:
@@ -165,6 +169,14 @@ class EndpointSchema(ISchema):
 
         return_value(success)
 
+    def search_dir(self, session):
+        return session.component_schemas_path()
+
+
+class MDStudioSchema(EndpointSchema):
+    schema_subdir = None
+    type_name = 'mdstudio'
+
 
 class ClaimSchema(EndpointSchema):
     type_name = 'claims'
@@ -177,11 +189,14 @@ class ClaimSchema(EndpointSchema):
 @six.add_metaclass(Singleton)
 class MDStudioClaimSchema(object):
     def __init__(self, session):
-        with open(os.path.join(session.mdstudio_schemas_path(), 'claims.json'), 'r') as base_claims_file:
+        with open(os.path.join(session.mdstudio_schemas_path(), 'claims.v1.json'), 'r') as base_claims_file:
             self.schema = json.load(base_claims_file)
 
     def to_schema(self):
         return self.schema
+
+    def flatten(self, session):
+        return True
 
 
 class ResourceSchema(ISchema):
@@ -191,7 +206,7 @@ class ResourceSchema(ISchema):
         if not uri_decomposition:
             raise RegisterException(
                 'An resource schema uri must be in the form "resource://<vendor>/<component>/<schema path>(/v<versions>), '
-                'where <versions> is a comma seperated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
+                'where <versions> is a comma separated list of version numbers. Only alphanumberic, and "/_-" characters are supported. '
                 'We got "resource://{}".'.format(uri))
         self.vendor = uri_decomposition.group(1)
         self.component = uri_decomposition.group(2)
@@ -240,5 +255,22 @@ class ResourceSchema(ISchema):
             })
 
 
+def extend_with_default(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for property, subschema in properties.items():
+            if "default" in subschema:
+                instance.setdefault(property, subschema["default"])
+
+        for error in validate_properties(validator, properties, instance, schema):
+            yield error
+
+    return jsonschema.validators.extend(validator_class, {"properties": set_defaults})
+
+
+DefaultValidatingDraft4Validator = extend_with_default(Draft4Validator)
+
+
 def validate_json_schema(schema_def, instance):
-    jsonschema.validate(instance, schema_def, format_checker=FormatChecker())
+    DefaultValidatingDraft4Validator(schema_def, format_checker=FormatChecker()).validate(instance)

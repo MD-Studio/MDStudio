@@ -4,6 +4,7 @@ from mock import mock
 from twisted.internet.defer import Deferred
 from twisted.trial.unittest import TestCase
 
+from mdstudio.api.context import UserContext
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.fields import Fields
 from mdstudio.db.session_database import SessionDatabaseWrapper
@@ -15,6 +16,7 @@ class SessionDatabaseWrapperTests(TestCase):
     def setUp(self):
         self.session = mock.Mock()
         self.session.call = mock.MagicMock(return_value='namespace')
+        self.session.call_context = UserContext(self.session)
 
         self.wrapper = SessionDatabaseWrapper(self.session)
 
@@ -266,7 +268,7 @@ class SessionDatabaseWrapperTests(TestCase):
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one', {
             'collection': 'col',
             'filter': {'_id': 50},
-            'sort': [('_id', SortMode.Asc)]
+            'sort': [['_id', 'asc']]
         }, claims={'connectionType': 'user'})
 
     def test_find_one_date_time(self):
@@ -321,7 +323,7 @@ class SessionDatabaseWrapperTests(TestCase):
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_many', {
             'collection': 'col',
             'filter': {'_id': 50},
-            'sort': [('_id', SortMode.Asc)]
+            'sort': [['_id', 'asc']]
         }, claims={'connectionType': 'user'})
 
     def test_find_many_date_time(self):
@@ -401,7 +403,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'_id': 50},
             'update': {'test': 80},
-            'sort': [('_id', SortMode.Asc)],
+            'sort': [['_id', 'asc']],
             'returnUpdated': False,
             'upsert': False
         }, claims={'connectionType': 'user'})
@@ -472,7 +474,7 @@ class SessionDatabaseWrapperTests(TestCase):
             'collection': 'col',
             'filter': {'_id': 50},
             'replacement': {'test': 80},
-            'sort': [('_id', SortMode.Asc)],
+            'sort': [['_id', 'asc']],
             'returnUpdated': False,
             'upsert': False
         }, claims={'connectionType': 'user'})
@@ -500,7 +502,7 @@ class SessionDatabaseWrapperTests(TestCase):
         self.session.call.assert_called_once_with('mdstudio.db.endpoint.find_one_and_delete', {
             'collection': 'col',
             'filter': {'_id': 50},
-            'sort': [('_id', SortMode.Asc)],
+            'sort': [['_id', 'asc']],
         }, claims={'connectionType': 'user'})
 
     def test_find_one_and_delete_date_time(self):

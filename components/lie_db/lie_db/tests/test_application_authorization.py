@@ -2,7 +2,7 @@ from faker import Faker
 from mock import mock
 
 from lie_db.application import DBComponent
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
@@ -51,7 +51,7 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
             db = yield self.service.get_database({
                 'connectionType': str(ConnectionType.GroupRole),
                 'group': group,
-                'groupRole': group_role
+                'role': group_role
             })
             self.service._client.get_database.assert_called_once_with('grouproles~{}~{}'.format(group, group_role))
             self.assertEqual(db, 'grouproles~{}~{}'.format(group, group_role))

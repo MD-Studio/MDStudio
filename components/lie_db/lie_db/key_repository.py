@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from pymongo import ReturnDocument
 
-from mdstudio.db.connection import ConnectionType
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.exception import DatabaseException
 
 
@@ -76,7 +76,7 @@ class KeyRepository(object):
             request['group'] = claims['group']
         elif connection_type == ConnectionType.GroupRole:
             request['group'] = claims['group']
-            request['groupRole'] = claims['groupRole']
+            request['role'] = claims['role']
         else:
             raise NotImplemented('This distinction does not exist')
         return request

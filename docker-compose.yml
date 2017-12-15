@@ -7,18 +7,16 @@ services:
             context: ./docker/crossbar
         links:
             - mongo
+            - redis
         ports:
             - 8080:8080
         volumes:
             - .:/app
             - crossbar_pipcache:/root/.cache
-            - crossbar_pip:/usr/local/lib/python3.5/site-packages
             - crossbar_pipenv:/root/.local/share/virtualenvs
-        environment:
-            - MD_GLOBAL_LOG=1
+            - .docker.env:/app/.env
         env_file:
-        - .env
-        - .env-docker
+            - .docker.env
 
     md:
         extends:
@@ -27,8 +25,6 @@ services:
         volumes:
             # mount component
             - ./components/lie_md:/app/components/lie_md
-            # mount config directory
-            - ./data/lie_md:/app/data/lie_md
         environment:
             - COMPONENT=lie_md
         links:
@@ -41,8 +37,6 @@ services:
         volumes:
             # mount component
             - ./components/lie_atb:/app/components/lie_atb
-            # mount config directory
-            - ./data/lie_atb:/app/data/lie_atb
         environment:
             - COMPONENT=lie_atb
         links:
@@ -55,11 +49,6 @@ services:
         volumes:
             # mount component
             - ./components/lie_cli:/app/components/lie_cli
-            # mount config directory
-            - ./data/lie_cli:/app/data/lie_cli
-            # mount cache volumes
-            - cli_pipcache:/root/.cache
-            - cli_pip:/usr/local/lib/python3.5/site-packages
         environment:
             - COMPONENT=lie_cli
         links:
@@ -74,8 +63,30 @@ services:
             - mongo:/data/db
 
 
+    redis:
+        image: grokzen/redis-cluster
+        ports:
+            - "7000:7000"
+            - "7001:7001"
+        volumes:
+            - redis:/data/db
+
+
+    redis-local:
+        build:
+            context: docker/docker-redis-cluster
+            args:
+                redis_version: '3.2.9'
+        ports:
+            - "7010:7010"
+            - "7011:7011"
+        volumes:
+            - redis:/data/db
+
 volumes:
     mongo:
+        driver: "local"
+    redis:
         driver: "local"
     crossbar_pipcache:
         driver: "local"

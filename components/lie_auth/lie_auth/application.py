@@ -1,27 +1,21 @@
 # -*- coding: utf-8 -*-
-
-"""
-file: wamp_services.py
-
-WAMP service methods the module exposes.
-"""
-
-import datetime
-import json
-
 import base64
 import copy
+import datetime
+
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError
 from oauthlib import oauth2
 from oauthlib.common import generate_client_id as generate_secret
-from twisted.internet import reactor
-from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
+from twisted.internet.defer import inlineCallbacks, returnValue
 
+from lie_auth.user_repository import UserRepository, PermissionType
 from mdstudio.api.endpoint import endpoint
+from mdstudio.api.scram import SCRAM
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 
 try:
     import urlparse
@@ -29,73 +23,93 @@ except ImportError:
     import urllib.parse as urlparse
 
 from mdstudio.utc import now
-from mdstudio.db.model import Model
-from .util import check_password, logging, ip_domain_based_access
+from mdstudio.service.model import Model
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
 
 
 class AuthComponent(CoreComponentSession):
-    """
-    User management WAMP methods.
-    """
-
     def pre_init(self):
         self.oauth_client = oauth2.BackendApplicationClient('auth')
         self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
         self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'schema'))
         self.status_list = {'auth': True}
+        super(AuthComponent, self).pre_init()
 
     def on_init(self):
         self.db_initialized = False
         self.authorizer = Authorizer()
-
-    def onInit(self, **kwargs):
         self.oauth_backend_server = oauth2.BackendApplicationServer(OAuthRequestValidator(self))
-
-        self.autolog = False
-        self.autoschema = False
-
-        # TODO: check this before accessing the DB
-
-
-        # # TODO: make this a dict of  {vendor}.{namespace}: [urilist] for faster lookup
-        # self.registrations = []
+        self.user_repository = UserRepository(self.db)
 
     @chainable
     def _on_join(self):
         self.jwt_key = generate_secret()
         yield super(AuthComponent, self)._on_join()
 
-    def onExit(self, details=None):
-        """
-        User component exit routines
-
-        Terminate all active sessions on component shutdown
-
-        :param settings: global and module specific settings
-        :type settings:  :py:class:`dict` or :py:class:`dict` like object
-        :return:         successful exit sequence
-        :rtype:          bool
-        """
-        pass
-
     @wamp.register(u'mdstudio.auth.endpoint.sign', options=wamp.RegisterOptions(details_arg='details'))
+    @chainable
     def sign_claims(self, claims, details=None):
         role = details.caller_authrole
 
         if not isinstance(claims, dict):
             raise TypeError()
 
-        if role in ['db', 'schema', 'auth', 'logger']:
-            claims['groups'] = ['mdstudio']
-            claims['username'] = role
+        assert not any(key in claims for key in ['group', 'role', 'username']), 'Illegal key detected in claims'
+
+        if 'asGroup' in claims:
+            group = claims.pop('asGroup')
+
+            if group is None:
+                raise TypeError()
         else:
-            raise NotImplementedError("Implement this")
+            group = None
 
-        claims['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+        if 'asRole' in claims:
+            assert group is not None, 'You cannot claim to be member of a role without the corresponding group'
 
-        return jwt_encode(claims, self.jwt_key)
+            group_role = claims.pop('asRole')
+
+            if group_role is None:
+                raise TypeError()
+        else:
+            group_role = None
+
+        if role in ['db', 'cache', 'schema', 'auth', 'logger']:
+            claims['username'] = role
+
+            if group is not None:
+                if group == 'mdstudio':
+                    claims['group'] = 'mdstudio'
+                else:
+                    raise Exception('This should not happen')
+
+            if group_role is not None:
+                if group_role == role:
+                    claims['role'] = role
+                else:
+                    raise Exception('This should not happen')
+        elif role == 'user':
+            user = yield self.user_repository.find_user(details.caller_authid)
+
+            claims['username'] = user.name
+
+            g, c, _, e = claims['uri'].split('.', 3)
+
+            if group is not None:
+                if g == group and (yield self.user_repository.check_permission(user.name, g, c, e, claims['action'], group_role)):
+                    claims['group'] = group
+
+                    if group_role is not None:
+                        claims['role'] = group_role
+                else:
+                    return_value(None)
+        else:
+            raise NotImplementedError('Implement this (for oauth clients)')
+
+        claims['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=1)
+
+        return_value(jwt_encode(claims, self.jwt_key))
 
     @wamp.register(u'mdstudio.auth.endpoint.verify')
     def verify_claims(self, signed_claims):
@@ -117,7 +131,7 @@ class AuthComponent(CoreComponentSession):
         return self.status_list.get(request['component'], False)
 
     def authorize_request(self, uri, claims):
-        if 'mdstudio' in claims['groups'] and uri.startswith('mdstudio.auth.endpoint.ring0'):
+        if claims.get('group', None) == 'mdstudio' and uri.startswith('mdstudio.auth.endpoint.ring0'):
             return True
 
         return False
@@ -125,105 +139,129 @@ class AuthComponent(CoreComponentSession):
     @wamp.register(u'mdstudio.auth.endpoint.login')
     @inlineCallbacks
     def user_login(self, realm, authid, details):
-        """
-        Handles application authentication and authorization on the Crossbar
-        WAMP session level by acting as the dynamic authorizer using any of
-        the Crossbar supported authentication methods.
-
-        For more information about crossbar authentication/authorization
-        consult the online documentation at: http://crossbar.io/docs/Administration/
-
-        This method also provides authentication based on IP/domain
-        information in addition to the crossbar supported authentication
-        methods.
-
-        :param realm:   crossbar realm to connect to
-        :type realm:    str
-        :param authid:  authentication ID, usually username
-        :type authid:   str
-        :param details: additional details including authentication method
-                        and transport details
-        :type details:  :py:class:`dict`
-        :return:        authentication response with the realm, user role and
-                        user account info returned.
-        :rtype:         :py:class:`dict` or False
-        """
-
+        assert authid
         authmethod = details.get(u'authmethod', None)
+        assert authmethod == u'wampcra', 'Only wampcra is supported for login, please use the ComponentSession'
 
-        # Resolve request domain
-        domain = None
-        if u'http_headers_received' in details:
-            domain = details[u'http_headers_received'].get(u'host', None)
-            details[u'domain'] = domain
+        authid = authid.strip()
+        username, client_nonce = SCRAM.split_authid(authid)
+        server_nonce = details['session']
 
-        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod} domain: {domain}',
-                      realm=realm, authid=authid, authmethod=authmethod, domain=domain)
+        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod}, phase: {authphase}', realm=realm, authid=username, authmethod=authmethod, authphase=details['authphase'])
 
-        # Check for essentials (authid)
-        if authid is None:
-            raise ApplicationError('Authentication ID not defined')
+        user = yield self.user_repository.find_user(username, with_authentication=True)
 
-        # Is the application only available for local users?
-        if domain and self.package_config.get('only_localhost_access', False) and domain != 'localhost':
-            raise ApplicationError('Access granted only to local users, access via domain {0}'.format(domain))
+        if user is not None:
+            user_auth = user.authentication
+            stored_key = SCRAM.str_to_binary(user_auth['storedKey'])
+            server_key = SCRAM.str_to_binary(user_auth['serverKey'])
 
-        # Is the domain blacklisted?
-        black_list = self.package_config.get('domain-blacklist', [])
-        if not ip_domain_based_access(domain, blacklist=black_list):
-            logging.info('Access for domain {domain} blacklisted (pattern={blacklist})'.format(domain=domain, blacklist=black_list))
-            raise ApplicationError('Access from domain {0} not allowed'.format(domain))
-
-        username = authid.strip()
-        user = yield self._get_user(username)
-
-        # WAMP-ticket authetication
-        if authmethod == u'ticket':
-            is_valid = self._validate_user_login(user, username, details['ticket'])
-            if is_valid:
-                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user)}
+            if details['authphase'] == 'preChallenge':
+                auth_ticket = {
+                    'role': 'user',
+                    'iterations': user_auth['iterations'],
+                    'salt': user_auth['salt'],
+                    'secret': SCRAM.binary_to_str(stored_key)
+                }
             else:
-                # Not a valid user, try  to find a matching client
-                client = yield self._get_client(username)
-                if client:
-                    client['scope'] = ' '.join(client.pop('scopes'))
-                    http_basic = self._http_basic_authentication(username, details['ticket'])
-                    credentials = {u'client': client,
-                                   u'http_basic': self._http_basic_authentication(client[u'clientId'], client[u'secret'])}
+                auth_message = SCRAM.auth_message(client_nonce, server_nonce)
+                client_signature = SCRAM.client_signature(stored_key, auth_message)
+                client_proof = SCRAM.str_to_binary(details['signature'])
+                client_key = SCRAM.client_proof(client_proof, client_signature)
 
-                    headers, body, status = self.oauth_backend_server.create_token_response(
-                        u'mdstudio.auth.endpoint.login',
-                        headers={u'Authorization': http_basic},
-                        grant_type_for_scope=u'client_credentials',
-                        credentials=credentials)
+                if SCRAM.stored_key(client_key) == stored_key:
+                    auth_ticket = {
+                        'authid': username,
+                        'success': True,
+                        'extra': {
+                            'serverProof': SCRAM.binary_to_str(SCRAM.server_proof(server_key, auth_message))
+                        }
+                    }
 
-                    if status == 200:
-                        user = {u'_id': client[u'_id']}
-                        auth_ticket = {u'realm': realm, u'role': 'oauthclient', u'extra': {u'access_token': json.loads(body).get('accessToken')}}
-                    else:
-                        raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
+                    # Log authorization
+                    self.log.info('Access granted. user: {user}', user=username)
                 else:
-                    raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
-
-        # WAMP-CRA authentication
-        elif authmethod == u'wampcra':
-            if user:
-                auth_ticket = {u'realm': realm, u'role': user['role'], u'extra': self._strip_unsafe_properties(user),
-                               u'secret': user[u'password']}
-            else:
-                raise ApplicationError("com.example.invalid_ticket", "could not authenticate session")
-
+                    auth_ticket = False
         else:
-            raise ApplicationError("No such authentication method known: {0}".format(authmethod))
-
-        yield self._start_session(user[u'_id'], details.get(u'session', 0), auth_ticket[u'extra'].get('access_token'))
-
-        # Log authorization
-        self.log.info('Access granted. user: {user}', user=authid)
+            raise ApplicationError("No such user")
 
         returnValue(auth_ticket)
 
-    # @endpoint(u'mdstudio.auth.endpoint.oauth.registerscopes', {}, {}, match='prefix')
+    @chainable
+    def on_run(self):
+        # repo = UserRepository(self.db)
+        yield self.user_repository.users.delete_many({})
+        yield self.user_repository.groups.delete_many({})
+        provisioning = self.component_config.settings.get('provisioning', None)
+        if provisioning is not None:
+            for user in provisioning.get('users', []):
+                u = yield self.user_repository.find_user(user['username'])
+                if u is None:
+                    salt, iterations, salted_password = SCRAM.salted_password(user['password'])
+                    stored_key = SCRAM.stored_key(SCRAM.client_key(salted_password))
+                    server_key = SCRAM.server_key(salted_password)
+
+                    u = yield self.user_repository.create_user(user['username'], {
+                        'storedKey': SCRAM.binary_to_str(stored_key),
+                        'serverKey': SCRAM.binary_to_str(server_key),
+                        'salt': salt,
+                        'iterations': iterations
+                    }, user['email'])
+                assert u.name == user['username'], 'User provisioning for user {} changed. If intentional, clear the database.'.format(user['username'])
+            for group in provisioning.get('groups', []):
+                g = yield self.user_repository.find_group(group['groupName'])
+                if g is None:
+                    g = yield self.user_repository.create_group(group['groupName'], group['owner'])
+                assert g.name == group['groupName']
+
+                for component in group.get('components', []):
+                    c = yield self.user_repository.find_component(g.name, component)
+                    if c is None:
+                        c = yield self.user_repository.create_component(g.name, 'owner', component)
+                    assert c.name == component
+
+                for component in ['auth', 'db', 'logger', 'schema']:
+                    p = yield self.user_repository.find_permission_rule(g.name, 'owner', 'groupResourcePermission', component)
+                    if p is None:
+                        p = yield self.user_repository.add_permission_rule(g.name, 'owner', 'roleResourcePermissions', component, PermissionType.FullAccess, full_namespace=True)
+                        assert p
+                    else:
+                        p = yield self.user_repository.find_permission_rule(g.name, 'owner', 'groupResourcePermission', component)
+                        assert p.full_namespace
+            '''for client in provisioning.get('clients', []):
+                client_id = self.user_repository.generate_token()
+                client_secret = self.user_repository.generate_token()
+
+                c = yield self.user_repository.create_client(client['username'], {
+
+                })'''
+
+        # @todo: use this for testing
+        # user = yield self.user_repository.create_user('foo', 'bar', 'foo@bar')
+        # user2 = yield self.user_repository.create_user('foo2', 'bar2', 'foo@bar')
+        # user3 = yield self.user_repository.create_user('foo3', 'bar2', 'foo@bar3')
+        # group = yield self.user_repository.create_group('foogroup', user.name)
+        # group_role = yield self.user_repository.create_group_role(group.name, 'editor', user.name)
+        # group_role2 = yield self.user_repository.create_group_role(group.name, 'user', user.name)
+        # group_role3 = yield self.user_repository.create_group_role(group.name, 'user2', user.name)
+        # group_role4 = yield self.user_repository.create_group_role(group.name, 'user3', user.name)
+        # group_role5 = yield self.user_repository.create_group_role(group.name, 'user4', user.name)
+        # assert (yield self.user_repository.add_group_member(group.name, group_role.name, user2.name))
+        # assert (yield self.user_repository.add_role_member(group.name, group_role2.name, user2.name))
+        # assert (yield self.user_repository.add_group_member(group.name, group_role.name, user3.name))
+        # component = (yield self.user_repository.create_component(group.name, group_role.name, 'foo'))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role2.name, 'componentPermissions', component.name, PermissionType.NamedScope, ['call', 'register'], 'read'))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role2.name, 'componentPermissions', component.name, PermissionType.NamedScope, ['call'], 'write'))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role2.name, 'componentPermissions', component.name, PermissionType.NamedScope, ['register'], 'write'))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role2.name, 'componentPermissions', component.name, PermissionType.SpecificEndpoint, ['register'], 'write'))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role2.name, 'componentPermissions', component.name, PermissionType.ComponentNamespace, ['register']))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role2.name, 'componentPermissions', component.name, PermissionType.ComponentNamespace, ['write']))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role2.name, 'componentPermissions', component.name, PermissionType.FullAccess, full_namespace=True))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role3.name, 'componentPermissions', component.name, PermissionType.SpecificEndpoint, ['register'], 'write'))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role4.name, 'componentPermissions', component.name, PermissionType.ComponentNamespace, ['register']))
+        # assert (yield self.user_repository.add_permission_rule(group.name, group_role5.name, 'componentPermissions', component.name, PermissionType.FullAccess, full_namespace=True))
+
+    # @todo: write a better replacement
     # @inlineCallbacks
     # def register_scopes(self, request, **kwargs):
     #     for scope in request['scopes']:
@@ -274,50 +312,68 @@ class AuthComponent(CoreComponentSession):
         return authorization
 
 
-    @wamp.register(u'mdstudio.auth.endpoint.authorize.oauth')
-    @inlineCallbacks
-    def authorize_oauth(self, session, uri, action, options):
-        role = session.get('authrole')
+    # @wamp.register(u'mdstudio.auth.endpoint.authorize.oauth')
+    # @inlineCallbacks
+    # def authorize_oauth(self, session, uri, action, options):
+    #     role = session.get('authrole')
+    #
+    #     authid = session.get('authid')
+    #
+    #     authorization = False
+    #
+    #     client = yield self._get_client(authid)
+    #     session = yield self._get_session(session.get('session'))
+    #     scopes = self.authorizer.oauthclient_scopes(uri, action, authid)
+    #
+    #     headers = {'access_token': session['accessToken']}
+    #     valid, r = self.oauth_backend_server.verify_request(uri, headers=headers, scopes=[scope for scope in scopes])
+    #
+    #     valid = yield valid
+    #
+    #     if valid:
+    #         authorization = {'allow': True}
+    #
+    #     if not authorization:
+    #         self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
+    #     else:
+    #         if 'disclose' not in authorization:
+    #             authorization['disclose'] = False
+    #
+    #         self._store_action(uri, action, options)
+    #
+    #     returnValue(authorization)
 
-        authid = session.get('authid')
+    # @wamp.register(u'mdstudio.auth.endpoint.authorize.public')
+    # def authorize_public(self, session, uri, action, options):
+    #     #  TODO: authorize public to view unprotected resources
+    #     authorization = False
+    #
+    #     returnValue(authorization)
 
-        authorization = False
+    @wamp.register(u'mdstudio.auth.endpoint.authorize.user')
+    @chainable
+    def authorize_user(self, session, uri, action, options):
+        username = session.get('authid')
 
-        client = yield self._get_client(authid)
-        session = yield self._get_session(session.get('session'))
-        scopes = self.authorizer.oauthclient_scopes(uri, action, authid)
-
-        headers = {'access_token': session['accessToken']}
-        valid, r = self.oauth_backend_server.verify_request(uri, headers=headers, scopes=[scope for scope in scopes])
-
-        valid = yield valid
-
-        if valid:
-            authorization = {'allow': True}
+        # Check for authorization on ring0
+        authorization = self.authorizer.authorize_user(uri, action)
 
         if not authorization:
-            self.log.warn('WARNING: {} is not authorized for {} on {}'.format(authid, action, uri))
+            group, component, _, endpoint = uri.split('.', 3)
+            if (yield self.user_repository.check_permission(username, group, component, endpoint, action)):
+                authorization = {
+                    'allow': True
+                }
+
+        if not authorization:
+            self.log.warn('WARNING: {} is not authorized for {} on {}'.format(username, action, uri))
         else:
             if 'disclose' not in authorization:
                 authorization['disclose'] = False
 
             self._store_action(uri, action, options)
 
-        returnValue(authorization)
-
-    @wamp.register(u'mdstudio.auth.endpoint.authorize.public')
-    def authorize_public(self, session, uri, action, options):
-        #  TODO: authorize public to view unprotected resources
-        authorization = False
-
-        returnValue(authorization)
-
-    @wamp.register(u'mdstudio.auth.endpoint.authorize.user')
-    def authorize_user(self, session, uri, action, options):
-        # TODO: authorize users to view (parts of) the web interface and to create OAuth clients on their group/user
-        authorization = False
-
-        returnValue(authorization)
+        return_value(authorization)
 
     @endpoint(u'mdstudio.auth.endpoint.oauth.client.create', 'oauth/client/client-request', 'oauth/client/client-response')
     @inlineCallbacks
@@ -352,14 +408,6 @@ class AuthComponent(CoreComponentSession):
     @wamp.register(u'mdstudio.auth.endpoint.logout', options=wamp.RegisterOptions(details_arg='details'))
     @inlineCallbacks
     def user_logout(self, details):
-        """
-        Handles the user logout process by:
-        - Retrieve user based on session_id
-
-        :param session_id: user unique session ID
-        :type session_id:  int
-        """
-
         user = yield self._get_user(details.get('authid'))
         if user:
             self.log.info('Logout user: {0}, id: {1}'.format(user['username'], user['_id']))
@@ -370,17 +418,6 @@ class AuthComponent(CoreComponentSession):
 
         returnValue('Unknown user, unable to logout')
 
-    @wamp.register(u'mdstudio.auth.endpoint.retrieve')
-    def retrieve_password(self, email):
-        """
-        Retrieve a forgotten password by email
-        This will reset the users password and
-        send a temporary password by email.
-
-        :param email: user account email
-        """
-
-        raise Exception
 
     # # TODO: improve and register this method, with json schemas
     # @inlineCallbacks
@@ -473,24 +510,6 @@ class AuthComponent(CoreComponentSession):
 
         return check
 
-    @inlineCallbacks
-    def _get_user(self, filter):
-        if type(filter) is not dict:
-            filter = {'username': filter}
-
-        res = yield Model(self, 'users').find_one(filter)
-
-        returnValue(res)
-
-    @inlineCallbacks
-    def _get_client(self, client_id):
-        client = yield Model(self, 'clients').find_one({'clientId': client_id})
-
-        if client:
-            returnValue(client)
-        else:
-            returnValue(None)
-
     def _http_basic_authentication(self, username, password):
         # mimic HTTP basic authentication
         # concatenate username and password with a colon
@@ -518,53 +537,6 @@ class AuthComponent(CoreComponentSession):
         res = yield Model(self, 'sessions').delete_one({'userId': user_id, 'sessionId': session_id})
         returnValue(res > 0)
 
-    def _strip_unsafe_properties(self, _user):
-        user = _user.copy()
-
-        for entry in self.package_config.get('unsafe_properties'):
-            if entry in user:
-                del user[entry]
-
-        return user
-
-    # @inlineCallbacks
-    # def _retrieve_password(self, email):
-    #     """
-    #     Retrieve password by email
-    #
-    #     The email message template for user account password retrieval
-    #     is stored in the self._password_retrieval_message_template variable.
-    #
-    #     * Locates the user in the database by email which should be a
-    #       unique and persistent identifier.
-    #     * Generate a new random password
-    #     * Send the new password to the users email once. If the email
-    #       could not be send, abort the procedure
-    #     * Save the new password in the database.
-    #
-    #     :param email: email address to search user for
-    #     :type email:  string
-    #     """
-    #
-    #     user = yield self._get_user({'email': email})
-    #     if not user:
-    #       self.log.info('No user with email {0}'.format(email))
-    #       return
-    #
-    #     new_password = generate_password()
-    #     user['password'] = hash_password(new_password)
-    #     self.log.debug('New password {0} for user {1} send to {2}'.format(new_password, user, email))
-    #
-    #     with Email() as email:
-    #       email.send(
-    #         email,
-    #         self._password_retrieval_message_template.format(password=new_password, user=user['username']),
-    #         'Password retrieval request for LIEStudio'
-    #       )
-    #       res = yield Model(self, 'users').update_one({'_id': user['_id']}, {'password': new_password})
-    #
-    #     returnValue(user)
-
     def _store_action(self, uri, action, options):
         registration = Model(self, 'registration_info')
 
@@ -573,29 +545,29 @@ class AuthComponent(CoreComponentSession):
         if action == 'register':
             match = options.get('match', 'exact')
 
-            @inlineCallbacks
-            def update_registration():
-                upd = yield registration.update_one(
-                    {
-                        'uri': uri,
-                        'match': match
-                    },
-                    {
-                        '$inc': {
-                            'registrationCount': 1
-                        },
-                        '$set': {
-                            'latestRegistration': n
-                        },
-                        '$setOnInsert': {
-                            'uri': uri,
-                            'firstRegistration': n,
-                            'match': match
-                        }
-                    },
-                    upsert=True,
-                    date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
-                )
+            # @inlineCallbacks
+            # def update_registration():
+            #     upd = yield registration.update_one(
+            #         {
+            #             'uri': uri,
+            #             'match': match
+            #         },
+            #         {
+            #             '$inc': {
+            #                 'registrationCount': 1
+            #             },
+            #             '$set': {
+            #                 'latestRegistration': n
+            #             },
+            #             '$setOnInsert': {
+            #                 'uri': uri,
+            #                 'firstRegistration': n,
+            #                 'match': match
+            #             }
+            #         },
+            #         upsert=True,
+            #         date_fields=['update.$set.latestRegistration', 'update.$setOnInsert.firstRegistration']
+            #     )
 
             # We cannot be sure the DB is already up, possibly wait
             yield DBWaiter(self, update_registration).run()
@@ -605,58 +577,21 @@ class AuthComponent(CoreComponentSession):
                 id = yield self.call(u'wamp.registration.match', uri)
                 if id:
                     reg_info = yield self.call(u'wamp.registration.get', id)
-                    yield registration.update_one(
-                        {
-                            'uri': reg_info['uri'],
-                            'match': reg_info['match']
-                        },
-                        {
-                            '$inc': {
-                                'callCount': 1
-                            },
-                            '$set': {
-                                'latestCall': now
-                            }
-                        },
-                        date_fields=['update.$set.latestCall']
-                    )
+                    # yield registration.update_one(
+                    #     {
+                    #         'uri': reg_info['uri'],
+                    #         'match': reg_info['match']
+                    #     },
+                    #     {
+                    #         '$inc': {
+                    #             'callCount': 1
+                    #         },
+                    #         '$set': {
+                    #             'latestCall': now
+                    #         }
+                    #     },
+                    #     date_fields=['update.$set.latestCall']
+                    # )
 
             # We cannot be sure the DB is already up, possibly wait
             yield DBWaiter(self, update_registration).run()
-
-class DBWaiter(object):
-    def __init__(self, session, callback):
-        self.session = session
-        self.callback = callback
-        self.unsub = Deferred()
-        self.called = False
-        self.sub = None
-
-        self.unsub.addCallback(self._unsubscribe)
-
-    @inlineCallbacks
-    def run(self):
-        if not self.session.db_initialized:
-            self.sub = yield self.session.on_event(self._callback_wrapper, u'mdstudio.db.endpoint.events.online')
-
-            reactor.callLater(0.25, self._check_called)
-        else:
-            yield self.callback()
-            self.called = True
-
-    @inlineCallbacks
-    def _callback_wrapper(self, event):
-        yield self.callback()
-        self.called = True
-        self.unsub.callback(True)
-        self.session.db_initialized = True
-
-    def _unsubscribe(self, event=None):
-        self.sub.unsubscribe()
-
-    def _check_called(self):
-        if self.session.db_initialized:
-            if not self.called:
-                self._callback_wrapper(True)
-        else:
-            reactor.callLater(0.25, self._check_called)

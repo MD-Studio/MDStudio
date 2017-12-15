@@ -7,30 +7,44 @@ WAMP service methods the module exposes.
 """
 
 import json
-import os
-import tempfile
 import shutil
 import json
+from pprint import pprint
 
 from autobahn import wamp
+from autobahn.wamp.types import RegisterOptions
+from twisted.internet.defer import inlineCallbacks, returnValue
 
-from lie_system import LieApplicationSession, WAMPTaskMetaData
-from lie_md import __rootpath__
-from lie_md.gromacs_topology_amber import correctItp
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
 from lie_md.gromacs_gromit import gromit_cmd
 from lie_md.settings import SETTINGS, GROMACS_LIE_SCHEMA
 
 gromacs_schema = json.load(open(GROMACS_LIE_SCHEMA))
 
-
-class MDWampApi(LieApplicationSession):
+class MDWampApi(ComponentSession):
     """
     MD WAMP methods.
     """
 
-    require_config = ['system']
+    def pre_init(self):
+        self.component_config.static.vendor = 'mdgroup'
+        self.component_config.static.component = 'md'
 
-    @wamp.register(u'liestudio.gromacs.liemd')
+    @endpoint(u'mdgroup.md.endpoint.testing', {}, {})
+    def foobar(self, request, claims):
+        pprint(claims)
+        pprint(request)
+        return 'yay'
+
+    def on_run(self):
+        with self.grouprole_context('mdgroup', 'owners'):
+            self.call(u'mdgroup.md.endpoint.testing', {'foo': 'bar'}, {'wef': 1}).transform(pprint)
+
+    def authorize_request(self, uri, claims):
+        return True
+
+    @wamp.register(u'mdgroup.md.endpoint.gromacs.liemd')
     def run_gromacs_liemd(
             self, session={}, protein_file=None, ligand_file=None,
             topology_file=None, **kwargs):

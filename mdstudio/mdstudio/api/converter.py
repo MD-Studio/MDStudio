@@ -18,3 +18,5 @@ def convert_obj_to_json(document):
             document[key] = to_utc_string(value)
         else:
             convert_obj_to_json(value)
+
+    return document

@@ -1,5 +1,4 @@
 from datetime import timedelta
-from pprint import pprint
 
 from faker import Faker
 from twisted.internet import reactor
@@ -9,7 +8,7 @@ from lie_logger.log_repository import LogRepository
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
-from mdstudio.utc import from_utc_string, now
+from mdstudio.utc import now
 
 
 class TestLogRepository(DBTestCase):
@@ -89,6 +88,9 @@ class TestLogRepository(DBTestCase):
         dic2 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
         yield self.rep.insert(self.claims, [dic1, dic2])
         all = yield self.db.find_many('users~{}'.format(self.claims['username']), {}, projection={'_id': False})['results']
+
+        dic1['tags'] = ['logs']
+        dic2['tags'] = ['logs']
 
         self.assertLessEqual(now() - all[0]['createdAt'], timedelta(seconds=1))
         del all[0]['createdAt']

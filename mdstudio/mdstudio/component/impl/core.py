@@ -1,9 +1,12 @@
 from autobahn.wamp import auth
 
 from mdstudio.api.exception import CallException
+from mdstudio.cache.session_cache import SessionCacheWrapper
 from mdstudio.component.impl.common import CommonSession
+from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
+from mdstudio.deferred.return_value import return_value
 from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
@@ -50,14 +53,20 @@ class CoreComponentSession(CommonSession):
 
     def __init__(self, config=None):
         self.component_waiters = []
-        self.db = SessionDatabaseWrapper(self)
+        self.db = SessionDatabaseWrapper(self, ConnectionType.User)
+        self.cache = SessionCacheWrapper(self, ConnectionType.User)
         super(CoreComponentSession, self).__init__(config)
 
     def pre_init(self):
         self.log_type = LogType.Group
+        self.component_config.session['context'] = {
+            'group': 'mdstudio',
+            'role': self.component_config.static.component,
+            'username': self.component_config.static.component
+        }
 
     def on_connect(self):
-        auth_methods = [u'wampcra']
+        auth_methods = [u'ticket']
         authid = self.component_config.session.username
         auth_role = authid
 
@@ -79,17 +88,10 @@ class CoreComponentSession(CommonSession):
         yield super(CoreComponentSession, self)._on_join()
 
     def on_challenge(self, challenge):
-        if challenge.method == u'wampcra':
-            # Salted password
-            if u'salt' in challenge.extra:
-                key = auth.derive_key(self.component_config.session.authid, challenge.extra['salt'],
-                                      challenge.extra['iterations'], challenge.extra['keylen'])
-            else:
-                key = self.component_config.session.username
-
-            return auth.compute_wcs(key.encode('utf8'), challenge.extra['challenge'].encode('utf8'))
+        if challenge.method == u'ticket':
+            return self.component_config.session.username
         else:
-            raise Exception("Core components should only use wampcra for authentication, attempted to use {}".format(challenge.method))
+            raise Exception("Core components should only use ticket for authentication for development, attempted to use {}".format(challenge.method))
 
     onChallenge = on_challenge
 
@@ -100,5 +102,9 @@ class CoreComponentSession(CommonSession):
 
         super(CoreComponentSession, self).load_settings()
 
+    @chainable
     def flush_logs(self, logs):
-        return self.call(u'mdstudio.logger.endpoint.log', {'logs': logs}, claims={'logType': str(LogType.Group), 'group': 'mdstudio'})
+        with self.group_context('mdstudio'):
+            result = yield self.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, claims={'logType': str(LogType.Group)})
+
+        return_value(result)
