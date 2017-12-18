@@ -362,7 +362,12 @@ def get_output(job, config):
     output_dict = {
         'gromitout': 'gromit_{}.out', 'gromiterr': 'gromit_{}.err',
         'gromacslog': 'gromacs_{}.log', 'trajectory': 'traj_{}.trr',
-        'energy': 'energy_{}.edr'}
+        'energy': 'energy_{}.edr', 'energy_dataframe': 'energy_{}.ene',
+        'energyerr': 'energy_{}.err', 'energyout': 'energy_{}.out',
+        'decompose_dataframe': 'decompose_{}.ene',
+        'decompose_err': 'decompose_{}.err', 'decompose_out':
+        'decompose_{}.out'
+    }
 
     if job.state == 'Success':
         success = ['trajectory', 'energy', 'energy_dataframe',

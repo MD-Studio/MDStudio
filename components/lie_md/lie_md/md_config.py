@@ -10,12 +10,15 @@ import shutil
 logger = Logger()
 
 
-def set_gromacs_input(gromacs_config, workdir, input_files):
+def set_gromacs_input(gromacs_config, workdir, dict_input):
     """
     Create input files for gromacs.
     """
     # Check if all the data is available
-    gromacs_config = check_input(gromacs_config, input_files)
+    gromacs_config = check_input(gromacs_config, dict_input)
+
+    # residues
+    gromacs_config['residues'] = dict_input['residues']
 
     # correct topology
     gromacs_config = fix_topology_ligand(gromacs_config, workdir)
