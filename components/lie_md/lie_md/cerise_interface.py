@@ -159,7 +159,7 @@ def extract_simulation_info(
     logger.info("Extracting output from: {}".format(
         cerise_config['workdir']))
 
-    if not is_output_available(srv_data):
+    if cc.managed_service_exists(srv_data['name']):
         srv = cc.service_from_dict(srv_data)
         job = srv.get_job_by_id(srv_data['job_id'])
         output = wait_extract_clean(
@@ -185,15 +185,6 @@ def wait_extract_clean(job, srv, cerise_config, cerise_db):
     cleanup(job, srv, cerise_db)
 
     return output
-
-
-def is_output_available(srv_data):
-    """
-    Check if there are some output files.
-    """
-    outputs = ['decompose_err', 'decompose_out', 'energyout',
-               'energyerr', 'gromiterr', 'gromitout']
-    return any(x in srv_data for x in outputs)
 
 
 def update_srv_info_at_db(srv_data, cerise_db):
