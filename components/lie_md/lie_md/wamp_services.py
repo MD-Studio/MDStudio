@@ -6,7 +6,6 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import json
 import os
 import tempfile
 import shutil
@@ -32,7 +31,7 @@ class MDWampApi(LieApplicationSession):
 
     @wamp.register(u'liestudio.gromacs.liemd')
     def run_gromacs_liemd(
-            self, session={}, protein_file=None, ligand_file=None,
+            self, session=None, protein_file=None, ligand_file=None,
             topology_file=None, **kwargs):
 
         # Retrieve the WAMP session information
@@ -50,8 +49,12 @@ class MDWampApi(LieApplicationSession):
         # Store protein file if available
         if protein_file:
             protdsc = os.path.join(workdir, 'protein.pdb')
-            with open(protdsc, 'w') as inp:
-                inp.write(protein_file)
+            try:
+                if os.path.isfile(protein_file):
+                    shutil.copy(protein_file, protdsc)
+            except:
+                with open(protdsc, 'w') as inp:
+                    inp.write(protein_file)
 
         # Store ligand file if available
         if ligand_file:
@@ -67,10 +70,8 @@ class MDWampApi(LieApplicationSession):
         if topology_file:
             topdsc = os.path.join(workdir, 'ligtop.itp')
             try:
-                if os.path.isfile(
-                        os.path.join(topology_file, 'input_GMX.itp')):
-                    shutil.copy(
-                        os.path.join(topology_file, 'input_GMX.itp'), topdsc)
+                if os.path.isfile(topology_file):
+                    shutil.copy(topology_file, topdsc)
             except:        
                 with open(topdsc, 'w') as inp:
                     inp.write(topology_file)
@@ -83,7 +84,8 @@ class MDWampApi(LieApplicationSession):
 
         # Fix topology ligand
         itpOut = 'ligand.itp'
-        results = correctItp(topdsc, itpOut, posre=True)
+        #results = correctItp(topdsc, itpOut, posre=True)
+        results = {'charge': 0, 'itp': itpOut}
 
         # Prepaire simulation
         gromacs_config['charge'] = results['charge']

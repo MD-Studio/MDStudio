@@ -47,10 +47,10 @@ def mol_read(
         return
 
     # Set the molecular title to something meaningful
-    # if not getattr(molobject, 'title', None):
-    #     molobject.title = default_mol_name
-    # if not all([i.isalnum() for i in molobject.title]):
-    #     molobject.title = default_mol_name
+    if not getattr(molobject, 'title', None):
+        molobject.title = default_mol_name
+    if not all([i.isalnum() for i in molobject.title]):
+        molobject.title = default_mol_name
 
     # Register import file format and toolkit in molobject
     molobject.mol_format = mol_format

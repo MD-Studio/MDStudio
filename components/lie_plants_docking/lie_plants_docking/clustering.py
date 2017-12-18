@@ -8,7 +8,7 @@ from twisted.logger import Logger
 from scipy.spatial.distance import squareform
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 def coords_from_mol2(mol2_files):

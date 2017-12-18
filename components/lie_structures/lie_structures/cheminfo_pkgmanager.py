@@ -149,6 +149,10 @@ import collections
 import importlib
 import logging
 
+from twisted.logger import Logger
+
+logging = Logger()
+
 # Cheminformatics packages supported by cheminfo, the order matters!
 SUPPORTED_PACKAGES = ('webel', 'silverwebel', 'pybel', 'jchem', 'cdk', 'indy', 'opsin', 'rdk', 'pydpi')
 
