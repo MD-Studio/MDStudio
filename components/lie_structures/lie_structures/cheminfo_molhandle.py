@@ -37,15 +37,20 @@ def mol_read(
         logging.error('Molecular file format "{0}" not supported by {1}'.format(mol_format, toolkit))
         return
 
-    if from_file:
-        assert os.path.isfile(mol), logging.error('No such file at path: {0}'.format(mol))
-        molobject = toolkit_driver.readfile(mol_format, mol).next()
-    else:
-        molobject = toolkit_driver.readstring(mol_format, mol)
+    try:
+        if from_file:
+            molobject = toolkit_driver.readfile(mol_format, mol).next()
+        else:
+            molobject = toolkit_driver.readstring(mol_format, mol)
+    except IOError, e:
+        logging.error(e)
+        return
 
-    # Set the molecular title to something meaningfull
-    if not molobject.title or not all([i.isalnum() for i in molobject.title]):
-        molobject.title = default_mol_name
+    # Set the molecular title to something meaningful
+    # if not getattr(molobject, 'title', None):
+    #     molobject.title = default_mol_name
+    # if not all([i.isalnum() for i in molobject.title]):
+    #     molobject.title = default_mol_name
 
     # Register import file format and toolkit in molobject
     molobject.mol_format = mol_format
@@ -62,7 +67,7 @@ def mol_write(molobject, mol_format=None, file_path=None):
         return
 
     mol_format = mol_format or getattr(molobject, 'mol_format', None)
-    assert mol_format in toolkit_driver.informats, logging.error('Molecular file format "{0}" not supported by {1}'.
+    assert mol_format in toolkit_driver.outformats, logging.error('Molecular file format "{0}" not supported by {1}'.
                                                                  format(mol_format, molobject.toolkit))
 
     output = molobject.write(mol_format, file_path, overwrite=True)
@@ -70,7 +75,7 @@ def mol_write(molobject, mol_format=None, file_path=None):
     if file_path and os.path.isfile(file_path):
         return file_path
 
-    return output
+    return output.strip()
 
 
 def mol_attributes(molobject):

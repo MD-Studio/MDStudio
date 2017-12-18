@@ -11,12 +11,9 @@ export JPYPE_JVM=/System/Library/Frameworks/JavaVM.framework/JavaVM
 export LD_LIBRARY_PATH=/System/Library/Frameworks/JavaVM.framework/Libraries:$LD_LIBRARY_PATH
 export CLASSPATH=/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/opsin-1.3.0-jar-with-dependencies.jar:/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/cdk-1.4.15.jar
 
-TODO: Include pydpi package?
 TODO: Incluce PyBioMed package?
-TODO: Include pychem (ChemoPy) package?
 TODO: Integrate Cambridge Structural Database, using CSD Python API
 TODO: Integrate PaDEL-Descriptor package?
-TODO: Integrate PyDescriptor package?
 """
 
 import os

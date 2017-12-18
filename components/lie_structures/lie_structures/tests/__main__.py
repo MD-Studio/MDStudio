@@ -12,7 +12,7 @@ import unittest2
 import logging
 
 # Init basic logging
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.DEBUG)
 
 # Add modules in package to path so we can import them
 modulepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -26,7 +26,7 @@ def module_test_suite():
 
     print('Running lie_structures unittests')
     testpath = os.path.join(os.path.dirname(__file__), 'module')
-    suite = loader.discover(testpath, pattern='module_descriptors*.py')
+    suite = loader.discover(testpath, pattern='module_draw*.py')
     runner = unittest2.TextTestRunner(verbosity=2)
     runner.run(suite)
 

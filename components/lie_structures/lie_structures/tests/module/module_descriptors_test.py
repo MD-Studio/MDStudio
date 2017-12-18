@@ -10,7 +10,9 @@ from lie_structures.cheminfo_descriptors import available_descriptors
 from lie_structures.cheminfo_molhandle import mol_read
 
 AVAIL_DESC = available_descriptors()
-TEST_FILES = {'c1(cccnc1Nc1cc(ccc1)C(F)(F)F)C(=O)O': 'smi'}
+TEST_FILES = {'c1(cccnc1Nc1cc(ccc1)C(F)(F)F)C(=O)O': 'smi',
+              'CC(Oc1ccccc1C(O)=O)=O': 'smi'}
+
 
 class _CheminfoDescriptorBase(object):
 
@@ -31,20 +33,34 @@ class _CheminfoDescriptorBase(object):
         """
 
         for struc, molobject in self.test_structures.items():
-            desc = molobject.calcdesc()
-            print(desc)
+            if self.toolkit_name in AVAIL_DESC:
+                desc = molobject.calcdesc()
+
+                self.assertEqual(len(desc), self.gen_desc[struc])
+
+
+@unittest2.skipIf('pydpi' not in AVAIL_DESC, "PyDPI software not available or no desc.")
+class CheminfoPyDPIDescriptorTests(_CheminfoDescriptorBase, unittest2.TestCase):
+
+    toolkit_name = 'pydpi'
+    gen_desc = {'c1(cccnc1Nc1cc(ccc1)C(F)(F)F)C(=O)O': 615,
+                'CC(Oc1ccccc1C(O)=O)=O': 615}
 
 
 @unittest2.skipIf('pybel' not in AVAIL_DESC, "Pybel software not available or no desc.")
 class CheminfoPybelDescriptorTests(_CheminfoDescriptorBase, unittest2.TestCase):
 
     toolkit_name = 'pybel'
+    gen_desc = {'c1(cccnc1Nc1cc(ccc1)C(F)(F)F)C(=O)O': 24,
+                'CC(Oc1ccccc1C(O)=O)=O': 24}
 
 
 @unittest2.skipIf('rdk' not in AVAIL_DESC, "RDKit software not available or no desc.")
 class CheminfoRDkitDescriptorTests(_CheminfoDescriptorBase, unittest2.TestCase):
 
     toolkit_name = 'rdk'
+    gen_desc = {'c1(cccnc1Nc1cc(ccc1)C(F)(F)F)C(=O)O': 200,
+                'CC(Oc1ccccc1C(O)=O)=O': 200}
 
 
 @unittest2.skipIf('cdk' not in AVAIL_DESC, "CDK software not available or no desc.")
@@ -57,6 +73,8 @@ class CheminfoCDKDescriptorTests(_CheminfoDescriptorBase, unittest2.TestCase):
 class CheminfoWebelDescriptorTests(_CheminfoDescriptorBase, unittest2.TestCase):
 
     toolkit_name = 'webel'
+    gen_desc = {'c1(cccnc1Nc1cc(ccc1)C(F)(F)F)C(=O)O': 148,
+                'CC(Oc1ccccc1C(O)=O)=O': 147}
 
 
 @unittest2.skipIf('opsin' not in AVAIL_DESC, "Opsin software not available or no desc.")

@@ -4,39 +4,6 @@ import sys
 import unittest
 
 
-class TestOpsin(myTestCase):
-    toolkit = opsin
-
-    def testconversion(self):
-        """Convert from acetylsaliclyic acid to other formats"""
-        mol = self.toolkit.readstring("iupac", "benzene")
-        self.assertEqual(mol.write("smi"), "C1=CC=CC=C1")
-        self.assertEqual(
-            mol.write("inchi"), "InChI=1/C6H6/c1-2-4-6-5-3-1/h1-6H")
-        mol.write("cml")
-
-    def testnoconversion(self):
-        """A failed conversion - should raise IOError"""
-        self.assertRaises(
-            IOError, self.toolkit.readstring, "iupac", "Nosuchname")
-
-    def testnoformats(self):
-        """No such format - should raise ValueError"""
-        self.assertRaises(
-            ValueError, self.toolkit.readstring, "noel", "benzene")
-
-    def testwritefile(self):
-        """Test writing a file"""
-        if os.path.isfile("tmp.cml"):
-            os.remove("tmp.cml")
-        mol = self.toolkit.readstring("iupac", "benzene")
-        mol.write("cml", "tmp.cml")
-        self.assertTrue(os.path.isfile("tmp.cml"))
-        self.assertRaises(IOError, mol.write, "cml", "tmp.cml")
-        mol.write("cml", "tmp.cml", overwrite=True)
-        os.remove("tmp.cml")
-
-
 class TestToolkit(myTestCase):
 
     def setUp(self):
@@ -44,15 +11,6 @@ class TestToolkit(myTestCase):
                      self.toolkit.readstring("smi", "CCCN")]
         self.head = list(self.toolkit.readfile("sdf", "head.sdf"))
         self.atom = self.head[0].atoms[1]
-
-    def testattributes(self):
-        """Test attributes like informats, descs and so on"""
-        informats, outformats = self.toolkit.informats, self.toolkit.outformats
-        self.assertNotEqual(len(self.toolkit.informats.keys()), 0)
-        self.assertNotEqual(len(self.toolkit.outformats.keys()), 0)
-        self.assertNotEqual(len(self.toolkit.descs), 0)
-        self.assertNotEqual(len(self.toolkit.forcefields), 0)
-        self.assertNotEqual(len(self.toolkit.fps), 0)
 
     def testInChI(self):
         """Test InChI generation"""
@@ -358,20 +316,6 @@ class TestOBabel(TestToolkit):
         self.assertRaises(AttributeError, self.RSaccesstest)
 
 
-class TestJybel(TestOBabel):
-    pass
-
-
-class TestIronable(TestJybel):
-    def testDraw(self):
-        """No creating a 2D depiction"""
-        pass
-
-
-class TestPybel(TestOBabel):
-    toolkit = pybel
-
-
 class TestRDKit(TestToolkit):
     toolkit = rdk
     tanimotoresult = 1/3.
@@ -597,41 +541,3 @@ class TestJchem(TestToolkit):
         self.assertAlmostEqual(self.mols[0].molwt, 58.12, 2)
         self.assertEqual(len(self.mols[0].atoms), 4)
         self.assertRaises(AttributeError, self.RSaccesstest)
-
-
-class TestCDKJPype(TestCDK):
-    def testDraw(self):
-        """No depiction supported I'm afraid"""
-        pass
-
-
-if __name__ == "__main__":
-    if os.path.isfile("testoutput.txt"):
-        os.remove("testoutput.txt")
-
-    lookup = {
-        'cdk': TestCDK, 'obabel': TestOBabel, 'rdk': TestRDKit,
-        'webel': TestWebel, 'opsin': TestOpsin, 'indy': TestIndigo,
-        'pybel': TestPybel, 'jchem': TestJchem}
-    if sys.platform[:4] == "java":
-        lookup['obabel'] = TestJybel
-        del lookup['rdk']
-    elif sys.platform[:3] == "cli":
-        lookup['obabel'] = TestIronable
-        del lookup['rdk']
-        del lookup['cdk']
-        del lookup['jchem']
-        del lookup['opsin']
-    else:
-        lookup['cdk'] = TestCDKJPype
-
-    # Only run Pybel tests if specifically asked
-    testcases = list(lookup.values()).remove(TestPybel)
-
-    if len(sys.argv) > 1:
-        testcases = [lookup[x] for x in sys.argv[1:]]
-
-    for testcase in testcases:
-        print("\n\n\nTESTING %s\n%s\n\n" % (testcase.__name__, "== "*10))
-        myunittest = unittest.defaultTestLoader.loadTestsFromTestCase(testcase)
-        unittest.TextTestRunner(verbosity=1).run(myunittest)

@@ -56,6 +56,7 @@ class CheminfoFingerprintComparisonTests(unittest2.TestCase):
         self.assertTrue(hr.is_valid_dm(simmat))
         self.assertEqual(hr.num_obs_dm(simmat), 10)
 
+
 class _CheminfoFingerprintBase(object):
 
     forcefield = 'mmff94'
