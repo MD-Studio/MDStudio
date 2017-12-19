@@ -11,7 +11,8 @@ class EchoComponent(ComponentSession):
     @endpoint('hello', 'hello-request', 'hello-response')
     def hello(self, request, claims):
         return_time = now()
-        request['message']['sendTime'] = send_time = from_utc_string(request['message']['sendTime'])
+        send_time = from_utc_string(request['message']['sendTime'])
+        request['message']['sendTime'] = send_time
 
         if self.component_config.settings['printInEndpoint']:
             pprint(request)

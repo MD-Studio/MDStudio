@@ -20,7 +20,7 @@ from mdstudio.logging.impl.printing_observer import PrintingLogObserver
 def main(component, auto_reconnect=True):
     crossbar_host = os.getenv('CROSSBAR_HOST', 'localhost')
 
-    with open('data/crossbar/server_cert.pem', 'r') as f:
+    with open(os.path.join(CommonSession.mdstudio_root_path(), '../data/crossbar/server_cert.pem'), 'r') as f:
         cert_data = f.read().encode('utf-8')
 
     cert = ssl.Certificate.loadPEM(cert_data)
