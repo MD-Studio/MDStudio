@@ -113,7 +113,7 @@ def mol_fingerprint_pairwise_similarity(fps, toolkit, metric='tanimoto'):
     mol_fingerprint_comparison function
 
     :param fps:     Cinfony Fingerprint objects
-    :type:          :cinfony:Fingerprints
+    :type fps:      :cinfony:Fingerprints
     :param toolkit: toolkit used to calculate fingerprint
     :type toolkit:  :py:str
     :param metric:  comparison metric
@@ -128,3 +128,32 @@ def mol_fingerprint_pairwise_similarity(fps, toolkit, metric='tanimoto'):
         condensed_matrix.append(mol_fingerprint_comparison(comb[0], comb[1], toolkit, metric=metric))
 
     return squareform(array(condensed_matrix))
+
+
+def mol_fingerprint_cross_similarity(fps1, fps2, toolkit, metric='tanimoto'):
+    """
+    Build a non-pairwise similarity matrix between the fingerprints of fps1 on
+    the y-axis (rows) and fps2 in the x-axis (columns). This can result in a
+    non-square matrix.
+
+    :param fps1:    Cinfony Fingerprint objects for y-axis
+    :type fps1:     :cinfony:Fingerprints
+    :param fps2:    Cinfony Fingerprint objects for x-axis
+    :type fps2:     :cinfony:Fingerprints
+    :param toolkit: toolkit used to calculate fingerprint
+    :type toolkit:  :py:str
+    :param metric:  comparison metric
+    :type metric:   :py:str
+
+    :return:        non-square similarity matrix
+    :rtype:         :numpy:ndarray
+    """
+
+    simmat = []
+    for fp1 in fps1:
+        row = []
+        for fp2 in fps2:
+            row.append(mol_fingerprint_comparison(fp1, fp2, toolkit, metric=metric))
+        simmat.append(row)
+
+    return array(simmat)

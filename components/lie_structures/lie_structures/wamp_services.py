@@ -22,12 +22,14 @@ from lie_structures import settings, toolkits
 from lie_structures.settings import _schema_to_data, STRUCTURES_SCHEMA, BIOPYTHON_SCHEMA
 from lie_structures.cheminfo_wamp.cheminfo_descriptors_wamp import CheminfoDescriptorsWampApi
 from lie_structures.cheminfo_wamp.cheminfo_molhandle_wamp import CheminfoMolhandleWampApi
+from lie_structures.cheminfo_wamp.cheminfo_fingerprints_wamp import CheminfoFingerprintsWampApi
 
 STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))
 BIOPYTHON_SCHEMA = json.load(open(BIOPYTHON_SCHEMA))
 
 
-class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi):
+class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi,
+                        CheminfoFingerprintsWampApi):
     """
     Structure database WAMP methods.
     """
@@ -131,7 +133,7 @@ class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, Chemi
         try:
             jsonschema.validate(config, BIOPYTHON_SCHEMA)
         except ValueError, e:
-            self.logger.error('Unvalid function arguments: {0}'.format(e))
+            self.log.error('Unvalid function arguments: {0}'.format(e))
             session['status'] = 'failed'
             return {'session': session}
 
@@ -163,7 +165,7 @@ class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, Chemi
             else:
                 return {'session': session, 'mol': open(dfile).read()}
 
-        self.logger.error('Unable to download structure: {0}'.format(pdb_id), **session)
+        self.log.error('Unable to download structure: {0}'.format(pdb_id), **session)
         session['status'] = 'failed'
         return {'session': session}
 
