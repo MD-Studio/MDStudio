@@ -42,7 +42,7 @@ class CheminfoMolhandleWampApi(object):
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
         molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False))
+                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
 
         file_path = None
         if 'workdir' in config:
@@ -72,7 +72,7 @@ class CheminfoMolhandleWampApi(object):
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
         molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False))
+                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
         molobject = mol_addh(
             molobject,
             polaronly=config.get('polaronly'),
@@ -107,7 +107,7 @@ class CheminfoMolhandleWampApi(object):
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
         molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False))
+                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
         molobject = mol_removeh(molobject)
 
         file_path = None
@@ -138,7 +138,7 @@ class CheminfoMolhandleWampApi(object):
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
         molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False))
+                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
         molobject = mol_make3D(
             molobject,
             forcefield=config.get('forcefield'),
@@ -173,7 +173,7 @@ class CheminfoMolhandleWampApi(object):
         jsonschema.validate(config, STRUCTURES_SCHEMA)
 
         molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False))
+                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
         attributes = mol_attributes(molobject) or {}
 
         # Update session
@@ -200,7 +200,7 @@ class CheminfoMolhandleWampApi(object):
 
         # Read in the molecule
         molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False))
+                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
 
         rotations = config.get('rotations')
         if rotations:
