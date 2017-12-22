@@ -208,11 +208,18 @@ class WorkflowRunner(_WorkflowQueryMethods):
         if failed_ancestors:
             logging.error(
                 'Failed parent tasks detected. Unable to collect all output')
-        
-        # Check if the ancestors are al completed
+
+        # Check if we can continue if only one of the input streams is available
+        if task.get('continue_with_one', False):
+            continue_next = any([self.workflow.nodes[tid]['status'] in
+                                 ('completed', 'disabled') for tid in parent_tasks])
+        # Check if the ancestors are all completed
+        else:
+            continue_next = all([self.workflow.nodes[tid]['status'] in
+                                 ('completed', 'disabled') for tid in parent_tasks])
+
         collected_output = []
-        if all([self.workflow.nodes[tid]['status'] in
-                ('completed', 'disabled') for tid in parent_tasks]):
+        if continue_next:
             msg = 'Task {0} ({1}): Output of {2} parent tasks available, continue'
             logging.info(msg.format(task.nid, task.task_name, len(parent_tasks)))
             
@@ -221,9 +228,9 @@ class WorkflowRunner(_WorkflowQueryMethods):
             for tid in parent_tasks:
                 mapper = self.workflow.edges[(tid, task.nid)].get('data_mapping', {})
                 select = self.workflow.edges[(tid, task.nid)].get('data_select',
-                                            self.workflow.nodes[tid]['output_data'].keys())
+                                            self.workflow.nodes[tid].get('output_data', {}).keys())
                 new_dict = {mapper.get(k, k): '${0}.{1}'.format(tid, k) for k, v in
-                            self.workflow.nodes[tid]['output_data'].items() if k in select}
+                            self.workflow.nodes[tid].get('output_data', {}).items() if k in select}
                 collected_output.append(new_dict)
         else:
             logging.info(
