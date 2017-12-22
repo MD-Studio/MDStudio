@@ -3,6 +3,7 @@
 import os
 import logging
 import copy
+import glob
 
 from twisted.logger import Logger
 
@@ -10,6 +11,18 @@ from .cli_runner import CLIRunner
 from .settings import SETTINGS
 
 logging = Logger()
+
+
+def _collect_acpype_output(path):
+
+    outfiles = {}
+    compound_name = os.path.basename(path).rstrip('.acpype')
+    for outfile in glob.glob('{0}/{1}_*.*'.format(path, compound_name)):
+        fname = os.path.basename(outfile).lstrip('{0}_'.format(compound_name))
+        varname = '_'.join([n.lower() for n in fname.split('.')])
+        outfiles[varname] = outfile
+
+    return outfiles
 
 
 def amber_acpype(mol, workdir=None, acepype_path=None, **kwargs):
@@ -58,7 +71,9 @@ def amber_acpype(mol, workdir=None, acepype_path=None, **kwargs):
     
     output_path = os.path.join(workdir, '{0}.acpype'.format(workdir_name))
     if runner.succeeded and os.path.isdir(output_path):
-        return output_path
+        outfiles = _collect_acpype_output(output_path)
+        outfiles['path'] = output_path
+        return outfiles
     else:
         logging.error('Acpype failed')
 

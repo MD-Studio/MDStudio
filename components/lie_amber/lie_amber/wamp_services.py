@@ -29,14 +29,14 @@ class AmberWampApi(LieApplicationSession):
     require_config = ['system']
     
     @wamp.register(u'liestudio.amber.acpype')
-    def run_amber_acpype(self, structure=None, session=None, **kwargs):
+    def run_amber_acpype(self, structure=None, session=None, from_file=False, **kwargs):
         
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
         
         # Load ACPYPE configuration and update
         acpype_config = self.package_config.get('amber_acpype').dict()
-        
+
         # Validate the configuration
         jsonschema.validate(amber_schema, acpype_config)
         
@@ -45,27 +45,32 @@ class AmberWampApi(LieApplicationSession):
         tmpfile = os.path.join(workdir,'input.mol2')
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
-        with open(tmpfile, 'w') as inp:
-            inp.write(structure)
+        if from_file and os.path.exists(structure):
+            shutil.copy(structure, tmpfile)
+        else:
+            with open(tmpfile, 'w') as inp:
+                inp.write(structure)
         
         # Run ACPYPE
         output = amber_acpype(tmpfile, workdir=workdir, **acpype_config)
         if not output:
             session['status'] = 'failed'
+            output = {}
         else:
             session['status'] = 'completed'
-        
-        return {'session':session, 'path':output}
+
+        output['session'] = session
+        return output
     
     @wamp.register(u'liestudio.amber.reduce')
-    def run_amber_reduce(self, structure=None, session=None, **kwargs):
+    def run_amber_reduce(self, structure=None, session=None, from_file=False, **kwargs):
         
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(metadata=session).dict()
         
         # Load ACPYPE configuration and update
         amber_reduce_config = self.package_config.get('amber_reduce').dict()
-        
+
         # Validate the configuration
         jsonschema.validate(amber_schema, amber_reduce_config)
         
@@ -74,8 +79,11 @@ class AmberWampApi(LieApplicationSession):
         tmpfile = os.path.join(workdir,'input.mol2')
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
-        with open(tmpfile, 'w') as inp:
-            inp.write(structure)
+        if from_file and os.path.exists(structure):
+            tmpfile = structure
+        else:
+            with open(tmpfile, 'w') as inp:
+                inp.write(structure)
         
         # Run ACPYPE
         output = amber_reduce(tmpfile, **amber_reduce_config)
