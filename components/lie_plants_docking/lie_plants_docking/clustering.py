@@ -3,10 +3,16 @@
 import os
 import numpy
 import itertools
+import matplotlib
 
 from twisted.logger import Logger
 from scipy.spatial.distance import squareform
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
+
+# Init maplotlib
+from matplotlib import style
+matplotlib.use('Agg')  # Use Agg for non-interactive plotting
+style.use('ggplot')  # Because of AttributeError: Unknown property color_cycle bug in Pandas 1.7.1 with Matplotlib 1.5.0
 
 import matplotlib.pyplot as plt
 
