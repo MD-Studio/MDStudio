@@ -19,13 +19,12 @@
         {
             "type": "object",
             "properties": {
-                "integrator" : { "type": "string", "enum" : [ "steepest-descent", "conjugate-gradient" ] },
-                "timeStep"   : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "integrator" : { "type": "string",  "enum" : [ "steepest-descent", "conjugate-gradient" ] },
+                "tolerance"  : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "stepSize"   : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "steps"      : { "type": "integer", "minimum" : 0,   "exclusiveMinimum" : true }
             },
-            "required":[
-                "greeting",
-                "sendTime"
-            ],
+            "required":[ "integrator", "tolerance", "stepSize", "steps" ],
             "additionalProperties": false
         }
     },
@@ -33,15 +32,7 @@
     "type": "object",
     "description": "The proper format of a md compose message",
     "properties": {
-        "greeting": {
-            "type": "string",
-            "description": "The message you will use to greet the Echo component"
-        },
-        "sendTime": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The datetime at which your greeting was sent"
-        }
+
     },
     "required":[
         "greeting",
