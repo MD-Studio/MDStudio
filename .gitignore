@@ -214,3 +214,4 @@ app/gulpfile.js.map
 
 # rst
 *.rst
+*.swp
