@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    
+    "definitions" :{
+        "run_control" : 
+        {
+            "type": "string",
+            "properties": {
+                "integrator": { 
+                    "type": "string",
+                    "enum" : [ "leap-frog", "velocity-verlet", "stochastic-dynamics" ]
+                }
+            },
+            "required":[
+                "greeting",
+                "sendTime"
+            ]
+        },
+        "minimize_control" : 
+        {
+            "type": "string",
+            "properties": {
+                "integrator": { 
+                    "type": "string",
+                    "enum" : [ "steepest-descent", "conjugate-gradient" ]
+                }
+            },
+            "required":[
+                "greeting",
+                "sendTime"
+            ]
+        }
+    },
+    
+    "type": "object",
+    "description": "The proper format of a md compose message",
+    "properties": {
+        "greeting": {
+            "type": "string",
+            "description": "The message you will use to greet the Echo component"
+        },
+        "sendTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The datetime at which your greeting was sent"
+        }
+    },
+    "required":[
+        "greeting",
+        "sendTime"
+    ],
+    "additionalProperties": false
+}
