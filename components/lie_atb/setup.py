@@ -37,6 +37,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
+    install_requires=['twisted', 'autobahn', 'requests'],
     include_package_data=True,
     zip_safe=True,
     entry_points={
@@ -51,5 +52,5 @@ setup(
         'Topic :: Utilities',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
-        ],
+    ],
 )

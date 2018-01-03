@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "InsertManyRequest",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
+    },
+    "insert": {
+      "type": "array",
+      "items": {
+        "$ref": "resource://mdstudio/db/document/v1"
+      },
+      "additionalItems": false
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    }
+  },
+  "required": [
+    "collection",
+    "insert"
+  ],
+  "additionalProperties": false
+}

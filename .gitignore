@@ -198,9 +198,6 @@ fabric.properties
 # files generated on merge conflicts
 *.orig
 
-# Ignore pycharm helper files
-.pycharm_helpers/
-
 # Ignore compiled typescript
 app/gulp/*.js
 app/gulp/*.map
@@ -215,3 +212,15 @@ app/gulpfile.js.map
 # rst
 #*.rst
 *.swp
+
+app/bower_components/*
+components/*/data
+docker/.USERDONE
+/key.priv
+/key.pub
+
+# emacs
+*~
+venv
+.env
+**/.settings.*.yml

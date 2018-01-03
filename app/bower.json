@@ -1,0 +1,6 @@
+{
+  "name": "liestudio",
+  "dependencies": {
+    "autobahn": "^17.5.1"
+  }
+}

@@ -1,5 +1,6 @@
 
 # .sh is for unix systems
 *.sh eol=lf
-*.bashrc eol=lf
+*.bashrc* eol=lf
+*.bash_profile* eol=lf
 docker/python eol=lf

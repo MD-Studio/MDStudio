@@ -45,10 +45,6 @@ When you want to use your private shell you can login using ssh using the follow
 | Port   | ``65432``                        |
 +--------+----------------------------------+
 
-.. warning::
-
-    On Windows it could be that the working directory is empty. Please use ``cd /app`` to go to the correct directory!
-
 IDE Integration
 ---------------
 

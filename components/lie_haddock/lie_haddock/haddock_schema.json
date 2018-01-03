@@ -1,0 +1,3274 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#", 
+    "description": "Haddock macromolecular docking parameter definition", 
+    "properties": {
+        "air_scaling": {
+            "default": false, 
+            "description": "Use automated distance restraints weighting", 
+            "type": "boolean"
+        }, 
+        "amb": {
+            "description": "", 
+            "properties": {
+                "firstit": {
+                    "default": 0, 
+                    "description": "", 
+                    "type": "integer"
+                }, 
+                "lastit": {
+                    "default": 2, 
+                    "description": "", 
+                    "type": "integer"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 50.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 50.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "anastruc_1": {
+            "default": 200, 
+            "description": "Number of structures to be analysed after iteration 1", 
+            "type": "integer"
+        }, 
+        "asy": {
+            "description": "", 
+            "properties": {
+                "cool1": {
+                    "default": 1.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool2": {
+                    "default": 0.1, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": 0.1, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "hot": {
+                    "default": 1.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "auto_passive_radius": {
+            "default": 6.5, 
+            "description": "", 
+            "type": "number"
+        }, 
+        "c1": {
+            "description": "", 
+            "properties": {
+                "karplusa": {
+                    "default": 6.98, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusb": {
+                    "default": -1.38, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusc": {
+                    "default": 1.72, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusd": {
+                    "default": -60.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "on": {
+                    "default": false, 
+                    "description": "", 
+                    "type": "boolean"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 0.2, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "c2": {
+            "description": "", 
+            "properties": {
+                "karplusa": {
+                    "default": 6.98, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusb": {
+                    "default": -1.38, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusc": {
+                    "default": 1.72, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusd": {
+                    "default": -120.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "on": {
+                    "default": false, 
+                    "description": "", 
+                    "type": "boolean"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 0.2, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "c3": {
+            "description": "", 
+            "properties": {
+                "karplusa": {
+                    "default": 6.98, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusb": {
+                    "default": -1.38, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusc": {
+                    "default": 1.72, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusd": {
+                    "default": -120.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "on": {
+                    "default": false, 
+                    "description": "", 
+                    "type": "boolean"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 0.2, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "c4": {
+            "description": "", 
+            "properties": {
+                "karplusa": {
+                    "default": 6.98, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusb": {
+                    "default": -1.38, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusc": {
+                    "default": 1.72, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusd": {
+                    "default": -120.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "on": {
+                    "default": false, 
+                    "description": "", 
+                    "type": "boolean"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 0.2, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "c5": {
+            "description": "", 
+            "properties": {
+                "karplusa": {
+                    "default": 6.98, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusb": {
+                    "default": -1.38, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusc": {
+                    "default": 1.72, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "karplusd": {
+                    "default": -120.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "on": {
+                    "default": false, 
+                    "description": "", 
+                    "type": "boolean"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 0.2, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "calcdesolv": {
+            "default": false, 
+            "description": "Calculate explicit desolvation energy (note this will double the cpu requirements)", 
+            "type": "boolean"
+        }, 
+        "clust_meth": {
+            "default": "RMSD", 
+            "description": "Clustering method (RMSD or Fraction of Common Contacts (FCC))", 
+            "type": "string",
+            "enum": ["RMSD", "FCC"]
+        }, 
+        "clust_rmsd": {
+            "default": 7.5, 
+            "description": "RMSD cutoff for clustering? (Recommended values: RMSD 7.5, FCC 0.75)",
+            "type": "number"
+        }, 
+        "clust_size": {
+            "default": 4, 
+            "description": "Minimum cluster size",
+            "type": "integer"
+        }, 
+        "cmrest": {
+            "default": false, 
+            "description": "Do you want to define center of mass restraints to enforce contact between the molecules? Note that these are only active during it0 and it1",
+            "type": "boolean"
+        }, 
+        "cool1_steps": {
+            "default": 500, 
+            "description": "Number of MD steps during first rigid body cooling stage",
+            "type": "integer"
+        }, 
+        "cool2_steps": {
+            "default": 2000, 
+            "description": "Number of MD steps during second cooling stage with flexible side-chains at interface",
+            "type": "integer"
+        }, 
+        "cool3_steps": {
+            "default": 2000, 
+            "description": "Number of MD steps during third cooling stage with fully flexible interface",
+            "type": "integer"
+        }, 
+        "create_narestraints": {
+            "default": true, 
+            "description": "Generate DNA/RNA backbone, sugar pucker and WC-pairing restraints", 
+            "type": "boolean"
+        }, 
+        "crossdock": {
+            "default": true, 
+            "description": "Cross-dock all combinations in the ensembles of starting structures? Turn off this option if you only want to dock structure 1 of ensemble A. to structure 1 of ensemble B, structure 2 to structure 2, etc.",
+            "type": "boolean"
+        }, 
+        "dan1": {
+            "description": "", 
+            "properties": {
+                "anis": {
+                    "default": 1.557, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "DANI"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 5.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.455, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "tc": {
+                    "default": 9.771, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wh": {
+                    "default": 599.91, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wn": {
+                    "default": 60.82, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "dan2": {
+            "description": "", 
+            "properties": {
+                "anis": {
+                    "default": -1.35, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "DANI"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 1, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 5.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.308, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "tc": {
+                    "default": 9.84, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wh": {
+                    "default": 599.91, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wn": {
+                    "default": 60.82, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "dan3": {
+            "description": "", 
+            "properties": {
+                "anis": {
+                    "default": -1.35, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "DANI"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 1, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 1, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 5.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.308, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "tc": {
+                    "default": 9.84, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wh": {
+                    "default": 599.91, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wn": {
+                    "default": 60.82, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "dan4": {
+            "description": "", 
+            "properties": {
+                "anis": {
+                    "default": -1.35, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "DANI"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 5.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.308, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "tc": {
+                    "default": 9.84, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wh": {
+                    "default": 599.91, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wn": {
+                    "default": 60.82, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "dan5": {
+            "description": "", 
+            "properties": {
+                "anis": {
+                    "default": -1.35, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "DANI"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 5.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 10.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.308, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "tc": {
+                    "default": 9.84, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wh": {
+                    "default": 599.91, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "wn": {
+                    "default": 60.82, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "db_method": {
+            "default": "kytedoolittle", 
+            "description": "Which propensity database to use? statistical: based on an analysis of water-mediated contacts in the PDB, kyte-doolittle: based on the Kyte-Doolittle hydrophobicity scale",
+            "type": "string",
+            "enum": ["statistical", "kytedoolittle"]
+        }, 
+        "delenph": {
+            "default": false, 
+            "description": "Remove non-polar hydrogens?",
+            "type": "boolean"
+        }, 
+        "dielec": {
+            "default": "cdie", 
+            "description": "Use constant (cdie) or distance-dependent (rdie) dielectric?",
+            "type": "string",
+            "enum": ["cdie", "rdie"]
+        }, 
+        "dihedflag": {
+            "default": true, 
+            "description": "Do you want to include dihedral angle energy terms?",
+            "type": "boolean"
+        }, 
+        "dihedraldata": {
+            "default": "",
+            "description": "", 
+            "type": "string"
+        }, 
+        "dihedrals": {
+            "description": "Dihedrals restraints", 
+            "properties": {
+                "cool1": {
+                    "default": 5.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool2": {
+                    "default": 50.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": 200.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "hot": {
+                    "default": 5.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "dist_hb": {
+            "default": 2.5, 
+            "description": "Cutoff distance (proton-acceptor) to define an hydrogen bond", 
+            "type": "number"
+        }, 
+        "dist_nb": {
+            "default": 3.9, 
+            "description": "Cutoff distance (carbon-carbon) to define an hydrophobic contact", 
+            "type": "number"
+        }, 
+        "dnap_water_tokeep": {
+            "default": 0.25, 
+            "description": "this is the fraction of interface water involving DNA phoshpates after the initial rigid body docking that will be kept. (note that more waters might be removed if the interaction energy is unfavorable)", 
+            "type": "number"
+        }, 
+        "elecflag_0": {
+            "default": true, 
+            "description": "Include electrostatic during rigid body docking (it0)?", 
+            "type": "boolean"
+        }, 
+        "elecflag_1": {
+            "default": true, 
+            "description": "Include electrostatic during semi-flexible SA (it1)?", 
+            "type": "boolean"
+        }, 
+        "ensemble_multiply": {
+            "default": false, 
+            "description": "", 
+            "type": "boolean"
+        }, 
+        "epsilon": {
+            "default": 78.0, 
+            "description": "Give the epsilon constant for the electrostatic energy term? Note that for explicit solvent refinement cdie with epsilon=1 is used", 
+            "type": "number"
+        }, 
+        "fcc_ignc": {
+            "default": false, 
+            "description": "Chain-Agnostic Algorithm (used for FCC clustering in symmetrical complexes)", 
+            "type": "boolean"
+        }, 
+        "firstwater": {
+            "default": "yes", 
+            "description": "Do you want to refine your docking models in explicit solvent?", 
+            "type": "string"
+        }, 
+        "hbond": {
+            "description": "Hbond Distance restraints", 
+            "properties": {
+                "firstit": {
+                    "default": 1, 
+                    "description": "", 
+                    "type": "integer"
+                }, 
+                "lastit": {
+                    "default": 2, 
+                    "description": "", 
+                    "type": "integer"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 50.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 50.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "iniseed": {
+            "default": 11917, 
+            "description": "Initial seed for random number generator", 
+            "type": "integer"
+        }, 
+        "initiosteps": {
+            "default": 500, 
+            "description": "Number of MD steps for rigid body high temperature TAD", 
+            "type": "integer"
+        }, 
+        "inter_rigid": {
+            "default": 1.0, 
+            "description": "Number of MD steps during first rigid body cooling stage", 
+            "type": "number"
+        }, 
+        "kcont": {
+            "default": 1.0, 
+            "description": "Force constant for center of mass restraints", 
+            "type": "number"
+        }, 
+        "keepwater": {
+            "default": false, 
+            "description": "Write additional PDB files including solvent?", 
+            "type": "boolean"
+        }, 
+        "krg": {
+            "description": "Force constant for radius of gyration restraint", 
+            "properties": {
+                "cool1": {
+                    "default": 100.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool2": {
+                    "default": 100.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": 100.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "hot": {
+                    "default": 100.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "ksurf": {
+            "default": 1.0, 
+            "description": "Force constant for surface contact restraints", 
+            "type": "number"
+        }, 
+        "masy": {
+            "description": "MASY potential shape", 
+            "properties": {
+                "cool1": {
+                    "default": -1.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool2": {
+                    "default": -0.1, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": -0.1, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "hot": {
+                    "default": -1.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "mrswi": {
+            "description": "MRSWI potential shape", 
+            "properties": {
+                "cool1": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool2": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "hot": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "ncs": {
+            "description": "NCS restraints", 
+            "properties": {
+                "constant": {
+                    "default": 1.0, 
+                    "description": "Force constant for NCS restraints", 
+                    "type": "number"
+                }, 
+                "on": {
+                    "default": false, 
+                    "description": "Use NCS restraints?", 
+                    "type": "boolean"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "ncvpart": {
+            "default": 2.0, 
+            "description": "Number of partitions for random exclusion (%excluded=100/number of partitions)?", 
+            "type": "number"
+        }, 
+        "noecv": {
+            "default": true, 
+            "description": "Do you want to randomly exclude a fraction of the ambiguous restraints (AIRs)?", 
+            "type": "boolean"
+        }, 
+        "ntrials": {
+            "default": 5, 
+            "description": "Number of trials for rigid body minimisation?", 
+            "type": "integer"
+        }, 
+        "p1": {
+            "description": "Partner 1", 
+            "properties": {
+                "auto_his": {
+                    "default": true, 
+                    "description": "Use automatic definition of histidine protonation states?", 
+                    "type": "boolean"
+                }, 
+                "charged_cter": {
+                    "default": false, 
+                    "description": "Use charged C-terminus?", 
+                    "type": "boolean"
+                }, 
+                "charged_nter": {
+                    "default": false, 
+                    "description": "Use charged N-terminus?", 
+                    "type": "boolean"
+                }, 
+                "fullyflex": {
+                    "description": "", 
+                    "properties": {
+                        "segments": {
+                            "default": [], 
+                            "description": "", 
+                            "type": "array"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "his": {
+                    "default": [], 
+                    "description": "", 
+                    "type": "array"
+                }, 
+                "moleculetype": {
+                    "default": "Protein", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["Protein", "DNA", "RNA", "Other"]
+                }, 
+                "pdb": {
+                    "description": "", 
+                    "properties": {
+                        "chain": {
+                            "default": "All", 
+                            "description": "Which chain to use (chain ID)", 
+                            "type": "string"
+                        }, 
+                        "mode": {
+                            "default": "submit", 
+                            "description": "", 
+                            "type": "string"
+                        }, 
+                        "pdbdata": {
+                            "description": "", 
+                            "type": "string"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "description": "", 
+                    "properties": {
+                        "activereslist": {
+                            "default": "113,114,116", 
+                            "description": "", 
+                            "type": "string"
+                        }, 
+                        "auto_passive": {
+                            "default": false, 
+                            "description": "Automatically define passive restraints as neighbours of active restraints", 
+                            "type": "boolean"
+                        }, 
+                        "passivereslist": {
+                            "default": "", 
+                            "description": "", 
+                            "type": "string"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "segid": {
+                    "default": "A", 
+                    "description": "Segid to use during docking", 
+                    "type": "string"
+                }, 
+                "semiflex": {
+                    "description": "", 
+                    "properties": {
+                        "mode": {
+                            "default": "automatic", 
+                            "description": "", 
+                            "type": "string"
+                        }, 
+                        "segments": {
+                            "default": [], 
+                            "description": "", 
+                            "type": "array"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "p2": {
+            "description": "Partner 2", 
+            "properties": {
+                "auto_his": {
+                    "default": true, 
+                    "description": "Use automatic definition of histidine protonation states?", 
+                    "type": "boolean"
+                }, 
+                "charged_cter": {
+                    "default": false, 
+                    "description": "Use charged C-terminus?", 
+                    "type": "boolean"
+                }, 
+                "charged_nter": {
+                    "default": false, 
+                    "description": "Use charged N-terminus?", 
+                    "type": "boolean"
+                }, 
+                "fullyflex": {
+                    "description": "", 
+                    "properties": {
+                        "segments": {
+                            "default": [], 
+                            "description": "", 
+                            "type": "array"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "his": {
+                    "default": [], 
+                    "description": "", 
+                    "type": "array"
+                }, 
+                "moleculetype": {
+                    "default": "DNA", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["Protein", "DNA", "RNA", "Other"]
+                }, 
+                "pdb": {
+                    "description": "", 
+                    "properties": {
+                        "chain": {
+                            "default": "All", 
+                            "description": "", 
+                            "type": "string"
+                        }, 
+                        "mode": {
+                            "default": "submit", 
+                            "description": "", 
+                            "type": "string"
+                        }, 
+                        "pdbdata": {
+                            "description": "", 
+                            "type": "string"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "description": "", 
+                    "properties": {
+                        "activereslist": {
+                            "default": "", 
+                            "description": "", 
+                            "type": "string"
+                        }, 
+                        "auto_passive": {
+                            "default": false, 
+                            "description": "", 
+                            "type": "boolean"
+                        }, 
+                        "passivereslist": {
+                            "default": "4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,24,25,26,27,28,29,30,31,32,33,34,35,36,37", 
+                            "description": "", 
+                            "type": "string"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "segid": {
+                    "default": "B", 
+                    "description": "", 
+                    "type": "string"
+                }, 
+                "semiflex": {
+                    "description": "", 
+                    "properties": {
+                        "mode": {
+                            "default": "automatic", 
+                            "description": "", 
+                            "type": "string"
+                        }, 
+                        "segments": {
+                            "default": [], 
+                            "description": "", 
+                            "type": "array"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "par_nonbonded": {
+            "default": "OPLSX", 
+            "description": "Specify the type of non-bonded interaction", 
+            "type": "string",
+            "enum": ["PROLSQ", "PARMALLH6", "PARALLHDG", "OPLSX"]
+        }, 
+        "pcs1": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs10": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs2": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs3": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs4": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs5": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs6": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs7": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs8": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "pcs9": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "XPCS"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1000.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 100.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 10000.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "r": {
+                    "default": 1000.0, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "ranair": {
+            "default": false, 
+            "description": "Do you want to define randomly ambiguous interaction restraints from accessible residues? Only residues in the defined flexible segments will be considered. Note that this option is exclusive with any other distance restraints and only for it0", 
+            "type": "boolean"
+        }, 
+        "randorien": {
+            "default": true, 
+            "description": "Randomize starting orientations?", 
+            "type": "boolean"
+        }, 
+        "rdc1": {
+            "description": "Residual Dipolar Coupling restraints", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "SANI", "XRDC", "VANGLE"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 0.1, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 8.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "fin_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "fin_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.25, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.4, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "rdc2": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "SANI", "XRDC", "VANGLE"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 0.1, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 8.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "fin_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "fin_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.25, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.4, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "rdc3": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "SANI", "XRDC", "VANGLE"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 0.1, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 8.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "fin_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "fin_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.25, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.4, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "rdc4": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "SANI", "XRDC", "VANGLE"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 0.1, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 8.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "fin_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "fin_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.25, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.4, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "rdc5": {
+            "description": "", 
+            "properties": {
+                "choice": {
+                    "default": "NO", 
+                    "description": "", 
+                    "type": "string",
+                    "enum": ["NO", "SANI", "XRDC", "VANGLE"]
+                }, 
+                "constants": {
+                    "description": "", 
+                    "properties": {
+                        "firstit": {
+                            "default": 0, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "lastit": {
+                            "default": 2, 
+                            "description": "", 
+                            "type": "integer"
+                        }, 
+                        "stages": {
+                            "description": "", 
+                            "properties": {
+                                "cool1": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool2": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "cool3": {
+                                    "default": 1.0, 
+                                    "description": "", 
+                                    "type": "number"
+                                }, 
+                                "hot": {
+                                    "default": 0.1, 
+                                    "description": "", 
+                                    "type": "number"
+                                }
+                            }, 
+                            "type": "object"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "d": {
+                    "default": 8.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "fin_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "fin_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_bor": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 40.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 1.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "ini_cen": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 2.5, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 0.25, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }, 
+                "r": {
+                    "default": 0.4, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "rgrest": {
+            "default": false, 
+            "description": "Do you want to define a radius of gyration restraint (e.g. from SAXS)?", 
+            "type": "boolean"
+        }, 
+        "rgsele": {
+            "default": "all", 
+            "description": "Atom selections for the radius of gyration restraint", 
+            "type": "string"
+        }, 
+        "rgtarg": {
+            "default": 17.78, 
+            "description": "Radius of gyration", 
+            "type": "number"
+        }, 
+        "rigidmini": {
+            "default": true, 
+            "description": "Perform initial rigid body minimisation?", 
+            "type": "boolean"
+        }, 
+        "rigidtrans": {
+            "default": true, 
+            "description": "Allow translation in rigid body minimisation?", 
+            "type": "boolean"
+        }, 
+        "rotate180_0": {
+            "default": true, 
+            "description": "Sample 180 degrees rotated solutions during rigid body EM?", 
+            "type": "boolean"
+        }, 
+        "rotate180_1": {
+            "default": false, 
+            "description": "Sample 180 degrees rotated solutions during semi-flexible SA?", 
+            "type": "boolean"
+        }, 
+        "rswi": {
+            "description": "RSWI potential shape", 
+            "properties": {
+                "cool1": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool2": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "hot": {
+                    "default": 0.5, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "runname": {
+            "default": "mdstudio-haddock-run", 
+            "description": "", 
+            "type": "string"
+        }, 
+        "scaling_fin": {
+            "description": "", 
+            "properties": {
+                "cool2": {
+                    "default": 1.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": 1.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "rigid": {
+                    "default": 0.001, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "scaling_init": {
+            "description": "", 
+            "properties": {
+                "cool2": {
+                    "default": 0.001, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "cool3": {
+                    "default": 0.05, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "rigid": {
+                    "default": 0.001, 
+                    "description": "", 
+                    "type": "number"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "skip_struc": {
+            "default": 0, 
+            "description": "It is possible to skip structures in the selection of structure in it0", 
+            "type": "integer"
+        }, 
+        "smoothing": {
+            "default": false, 
+            "description": "Perform smoothed-scoring selection for rigid-body docking solutions?", 
+            "type": "boolean"
+        }, 
+        "solvate_method": {
+            "default": "db", 
+            "description": "which method to use for solvating? db: database-based (recommended), restraints: for restrained solvating to amino-acid most often forming water mediated contacts and blank (''): for uniform waterlayer", 
+            "type": "string",
+            "enum": ["db", "restraints"]
+        }, 
+        "solvent": {
+            "default": "water", 
+            "description": "Which solvent do you want to use?", 
+            "type": "string",
+            "enum": ["water", "dmso"]
+        }, 
+        "ssdihed": {
+            "default": "none", 
+            "description": "Automatically define backbone dihedral angle restraints from structure?", 
+            "type": "string",
+            "enum": ["none", "all", "alpha", "alpha-beta"]
+        }, 
+        "structures_0": {
+            "default": 1000, 
+            "description": "Number of structures for rigid body docking", 
+            "type": "integer"
+        }, 
+        "structures_1": {
+            "default": 50, 
+            "description": "Number of structures for refinement", 
+            "type": "integer"
+        }, 
+        "surfrest": {
+            "default": false, 
+            "description": "Do you want to define surface contact restraints to enforce contact between the molecules? Note that these are only active during it0 and it1", 
+            "type": "boolean"
+        }, 
+        "symmetry": {
+            "description": "Symmetry restraints", 
+            "properties": {
+                "constant": {
+                    "default": 10.0, 
+                    "description": "", 
+                    "type": "number"
+                }, 
+                "on": {
+                    "default": false, 
+                    "description": "", 
+                    "type": "boolean"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "tadfactor": {
+            "default": 8, 
+            "description": "Factor for timestep in TAD", 
+            "type": "integer"
+        }, 
+        "tadfinal1_t": {
+            "default": 500, 
+            "description": "Final temperature after first cooling step", 
+            "type": "integer"
+        }, 
+        "tadfinal2_t": {
+            "default": 50, 
+            "description": "Finale temperature after second cooling step", 
+            "type": "integer"
+        }, 
+        "tadfinal3_t": {
+            "default": 50, 
+            "description": "Finale temperature after third cooling step", 
+            "type": "integer"
+        }, 
+        "tadhigh_t": {
+            "default": 2000, 
+            "description": "Temperature for rigid body high temperature TAD", 
+            "type": "integer"
+        }, 
+        "tadinit1_t": {
+            "default": 2000, 
+            "description": "Initial temperature for rigid body first TAD cooling step", 
+            "type": "integer"
+        }, 
+        "tadinit2_t": {
+            "default": 1000, 
+            "description": "Initial temperature for second TAD cooling step with flexible side-chain at the inferface", 
+            "type": "integer"
+        }, 
+        "tadinit3_t": {
+            "default": 500, 
+            "description": "Initial temperature for third TAD cooling step with fully flexible interface", 
+            "type": "integer"
+        }, 
+        "timestep": {
+            "default": 0.002, 
+            "description": "Time step", 
+            "type": "number"
+        }, 
+        "tot_amb": {
+            "default": 0, 
+            "description": "Define the number of AIR restraints for automated weighting", 
+            "type": "integer"
+        }, 
+        "tot_unamb": {
+            "default": 25, 
+            "description": "Define the number of distance restraints for automated weighting", 
+            "type": "integer"
+        }, 
+        "transwater": {
+            "default": true, 
+            "description": "Allows translation of water molecules during rigid-body docking, true or false:", 
+            "type": "boolean"
+        }, 
+        "unamb": {
+            "description": "Unambiguous distance restraints", 
+            "properties": {
+                "firstit": {
+                    "default": 0, 
+                    "description": "", 
+                    "type": "integer"
+                }, 
+                "lastit": {
+                    "default": 2, 
+                    "description": "", 
+                    "type": "integer"
+                }, 
+                "stages": {
+                    "description": "", 
+                    "properties": {
+                        "cool1": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool2": {
+                            "default": 50.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "cool3": {
+                            "default": 50.0, 
+                            "description": "", 
+                            "type": "number"
+                        }, 
+                        "hot": {
+                            "default": 10.0, 
+                            "description": "", 
+                            "type": "number"
+                        }
+                    }, 
+                    "type": "object"
+                }
+            }, 
+            "type": "object"
+        }, 
+        "unambigtbldata": {
+            "description": "", 
+            "type": "string"
+        }, 
+        "username": {
+            "description": "", 
+            "type": "string"
+        }, 
+        "w_bsa": {
+            "default": [
+                -0.01, 
+                -0.01, 
+                0.0
+            ], 
+            "description": "Scoring function weight for BSA parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_cdih": {
+            "default": [
+                0.0, 
+                0.0, 
+                0.0
+            ], 
+            "description": "Scoring function weight for cdih parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_dani": {
+            "default": [
+                0.01, 
+                0.1, 
+                0.1
+            ], 
+            "description": "Scoring function weight for dani parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_deint": {
+            "default": [
+                0.0, 
+                0.0, 
+                0.0
+            ], 
+            "description": "Scoring function weight for deint parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_desolv": {
+            "default": [
+                1.0, 
+                1.0, 
+                1.0
+            ], 
+            "description": "Scoring function weight for dsolv parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_dist": {
+            "default": [
+                0.01, 
+                0.1, 
+                0.1
+            ], 
+            "description": "Scoring function weight for dist parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_elec": {
+            "default": [
+                1.0, 
+                1.0, 
+                0.2
+            ], 
+            "description": "Scoring function weight for elec parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_rg": {
+            "default": [
+                0.1, 
+                1.0, 
+                1.0
+            ], 
+            "description": "Scoring function weight for rg parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_sani": {
+            "default": [
+                0.1, 
+                0.1, 
+                0.1
+            ], 
+            "description": "Scoring function weight for SANI parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_sym": {
+            "default": [
+                0.1, 
+                0.1, 
+                0.1
+            ], 
+            "description": "Scoring function weight for sym parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_vdw": {
+            "default": [
+                0.01, 
+                1.0, 
+                1.0
+            ], 
+            "description": "Scoring function weight for VdW parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_vean": {
+            "default": [
+                0.1, 
+                0.1, 
+                0.1
+            ], 
+            "description": "Scoring function weight for VEAN parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_xpcs": {
+            "default": [
+                0.1, 
+                0.1, 
+                0.1
+            ], 
+            "description": "Scoring function weight for XPCS parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "w_xrdc": {
+            "default": [
+                0.1, 
+                0.1, 
+                0.1
+            ], 
+            "description": "Scoring function weight for XRDC parameter in it0, it1 and W respectivly", 
+            "type": "array"
+        }, 
+        "water_analysis": {
+            "default": false, 
+            "description": "Do some water analysis", 
+            "type": "boolean"
+        }, 
+        "water_randfrac": {
+            "default": 0.0, 
+            "description": "Random fraction to be added to the fraction of water to keep", 
+            "type": "number"
+        }, 
+        "water_restraint_cutoff": {
+            "default": 5.0, 
+            "description": "Cutoff for restraints solvating method. Upper distance limit for defining distance restraints between water and amino-acids often found to be involved in water-mediated contacts", 
+            "type": "number"
+        }, 
+        "water_restraint_initial": {
+            "default": 5.0, 
+            "description": "Initial cutoff for restraints solvating method all waters further away from a highly occuring water solvated residue will be removed in the generation of the initial solvation shell", 
+            "type": "number"
+        }, 
+        "water_restraint_scale": {
+            "default": 25.0, 
+            "description": "Force constant for restrainted solvating method", 
+            "type": "number"
+        }, 
+        "water_surfcutoff": {
+            "default": 8.0, 
+            "description": "Water-protein surface-cutoff. Waters further away than this cutoff distance from any component of the complex will be removed", 
+            "type": "number"
+        }, 
+        "water_tokeep": {
+            "default": 0.25, 
+            "description": "Fraction of water to keep. This is the fraction of all interface water after the initial rigid body docking that will be kept (note that more waters might be removed if the interaction energy is unfavorable", 
+            "type": "number"
+        }, 
+        "watercoolsteps": {
+            "default": 500, 
+            "description": "number of steps for cooling phase (300, 200, 100K)?", 
+            "type": "integer"
+        }, 
+        "waterdock": {
+            "default": false, 
+            "description": "Perform solvated docking?", 
+            "type": "boolean"
+        }, 
+        "waterensemble": {
+            "default": 1, 
+            "description": "Number of different initial solvation shells to generate", 
+            "type": "integer"
+        }, 
+        "waterheatsteps": {
+            "default": 100, 
+            "description": "Number of steps for heating phase (100, 200, 300K)?", 
+            "type": "integer"
+        }, 
+        "waterrefine": {
+            "default": 50, 
+            "description": "Number of structures for the explicit solvent refinement", 
+            "type": "integer"
+        }, 
+        "watersteps": {
+            "default": 1250, 
+            "description": "Number of steps for 300K sampling phase?", 
+            "type": "integer"
+        }
+    }, 
+    "type": "object"
+}

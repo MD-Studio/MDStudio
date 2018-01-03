@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "UploadEndpointSchema",
+  "type": "object",
+  "properties": {
+    "schemas": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "group": {
+            "type": "string",
+            "pattern": "^[a-z_]$"
+          },
+          "component": {
+            "type": "string",
+            "pattern": "^[a-z_]$"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_\\-\\./]+$"
+          },
+          "schema": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
