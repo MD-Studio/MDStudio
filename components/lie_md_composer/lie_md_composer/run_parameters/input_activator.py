@@ -1,5 +1,3 @@
-
-
 class MDStudioActivator(object):
     
     def __init__( self, definition ):

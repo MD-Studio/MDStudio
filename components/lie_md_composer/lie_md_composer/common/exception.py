@@ -24,7 +24,7 @@
 # @endcond
 #
 
-class LieMdException(Exception):
+class MdException(Exception):
     
     def __init__(self, location, message):
 

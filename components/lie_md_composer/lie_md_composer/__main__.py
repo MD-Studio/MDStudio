@@ -7,7 +7,7 @@ from gromacs.mdp_generator import GenerateMdp
 
 def main():
 
-    with open("/app/components/lie_md-0.1/lie_md/template/mdstudio_revA.mdtp") as ifs:
+    with open("/app/components/lie_md-0.1/lie_md/template/mdstudio_1.0.mdtp") as ifs:
         
         run_input = RunInput( ifs )
         run_file = run_input.Compose(["run_properties", "center_of_mass", "minimization"])
