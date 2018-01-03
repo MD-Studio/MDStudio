@@ -6,15 +6,13 @@
         {
             "type": "string",
             "properties": {
-                "integrator": { 
-                    "type": "string",
-                    "enum" : [ "leap-frog", "velocity-verlet", "stochastic-dynamics" ]
-                }
+                "integrator" : { "type": "string", "enum" : [ "leap-frog", "velocity-verlet", "stochastic-dynamics" ] },
+                "start_time" : { "type": "number",  "minimum" : 0.0 },
+                "time_step"  : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "steps"      : { "type": "integer", "minimum" : 0,   "exclusiveMinimum" : true }
+
             },
-            "required":[
-                "greeting",
-                "sendTime"
-            ]
+            "required":[ "integrator", "start_time", "time_step", "steps" ]
         },
         "minimize_control" : 
         {
