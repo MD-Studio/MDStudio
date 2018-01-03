@@ -24,7 +24,7 @@ services:
             - mongo
             - redis
         ports:
-            - 8080:8080
+            - 8081:8081
         volumes:
             - .:/app
             - crossbar_pipcache:/root/.cache
