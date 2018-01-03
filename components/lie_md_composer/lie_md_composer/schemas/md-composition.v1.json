@@ -4,29 +4,29 @@
     "definitions" :{
         "run_control" : 
         {
-            "type": "string",
+            "type": "object",
             "properties": {
                 "integrator" : { "type": "string", "enum" : [ "leap-frog", "velocity-verlet", "stochastic-dynamics" ] },
-                "start_time" : { "type": "number",  "minimum" : 0.0 },
-                "time_step"  : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "startTime"  : { "type": "number",  "minimum" : 0.0 },
+                "timeStep"   : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
                 "steps"      : { "type": "integer", "minimum" : 0,   "exclusiveMinimum" : true }
 
             },
-            "required":[ "integrator", "start_time", "time_step", "steps" ]
+            "required":[ "integrator", "start_time", "time_step", "steps" ],
+            "additionalProperties": false
         },
         "minimize_control" : 
         {
-            "type": "string",
+            "type": "object",
             "properties": {
-                "integrator": { 
-                    "type": "string",
-                    "enum" : [ "steepest-descent", "conjugate-gradient" ]
-                }
+                "integrator" : { "type": "string", "enum" : [ "steepest-descent", "conjugate-gradient" ] },
+                "timeStep"   : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
             },
             "required":[
                 "greeting",
                 "sendTime"
-            ]
+            ],
+            "additionalProperties": false
         }
     },
     
