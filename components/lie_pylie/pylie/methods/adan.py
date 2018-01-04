@@ -84,7 +84,7 @@ def ad_residue_decomp(decomp_df_list, pca_vdw, pca_ele, cases=None):
     # Create DataFrame to hold results
     if not cases:
         cases = range(1, len(decomp_df_list) + 1)
-    assert len(cases) == len(decomp_df_list), AssertionError('Number of cases doe snot match number of data sets')
+    assert len(cases) == len(decomp_df_list), AssertionError('Number of cases does not match number of data sets')
 
     results = pandas.DataFrame({'cases': cases})
 
