@@ -19,7 +19,9 @@ GROMIT_ARG_DICT = {
     'ptau': '-ptau',
     'sim_time': '-time',
     'gromacs_vsite': '-vsite',
-    'gmxrc': '-gmxrc'}
+    'gmxrc': '-gmxrc',
+    'gromacs_rtc': '-rtc',
+    'gromacs_ndlp': '-ndlp'}
 
 
 def gromit_cmd(options):
@@ -27,9 +29,11 @@ def gromit_cmd(options):
     gmxRun = './gmx45md.sh '
     for arg, val in options.items():
         if arg in GROMIT_ARG_DICT:
-            if val:
+            if val == True:
                 gmxRun += '{0} '.format(GROMIT_ARG_DICT[arg])
-            else:
+            elif val:
                 gmxRun += '{0} {1} '.format(GROMIT_ARG_DICT[arg], val)
+            else:
+                pass
 
     return gmxRun
