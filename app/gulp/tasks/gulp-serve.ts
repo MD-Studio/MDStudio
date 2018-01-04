@@ -11,7 +11,8 @@ function init(){
         server : {
             baseDir : './dist',
             routes: {
-                "/node_modules": "node_modules"
+                "/node_modules": "node_modules",
+                "/bower_components": "bower_components"
             }
         },
         port: 5000

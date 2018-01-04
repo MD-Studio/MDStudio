@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "GetRequest",
+  "type": "object",
+  "properties": {
+    "result": {}
+  },
+  "additionalProperties": false
+}

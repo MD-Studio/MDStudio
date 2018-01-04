@@ -1,0 +1,42 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    
+    "definitions" :{
+        "run_control" : 
+        {
+            "type": "object",
+            "properties": {
+                "integrator" : { "type": "string", "enum" : [ "leap-frog", "velocity-verlet", "stochastic-dynamics" ] },
+                "startTime"  : { "type": "number",  "minimum" : 0.0 },
+                "timeStep"   : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "steps"      : { "type": "integer", "minimum" : 0,   "exclusiveMinimum" : true }
+
+            },
+            "required":[ "integrator", "start_time", "time_step", "steps" ],
+            "additionalProperties": false
+        },
+        "minimize_control" : 
+        {
+            "type": "object",
+            "properties": {
+                "integrator" : { "type": "string",  "enum" : [ "steepest-descent", "conjugate-gradient" ] },
+                "tolerance"  : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "stepSize"   : { "type": "number",  "minimum" : 0.0, "exclusiveMinimum" : true },
+                "steps"      : { "type": "integer", "minimum" : 0,   "exclusiveMinimum" : true }
+            },
+            "required":[ "integrator", "tolerance", "stepSize", "steps" ],
+            "additionalProperties": false
+        }
+    },
+    
+    "type": "object",
+    "description": "The proper format of a md compose message",
+    "properties": {
+
+    },
+    "required":[
+        "greeting",
+        "sendTime"
+    ],
+    "additionalProperties": false
+}

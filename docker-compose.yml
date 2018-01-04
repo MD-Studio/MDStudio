@@ -1,50 +1,95 @@
 version: '2'
 services:
 
-
-    applications:
-        image: tianon/true
-        volumes:
-            - .:/app
-            # cache directories for faster building times
-            #- /app/app/node_modules
-            - /root/.local/share/virtualenvs
-            - /root/.cache/pip
-            - /root/.npm
-
-
     workspace:
         build:
-            context: .
-            dockerfile: docker/Dockerfile
-            args:
-                - INSTALL_WORKSPACE_SSH=true
-        volumes_from:
-            - applications
+            context: ./docker/workspace
         links:
             - mongo
+            - redis
         ports:
-            # use non standard ssh port
-            - "65432:22"
-            # show on normal http port
-            - "80:8080"
-            # needed for support on development
-            - "8080:8080"
-            # gulp serve
-            - "5000:5000"
-            - "3001:3001"
-            # sphinx autobuild
-            - "8000:8000"
-        tty: true
+            - 8080:8080
+        volumes:
+            - .:/app
+            - workspace_pipcache:/root/.cache
+            - workspace_pipenv:/root/.local/share/virtualenvs
+            - .docker.env:/app/.env
+        env_file:
+            - .docker.env
+
+    crossbar:
+        build:
+            context: ./docker/crossbar
+        links:
+            - mongo
+            - redis
+        ports:
+            - 8081:8081
+        volumes:
+            - .:/app
+            - crossbar_pipcache:/root/.cache
+            - crossbar_pipenv:/root/.local/share/virtualenvs
+            - .docker.env:/app/.env
+        env_file:
+            - .docker.env
+
+    echo:
+        extends:
+            file: docker-compose-common.yml
+            service: base-py3
+        volumes:
+            # mount component
+            - ./components/lie_echo:/app/components/lie_echo
+        environment:
+            - COMPONENT=lie_echo
+        links:
+            - crossbar
 
     mongo:
         image: mongo:latest
-        command: mongod  --noauth
         ports:
             - "27017:27017"
         volumes:
             - mongo:/data/db
+        command: mongod  --noauth --bind_ip_all
+
+
+    redis:
+        image: grokzen/redis-cluster
+        ports:
+            - "7000:7000"
+            - "7001:7001"
+        volumes:
+            - redis:/data/db
+
+
+    redis-local:
+        build:
+            context: docker/docker-redis-cluster
+            args:
+                redis_version: '3.2.9'
+        ports:
+            - "7010:7010"
+            - "7011:7011"
+        volumes:
+            - redis:/data/db
 
 volumes:
     mongo:
+        driver: "local"
+    redis:
+        driver: "local"
+    workspace_pipcache:
+        driver: "local"
+    workspace_pipenv:
+        driver: "local"
+    crossbar_pipcache:
+        driver: "local"
+    crossbar_pipcache:
+        driver: "local"
+    crossbar_pipenv:
+        driver: "local"
+    cli_pipcache:
+        driver: "local"
+    cli_pip:
         driver: "local"

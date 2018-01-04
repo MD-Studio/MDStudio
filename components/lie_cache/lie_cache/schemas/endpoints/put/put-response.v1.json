@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "PutResponse",
+  "type": "object",
+  "properties": {
+    "succes": {
+      "type": "boolean"
+    }
+  }
+}

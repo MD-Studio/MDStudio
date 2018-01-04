@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "DeleteManyRequest",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
+    },
+    "filter": {
+      "$ref": "resource://mdstudio/db/filter/v1"
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    }
+  },
+  "required": [
+    "collection",
+    "filter"
+  ],
+  "additionalProperties": false
+}

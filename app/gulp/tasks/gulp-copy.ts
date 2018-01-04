@@ -5,7 +5,11 @@ import * as gulp from 'gulp';
  */
 function copyDist() {
 
-    return gulp.src(['**/*', '!**/*.ts', '!**/*.scss'], {cwd: 'src'})
+    return gulp.src([
+            '**/*',
+            '!**/*.ts',
+            '!**/*.scss'
+        ], {cwd: 'src'})
         .pipe(gulp.dest('dist/'));
 }
 

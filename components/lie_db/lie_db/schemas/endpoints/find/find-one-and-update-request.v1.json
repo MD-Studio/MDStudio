@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "FindOneAndUpdateRequest",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
+    },
+    "filter": {
+      "$ref": "resource://mdstudio/db/filter/v1"
+    },
+    "update": {
+      "$ref": "resource://mdstudio/db/document/v1"
+    },
+    "projection": {
+      "$ref": "resource://mdstudio/db/projection/v1"
+    },
+    "returnUpdated": {
+      "type": "boolean",
+      "default": false
+    },
+    "upsert": {
+      "type": "boolean",
+      "default": false
+    },
+    "sort": {
+      "$ref": "resource://mdstudio/db/sort/v1"
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    }
+  },
+  "required": [
+    "collection",
+    "filter",
+    "update"
+  ],
+  "additionalProperties": false
+}
