@@ -1,3 +1,5 @@
+import os
+
 def get_docking_medians(session=None, **kwargs):
 
     medians = [v.get('path') for v in kwargs.get('output', {}).values() if v.get('mean', True)]
@@ -41,3 +43,18 @@ def choose_atb_amber(session=None, **kwargs):
         return {'session': session, 'choice': kwargs.get('pos')}
     else:
         return {'session': session, 'choice': kwargs.get('neg')}
+
+
+def collect_md_enefiles(session=None, **kwargs):
+
+    session['status'] = 'completed'
+
+    # Mock MD output
+    output = {'session': session}
+    output['unbound_trajectory'] = os.path.join(kwargs['model_dir'], 'BHC2-0-0.ene')
+    output['bound_trajectory'] = [os.path.join(kwargs['model_dir'],
+                                    'BHC2-1-{0}.ene'.format(nr+1)) for nr in range(len(kwargs['bound']))]
+    output['decomp_files'] = [os.path.join(kwargs['model_dir'],
+                                           'BHC2-1-{0}.decomp'.format(nr + 1)) for nr in range(len(kwargs['bound']))]
+
+    return output
