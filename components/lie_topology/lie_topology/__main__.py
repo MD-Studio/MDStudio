@@ -28,6 +28,13 @@ def WriteSimJson( forcefield, coordinates ):
 
 def main():
 
+    topology = None
+    coordinates = None
+
+    with open( "../tests/data/cnf/M01.g96", 'r') as cnf_ifs:
+
+        structures = ParseCnf( cnf_ifs )
+
     with open( "../tests/data/md_top/54a7.aatop", 'r') as mdaa_ifs,\
          open( "../tests/data/md_top/54a7.mdtop", 'r') as mdtop_ifs:
 
@@ -36,9 +43,8 @@ def main():
 
         phys_const = PhysicalConstants()
 
-        #topology = MakeSequence( forcefield, blueprint, ["NH3+_ALA", "CYS1", "ALA", "CYS2", "ALA_COO-"], [[1,3]] )
         topology = MakeSequence( forcefield, blueprint, [
-                  "THR","ILE","LYSH","GLU","MET","PRO","GLN","PRO","LYSH","THR",
+                  "NH3+_THR","ILE","LYSH","GLU","MET","PRO","GLN","PRO","LYSH","THR",
                   "PHE","GLY","GLU","LEU","LYSH","ASN","LEU","PRO","LEU","LEU",
                   "ASN","THR","ASP","LYSH","PRO","VAL","GLN","ALA","LEU","MET",
                   "LYSH","ILE","ALA","ASP","GLU","LEU","GLY","GLU","ILE","PHE",
@@ -83,10 +89,16 @@ def main():
                   "ASP","PHE","GLU","ASP","HISB","THR","ASN","TYR","GLU","LEU",
                   "ASP","ILE","LYSH","GLU","THR","LEU","THR","LEU","LYSH","PRO",
                   "GLU","GLY","PHE","VAL","VAL","LYSH","ALA","LYSH","SER","LYSH",
-                  "LYSH","ILE","PRO","LEU" ], [] )
+                  "LYSH","ILE","PRO","LEU_COO-" ], [] )
 
-        with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
-            WriteGromosTopology( top_ofstream, topology, forcefield, phys_const )
+        #with open( "../tests/data/gtop/gen_poly_ala.gtop", 'w') as top_ofstream:
+        #    WriteGromosTopology( top_ofstream, topology, forcefield, phys_const )
+
+
+    json_top = {}
+
+    
+
 
 if __name__ == '__main__':
 
