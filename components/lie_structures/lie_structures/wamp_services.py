@@ -46,29 +46,6 @@ class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, Chemi
         session.status = 'completed'
         return {'session': session.dict(), 'toolkits': toolkits.keys()}
 
-    @wamp.register(u'liestudio.structures.get_structure')
-    def get_structure(self, structure=None, session=None):
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session)
-
-        result = ''
-        tmpdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/tmp'
-        structure_file = os.path.join(tmpdir, structure)
-        if os.path.exists(structure_file):
-            with open(structure_file, 'r') as sf:
-                result = sf.read()
-        else:
-            self.log.error("No such file {0}".format(structure_file))
-
-        self.log.info(
-            "Return structure: {structure}",
-            structure=structure, **self.session_config.dict())
-
-        # Pack result in session
-        session.status = 'completed'
-        return {'session': session.dict(), 'structure': result}
-
     @wamp.register(u'liestudio.structure.remove_residues')
     def remove_residues(self, session=None, **kwargs):
         """
