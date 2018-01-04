@@ -7,6 +7,7 @@ import threading
 import json
 
 from twisted.logger import Logger
+from autobahn.wamp.exception import ApplicationError
 from lie_system import WAMPTaskMetaData
 
 from .workflow_common import WorkflowError, load_task_function, concat_dict, ManageWorkingDirectory
@@ -258,6 +259,8 @@ class WorkflowRunner(_WorkflowQueryMethods):
         failure_message = ""
         if isinstance(failure, Exception) or isinstance(failure, str):
             failure_message = str(failure)
+        elif isinstance(failure.value, ApplicationError):
+            failure_message = failure.value.error_message()
         else:
             failure.getErrorMessage()
 
@@ -302,7 +305,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             task.status = 'failed'
 
         # Update the task output data only if not already 'completed'
-        if task.status != 'completed':
+        if task.status not in ('completed', 'failed'):
             if 'output_data' not in self.workflow.nodes[tid]:
                 self.workflow.nodes[tid]['output_data'] = {}
             self.workflow.nodes[tid]['output_data'].update(output)
@@ -336,7 +339,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
                     ntask.nodes[ntask.nid]['input_data'].update(output)
                     next_task_nids.append(ntask.nid)
 
-                #TODO: all tasks should provide output but the start task does not. Fix
+                # TODO: all tasks should provide output but the start task does not. Fix
                 elif task.task_type == 'Start':
                     next_task_nids.append(ntask.nid)
 
