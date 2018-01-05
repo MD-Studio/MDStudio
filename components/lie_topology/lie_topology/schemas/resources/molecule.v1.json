@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    
+    "definitions" :{
+        "atom" : {
+            "type": "object",
+            "description": "The proper format of an atom",
+            "additionalProperties": false,
+            "properties": {
+                "UID" : {
+                    "type": "string",
+                    "description": "unique identifier"
+                },
+                
+            },
+            "required":[
+            ]
+        }
+
+    },
+
+    "type": "object",
+    "description": "The proper format of a molecule",
+    "properties": {
+        
+    },
+    "required":[
+    ],
+    "additionalProperties": false
+}
