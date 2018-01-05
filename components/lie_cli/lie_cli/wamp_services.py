@@ -9,6 +9,7 @@ WAMP service methods the module exposes.
 import sys
 import logging
 
+from autobahn.wamp.exception import ApplicationError
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet import reactor
 
@@ -47,8 +48,10 @@ class CliWampApi(LieApplicationSession):
         failure_message = ""
         if isinstance(failure, Exception) or isinstance(failure, str):
             failure_message = str(failure)
+        elif isinstance(failure.value, ApplicationError):
+            failure_message = failure.value.error_message()
         else:
-            failure_message = failure.getErrorMessage()
+            failure.getErrorMessage()
 
         self.log.error('Unable to process: {0}'.format(failure_message))
 
