@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema",
     
     "definitions" :{
-        "run_control" : 
+        "runControl" : 
         {
             "type": "object",
             "properties": {
@@ -15,7 +15,7 @@
             "required":[ "integrator", "start_time", "time_step", "steps" ],
             "additionalProperties": false
         },
-        "minimize_control" : 
+        "minimizeControl" : 
         {
             "type": "object",
             "properties": {
@@ -26,7 +26,35 @@
             },
             "required":[ "integrator", "tolerance", "stepSize", "steps" ],
             "additionalProperties": false
+        },
+        "centerOfMass" :
+        {
+            "type": "object",
+            "properties": {
+                "mode"       : { "type": "string",  "enum" : [ "linear", "angular", "none" ] },
+                "frequency"  : { "type": "integer", "minimum" : 0 }
+            },
+            "required":[ "mode", "frequency" ],
+            "additionalProperties": false
+        },
+        "output" :
+        {
+            "type": "object",
+            "properties": {
+                "positionFrequency" : { "type": "integer", "minimum" : 0 },
+                "velocityFrequency" : { "type": "integer", "minimum" : 0 },
+                "energyFrequency"   : { "type": "integer", "minimum" : 0 },
+                "forceFrequency"    : { "type": "integer", "minimum" : 0 },
+                "logFrequency"      : { "type": "integer", "minimum" : 0 },
+                "atomIndices"       : { "type": "array", 
+                                        "items" : { "type": "integer", "minimum" : 0 }, 
+                                        "additionalItems" : false, 
+                                        "minItems" : 1 }
+            },
+            "required":[ "mode", "frequency" ],
+            "additionalProperties": false
         }
+
     },
     
     "type": "object",
