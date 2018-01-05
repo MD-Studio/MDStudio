@@ -1,6 +1,7 @@
-
+"""
 import json
 import yaml
+
 
 from lie_topology.molecule.molecule import Molecule
 from lie_topology.molecule.blueprint import Blueprint
@@ -96,8 +97,24 @@ def main():
 
 
     json_top = {}
+"""
 
+#pipenv install --skip-lock --sequential
+
+import json
+import jsonschema
+
+def main():
     
+    # test atom schema
+    with open("lie_topology/schemas/resources/atom.v1.json", 'r') as ifs:
+
+        schema = json.load(ifs)
+
+        test_atom = { "UID" : "a1", "name" : "CA"}
+        print( test_atom )
+
+        jsonschema.validate( test_atom, schema)
 
 
 if __name__ == '__main__':

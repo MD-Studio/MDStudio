@@ -1,0 +1,93 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of molecular fragment",
+    "properties": {
+        "UID": {
+            "type": "string",
+            "description": "unique identifier"
+        },
+        "name": {
+            "type": "string",
+            "description": "fragment name",
+            "minLength": 1,
+            "maxLength": 4
+        },
+        "reference": {
+            "type": "integer",
+            "description": "reference number often used in structure formats"
+        },
+        "atoms": {
+            "type": "array",
+            "description": "list of atoms associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/TODO"
+                }
+            ],
+            "additionalItems": false
+        },
+        "bonds": {
+            "type": "array",
+            "description": "list of bonds associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/TODO"
+                }
+            ],
+            "additionalItems": false
+        },
+        "angles": {
+            "type": "array",
+            "description": "list of angles associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/TODO"
+                }
+            ],
+            "additionalItems": false
+        },
+        "dihedrals": {
+            "type": "array",
+            "description": "list of dihedrals associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/TODO"
+                }
+            ],
+            "additionalItems": false
+        },
+        "impropers": {
+            "type": "array",
+            "description": "list of impropers associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/TODO"
+                }
+            ],
+            "additionalItems": false
+        },
+        "exclusions": {
+            "type": "array",
+            "description": "list of exclusions associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/TODO"
+                }
+            ],
+            "additionalItems": false
+        }
+    },
+    "required": [
+        "UID",
+        "name",
+        "atoms"
+    ],
+    "additionalProperties": false
+}
