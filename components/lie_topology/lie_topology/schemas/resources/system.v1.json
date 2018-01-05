@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of a sytems",
+    "properties": {
+        "molecules": {
+            "type": "array",
+            "description": "list of molecules",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/TODO"
+                }
+            ],
+            "additionalItems": false
+        },
+        "lattice": {
+            "type": "array",
+            "description": "lattice vectors",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": [
+                {
+                    "type": "array",
+                    "description": "vector",
+                    "items" :[ { "type": "number" } ],
+                    "maxItems": 3,
+                    "minItems": 3
+                }
+            ],
+            "additionalItems": false
+        }
+    },
+    "required": [
+        "molecules"
+    ],
+    "additionalProperties": false
+}

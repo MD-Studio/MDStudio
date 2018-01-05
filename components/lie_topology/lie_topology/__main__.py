@@ -104,6 +104,7 @@ def main():
 import json
 import jsonschema
 
+
 def main():
     
     # test atom schema
@@ -111,11 +112,12 @@ def main():
 
         schema = json.load(ifs)
 
-        test_atom = { "UID" : "a1", "name" : "CA"}
+        test_atom = { "uid" : "a1", "name" : "CA", "position" : [1.0, 2.0, 3.0] }
         print( test_atom )
 
         jsonschema.validate( test_atom, schema)
 
+        
 
 if __name__ == '__main__':
 

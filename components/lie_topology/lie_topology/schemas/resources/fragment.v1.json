@@ -3,7 +3,7 @@
     "type": "object",
     "description": "The proper format of molecular fragment",
     "properties": {
-        "UID": {
+        "uid": {
             "type": "string",
             "description": "unique identifier"
         },
@@ -85,7 +85,7 @@
         }
     },
     "required": [
-        "UID",
+        "uid",
         "name",
         "atoms"
     ],
