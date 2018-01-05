@@ -12,6 +12,13 @@ USAGE= """
 MDStudio command line interface.
 
 Call a method exposed by a MDStudio microservice using it's public URI
+
+Authentication:
+User name and password are retrieved from the shell MDSTUDIO_USER and
+MDSTUDIO_PW environmental variables by default or provided using the
+'authid' and 'password' command line arguments respectivly. 
+
+Default authentication method ('authmethod') is set to 'ticket'.
 """
 
 
@@ -35,6 +42,23 @@ if sys.version[0] == '2':
     _commandline_arg = _commandline_arg_py2
 else:
     _commandline_arg = _commandline_arg_py3
+
+
+def _abspath(path):
+    """
+    Check file and resolve absolute path
+
+    :param path: relative path
+    :type path:  :py:str
+
+    :return:     absolute path
+    :rtype:      :py:str
+    """
+
+    if os.path.isfile(path):
+        return os.path.abspath(path)
+
+    return None
 
 
 def _parse_variable_arguments(args, prefix='-'):
@@ -113,8 +137,10 @@ def lie_cli_parser():
     # Check if there are file path among the variables and convert to absolute paths
     for k, v in options['package_config'].items():
         try:
-            if os.path.isfile(v):
-                options['package_config'][k] = os.path.abspath(v)
+            if isinstance(v, list):
+                options['package_config'][k] = [_abspath(n) for n in v if n]
+            else:
+                options['package_config'][k] = _abspath(v)
         except:
             pass
 
