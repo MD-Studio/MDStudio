@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of molecular fragment",
+    "properties": {
+        "atomReferences": {
+            "type": "array",
+            "description": "array of 2 atom references",
+            "minItems" : 2,
+            "maxItems" : 2,
+            "uniqueItems": true,
+            "items": {
+                "$ref": "resource://mdstudio/topology/atomReference/v1"
+            },
+            "additionalItems": false
+        },
+        "bondType": {
+            "$ref": "resource://mdstudio/topology/bondType/v1"
+        }
+    },
+    "required": [
+        "atomReferences"
+    ],
+    "additionalProperties": false
+}

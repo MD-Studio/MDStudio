@@ -113,11 +113,17 @@ def main():
         schema = json.load(ifs)
 
         test_atom = { "uid" : "a1", "name" : "CA", "position" : [1.0, 2.0, 3.0] }
-        print( test_atom )
 
         jsonschema.validate( test_atom, schema)
 
-        
+    with open("lie_topology/schemas/resources/bond.v1.json", 'r') as ifs:
+
+        schema = json.load(ifs)
+
+        test_bond = { "atomReferences": [{"molecule":"M1", "fragment": "F1", "atom":"A1"},
+                                         {"molecule":"M1", "fragment": "F1", "atom":"A2"}] }
+
+        jsonschema.validate( test_bond, schema)   
 
 if __name__ == '__main__':
 

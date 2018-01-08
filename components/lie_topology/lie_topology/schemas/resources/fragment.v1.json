@@ -23,7 +23,7 @@
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "#/definitions/TODO"
+                    "$ref": "resource://mdstudio/topology/fragment/v1"
                 }
             ],
             "additionalItems": false

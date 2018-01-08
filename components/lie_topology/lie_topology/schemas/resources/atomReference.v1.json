@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of an atom reference",
+    "properties": {
+        "molecule": {
+            "type": "string",
+            "description": "molecule unique identifier"
+        },
+        "fragment": {
+            "type": "string",
+            "description": "fragment unique identifier"
+        },
+        "atom": {
+            "type": "string",
+            "description": "atom unique identifier"
+        }
+    },
+    "required": [
+        "molecule",
+        "fragment",
+        "atom"
+    ],
+    "additionalProperties": false
+}

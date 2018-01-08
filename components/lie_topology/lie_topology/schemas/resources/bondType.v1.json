@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of molecular fragment",
+    "properties": {
+        "uid": {
+            "type": "string",
+            "description": "unique identifier"
+        },
+        "quarticForceConstant": {
+            "type": "number",
+            "description": "quartic force constant for quartic bonds"
+        },
+        "harmonicForceConstant": {
+            "type": "number",
+            "description": "harmonic force constant for harmonic bonds"
+        },
+        "bondLength": {
+            "type": "number",
+            "description": "optimal length of a bond"
+        }
+    },
+    "required": [
+        "uid",
+        "quarticForceConstant",
+        "harmonicForceConstant",
+        "bondLength"
+    ],
+    "additionalProperties": false
+}
