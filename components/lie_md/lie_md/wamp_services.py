@@ -82,6 +82,8 @@ class MDWampApi(LieApplicationSession):
             'protein_pdb': protein_pdb, 'protein_top': protein_top,
             'ligand_pdb': ligand_pdb, 'ligand_top': ligand_top,
             'include': include, 'residues': residues}
+        input_dict.update(**kwargs)
+
         gromacs_config = set_gromacs_input(
             self.package_config.dict(), workdir, input_dict)
 

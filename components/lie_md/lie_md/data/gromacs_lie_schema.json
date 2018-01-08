@@ -107,5 +107,6 @@
             "description": "Path to GROMACS GMXRC file"
         }
     },
-    "required": ["protein_file", "ligand_file", "topology_file"]
+    "required": [
+	"protein_pdb", "ligand_pdb", "protein_top", "ligand_top"]
 }

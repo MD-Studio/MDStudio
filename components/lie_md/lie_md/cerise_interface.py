@@ -361,8 +361,7 @@ def get_output(job, config):
     }
 
     if job.state == 'Success':
-        success = ['trajectory', 'energy', 'energy_dataframe',
-                   'decompose_dataframe']
+        success = ['energy', 'energy_dataframe', 'decompose_dataframe']
         return save_data(success)
     else:
         failure = ['gromitout', 'gromiterr', 'energyout', 'energyerr',
