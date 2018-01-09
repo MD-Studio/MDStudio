@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "description": "This is how you should say hello to the Topology component",
+    "properties": {
+        "format": {
+            "type": "string",
+            "description": "Format of the structure file",
+            "enum": [
+                "pdb",
+                "gro",
+                "mol2",
+                "sdf"
+            ]
+        },
+        "data": {
+            "type": "string",
+            "description": "Payload of the format"
+        }
+    },
+    "required": [
+        "format",
+        "data"
+    ],
+    "additionalProperties": false
+}

@@ -97,7 +97,7 @@ def main():
 
 
     json_top = {}
-"""
+
 
 #pipenv install --skip-lock --sequential
 
@@ -124,7 +124,10 @@ def main():
                                          {"molecule":"M1", "fragment": "F1", "atom":"A2"}] }
 
         jsonschema.validate( test_bond, schema)   
+"""
+
+from mdstudio.runner import main
+from lie_topology.application import TopologyComponent
 
 if __name__ == '__main__':
-
-    main()
+    main(TopologyComponent)

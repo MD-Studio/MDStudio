@@ -1,0 +1,11 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "description": "This is how the Topology component responds to your greeting",
+    "properties": {
+        "system": {
+            "$ref": "resource://mdgroup/topology/system/v1"
+        }
+    },
+    "required": ["system"],
+    "additionalProperties": false
+}

@@ -26,23 +26,18 @@ distribution_name = 'lie_topology'
 
 setup(
     name=distribution_name,
-    version=0.1,
+    version='1.0.0',
+    license='Apache Software License 2.0',
     description='LIEStudio component wrapping topology parsers and writers',
     author='Koen M. Visscher, VU University, Amsterdam, The Netherlands',
     author_email='k.m.visscher@vu.nl',
-    url='https://github.com/NLeSC/LIEStudio',
-    license='Apache Software License 2.0',
+    url='https://github.com/MD-Studio/MDStudio',
     keywords='LIEStudio topology molecular force fields',
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
     include_package_data=True,
     zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_topology.wamp_services:make'
-        ],
-    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
