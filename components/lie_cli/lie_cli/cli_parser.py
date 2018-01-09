@@ -58,7 +58,7 @@ def _abspath(path):
     if os.path.isfile(path):
         return os.path.abspath(path)
 
-    return None
+    return path
 
 
 def _parse_variable_arguments(args, prefix='-'):
