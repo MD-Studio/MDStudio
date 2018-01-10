@@ -9,6 +9,7 @@ settings:
         owner: mdadmin
         components:
           - echo
+          - topology
     clients:
       - username: mdadmin
         clientId: Ek@la7\xOhex;5;I$)G'+W<}DL|8h<
