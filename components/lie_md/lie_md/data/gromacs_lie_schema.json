@@ -25,7 +25,7 @@
         "forcefield": {
             "type": "string",
             "description": "Forcefield definition to use",
-            "default": "amber99SB"
+            "default": "amber99sb"
         },
         "gromacs_lie": {
             "type": "boolean",

@@ -68,6 +68,10 @@ def call_cerise_gromit(
     elif srv_data['job_state'] == 'Running':
         restart_srv_job(srv_data)
 
+    else:
+        msg = "job is already done!"
+        logger.info(msg)
+
     # Simulation information including cerise data
     sim_dict = extract_simulation_info(
         srv_data, cerise_config, cerise_db)
@@ -221,12 +225,12 @@ def create_lie_job(srv, gromacs_config, cerise_config):
     job = srv.create_job(job_name)
 
     # Copy gromacs input files
-    job = add_input_lie(job, gromacs_config)
+    job = add_input_files_lie(job, gromacs_config)
 
-    return set_input_lie(job, gromacs_config)
+    return set_input_parameters_lie(job, gromacs_config)
 
 
-def add_input_lie(job, gromacs_config):
+def add_input_files_lie(job, gromacs_config):
     """
     Tell to Cerise which files to copy.
     """
@@ -246,13 +250,20 @@ def add_input_lie(job, gromacs_config):
     return job
 
 
-def set_input_lie(job, gromacs_config):
+def set_input_parameters_lie(job, gromacs_config):
     """
-    Set input variables: force_field, simulation time
+    Set input variables for gromit
     and residues to compute the lie energy.
     """
-    job.set_input('force_field', gromacs_config['forcefield'])
-    job.set_input('sim_time', gromacs_config['sim_time'])
+    # Key to run the MD simulation
+    md_keys = [x.split('.')[1] for x in gromacs_config.keys()
+               if 'lie_md' in x]
+
+    # Pass parameters to cerise job
+    for k in md_keys:
+        job.set_input(k, gromacs_config[k])
+
+    # Finally set residues
     residues = gromacs_config['residues']
     job.set_input('residues', np.array2string(
         np.array(residues), separator=',')[1:-1])
