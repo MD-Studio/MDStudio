@@ -1,23 +1,52 @@
 cwlVersion: v1.0
 class: Workflow
 inputs:
-  protein_pdb: File
-  protein_top: File
-  ligand_pdb: File
-  ligand_top: File
-  electrostatics: string
-  forcefield: string
-  periodic_distance: double
-  pressure: double
-  prfc: string
-  pta: double
-  residues: string
-  resolution: double
-  salinity: double
-  sim_time: double
-  solvent: string
-  temperature: string
-  tta: double
+  protein_pdb:
+    type: File
+  protein_top:
+    type: File
+  ligand_pdb:
+    type: File
+  ligand_top:
+    type: File
+  electrostatics:
+    type: string
+    default: "PME"
+  forcefield:
+    type: string
+    default: "amber99sb"    
+  periodic_distance:
+    type: double
+    default: 1.8
+  pressure:
+    type: double
+    default: 1.01325
+  prfc:
+    type: string
+    default: "10000,5000,50,0"
+  ptau:
+    type: double
+    default: 0.5
+  residues:
+    type: string
+  resolution:
+    type: double
+    default: 0.002
+  salinity:
+    type: double
+    default: 0.1539976
+  sim_time:
+    type: double
+    default: 1
+  solvent:
+    type: string
+    default: "tip3p"
+  temperature:
+    type: string
+    default: "100,200,300"
+  ttau:
+    type: double
+    default: "100,200,300"
 
 outputs:
   gromitout:
@@ -79,17 +108,13 @@ steps:
       periodic_distance: periodic_distance
       pressure: pressure
       prfc: prfc
-      pta: pta
-      residues: residues
+      ptau: pta
       resolution: resolution
       salinity: salinity
       sim_time: sim_time
       solvent: solvent
       temperature: temperature
-      tta: tta
-
-      forcefield: forcefield
-      sim_time: sim_time
+      ttau: ttau
     out: [gromitout,gromiterr,gromacslog_step9,trajectory, energy,
           gro, ndx, top, mdp]
   energy:
