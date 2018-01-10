@@ -7,10 +7,6 @@ inputs:
   ligand_top: File
   electrostatics: string
   forcefield: string
-  gromacs_lie: bool
-  gromacs_nldp: bool
-  gromacs_rtc: bool
-  gromacs_vsite: bool
   periodic_distance: double
   pressure: double
   prfc: string
@@ -78,7 +74,21 @@ steps:
       protein_top: protein_top
       ligand_pdb: ligand_pdb
       ligand_top: ligand_top
-      force_field: force_field
+      electrostatics: electrostatics
+      forcefield: forcefield
+      periodic_distance: periodic_distance
+      pressure: pressure
+      prfc: prfc
+      pta: pta
+      residues: residues
+      resolution: resolution
+      salinity: salinity
+      sim_time: sim_time
+      solvent: solvent
+      temperature: temperature
+      tta: tta
+
+      forcefield: forcefield
       sim_time: sim_time
     out: [gromitout,gromiterr,gromacslog_step9,trajectory, energy,
           gro, ndx, top, mdp]
