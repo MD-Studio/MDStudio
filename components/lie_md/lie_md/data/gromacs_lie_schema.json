@@ -64,7 +64,7 @@
             "default": "100,200,300"
         },
         "ttau": {
-            "type": "string",
+            "type": "number",
             "description": "Coupling time for temperature (ps)",
             "default": 0.1
         },
