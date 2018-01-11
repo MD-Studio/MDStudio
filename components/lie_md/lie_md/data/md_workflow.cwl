@@ -9,9 +9,6 @@ inputs:
     type: File
   ligand_top:
     type: File
-  electrostatics:
-    type: string
-    default: "PME"
   forcefield:
     type: string
     default: "amber99sb"    
@@ -46,7 +43,7 @@ inputs:
     default: "100,200,300"
   ttau:
     type: double
-    default: "100,200,300"
+    default: 0.1
 
 outputs:
   gromitout:
@@ -103,12 +100,11 @@ steps:
       protein_top: protein_top
       ligand_pdb: ligand_pdb
       ligand_top: ligand_top
-      electrostatics: electrostatics
       forcefield: forcefield
       periodic_distance: periodic_distance
       pressure: pressure
       prfc: prfc
-      ptau: pta
+      ptau: ptau
       resolution: resolution
       salinity: salinity
       sim_time: sim_time
