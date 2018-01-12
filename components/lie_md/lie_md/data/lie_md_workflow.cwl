@@ -120,7 +120,6 @@ steps:
   gromit_solvent_ligand:
     run: mdstudio/gromit_flags.cwl
     in:
-      protein_pdb: protein_pdb
       protein_top: protein_top
       ligand_pdb: ligand_pdb
       ligand_top: ligand_top
