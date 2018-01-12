@@ -33,7 +33,7 @@ class TopologyComponent(ComponentSession):
     @chainable
     def call_hello(self):
         send_time = now()
-        response = yield self.call('mdgroup.topology.endpoint.parse-structure', {
+        response = yield self.call('mdgroup.topology.endpoint.test-response', {
             'message': {
                 'greeting': 'Hello World!',
                 'sendTime': send_time
