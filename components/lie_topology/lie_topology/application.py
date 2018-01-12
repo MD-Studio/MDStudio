@@ -7,9 +7,12 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.utc import now, from_utc_string
 
 class TopologyComponent(ComponentSession):
-    #@endpoint('parse-structure', 'structure-request', 'structure-response')
-    @endpoint('test-response', 'tti', 'tto')
+    @endpoint('parse-structure', 'structure-request', 'structure-response')
     def parseStructure(self, request, claims):
+        return { "system": "TEST" }
+
+    @endpoint('test-response', 'tti', 'tto')
+    def reponseTiming(self, request, claims):
         
         return_time = now()
         send_time = from_utc_string(request['message']['sendTime'])
@@ -23,7 +26,7 @@ class TopologyComponent(ComponentSession):
         return request
 
     def on_run(self):
-        call_later(2, self.call_hello)
+        call_later(2, self.is_alive)
         print('Waiting a few seconds for things to start up')
 
     def authorize_request(self, uri, claims):
@@ -31,7 +34,7 @@ class TopologyComponent(ComponentSession):
         return True
 
     @chainable
-    def call_hello(self):
+    def is_alive(self):
         send_time = now()
         response = yield self.call('mdgroup.topology.endpoint.test-response', {
             'message': {
@@ -39,11 +42,18 @@ class TopologyComponent(ComponentSession):
                 'sendTime': send_time
             }
         })
-
         response['returnTime'] = return_time = from_utc_string(response['returnTime'])
         receive_time = now()
         self.report_delay('Component -> User', receive_time - return_time)
         self.report_delay('Total', receive_time - send_time)
+
+        response2 = yield self.call('mdgroup.topology.endpoint.parse-structure', {
+            "format": "pdb",
+            "data": ""
+        })
+
+        self.log.info(response2["system"])
+
 
     def report_delay(self, direction, delay):
         self.log.info('{direction:>20} delay: {delay:>8.2f} ms', direction=direction, delay=delay.total_seconds() * 1000)

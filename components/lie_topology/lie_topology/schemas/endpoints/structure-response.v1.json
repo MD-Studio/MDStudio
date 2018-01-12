@@ -6,6 +6,8 @@
             "$ref": "resource://mdgroup/topology/system/v1"
         }
     },
-    "required": ["system"],
+    "required": [
+        "system"
+    ],
     "additionalProperties": false
 }

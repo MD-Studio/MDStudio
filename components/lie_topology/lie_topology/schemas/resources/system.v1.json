@@ -23,7 +23,11 @@
                 {
                     "type": "array",
                     "description": "vector",
-                    "items" :[ { "type": "number" } ],
+                    "items": [
+                        {
+                            "type": "number"
+                        }
+                    ],
                     "maxItems": 3,
                     "minItems": 3
                 }

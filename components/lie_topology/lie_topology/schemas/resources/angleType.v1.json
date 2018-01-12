@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of molecular fragment",
+    "properties": {
+        "uid": {
+            "type": "string",
+            "description": "unique identifier"
+        },
+        "harmonicForceConstant": {
+            "type": "number",
+            "description": "harmonic force constant for harmonic bonds"
+        },
+        "cosHarmonicForceConstant": {
+            "type": "number",
+            "description": "harmonic force constant for harmonic bonds"
+        },
+        "optimalAngle": {
+            "type": "number",
+            "description": "optimal angle"
+        }
+    },
+    "required": [
+        "uid",
+        "harmonicForceConstant",
+        "cosHarmonicForceConstant",
+        "optimalAngle"
+    ],
+    "additionalProperties": false
+}

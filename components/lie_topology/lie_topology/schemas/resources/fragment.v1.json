@@ -34,7 +34,7 @@
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "#/definitions/TODO"
+                    "$ref": "resource://mdstudio/topology/bond/v1"
                 }
             ],
             "additionalItems": false
@@ -45,7 +45,7 @@
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "#/definitions/TODO"
+                    "$ref": "resource://mdstudio/topology/angle/v1"
                 }
             ],
             "additionalItems": false
@@ -56,7 +56,7 @@
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "#/definitions/TODO"
+                    "$ref": "resource://mdstudio/topology/dihedral/v1"
                 }
             ],
             "additionalItems": false
@@ -67,7 +67,7 @@
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "#/definitions/TODO"
+                    "$ref": "resource://mdstudio/topology/improper/v1"
                 }
             ],
             "additionalItems": false
@@ -78,7 +78,7 @@
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "#/definitions/TODO"
+                    "$ref": "resource://mdstudio/topology/exclusion/v1"
                 }
             ],
             "additionalItems": false

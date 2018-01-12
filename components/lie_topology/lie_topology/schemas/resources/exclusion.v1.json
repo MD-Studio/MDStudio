@@ -13,9 +13,6 @@
                 "$ref": "resource://mdstudio/topology/atomReference/v1"
             },
             "additionalItems": false
-        },
-        "bondType": {
-            "$ref": "resource://mdstudio/topology/bondType/v1"
         }
     },
     "required": [

@@ -6,16 +6,16 @@
         "atomReferences": {
             "type": "array",
             "description": "array of 2 atom references",
-            "minItems": 2,
-            "maxItems": 2,
+            "minItems": 3,
+            "maxItems": 3,
             "uniqueItems": true,
             "items": {
                 "$ref": "resource://mdstudio/topology/atomReference/v1"
             },
             "additionalItems": false
         },
-        "bondType": {
-            "$ref": "resource://mdstudio/topology/bondType/v1"
+        "angleType": {
+            "$ref": "resource://mdstudio/topology/angleType/v1"
         }
     },
     "required": [

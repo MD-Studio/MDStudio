@@ -5,17 +5,17 @@
     "properties": {
         "atomReferences": {
             "type": "array",
-            "description": "array of 2 atom references",
-            "minItems": 2,
-            "maxItems": 2,
+            "description": "array of 4 atom references",
+            "minItems": 4,
+            "maxItems": 4,
             "uniqueItems": true,
             "items": {
                 "$ref": "resource://mdstudio/topology/atomReference/v1"
             },
             "additionalItems": false
         },
-        "bondType": {
-            "$ref": "resource://mdstudio/topology/bondType/v1"
+        "improperType": {
+            "$ref": "resource://mdstudio/topology/improperType/v1"
         }
     },
     "required": [

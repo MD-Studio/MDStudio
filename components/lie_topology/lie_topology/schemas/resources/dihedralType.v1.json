@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of molecular fragment",
+    "properties": {
+        "uid": {
+            "type": "string",
+            "description": "unique identifier"
+        },
+        "forceConstant": {
+            "type": "number",
+            "description": ""
+        },
+        "phaseShift": {
+            "type": "number",
+            "description": ""
+        },
+        "multiplicity": {
+            "type": "number",
+            "description": ""
+        }
+    },
+    "required": [
+        "uid",
+        "forceConstant",
+        "phaseShift",
+        "multiplicity"
+    ],
+    "additionalProperties": false
+}
