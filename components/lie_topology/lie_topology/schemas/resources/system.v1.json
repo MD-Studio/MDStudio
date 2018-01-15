@@ -9,7 +9,7 @@
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "resource://mdstudio/topology/fragment/v1"
+                    "$ref": "resource://mdstudio/topology/molecule/v1"
                 }
             ],
             "additionalItems": false
