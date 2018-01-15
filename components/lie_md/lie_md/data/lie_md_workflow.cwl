@@ -19,8 +19,8 @@ inputs:
     type: double
     default: 1.01325
   prfc:
-    type: string
-    default: "10000,5000,50,0"
+    type: int[]
+    default: [10000, 5000, 50, 0]
   ptau:
     type: double
     default: 0.5
@@ -39,8 +39,8 @@ inputs:
     type: string
     default: "tip3p"
   temperature:
-    type: string
-    default: "100,200,300"
+    type: int[]
+    default: [100, 200, 300]
   ttau:
     type: double
     default: 0.1
@@ -118,7 +118,7 @@ outputs:
     
 steps:
   gromit_solvent_ligand:
-    run: mdstudio/gromit_flags.cwl
+    run: mdstudio/gromit.cwl
     in:
       protein_top: protein_top
       ligand_pdb: ligand_pdb
@@ -143,7 +143,7 @@ steps:
         source: gromit_solvent_ligand/energy
     out: [energy_dataframe, energyout, energyerr]
   gromit_protein_ligand:
-    run: mdstudio/gromit_flags.cwl
+    run: mdstudio/gromit.cwl
     in:
       protein_pdb: protein_pdb
       protein_top: protein_top
