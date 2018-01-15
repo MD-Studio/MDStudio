@@ -17,32 +17,10 @@ def set_gromacs_input(gromacs_config, workdir, dict_input):
     # update input
     gromacs_config.update(dict_input)
 
-    # Check if all the files are available
-    check_input(gromacs_config)
-
     # correct topology
     gromacs_config = fix_topology_ligand(gromacs_config, workdir)
 
     return fix_topology_protein(gromacs_config)
-
-
-def check_input(gromacs_config):
-    """
-    Check if all the data required to run gromit is present
-    """
-    def check(path):
-        return path is not None and os.path.isfile(path)
-
-    file_names = ['protein_pdb', 'protein_top', 'ligand_pdb',
-                  'ligand_top']
-
-    val = all(check(gromacs_config[f]) for f in file_names)
-
-    if not val:
-        msg = "the following files are required by the \
-        liestudio.gromacs.liemd function: {}".format(file_names)
-        logger.error(msg)
-        raise RuntimeError(msg)
 
 
 def fix_topology_protein(gromacs_config):

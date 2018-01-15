@@ -99,7 +99,8 @@ def retrieve_service_from_db(config, ligand_pdb, cerise_db):
 
 def create_service(config):
     """
-    Create a Cerise service if one is not already running.
+    Create a Cerise service if one is not already running,
+    using the `config` file.
     """
     srv = cc.require_managed_service(
             config['docker_name'],
@@ -144,7 +145,9 @@ def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
 
 def restart_srv_job(srv_data):
     """
-    Use a dictionary to restart a Cerise service
+    Use a dictionary to restart a Cerise service.
+
+    :param srv_data: dict containing the cerise service information.
     """
     srv = cc.service_from_dict(srv_data)
     cc.start_managed_service(srv)
@@ -159,6 +162,13 @@ def extract_simulation_info(
     """
     Wait for a job to finish, if the job is already done
     return the information retrieved from the db.
+
+    :param srv_data: dict containing the meta information
+    of the cerise service.
+    :param srv_data: dict containing the data use to create
+    a new cerise service.
+    : param cerise_db: Mongo db collection to store data
+    related to the cerise service.
     """
     logger.info("Extracting output from: {}".format(
         cerise_config['workdir']))
@@ -193,7 +203,7 @@ def wait_extract_clean(job, srv, cerise_config, cerise_db):
 
 def update_srv_info_at_db(srv_data, cerise_db):
     """
-    Update the service-job data store in the db
+    Update the service-job data store in the `cerise_db`.
     """
     query = {'ligand_md5': srv_data['ligand_md5']}
     cerise_db.update_one(query, {"$set": srv_data})
@@ -219,7 +229,8 @@ def collect_srv_data(
 
 def create_lie_job(srv, gromacs_config, cerise_config):
     """
-    Create a Cerise job and set gromacs
+    Create a Cerise job using the cerise `srv` and set gromacs
+    parameters using `gromacs_config`.
     """
     job_name = 'job_{}'.format(cerise_config['task_id'])
     job = srv.create_job(job_name)
@@ -232,7 +243,7 @@ def create_lie_job(srv, gromacs_config, cerise_config):
 
 def add_input_files_lie(job, gromacs_config):
     """
-    Tell to Cerise which files to copy.
+    Tell to Cerise which files are associated to a `job`.
     """
     # Add files to cerise job
     files = ['protein_pdb', 'protein_top',
@@ -252,7 +263,7 @@ def add_input_files_lie(job, gromacs_config):
 
 def set_input_parameters_lie(job, gromacs_config):
     """
-    Set input variables for gromit
+    Set input variables for gromit `job`
     and residues to compute the lie energy.
     """
     # Key to run the MD simulation
@@ -273,8 +284,8 @@ def set_input_parameters_lie(job, gromacs_config):
 
 def register_srv_job(job, srv_data, cerise_db):
     """
-    Once the job is running in the queue system register
-    it in the database.
+    Once the `job` is running in the queue system register
+    it in the `cerise_db`.
     """
     while job.state == 'Waiting':
         sleep(2)
@@ -353,31 +364,38 @@ def try_to_close_service(srv_data, cerise_db):
 
 def get_output(job, config):
     """
-    retrieve output information from the job.
+    retrieve output information from the `job`.
     """
-    def save_data(files):
+    def save_data(dict_fmt):
         return {
             key: copy_output_from_remote(
-                job.outputs.get(key), config, output_dict[key])
-            for key in files}
+                job.outputs.get(key), config, fmt)
+            for key, fmt in dict_fmt.items()}
 
-    output_dict = {
-        'gromitout': 'gromit_{}.out', 'gromiterr': 'gromit_{}.err',
-        'gromacslog': 'gromacs_{}.log', 'energy': 'energy_{}.edr',
-        'energy_dataframe': 'energy_{}.ene',
-        'energyerr': 'energy_{}.err', 'energyout': 'energy_{}.out',
-        'decompose_dataframe': 'decompose_{}.ene',
-        'decompose_err': 'decompose_{}.err', 'decompose_out':
-        'decompose_{}.out'
-    }
+    common_names = {
+        'gromiterr': '_{}.err', 'gromitout': '_{}.out',
+        'gromacslog': '_{}.log', 'energy': '_{}.edr',
+        'energy_dataframe': '_{}.ene', 'energyerr': '_{}.err',
+        'energyout': '_{}.out'}
+    decompose_names = {
+        'decompose_dataframe': '_{}.ene', 'decompose_err': '_{}.err',
+        'decompose_out': '_{}.out'}
 
-    if job.state == 'Success':
-        success = ['energy', 'energy_dataframe', 'decompose_dataframe']
-        return save_data(success)
-    else:
-        failure = ['gromitout', 'gromiterr', 'energyout', 'energyerr',
-                   'decompose_err', 'decompose_out']
-        return save_data(failure)
+    solvent_ligand_names = {
+        name + '_solvent_ligand': name + '_solvent_ligand' + fmt
+        for name, fmt in common_names.items()}
+
+    # include the decomposition files
+    common_names.update(decompose_names)
+    protein_ligand_names = {
+        name + '_protein_ligand_{}': name + '_protein_ligand_{}' + fmt
+        for name, fmt in common_names.items()}
+
+    # dict containing the whole set of file names
+    protein_ligand_names.update(solvent_ligand_names)
+
+    # Save all data about the simulation
+    save_data(protein_ligand_names)
 
 
 def copy_output_from_remote(val, config, fmt):
@@ -414,4 +432,4 @@ def check_cwl_workflow(cwl_workflow):
         return cwl_workflow
     else:
         root = os.path.dirname(__file__)
-        return join(root, 'data/md_workflow.cwl')
+        return join(root, 'data/lie_md_workflow.cwl')

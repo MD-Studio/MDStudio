@@ -59,9 +59,9 @@
             "default": "PME"
         },
         "temperature": {
-            "type": "string",
+            "type": "array",
             "description": "Temperature (deg. Kelvin)",
-            "default": "100,200,300"
+            "default": [100,200,300]
         },
         "ttau": {
             "type": "number",
@@ -84,9 +84,9 @@
             "default": 0.002
         },
         "prfc" :{
-            "type": "string",
+            "type": "array",
             "description": "Position restraint force constant",
-            "default": "10000,5000,50,0"
+            "default": [10000,5000,50,0]
         },
         "periodic_distance": {
             "type": "number",
