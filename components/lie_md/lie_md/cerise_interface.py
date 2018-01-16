@@ -198,6 +198,8 @@ def wait_extract_clean(job, srv, cerise_config, cerise_db):
     output = get_output(job, cerise_config)
     cleanup(job, srv, cerise_db)
 
+    logger.info('Output: {}'.format(output))
+
     return output
 
 
@@ -378,24 +380,26 @@ def get_output(job, config):
         'energy_dataframe': '_{}.ene', 'energyerr': '_{}.err',
         'energyout': '_{}.out'}
     decompose_names = {
-        'decompose_dataframe': '_{}.ene', 'decompose_err': '_{}.err',
-        'decompose_out': '_{}.out'}
+        'decompose_dataframe': 'decompose_dataframe_{}.ene',
+        'decompose_err': 'decompose_err_{}.err',
+        'decompose_out': 'decompose_out_{}.out'}
 
     solvent_ligand_names = {
         name + '_solvent_ligand': name + '_solvent_ligand' + fmt
         for name, fmt in common_names.items()}
 
+    protein_ligand_names = {
+        name + '_protein_ligand': name + '_protein_ligand' + fmt
+        for name, fmt in common_names.items()}
+
     # include the decomposition files
     common_names.update(decompose_names)
-    protein_ligand_names = {
-        name + '_protein_ligand_{}': name + '_protein_ligand_{}' + fmt
-        for name, fmt in common_names.items()}
 
     # dict containing the whole set of file names
     protein_ligand_names.update(solvent_ligand_names)
 
     # Save all data about the simulation
-    save_data(protein_ligand_names)
+    return save_data(protein_ligand_names)
 
 
 def copy_output_from_remote(val, config, fmt):
