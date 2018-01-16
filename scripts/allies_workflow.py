@@ -10,6 +10,7 @@ from autobahn.twisted.util import sleep
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet._sslverify import OpenSSLCertificateAuthorities
 from twisted.internet.ssl import CertificateOptions
+from twisted.internet import reactor
 from OpenSSL import crypto
 
 from lie_system import LieApplicationSession
@@ -67,7 +68,7 @@ class LIEWorkflow(LieApplicationSession):
         wf = Workflow()
         
         # Load workflow if present else, build one
-        workflow_file = os.path.join(workdir, 'workflow.json')
+        workflow_file = os.path.join(workdir, 'workflow_spec.json')
         if os.path.isfile(workflow_file):
             wf.load(workflow_file)
             wf.task_runner = self.call
@@ -178,7 +179,8 @@ class LIEWorkflow(LieApplicationSession):
                               store_output=True)
             wf.input(t14, sim_time=model['timeSim'], gromacs_lie=True, forcefield=forcefield,
                      periodic_distance=periodic_distance, temperature=temperature, solvent=solvent, ptau=ptau,
-                     prfc=prfc, ttau=ttau, salinity=salinity, gromacs_vsite=gromacs_vsite)
+                     prfc=prfc, ttau=ttau, salinity=salinity, gromacs_vsite=gromacs_vsite,
+                     path_cerise_config=os.path.join(liemodel, 'cerise_config.json'))
             wf.connect_task(choice2, t14, data_mapping={'new_pdb': 'ligand_file', 'gmx_itp': 'topology_file'})
 
             # Map the ligand structures
@@ -188,10 +190,15 @@ class LIEWorkflow(LieApplicationSession):
             # Run MD for protein + ligand
             t16 = wf.add_task('MD on protein-ligand system', task_type='WampTask', uri='liestudio.gromacs.liemd',
                               store_output=True)
-            wf.input(t16, sim_time=model['timeSim'], gromacs_lie=True, forcefield=forcefield, charge=model['charge'],
+            wf.input(t16, sim_time=model['timeSim'], forcefield=forcefield, charge=model['charge'],
                      periodic_distance=periodic_distance, temperature=temperature, solvent=solvent, ptau=ptau,
                      prfc=prfc, ttau=ttau, salinity=salinity, gromacs_vsite=gromacs_vsite,
-                     protein_file=os.path.join(liemodel, model['proteinParams'][0]['proteinCoor']))
+                     path_cerise_config=os.path.join(liemodel, 'cerise_config.json'),
+                     protein_file=os.path.join(liemodel, model['proteinParams'][0]['proteinCoor']),
+                     protein_top=os.path.join(liemodel, model['proteinTop']),
+                     residues=model['resSite'],
+                     include=[os.path.join(liemodel, model['proteinTopPos']),
+                              os.path.join(liemodel, 'attype.itp')])
             wf.connect_task(t15, t16, data_mapping={'mapper': 'ligand_file'})
             wf.connect_task(choice2, t16, data_mapping={'gmx_itp': 'topology_file'})
 
@@ -230,7 +237,7 @@ class LIEWorkflow(LieApplicationSession):
 
             # Applicability domain: 1. Tanimoto similarity with training set
             t22 = wf.add_task('AD1, tanimoto simmilarity', task_type='WampTask',
-                             uri='liestudio.cheminfo.chemical_similarity')
+                             uri='liestudio.cheminfo.chemical_similarity', store_output=True)
             wf.input(t22, test_set=[ligand], mol_format=ligand_format,
                      reference_set=modelfile['AD']['Tanimoto']['smi'],
                      ci_cutoff=modelfile['AD']['Tanimoto']['Furthest'])
@@ -256,6 +263,9 @@ class LIEWorkflow(LieApplicationSession):
                      ci_cutoff=modelfile['AD']['Dene']['Maxdist'])
             wf.connect_task(t21, t25, data_mapping={'liedeltag_file': 'dataframe'})
 
+        # Save the workflow specification
+        #wf.save(path=os.path.join(workdir, 'workflow_spec.json'))
+
         # Run the workflow
         wf.run()
         while wf.is_running:
@@ -265,9 +275,10 @@ class LIEWorkflow(LieApplicationSession):
         project_dir = wf.get_task(1)['workdir']
         wf.save(path=os.path.join(project_dir, 'workflow.json'))
 
-        self.leave()
         self.disconnect()
-        return
+        reactor.stop()
+
+        yield True
         
 
 if __name__ == '__main__':

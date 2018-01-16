@@ -10,8 +10,6 @@ import os
 
 from autobahn import wamp
 from pymongo import MongoClient
-from twisted.logger import LogLevel
-from twisted.internet.defer import inlineCallbacks
 
 from lie_system import LieApplicationSession
 from settings import settings

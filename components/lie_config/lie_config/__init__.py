@@ -58,7 +58,7 @@ __all__ = ['get_config', 'ConfigHandler', 'configwrapper', 'config_to_json']
 # else import funcsigs backport.
 try:
     from inspect import signature
-except BaseException:
+except ImportError:
     from funcsigs import signature
 
 # Component imports

@@ -57,9 +57,9 @@ class PlantsDocking(DockingBase):
     allowed_config_options = settings
     logging = Logger()
 
-    def __init__(self, user_meta={}, **kwargs):
+    def __init__(self, user_meta=None, **kwargs):
 
-        self.user_meta = user_meta
+        self.user_meta = user_meta or {}
 
         self._config = kwargs
         self._workdir = None

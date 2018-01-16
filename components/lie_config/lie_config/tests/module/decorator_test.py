@@ -99,8 +99,8 @@ class ConfigDecoratorTests(unittest2.TestCase):
         instance.
         """
 
-        from .decorator_class import decorator_class
+        from .decorator_class import DecoratorClass
 
-        klass = decorator_class()
+        klass = DecoratorClass()
         self.assertEqual(klass.run(2), (4, 6))
         self.assertEqual(klass.decorated_run(2), (20, 30))

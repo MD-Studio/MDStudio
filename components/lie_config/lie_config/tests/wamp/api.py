@@ -6,12 +6,10 @@ Unit tests for the config component WAMP API
 
 import os
 import sys
-import shutil
 
 # Add modules in package to path so we can import them
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from autobahn.twisted.util import sleep
 from autobahn.twisted import wamp
 from twisted.trial import unittest
 from twisted.internet import defer
@@ -78,7 +76,7 @@ class GetMultipleConfig(WAMPUnitTestBase):
         res = yield self.call(u'liestudio.config.get', ['lie_logging', 'system'])
 
         returndict = isinstance(res, dict)
-        returnmult = len(res) == 2 and set(res.keys()) == set([u'system', u'lie_logging'])
+        returnmult = len(res) == 2 and set(res.keys()) == {[u'system', u'lie_logging']}
 
         self.log("logging config: {0}".format(res), testpass=all([returndict, returnmult]))
         self.finish()

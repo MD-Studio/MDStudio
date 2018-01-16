@@ -163,7 +163,7 @@ def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwa
     not_supported = ['-{0}'.format(n) for n in kwargs if not n.lower()
                      in SETTINGS['amber_reduce']]
     if not_supported:
-        logging.warn("Following command line arguments not supported by Amber 'reduce': {0}".format(','.join(not_supported)))
+        logging.warn("Command line arguments not supported by Amber 'reduce': {0}".format(','.join(not_supported)))
 
     cmd = [reduce_exe_path] + flags
     cmd.extend([mol, '>', output])

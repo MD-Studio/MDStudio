@@ -14,7 +14,6 @@ __all__ = ['init_application_logging',
 import sys
 import os
 import time
-import copy
 import io
 
 from datetime import datetime

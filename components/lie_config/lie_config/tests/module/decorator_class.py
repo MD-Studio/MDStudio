@@ -6,9 +6,6 @@ file: decorator_test.py
 Unit tests for the lie_config component
 """
 
-import os
-import sys
-
 from lie_config import configwrapper, get_config
 
 
@@ -73,7 +70,7 @@ def change_value_elsewhere(key, value):
 
 
 @configwrapper()
-class decorator_class(object):
+class DecoratorClass(object):
     """
     configwrapper decorated class that has keyword
     arguments defined in the global configuration.

@@ -127,18 +127,3 @@ class LogSerializer(object):
         serialized.update(self._iter_serialize(obj))
 
         return serialized
-
-
-if __name__ == '__main__':
-
-    import time
-
-    class h(object):
-
-        opp = 2
-
-    d = {'user': 'marc', 'age': 39, 'flags': ['one', 2, u"three"], "time": time.time(), 'class': h(), 'dict': {'one': 1, 2: 'two', 3: h()}}
-
-    ser = LogSerializer(max_depth=1)
-    l = ser.encode(d)
-    print(l)

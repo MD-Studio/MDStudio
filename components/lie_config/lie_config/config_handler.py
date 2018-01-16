@@ -703,9 +703,9 @@ class ConfigHandler(object):
         self._config.update(_flatten_nested_dict(config, sep=self._sep))
         self._resolve_config_level(self._reskeys)
 
-    def parent(self, key=None):
+    def parent(self):
         """
-        Returns the full parent key upto the current level.
+        Returns the full parent key up to the current level.
         This could potentially be ambiguous.
 
         :return: parent key or keys

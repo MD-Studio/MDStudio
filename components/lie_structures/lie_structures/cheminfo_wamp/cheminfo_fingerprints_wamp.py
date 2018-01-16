@@ -6,6 +6,7 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
+import os
 import numpy
 import pandas
 
@@ -68,6 +69,15 @@ class CheminfoFingerprintsWampApi(object):
         if ci_cutoff:
             stats['CI'] = (stats['average'] >= ci_cutoff).astype(int)
             self.log.info('Chemical similarity AD analysis with cutoff {0}'.format(ci_cutoff))
+
+        # Create workdir and save file
+        workdir = os.path.join(kwargs.get('workdir', None))
+        if workdir:
+            if not os.path.isdir(workdir):
+                os.mkdir(workdir)
+                self.log.debug('Create working directory: {0}'.format(workdir), **session)
+            filepath = os.path.join(workdir, 'adan_chemical_similarity.csv')
+            stats.to_csv(filepath)
 
         session.status = 'completed'
         return {'session': session.dict(), 'result': stats.to_dict()}

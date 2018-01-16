@@ -60,4 +60,3 @@ class TestAPI(unittest2.TestCase):
         self.files_to_delete.append(outdir)
         
         self.assertTrue(os.path.isdir(outdir))
-
