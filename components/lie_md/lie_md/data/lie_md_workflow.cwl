@@ -25,7 +25,7 @@ inputs:
     type: double
     default: 0.5
   residues:
-    type: string
+    type: int[]
   resolution:
     type: double
     default: 0.002
