@@ -54,7 +54,11 @@ class MDWampApi(LieApplicationSession):
             protein_pdb=None, protein_top=None, ligand_pdb=None,
             ligand_top=None, include=[], residues=None, **kwargs):
         """
-        Call gromit using the Cerise-client infrastructure:
+        First it calls gromit to compute the Ligand-solute energies, then
+        calls gromit to calculate the protein-ligand energies.
+
+        The Cerise-client infrastructure is used to perform the computations
+        in a remote server, see:
         http://cerise-client.readthedocs.io/en/master/index.html
 
         This function expects the following keywords files to call gromit:
@@ -82,6 +86,8 @@ class MDWampApi(LieApplicationSession):
             'protein_pdb': protein_pdb, 'protein_top': protein_top,
             'ligand_pdb': ligand_pdb, 'ligand_top': ligand_top,
             'include': include, 'residues': residues}
+        input_dict.update(**kwargs)
+
         gromacs_config = set_gromacs_input(
             self.package_config.dict(), workdir, input_dict)
 

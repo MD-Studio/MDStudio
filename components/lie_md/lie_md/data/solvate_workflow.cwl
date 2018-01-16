@@ -7,7 +7,6 @@ inputs:
   ligand_top: File
   force_field: string
   sim_time: double
-  residues: string
 
 outputs:
   gromitout:
@@ -46,16 +45,7 @@ outputs:
   energyerr:
     type: File
     outputSource: energy/energyerr
-  decompose_dataframe:
-    type: File
-    outputSource: decompose/decompose_dataframe
-  decompose_err:
-    type: File
-    outputSource: decompose/decompose_err
-  decompose_out:
-    type: File
-    outputSource: decompose/decompose_out
-    
+
 steps:
   gromit:
     run: mdstudio/gromit.cwl
@@ -74,21 +64,3 @@ steps:
       edr:
         source: gromit/energy
     out: [energy_dataframe, energyout, energyerr]
-
-  decompose:
-    run: mdstudio/decompose.cwl
-    in:
-      res: residues
-      ligand_top: ligand_top
-      protein_top: protein_top
-      gro:
-        source: gromit/gro
-      ndx:
-        source: gromit/ndx
-      trr:
-        source: gromit/trajectory
-      top:
-        source: gromit/top
-      mdp:
-        source: gromit/mdp      
-    out: [decompose_dataframe, decompose_err, decompose_out]

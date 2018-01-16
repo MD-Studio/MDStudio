@@ -14,38 +14,13 @@ def set_gromacs_input(gromacs_config, workdir, dict_input):
     """
     Create input files for gromacs.
     """
-    # Check if all the data is available
-    gromacs_config = check_input(gromacs_config, dict_input)
-
-    # residues
-    gromacs_config['residues'] = dict_input['residues']
+    # update input
+    gromacs_config.update(dict_input)
 
     # correct topology
     gromacs_config = fix_topology_ligand(gromacs_config, workdir)
 
     return fix_topology_protein(gromacs_config)
-
-
-def check_input(gromacs_config, dict_input):
-    """
-    Check if all the data required to run gromacs is present
-    """
-    file_names = ['protein_pdb', 'protein_top', 'ligand_pdb',
-                  'ligand_top']
-
-    for f in file_names:
-        path = dict_input.get(f, None)
-        if path is not None and os.path.isfile(path):
-            gromacs_config[f] = path
-        else:
-            logger.error("{}: {} not a valid file path".format(f, path))
-            raise RuntimeError("the following files are required by the \
-            liestudio.gromacs.liemd function: {}".format(file_names))
-
-    # include files
-    gromacs_config['include'] = dict_input['include']
-
-    return gromacs_config
 
 
 def fix_topology_protein(gromacs_config):

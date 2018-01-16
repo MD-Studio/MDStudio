@@ -25,7 +25,7 @@
         "forcefield": {
             "type": "string",
             "description": "Forcefield definition to use",
-            "default": "amber99SB"
+            "default": "amber99sb"
         },
         "gromacs_lie": {
             "type": "boolean",
@@ -59,12 +59,12 @@
             "default": "PME"
         },
         "temperature": {
-            "type": "string",
+            "type": "array",
             "description": "Temperature (deg. Kelvin)",
-            "default": "100,200,300"
+            "default": [100,200,300]
         },
         "ttau": {
-            "type": "string",
+            "type": "number",
             "description": "Coupling time for temperature (ps)",
             "default": 0.1
         },
@@ -84,9 +84,9 @@
             "default": 0.002
         },
         "prfc" :{
-            "type": "string",
+            "type": "array",
             "description": "Position restraint force constant",
-            "default": "10000,5000,50,0"
+            "default": [10000,5000,50,0]
         },
         "periodic_distance": {
             "type": "number",
@@ -107,5 +107,6 @@
             "description": "Path to GROMACS GMXRC file"
         }
     },
-    "required": ["protein_file", "ligand_file", "topology_file"]
+    "required": [
+	"protein_pdb", "ligand_pdb", "protein_top", "ligand_top"]
 }
