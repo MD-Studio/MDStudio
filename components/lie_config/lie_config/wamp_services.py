@@ -19,7 +19,7 @@ class ConfigWampApi(LieApplicationSession):
     """
 
     @wamp.register(u'liestudio.config.get')
-    def getConfig(self, key, config='default'):
+    def get_config(self, key):
         """
         Retrieve application configuration.
 
@@ -31,8 +31,6 @@ class ConfigWampApi(LieApplicationSession):
 
         :param key:    configuration key to search for
         :type key:     string or list of strings
-        :param config: configuration store to look in (`default`)
-        :type config:  string
 
         :rtype:        :py:class:`dict`
         """
@@ -50,8 +48,8 @@ class ConfigWampApi(LieApplicationSession):
 
         Save the updated global configuration back to the settings.json file
 
-        :param settings: global and module specific settings
-        :type settings:  :py:class:`dict` or :py:class:`dict` like object
+        :param details: global and module specific settings
+        :type details:  :py:class:`dict` or :py:class:`dict` like object
         """
 
         app_config = self.package_config.get('system.app_config')

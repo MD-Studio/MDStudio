@@ -6,15 +6,10 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-import os
-import sys
-import time
+from autobahn import wamp
 
-from   autobahn                            import wamp
-from   autobahn.wamp.types                 import RegisterOptions
-from   twisted.internet.defer              import inlineCallbacks
+from lie_system import LieApplicationSession
 
-from   lie_system                          import LieApplicationSession
 
 class HaddockWampApi(LieApplicationSession):
     """

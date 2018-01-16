@@ -7,9 +7,9 @@ logging = Logger()
 
 class ConfigOrmHandler(object):
 
-    def __init__(self, baseclass, mapping={}):
+    def __init__(self, baseclass, mapping=None):
 
-        self._mapping = mapping
+        self._mapping = mapping or {}
         self._baseclass = baseclass
 
     def add(self, key, mapped_class):
@@ -19,10 +19,10 @@ class ConfigOrmHandler(object):
     def get(self, key):
 
         if key and key in self._mapping:
-            ORMClass = type(
+            orm_class = type(
                 self._baseclass.__name__,
                 (self._mapping[key], self._baseclass), {})
         else:
-            ORMClass = self._baseclass
+            orm_class = self._baseclass
 
-        return ORMClass
+        return orm_class

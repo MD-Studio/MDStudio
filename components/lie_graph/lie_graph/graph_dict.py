@@ -534,6 +534,9 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Return the intersection between the key set of self and other
 
+        :param other:   object to compare to
+        :type other:    :py:dict
+
         :rtype: :py:class:set
         """
 
@@ -543,6 +546,9 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Returns a Boolean stating whether the key set in self overlap with the
         specified key set or iterable of other.
+
+        :param other:   object to compare to
+        :type other:    :py:dict
 
         :rtype: bool
         """
@@ -554,6 +560,8 @@ class GraphDict(colabc.MutableMapping, dict):
         Keys in self are also in other but other contains more keys
         (propper = True)
 
+        :param other:   object to compare to
+        :type other:    :py:dict
         :param propper: ensure that both key lists are not the same.
         :type propper:  :py:bool
         """
@@ -570,6 +578,8 @@ class GraphDict(colabc.MutableMapping, dict):
         Keys in self are also in other but self contains more keys
         (propper = True)
 
+        :param other:   object to compare to
+        :type other:    :py:dict
         :param propper: ensure that both key lists are not the same.
         :type propper:  :py:bool
         """

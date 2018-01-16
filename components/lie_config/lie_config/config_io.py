@@ -2,12 +2,15 @@
 
 from __future__ import unicode_literals
 
-from twisted.logger import Logger
 import sys
 import os
 import collections
 import json
 import StringIO
+import urllib2
+import urlparse
+
+from twisted.logger import Logger
 
 PY3 = sys.version_info.major == 3
 if PY3:
@@ -51,20 +54,17 @@ def _open_anything(source, mode='r'):
     else:
         # Check if source is a URL and try to open
         try:
-
-            import urllib2
-            import urlparse
             if urlparse.urlparse(source)[0] == 'http':
                 result = urllib2.urlopen(source)
                 logging.debug("Reading file from URL with access info:\n {0}".format(result.info()))
                 return result
-        except BaseException:
+        except urllib2.URLError:
             logging.info("Unable to access URL")
 
         # Check if source is file and try to open else regard as string
         try:
             return open(source)
-        except BaseException:
+        except IOError:
             logging.debug("Unable to access as file, try to parse as string")
             return StringIO.StringIO(str(source))
 
@@ -152,7 +152,7 @@ def config_from_ini(inifile):
         raise IOError('INI style configuration could not be read.')
 
     c = configparser.ConfigParser()
-    c.readfp(StringIO.StringIO(filecontent.decode('utf8')))
+    c.read_file(StringIO.StringIO(filecontent.decode('utf8')))
 
     config = {}
     for section in c.sections():
@@ -163,17 +163,17 @@ def config_from_ini(inifile):
             if '.' in value:
                 try:
                     value = c.getfloat(section, param)
-                except BaseException:
+                except TypeError:
                     pass
             else:
                 try:
                     value = c.getint(section, param)
-                except BaseException:
+                except TypeError:
                     pass
 
             try:
                 value = c.getboolean(section, param)
-            except BaseException:
+            except TypeError:
                 pass
             config[section][param] = value
 
@@ -208,8 +208,8 @@ def config_from_json(jsonfile):
     """
     Import configuration from a JSON file or string
 
-    :param inifile: configuration to be parsed
-    :type inifile:  any type accepted by _open_anything function
+    :param jsonfile: configuration to be parsed
+    :type jsonfile:  any type accepted by _open_anything function
 
     :return:        parsed configuration
     :rtype:         :py:class:`dict`

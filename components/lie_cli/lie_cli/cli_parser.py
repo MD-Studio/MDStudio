@@ -6,9 +6,10 @@ Command Line Interface to the methods exposed by LIEStudio microservices
 
 import argparse
 import re
-import os, sys
+import os
+import sys
 
-USAGE= """
+USAGE = """
 MDStudio command line interface.
 
 Call a method exposed by a MDStudio microservice using it's public URI
@@ -119,8 +120,8 @@ def lie_cli_parser():
     parser.add_argument('-u', '--uri', type=_commandline_arg, dest='uri', required=True, help='Microservice method URI')
     parser.add_argument('-c', '--authid', type=_commandline_arg, dest='authid', default=os.environ.get('MDSTUDIO_USER'),
                         help="MDStudio user id")
-    parser.add_argument('-p', '--password', type=_commandline_arg, dest='password', default=os.environ.get('MDSTUDIO_PW'),
-                        help="MDStudio user pasword")
+    parser.add_argument('-p', '--password', type=_commandline_arg, dest='password',
+                        default=os.environ.get('MDSTUDIO_PW'), help="MDStudio user pasword")
     parser.add_argument('-m', '--authmethod', type=_commandline_arg, dest='authmethod', default='ticket',
                         help="MDStudio authentication method")
 
@@ -141,7 +142,7 @@ def lie_cli_parser():
                 options['package_config'][k] = [_abspath(n) for n in v if n]
             else:
                 options['package_config'][k] = _abspath(v)
-        except:
+        except TypeError:
             pass
 
     # Add method URI

@@ -38,7 +38,7 @@ setup(
     packages=find_packages(),
     package_data={'': ['*.json']},
     py_modules=[distribution_name],
-    install_requires=['scipy','jsonschema'],
+    install_requires=['scipy', 'jsonschema'],
     include_package_data=True,
     zip_safe=True,
     entry_points={

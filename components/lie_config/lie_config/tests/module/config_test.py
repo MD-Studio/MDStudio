@@ -11,7 +11,6 @@ import sys
 import unittest
 import json
 import copy
-import glob
 
 # Add modules in package to path so we can import them
 currpath = os.path.dirname(__file__)

@@ -4,6 +4,8 @@
 file: graph_math_operations.py
 
 Functions for performing 'set' like math operations on graphs.
+
+# TODO: add graph_intersection, graph_difference and graph_symmetric_difference methods
 """
 
 from .graph_helpers import _edge_list_to_adjacency
@@ -80,21 +82,6 @@ def graph_union(graph1, graph2):
     graph1.adjacency.update(adjacency)
 
     return graph1
-
-
-def graph_intersection(graph):
-
-    pass
-
-
-def graph_difference(graph):
-
-    pass
-
-
-def graph_symmetric_difference(graph):
-
-    pass
 
 
 def graph_update(graph1, graph2, update_edges=True, update_nodes=True):

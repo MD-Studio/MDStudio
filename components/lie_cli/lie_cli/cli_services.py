@@ -5,6 +5,7 @@ from autobahn.twisted.wamp import ApplicationRunner
 from lie_cli.cli_parser import lie_cli_parser
 from lie_cli.wamp_services import CliWampApi
 
+
 def main():
     """
     Main function for enabling mdstudio_cli command line script functionality
@@ -14,9 +15,5 @@ def main():
     cliparser = lie_cli_parser()
 
     # Connect to MDStudio and call method
-    runner = ApplicationRunner(
-        u"ws://localhost:8080/ws",
-        u"liestudio",
-        extra=cliparser,
-    )
+    runner = ApplicationRunner('ws://localhost:8080/ws', 'liestudio', extra=cliparser)
     runner.run(CliWampApi, auto_reconnect=False, log_level='error')

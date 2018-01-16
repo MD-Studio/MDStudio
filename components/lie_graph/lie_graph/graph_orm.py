@@ -130,10 +130,8 @@ class GraphORM(object):
 
         Both attribute key and value are considered in the matching.
 
-        TODO:
-
-            extend matching engine to match only key or values and use
-            logical operators on values.
+        TODO: extend matching engine to match only key or values and use
+              logical operators on values.
 
         If there is nothing to map, return the base class which by default is
         the same class as the Graph instance making the call to the get method.
