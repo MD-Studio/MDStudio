@@ -5,7 +5,6 @@ from twisted.logger import Logger
 import cerise_client.service as cc
 import hashlib
 import json
-import numpy as np
 import os
 from os.path import join
 from time import sleep
@@ -278,8 +277,7 @@ def set_input_parameters_lie(job, gromacs_config):
 
     # Finally set residues
     residues = gromacs_config['residues']
-    job.set_input('residues', np.array2string(
-        np.array(residues), separator=',')[1:-1])
+    job.set_input('residues', residues)
 
     return job
 
