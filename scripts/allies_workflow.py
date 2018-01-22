@@ -264,7 +264,7 @@ class LIEWorkflow(LieApplicationSession):
             wf.connect_task(t21, t25, data_mapping={'liedeltag_file': 'dataframe'})
 
         # Save the workflow specification
-        #wf.save(path=os.path.join(workdir, 'workflow_spec.json'))
+        wf.save(path=os.path.join(workdir, 'workflow_spec.json'))
 
         # Run the workflow
         wf.run()
