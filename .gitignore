@@ -218,3 +218,6 @@ app/bower_components/*
 # emacs
 *~
 venv
+
+# MDSTUDIO
+cerise_config.json
