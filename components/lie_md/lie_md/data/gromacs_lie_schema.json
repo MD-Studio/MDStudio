@@ -108,5 +108,5 @@
         }
     },
     "required": [
-	"protein_pdb", "ligand_pdb", "protein_top", "ligand_top"]
+	"protein_file", "ligand_file", "protein_top", "topology_file"]
 }
