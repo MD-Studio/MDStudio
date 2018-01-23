@@ -55,7 +55,7 @@ def call_cerise_gromit(
     :returns: Dict with the output paths.
     """
     srv_data = retrieve_service_from_db(
-        cerise_config, gromacs_config['ligand_pdb'], cerise_db)
+        cerise_config, gromacs_config['ligand_file'], cerise_db)
 
     if srv_data is None:
         # Create a new service if one is not already running
@@ -81,7 +81,7 @@ def call_cerise_gromit(
     return sim_dict
 
 
-def retrieve_service_from_db(config, ligand_pdb, cerise_db):
+def retrieve_service_from_db(config, ligand_file, cerise_db):
     """
     Check if there is an alive service in the db.
 
@@ -90,7 +90,7 @@ def retrieve_service_from_db(config, ligand_pdb, cerise_db):
     :param cerise_db: Connector to the DB.
     """
     query = {
-        'ligand_md5': compute_md5(ligand_pdb),
+        'ligand_md5': compute_md5(ligand_file),
         'name': config['docker_name']}
 
     return cerise_db.find_one(query)
@@ -220,9 +220,9 @@ def collect_srv_data(
     srv_data['job_id'] = job_id
 
     # create a unique ID for the ligand
-    ligand_pdb = gromacs_config['ligand_pdb']
+    ligand_file = gromacs_config['ligand_file']
 
-    srv_data['ligand_md5'] = compute_md5(ligand_pdb)
+    srv_data['ligand_md5'] = compute_md5(ligand_file)
     srv_data['username'] = username
 
     return srv_data
@@ -247,8 +247,8 @@ def add_input_files_lie(job, gromacs_config):
     Tell to Cerise which files are associated to a `job`.
     """
     # Add files to cerise job
-    files = ['protein_pdb', 'protein_top',
-             'ligand_pdb', 'ligand_top']
+    files = ['protein_file', 'protein_top',
+             'ligand_file', 'topology_file']
     for name in files:
         job.add_input_file(name, gromacs_config[name])
 
