@@ -51,8 +51,8 @@ class MDWampApi(LieApplicationSession):
 
     def run_gromacs_liemd(
             self, session={}, path_cerise_config=None, cwl_workflow=None,
-            protein_pdb=None, protein_top=None, ligand_pdb=None,
-            ligand_top=None, include=[], residues=None, **kwargs):
+            protein_file=None, protein_top=None, ligand_file=None,
+            topolopy_file=None, include=[], residues=None, **kwargs):
         """
         First it calls gromit to compute the Ligand-solute energies, then
         calls gromit to calculate the protein-ligand energies.
@@ -62,10 +62,10 @@ class MDWampApi(LieApplicationSession):
         http://cerise-client.readthedocs.io/en/master/index.html
 
         This function expects the following keywords files to call gromit:
-            * protein_pdb
+            * protein_file
             * protein_top
-            * ligand_pdb
-            * ligand_top
+            * ligand_file
+            * topolopy_file
 
         Further include files (e.g. *itp files) can be included as a list:
         include=[atom_types.itp, another_itp.itp]
@@ -83,8 +83,8 @@ class MDWampApi(LieApplicationSession):
 
         # Load GROMACS configuration and update it
         input_dict = {
-            'protein_pdb': protein_pdb, 'protein_top': protein_top,
-            'ligand_pdb': ligand_pdb, 'ligand_top': ligand_top,
+            'protein_file': protein_file, 'protein_top': protein_top,
+            'ligand_file': ligand_file, 'topolopy_file': topolopy_file,
             'include': include, 'residues': residues}
         input_dict.update(**kwargs)
 
