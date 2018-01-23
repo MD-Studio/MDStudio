@@ -33,8 +33,10 @@ formats_dict = {
 
 
 def correctItp(itp_file, new_itp_file, posre=True):
-    '''Correct hydrogen and heavy atom masses in the .itp file
-       makes position restraint file for the ligand'''
+    """
+    Correct hydrogen and heavy atom masses in the .itp file
+       makes position restraint file for the ligand
+    """
     if posre:
         posreNm = "{}-posre.itp".format(
             os.path.splitext(new_itp_file)[0])
@@ -63,7 +65,7 @@ def correctItp(itp_file, new_itp_file, posre=True):
 
 def read_include_topology(itp_file):
     """
-    Read an include topology file and returns a dictionary
+    Read an include topology file `itp_file` and returns a dictionary
     based on the sections.
 
     :param itp_file: path to the itp file
