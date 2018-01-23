@@ -1,11 +1,11 @@
 cwlVersion: v1.0
 class: Workflow
 inputs:
-  ligand_pdb:
+  ligand_file:
     type: File
-  ligand_top:
+  topology_file:
     type: File
-  protein_pdb:
+  protein_file:
     type: File?
   protein_top:
     type: File
@@ -121,8 +121,8 @@ steps:
     run: mdstudio/gromit.cwl
     in:
       protein_top: protein_top
-      ligand_pdb: ligand_pdb
-      ligand_top: ligand_top
+      ligand_file: ligand_file
+      topology_file: topology_file
       forcefield: forcefield
       periodic_distance: periodic_distance
       pressure: pressure
@@ -145,10 +145,10 @@ steps:
   gromit_protein_ligand:
     run: mdstudio/gromit.cwl
     in:
-      protein_pdb: protein_pdb
+      protein_file: protein_file
       protein_top: protein_top
-      ligand_pdb: ligand_pdb
-      ligand_top: ligand_top
+      ligand_file: ligand_file
+      topology_file: topology_file
       forcefield: forcefield
       periodic_distance: periodic_distance
       pressure: pressure
@@ -172,7 +172,7 @@ steps:
     run: mdstudio/decompose.cwl
     in:
       # secondary files
-      ligand_top: ligand_top
+      topology_file: topology_file
       protein_top: protein_top
       # position binded parameters 
       res: residues
