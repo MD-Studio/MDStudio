@@ -15,5 +15,5 @@ def main():
     cliparser = lie_cli_parser()
 
     # Connect to MDStudio and call method
-    runner = ApplicationRunner('ws://localhost:8080/ws', 'liestudio', extra=cliparser)
+    runner = ApplicationRunner(u'ws://localhost:8080/ws', u'liestudio', extra=cliparser)
     runner.run(CliWampApi, auto_reconnect=False, log_level='error')

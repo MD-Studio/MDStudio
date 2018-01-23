@@ -5,12 +5,6 @@ package:  lie_structures
 
 LIEStudio small molecule cheminformatics functions
 
-export RDBASE='/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/RDkit'
-export DYLD_LIBRARY_PATH='/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/RDkit/lib'
-export JPYPE_JVM=/System/Library/Frameworks/JavaVM.framework/JavaVM
-export LD_LIBRARY_PATH=/System/Library/Frameworks/JavaVM.framework/Libraries:$LD_LIBRARY_PATH
-export CLASSPATH=/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/opsin-1.3.0-jar-with-dependencies.jar:/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/cdk-1.4.15.jar
-
 TODO: Incluce PyBioMed package?
 TODO: Integrate Cambridge Structural Database, using CSD Python API
 TODO: Integrate PaDEL-Descriptor package?
