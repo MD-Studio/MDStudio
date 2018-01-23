@@ -15,6 +15,11 @@
             "description": "Path to RDKit installation",
             "default": "/Users/mvdijk/Documents/WorkProjects/liestudio-master/liestudio/bin/RDkit"
         },
+        "toolkit": {
+            "type": "string",
+            "description": "Default cheminformatics toolkit to use",
+            "default": "pybel"
+        },
         "mol": {
             "type": "string",
             "description": "Moleculare file"
