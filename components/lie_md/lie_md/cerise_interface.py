@@ -220,7 +220,7 @@ def collect_srv_data(
     srv_data['job_id'] = job_id
 
     # create a unique ID for the ligand
-    ligand_file = gromacs_config['file']
+    ligand_file = gromacs_config['ligand_file']
 
     srv_data['ligand_md5'] = compute_md5(ligand_file)
     srv_data['username'] = username
