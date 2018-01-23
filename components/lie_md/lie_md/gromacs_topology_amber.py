@@ -36,10 +36,10 @@ def correctItp(itp_file, new_itp_file, posre=True):
     '''Correct hydrogen and heavy atom masses in the .itp file
        makes position restraint file for the ligand'''
     if posre:
-        posreNm = "{}-posre.itp".format(
+        posre_filename = "{}-posre.itp".format(
             os.path.splitext(new_itp_file)[0])
     else:
-        posreNm = None
+        posre_filename = None
 
     # read itp
     itp_dict, ordered_keys = read_include_topology(itp_file)
@@ -48,15 +48,16 @@ def correctItp(itp_file, new_itp_file, posre=True):
     itp_dict = adjust_heavyH(itp_dict)
 
     # write corrected itp (with HH and no atomtype section
-    write_itp(itp_dict, ordered_keys, new_itp_file, posre=posreNm)
+    write_itp(itp_dict, ordered_keys, new_itp_file, posre=posre_filename)
 
     # create positional restraints file
     if posre:
-        write_posre(itp_dict, posreNm)
+        write_posre(itp_dict, posre_filename)
     # get charge ligand
     charge = sum(float(atom[6]) for atom in itp_dict['atoms'])
 
-    return {'itp': new_itp_file, 'posre': posreNm,
+    return {'itp_filename': new_itp_file,
+            'posre_filename': posre_filename,
             'attypes': itp_dict['atomtypes'],
             'charge': int(charge)}
 
@@ -171,8 +172,9 @@ def write_itp(itp_dict, keys, oitp, posre=None, excludeList=['atomtypes']):
                     outFile.write(formats_dict[block_name].format(*item))
         outFile.write("\n")
         if posre is not None:
+            basename = os.path.basename(posre)
             outFile.write(
-                '#ifdef POSRES\n#include "%s"\n#endif\n' % posre)
+                '#ifdef POSRES\n#include "%s"\n#endif\n' % basename)
 
 
 def check_block_name(block_name):

@@ -34,16 +34,20 @@ def fix_topology_ligand(gromacs_config, workdir):
     """
     Adjust topology for the ligand.
     """
+    itp_file = join(workdir, 'ligand.itp')
+    results = correctItp(
+        gromacs_config['topology_file'], itp_file, posre=True)
+
+    # Add charges and topology
+    gromacs_config['charge'] = results['charge']
+    gromacs_config['topology_file'] = results['itp_filename']
+
+    # Added further include file
+    include_itp = results.get('posre_filename', None)
+    if include_itp is not None:
+        gromacs_config['include'].append(include_itp)
+
     return gromacs_config
-    # itp_file = join(workdir, 'ligand.itp')
-    # results = correctItp(
-    #     gromacs_config['ligand_itp'], itp_file, posre=True)
-
-    # # Add charges and topology
-    # gromacs_config['charge'] = results['charge']
-    # gromacs_config['ligand_itp'] = itp_file
-
-    # return gromacs_config
 
 
 def copy_data_to_workdir(config, workdir):
