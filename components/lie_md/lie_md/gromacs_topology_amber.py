@@ -6,6 +6,7 @@ createTopology function should receive an input file
  (already processed  e.g. protonated)
 and return a tuple containing itp and pdb of the ligand.
 """
+import fnmatch
 import numpy as np
 import os
 from parsers import (itp_parser, parser_atoms_mol2, parse_file)
@@ -60,6 +61,30 @@ def correctItp(itp_file, new_itp_file, posre=True):
             'posre_filename': posre_filename,
             'attypes': itp_dict['atomtypes'],
             'charge': int(charge)}
+
+
+def fix_atom_types_file(include_files, atomtypes_ligand, workdir):
+    """
+    added the missing atomtypes into the attypes.itp file.
+    """
+    attypes_file = fnmatch.filter(include_files, "*typ*.itp")[0]
+
+    # get a dictionary of atomtypes sections together with its sorted keys
+    itp_dict, keys = read_include_topology(attypes_file)
+
+    # fix the atom types using the ligand topology
+    itp_dict['atomtypes'] = fix_atom_types(itp_dict['atomtypes'], atomtypes_ligand)
+
+    # rewrite the atom file
+    write_itp(
+        itp_dict, keys, attypes_file, posre=None, excludeList=[])
+
+
+def fix_atom_types(atomtypes_ligand, itp_dict, keys):
+    """
+    Add the atom types of the ligand that are not already present
+    """
+    pass
 
 
 def read_include_topology(itp_file):
@@ -160,11 +185,12 @@ def compute_index_hs_and_partners(itp_dict):
     return hs.flatten(), ps.flatten()
 
 
-def write_itp(itp_dict, keys, oitp, posre=None, excludeList=['atomtypes']):
+def write_itp(
+        itp_dict, keys, itp_filename, posre=None, excludeList=['atomtypes']):
     """
     write new itp. atomtype block is removed
     """
-    with open(oitp, "w") as outFile:
+    with open(itp_filename, "w") as outFile:
         for block_name in keys:
             if block_name not in excludeList:
                 outFile.write("[ {} ]\n".format(check_block_name(block_name)))

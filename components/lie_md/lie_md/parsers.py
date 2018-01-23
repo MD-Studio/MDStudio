@@ -30,6 +30,8 @@ skipLine = pp.Suppress(skipSupress('\n'))
 
 comment = pp.Suppress(pp.Literal(';')) + skipLine
 
+optional_comment = pp.ZeroOrMore(comment)
+
 word = pp.Word(pp.alphanums)
 
 line = pp.Group(
@@ -40,13 +42,13 @@ lines = pp.Group(pp.OneOrMore(line))
 brackets = pp.Suppress("[") + word + pp.Suppress("]")
 
 # High level parsers
-section = brackets + pp.Optional(pp.OneOrMore(comment)) + lines
+section = brackets + optional_comment + lines
 
 many_sections = pp.Group(pp.OneOrMore(section))
 
 
 # Parser for itp files
-itp_parser = comment + many_sections
+itp_parser = optional_comment + many_sections
 
 # Parser for the atom section of mol2 files
 header_mol2 = skipSupress(pp.Literal("@<TRIPOS>ATOM")) + skipLine
