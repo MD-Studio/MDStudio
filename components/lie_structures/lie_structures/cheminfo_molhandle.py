@@ -17,8 +17,7 @@ logging = Logger()
 
 
 def mol_read(
-        mol, mol_format=None, from_file=False, toolkit='pybel',
-        default_mol_name='ligand'):
+        mol, mol_format=None, from_file=False, toolkit='pybel', default_mol_name='ligand'):
     """
     Import molecular structure file in cheminformatics toolkit molecular object
     """
@@ -34,7 +33,7 @@ def mol_read(
 
     # Is the file format supported by the toolkit
     if mol_format not in toolkit_driver.informats:
-        logging.error('Molecular file format "{0}" not supported by {1}'.format(mol_format, toolkit))
+        logging.error('Molecular input file format "{0}" not supported by {1}'.format(mol_format, toolkit))
         return
 
     try:
@@ -67,11 +66,11 @@ def mol_write(molobject, mol_format=None, file_path=None):
         return
 
     mol_format = mol_format or getattr(molobject, 'mol_format', None)
-    assert mol_format in toolkit_driver.outformats, logging.error('Molecular file format "{0}" not supported by {1}'.
-                                                                 format(mol_format, molobject.toolkit))
+    if mol_format not in toolkit_driver.outformats:
+        logging.error('Molecular output file format "{0}" not supported by {1}'.format(mol_format, molobject.toolkit))
+        return
 
     output = molobject.write(mol_format, file_path, overwrite=True)
-
     if file_path and os.path.isfile(file_path):
         return file_path
 
