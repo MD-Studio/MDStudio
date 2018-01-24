@@ -32,7 +32,7 @@ comment = pp.Suppress(pp.Literal(';')) + skipLine
 
 optional_comment = pp.ZeroOrMore(comment)
 
-word = pp.Word(pp.alphanums)
+word = pp.Word(pp.alphanums + "*")
 
 line = pp.Group(
     pp.OneOrMore(float_number | word) + pp.Optional(comment))

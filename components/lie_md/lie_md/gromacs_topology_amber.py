@@ -80,11 +80,17 @@ def fix_atom_types_file(include_files, atomtypes_ligand, workdir):
         itp_dict, keys, attypes_file, posre=None, excludeList=[])
 
 
-def fix_atom_types(atomtypes_ligand, itp_dict, keys):
+def fix_atom_types(array_atomtypes, atomtypes_ligand):
     """
-    Add the atom types of the ligand that are not already present
+    Add the atom types of the ligand `atomtypes_ligand` that are not already
+    present at `array_atomtypes`.
+
+    warning: It does not remove duplicates.
     """
-    pass
+    atomtypes_ligand = atomtypes_ligand.reshape(atomtypes_ligand.size // 7, 7)
+    array_atomtypes = array_atomtypes.reshape(array_atomtypes.size // 7, 7)
+
+    return np.vstack((atomtypes_ligand, array_atomtypes))
 
 
 def read_include_topology(itp_file):
@@ -233,10 +239,10 @@ def write_posre(itp_dict, output_itp):
         for atom in itp_dict['atoms']:
             if atom[1].lower().startswith("h"):
                 f.write(
-                    "{}-4s    1  5POSCOS 5POSCOS 5POSCOS\n".format(atom[0]))
+                    "{:4}    1  5POSCOS 5POSCOS 5POSCOS\n".format(atom[0]))
             else:
                 f.write(
-                    "{}-4s    1  2POSCOS 2POSCOS 2POSCOS\n".format(atom[0]))
+                    "{:4}    1  2POSCOS 2POSCOS 2POSCOS\n".format(atom[0]))
 
 
 def reorderhem(

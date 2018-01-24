@@ -172,7 +172,7 @@ class LIEWorkflow(LieApplicationSession):
             # Ligand in solution
             t14 = wf.add_task('MD ligand in water and MD on protein-ligand system', task_type='WampTask',
                               uri='liestudio.gromacs.liemd', store_output=True)
-            wf.input(t14, sim_time=model['timeSim'], forcefield=forcefield,
+            wf.input(t14, sim_time=0.001, forcefield=forcefield,
                      periodic_distance=periodic_distance, temperature=temperature, solvent=solvent, ptau=ptau,
                      prfc=prfc, ttau=ttau, salinity=salinity, charge=model['charge'],
                      path_cerise_config=cerise_file,
