@@ -80,17 +80,20 @@ def fix_atom_types_file(include_files, atomtypes_ligand, workdir):
         itp_dict, keys, attypes_file, posre=None, excludeList=[])
 
 
-def fix_atom_types(array_atomtypes, atomtypes_ligand):
+def fix_atom_types(atomtypes, ligand_atomtypes):
     """
-    Add the atom types of the ligand `atomtypes_ligand` that are not already
-    present at `array_atomtypes`.
-
-    warning: It does not remove duplicates.
+    Add the atom types of the ligand `ligand_atomtypes` that are not already
+    present at `atomtypes`.
     """
-    atomtypes_ligand = atomtypes_ligand.reshape(atomtypes_ligand.size // 7, 7)
-    array_atomtypes = array_atomtypes.reshape(array_atomtypes.size // 7, 7)
+    ligand_atomtypes = ligand_atomtypes.reshape(ligand_atomtypes.size // 7, 7)
+    atomtypes = atomtypes.reshape(atomtypes.size // 7, 7)
+    labels = atomtypes[:, 0]
+    new_types = [atom for atom in ligand_atomtypes if atom[0] not in labels]
 
-    return np.vstack((atomtypes_ligand, array_atomtypes))
+    if new_types:
+        return np.vstack((atomtypes, new_types))
+    else:
+        return atomtypes
 
 
 def read_include_topology(itp_file):
