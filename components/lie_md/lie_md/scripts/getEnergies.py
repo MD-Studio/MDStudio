@@ -154,7 +154,7 @@ def rerun_md(args, files):
 
 def energy_analysis(args, energy_file):
     """Analysis of energy decomposition file after rerun"""
-    df = get_energy(energy_file)
+    df = get_energy(energy_file, args.resList)
 
     write_decomposition_ouput(df, args.outName, args.resList)
 
