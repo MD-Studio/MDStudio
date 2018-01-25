@@ -89,7 +89,7 @@ def decompose(args):
         msg = 'TERMINATED. List of residues not provided.'
         log_and_quit(msg)
 
-    if not availProg('gmx', args.gmxEnv):
+    if not any(availProg(x, args.gmxEnv) for x in ['gmx', 'gmx_mpi']):
         log_and_quit('gmx executable was not found')
 
     # parse MD mdp
@@ -154,7 +154,7 @@ def rerun_md(args, files):
 
 def energy_analysis(args, energy_file):
     """Analysis of energy decomposition file after rerun"""
-    df = get_energy(energy_file, args.resList)
+    df = get_energy(energy_file)
 
     write_decomposition_ouput(df, args.outName, args.resList)
 
