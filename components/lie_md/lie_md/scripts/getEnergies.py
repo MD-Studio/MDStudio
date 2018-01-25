@@ -25,6 +25,7 @@ import logging
 import numpy as np
 import os
 import re
+import subprocess
 import sys
 from multiprocessing import cpu_count
 from panedr import edr_to_df
@@ -89,7 +90,8 @@ def decompose(args):
         msg = 'TERMINATED. List of residues not provided.'
         log_and_quit(msg)
 
-    if not any(availProg(x, args.gmxEnv) for x in ['gmx', 'gmx_mpi']):
+    gmx = search_commands(['gmx', 'gmx_mpi'])
+    if gmx is None:
         log_and_quit('gmx executable was not found')
 
     # parse MD mdp
@@ -104,13 +106,13 @@ def decompose(args):
     top = search_file_in_args(args_dict, ext='top', pref='*-sol')
     files = Files(gro, ndx, trr, top, mdpIn, None)
 
-    energy_file = decomp(mdp_dict, args, files)
+    energy_file = decomp(mdp_dict, args, files, gmx)
 
     energy_analysis(args, energy_file)
 
 
 def decomp(
-         mdp_dict, args, files, ligGroup='Ligand', output_prefix='decompose'):
+         mdp_dict, args, files, gmx, ligGroup='Ligand', output_prefix='decompose'):
     """
     Decompose the energy into its components for different residues.
     """
@@ -126,19 +128,19 @@ def decomp(
     files = files._replace(ndx=new_ndx_file)
 
     # Generate new tpr file
-    new_tpr_file = create_new_tpr_file(args, files)
+    new_tpr_file = create_new_tpr_file(args, files, gmx)
 
     # update files tuple
     new_files = files._replace(ndx=new_ndx_file, tpr=new_tpr_file)
 
-    return rerun_md(args, new_files)
+    return rerun_md(args, new_files, gmx)
 
 
-def rerun_md(args, files):
+def rerun_md(args, files, gmx):
     """
     Rerun the molecular dynamics and create decomposition of the energy.
     """
-    mdrun = set_gmx_mpi_run(args.gmxEnv)
+    mdrun = set_gmx_mpi_run(gmx)
     cmd = ['-s', files.tpr, '-rerun', files.trr, '-deffnm', 'decompose']
     rs, err = call_subprocess(mdrun + cmd, args.gmxEnv)
     logging.error(err)
@@ -159,12 +161,12 @@ def energy_analysis(args, energy_file):
     write_decomposition_ouput(df, args.outName, args.resList)
 
 
-def create_new_tpr_file(args, files):
+def create_new_tpr_file(args, files, gmx):
     """
     Call gromacs grompp `http://manual.gromacs.org/programs/gmx-grompp.html`.
     """
     outTpr = os.path.join(args.dataDir, 'decompose.tpr')
-    cmd = ['gmx', 'grompp', '-f', files.mdp, '-c', files.gro, '-p',
+    cmd = [gmx, 'grompp', '-f', files.mdp, '-c', files.gro, '-p',
            files.top, '-n', files.ndx, '-o', outTpr, '-maxwarn', '2']
     rs, err = call_subprocess(cmd, args.gmxEnv)
     logging.error(err)
@@ -177,20 +179,15 @@ def create_new_tpr_file(args, files):
     return outTpr
 
 
-def set_gmx_mpi_run(env):
+def set_gmx_mpi_run(gmx):
     """
     Try to run gmx mdrun using MPI see:
     `http://manual.gromacs.org/documentation/5.1/user-guide/mdrun-performance.html`
     """
-    mpi_run = env.get('MPI_RUN', None)
+    nranks = compute_mpi_ranks()
+    gmx_bin = ['mpirun'] + nranks + [gmx]
 
-    if mpi_run is not None:
-        nranks = compute_mpi_ranks()
-        gmx = [mpi_run] + nranks + ['gmx']
-    else:
-        gmx = ['gmx']
-
-    return gmx + ['mdrun']
+    return gmx_bin + ['mdrun']
 
 
 def compute_mpi_ranks(ranks=''):
@@ -254,7 +251,7 @@ def create_new_mdp_file(mdp_dict, args, ligGroup):
         'xtc-precision': '0', 'xtc-grps': '', 'nstlist': '1'}
 
     # the [1:-1] removes the [ ] from the beginning and the end
-    str_residues = np.array_str(args.resList)[1:-1]
+    str_residues = np.array_str(args.resList, max_line_width=1000)[1:-1]
     energygrps = '{} {}'.format(ligGroup, str_residues)
 
     newKeys['energygrps'] = energygrps
@@ -385,7 +382,14 @@ def write_decomposition_ouput(listFrames, outName, resList):
 
 def parseResidues(xs):
     """ return an array of the residues index """
-    return np.array(xs.split(','), dtype=np.int32)
+    residues = np.array(xs.split(','), dtype=np.int32)
+    if residues.size > 62:
+        logging.info("""
+Warning: With NxN kernels not more than 64 energy groups are supported,
+Only the first 62 residues + Ligand + rest energy groups will be used """)
+        residues = residues[:62]
+        
+    return residues
 
 
 def parseMdp(mdpIn):
@@ -494,6 +498,24 @@ def call_subprocess(cmd, env=None):
         msg1 = "Subprocess fails with error: {}".format(e)
         msg2 = "Command: {}\n".format(cmd)
         log_and_quit(msg1 + msg2)
+
+
+def check_command(cmd):
+    try:
+        with open(os.devnull, 'w') as f:
+            r = subprocess.check_output(cmd, stderr=f)
+            return r.split()[0]
+    except subprocess.CalledProcessError:
+        return None
+
+
+def search_commands(cmds):
+    xs = [check_command(["which", c]) for c in cmds]
+    rs = [x for x in xs if x is not None]
+    if rs:
+        return rs[0]
+    else:
+        return None
 
 
 if __name__ == "__main__":
