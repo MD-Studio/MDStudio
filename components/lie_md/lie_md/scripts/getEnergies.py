@@ -90,7 +90,7 @@ def decompose(args):
         msg = 'TERMINATED. List of residues not provided.'
         log_and_quit(msg)
 
-    gmx = search_commands(['gmx', 'gmx_mpi'])
+    gmx = search_commands(['gmx', 'gmx_mpi'], args.gmxEnv)
     if gmx is None:
         log_and_quit('gmx executable was not found')
 
@@ -500,17 +500,17 @@ def call_subprocess(cmd, env=None):
         log_and_quit(msg1 + msg2)
 
 
-def check_command(cmd):
+def check_command(cmd, env):
     try:
         with open(os.devnull, 'w') as f:
-            r = subprocess.check_output(cmd, stderr=f)
+            r = subprocess.check_output(cmd, stderr=f, env=env)
             return r.split()[0]
     except subprocess.CalledProcessError:
         return None
 
 
-def search_commands(cmds):
-    xs = [check_command(["which", c]) for c in cmds]
+def search_commands(cmds, env=None):
+    xs = [check_command(["which", c], env) for c in cmds]
     rs = [x for x in xs if x is not None]
     if rs:
         return rs[0]
