@@ -54,10 +54,8 @@ def call_cerise_gromit(
     related to the Cerise services and jobs.
     :returns: Dict with the output paths.
     """
-    job_type = "solvent_ligand_md" if protein_file is None else "protein_ligand_md"
-
     srv_data = retrieve_service_from_db(
-        cerise_config, gromacs_config['ligand_file'], cerise_db)
+        cerise_config, gromacs_config, cerise_db)
 
     if srv_data is None:
         # Create a new service if one is not already running
@@ -83,17 +81,20 @@ def call_cerise_gromit(
     return sim_dict
 
 
-def retrieve_service_from_db(config, ligand_file, cerise_db):
+def retrieve_service_from_db(
+        cerise_config, gromacs_config, cerise_db):
     """
     Check if there is an alive service in the db.
 
-    :param config: Service metadata.
-    :param ligand_db: Path to the ligand geometry.
+    :param cerise_config: Service metadata.
+    :param gromacs_config: Path to the ligand geometry.
     :param cerise_db: Connector to the DB.
     """
+    ligand_file = gromacs_config['ligand_file']
     query = {
+        'job_type': gromacs_config['job_type'],
         'ligand_md5': compute_md5(ligand_file),
-        'name': config['docker_name']}
+        'name': cerise_config['docker_name']}
 
     return cerise_db.find_one(query)
 
@@ -224,6 +225,7 @@ def collect_srv_data(
 
     srv_data['ligand_md5'] = compute_md5(ligand_file)
     srv_data['username'] = username
+    srv_data['job_type'] = gromacs_config['job_type']
 
     return srv_data
 
@@ -372,42 +374,42 @@ def get_output(job, config):
     retrieve output information from the `job`.
     """
     file_formats = {
-        "gromitout": "{}.out",
-        "gromiterr": "{}.err",
-        "gromacslog2": "{}.out",
-        "gromacslog3": "{}.out",
-        "gromacslog4": "{}.out",
-        "gromacslog5": "{}.out",
-        "gromacslog6": "{}.out",
-        "gromacslog7": "{}.out",
-        "gromacslog8": "{}.out",
-        "gromacslog9": "{}.out",
-        "energy":  "{}.edr",
-        "energy_dataframe": "{}.ene",
-        "energyout": "{}.out",
-        "energyerr": "{}.err",
-        "decompose_dataframe": "{}.ene",
-        "decompose_err": "{}.err",
-        "decompose_out": "{}.out"}
+        "gromitout": "{}_{}.out",
+        "gromiterr": "{}_{}.err",
+        "gromacslog2": "{}_{}.out",
+        "gromacslog3": "{}_{}.out",
+        "gromacslog4": "{}_{}.out",
+        "gromacslog5": "{}_{}.out",
+        "gromacslog6": "{}_{}.out",
+        "gromacslog7": "{}_{}.out",
+        "gromacslog8": "{}_{}.out",
+        "gromacslog9": "{}_{}.out",
+        "energy":  "{}_{}.edr",
+        "energy_dataframe": "{}_{}.ene",
+        "energyout": "{}_{}.out",
+        "energyerr": "{}_{}.err",
+        "decompose_dataframe": "{}_{}.ene",
+        "decompose_err": "{}_{}.err",
+        "decompose_out": "{}_{}.out"}
 
     # Save all data about the simulation
     outputs = job.outputs
     results = {
         key: copy_output_from_remote(
-            outputs[key], config, fmt)
+            outputs[key], key, config, fmt)
         for key, fmt in file_formats.items() if key in outputs}
 
     return results
 
 
-def copy_output_from_remote(file_object, config, fmt):
+def copy_output_from_remote(file_object, file_name, config, fmt):
     """
     Copy output files to the localhost.
     """
     task_id = config['task_id']
     workdir = config['workdir']
 
-    path = join(workdir, fmt.format(task_id))
+    path = join(workdir, fmt.format(file_name, task_id))
     file_object.save_as(path)
 
     return path
