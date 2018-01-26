@@ -1,11 +1,12 @@
-import os
+import json
+
 
 def get_docking_medians(session=None, **kwargs):
 
     medians = [v.get('path') for v in kwargs.get('output', {}).values() if v.get('mean', True)]
     session['status'] = 'completed'
-    
-    return {'medians': medians, 'session':session}
+
+    return {'medians': medians, 'session': session}
 
 
 def pick_atb_query_match(session=None, **kwargs):
@@ -45,16 +46,33 @@ def choose_atb_amber(session=None, **kwargs):
         return {'session': session, 'choice': kwargs.get('neg')}
 
 
-def collect_md_enefiles(session=None, **kwargs):
+def collect_md_enefiles(session=None, bound=None, unbound=None, **kwargs):
 
     session['status'] = 'completed'
 
-    # Mock MD output
+    # Get the output from the MD microservice
     output = {'session': session}
-    output['unbound_trajectory'] = os.path.join(kwargs['model_dir'], 'BHC2-0-0.ene')
-    output['bound_trajectory'] = [os.path.join(kwargs['model_dir'],
-                                    'BHC2-1-{0}.ene'.format(nr+1)) for nr in range(len(kwargs['bound']))]
-    output['decomp_files'] = [os.path.join(kwargs['model_dir'],
-                                           'BHC2-1-{0}.decomp'.format(nr + 1)) for nr in range(len(kwargs['bound']))]
+    output['unbound_trajectory'] = unbound['energy_dataframe']
+
+    if isinstance(bound, dict):
+        output['bound_trajectory'] = [bound['energy_dataframe']]
+        output['decomp_files'] = [bound['decompose_dataframe']]
+    elif isinstance(bound, list):
+        output['bound_trajectory'] = [b['energy_dataframe'] for b in bound]
+        output['decomp_files'] = [b['decompose_dataframe']for b in bound]
 
     return output
+
+# def collect_md_enefiles(session=None, **kwargs):
+
+#     session['status'] = 'completed'
+
+#     # Mock MD output
+#     output = {'session': session}
+#     output['unbound_trajectory'] = os.path.join(kwargs['model_dir'], 'BHC2-0-0.ene')
+#     output['bound_trajectory'] = [os.path.join(kwargs['model_dir'],
+#                                     'BHC2-1-{0}.ene'.format(nr+1)) for nr in range(len(kwargs['bound']))]
+#     output['decomp_files'] = [os.path.join(kwargs['model_dir'],
+#                                            'BHC2-1-{0}.decomp'.format(nr + 1)) for nr in range(len(kwargs['bound']))]
+
+#     return output
