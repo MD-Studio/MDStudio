@@ -14,7 +14,7 @@ logger = Logger()
 
 
 def create_cerise_config(
-        path_to_config, session, cwl_workflow):
+        path_to_config, session, cwl_workflow, protein_file):
     """
     Creates a Cerise service using the `path_to_config`
     yaml file, together with the `cwl_workflow` to run
@@ -34,7 +34,7 @@ def create_cerise_config(
     config.update(session)
 
     # Set Workflow
-    config['cwl_workflow'] = check_cwl_workflow(cwl_workflow)
+    config['cwl_workflow'] = check_cwl_workflow(cwl_workflow, protein_file)
     config['log'] = join(config['workdir'], 'cerise.log')
 
     return config
@@ -54,6 +54,8 @@ def call_cerise_gromit(
     related to the Cerise services and jobs.
     :returns: Dict with the output paths.
     """
+    job_type = "solvent_ligand_md" if protein_file is None else "protein_ligand_md"
+
     srv_data = retrieve_service_from_db(
         cerise_config, gromacs_config['ligand_file'], cerise_db)
 
@@ -197,8 +199,6 @@ def wait_extract_clean(job, srv, cerise_config, cerise_db):
     output = get_output(job, cerise_config)
     cleanup(job, srv, cerise_db)
 
-    logger.info('Output: {}'.format(output))
-
     return output
 
 
@@ -247,10 +247,15 @@ def add_input_files_lie(job, gromacs_config):
     Tell to Cerise which files are associated to a `job`.
     """
     # Add files to cerise job
-    files = ['protein_file', 'protein_top',
-             'ligand_file', 'topology_file']
-    for name in files:
+    for name in ['protein_top', 'ligand_file', 'topology_file']:
         job.add_input_file(name, gromacs_config[name])
+
+    protein_file = gromacs_config.get('protein_file')
+    if protein_file is not None:
+        job.add_input_file('protein_file', protein_file)
+    else:
+        msg = "There is not protein_file then a SOLVENT-LIGAND MD will be performed"
+        logger.info(msg)
 
     # Secondary files are all include as part of the protein
     # topology. Just to include them whenever the protein topology
@@ -366,52 +371,44 @@ def get_output(job, config):
     """
     retrieve output information from the `job`.
     """
-    def save_data(dict_fmt):
-        return {
-            key: copy_output_from_remote(
-                job.outputs.get(key), config, fmt)
-            for key, fmt in dict_fmt.items()}
-
-    common_names = {
-        'gromiterr': '_{}.err', 'gromitout': '_{}.out',
-        'gromacslog': '_{}.log', 'energy': '_{}.edr',
-        'energy_dataframe': '_{}.ene', 'energyerr': '_{}.err',
-        'energyout': '_{}.out'}
-    decompose_names = {
-        'decompose_dataframe': 'decompose_dataframe_{}.ene',
-        'decompose_err': 'decompose_err_{}.err',
-        'decompose_out': 'decompose_out_{}.out'}
-
-    solvent_ligand_names = {
-        name + '_solvent_ligand': name + '_solvent_ligand' + fmt
-        for name, fmt in common_names.items()}
-
-    protein_ligand_names = {
-        name + '_protein_ligand': name + '_protein_ligand' + fmt
-        for name, fmt in common_names.items()}
-
-    # include the decomposition files
-    common_names.update(decompose_names)
-
-    # dict containing the whole set of file names
-    protein_ligand_names.update(solvent_ligand_names)
+    file_formats = {
+        "gromitout": "{}.out",
+        "gromiterr": "{}.err",
+        "gromacslog2": "{}.out",
+        "gromacslog3": "{}.out",
+        "gromacslog4": "{}.out",
+        "gromacslog5": "{}.out",
+        "gromacslog6": "{}.out",
+        "gromacslog7": "{}.out",
+        "gromacslog8": "{}.out",
+        "gromacslog9": "{}.out",
+        "energy":  "{}.edr",
+        "energy_dataframe": "{}.ene",
+        "energyout": "{}.out",
+        "energyerr": "{}.err",
+        "decompose_dataframe": "{}.ene",
+        "decompose_err": "{}.err",
+        "decompose_out": "{}.out"}
 
     # Save all data about the simulation
-    return save_data(protein_ligand_names)
+    outputs = job.outputs
+    results = {
+        key: copy_output_from_remote(
+            outputs[key], config, fmt)
+        for key, fmt in file_formats.items() if key in outputs}
+
+    return results
 
 
-def copy_output_from_remote(val, config, fmt):
+def copy_output_from_remote(file_object, config, fmt):
     """
     Copy output files to the localhost.
     """
-    if val is None:
-        path = None
-    else:
-        task_id = config['task_id']
-        workdir = config['workdir']
+    task_id = config['task_id']
+    workdir = config['workdir']
 
-        path = join(workdir, fmt.format(task_id))
-        val.save_as(path)
+    path = join(workdir, fmt.format(task_id))
+    file_object.save_as(path)
 
     return path
 
@@ -426,12 +423,16 @@ def compute_md5(file_name):
     return hashlib.md5(xs).hexdigest()
 
 
-def check_cwl_workflow(cwl_workflow):
+def check_cwl_workflow(cwl_workflow, protein_file):
     """
-    Check whether a CWL worflow file exists and copy it to the workdir
+    Check whether a CWL worflow file exists and copy it to the workdir.
+    If there is neither a `cwl_workflow` file nor a `protein_file`
+    perform a solvent-ligand simulation.
     """
+    root = os.path.dirname(__file__)
     if cwl_workflow is not None and os.path.isfile(cwl_workflow):
         return cwl_workflow
+    elif protein_file is not None:
+        return join(root, 'data/protein_ligand.cwl')
     else:
-        root = os.path.dirname(__file__)
-        return join(root, 'data/lie_md_workflow.cwl')
+        return join(root, 'data/solvent_ligand.cwl')

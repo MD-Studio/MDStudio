@@ -62,10 +62,10 @@ class MDWampApi(LieApplicationSession):
         http://cerise-client.readthedocs.io/en/master/index.html
 
         This function expects the following keywords files to call gromit:
-            * protein_file
             * protein_top
             * ligand_file
             * topology_file
+            * protein_file (optional)
 
         Further include files (e.g. *itp files) can be included as a list:
         include=[atom_types.itp, another_itp.itp]
@@ -73,6 +73,10 @@ class MDWampApi(LieApplicationSession):
         To perform the energy decomposition a list of the numerical residues
         identifiers is expected, for example:
         residues=[1, 5, 7, 8]
+
+        Note: the protein_file arguments is optional if you do not provide it
+        the method will perform a SOLVENT LIGAND MD if you provide the
+        `protein_file` it will perform a PROTEIN-LIGAND MD.
         """
         logger.info("starting liemd task_id:{}".format(session['task_id']))
         workdir = kwargs.get('workdir', os.getcwd())
@@ -93,7 +97,7 @@ class MDWampApi(LieApplicationSession):
 
         # Cerise Configuration
         cerise_config = create_cerise_config(
-            path_cerise_config, session, cwl_workflow)
+            path_cerise_config, session, cwl_workflow, protein_file)
 
         # Run the MD and retrieve the energies
         output = call_cerise_gromit(

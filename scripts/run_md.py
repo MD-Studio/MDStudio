@@ -176,7 +176,6 @@ class LIEWorkflow(LieApplicationSession):
                      periodic_distance=periodic_distance, temperature=temperature, solvent=solvent, ptau=ptau,
                      prfc=prfc, ttau=ttau, salinity=salinity, charge=model['charge'],
                      path_cerise_config=cerise_file,
-                     protein_file=os.path.join(liemodel, model['proteinParams'][0]['proteinCoor']),
                      protein_top=os.path.join(liemodel, model['proteinTop']),
                      residues=model['resSite'],
                      include=[os.path.join(liemodel, model['proteinTopPos']),
