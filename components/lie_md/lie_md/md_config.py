@@ -14,6 +14,10 @@ def set_gromacs_input(gromacs_config, workdir, dict_input):
     # update input
     gromacs_config.update(dict_input)
 
+    # added a job type
+    job_type = "solvent_ligand_md" if gromacs_config['protein_file'] is None else "protein_ligand_md"
+    gromacs_config['job_type'] = job_type
+
     # correct topology
     return fix_topology_ligand(gromacs_config, workdir)
 
