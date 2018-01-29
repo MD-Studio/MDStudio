@@ -36,7 +36,7 @@ class Graph(object):
     which a calculation will be performed.
 
     The graph class defines a `root` attribute for this purpose that is
-    undefined by default. It willbe set automatically in the following cases:
+    undefined by default. It will be set automatically in the following cases:
 
     * Node traversal: the first node selected (getnodes method) will be assigned
       root and traversal to `child` nodes will be done relative to the `root`.
@@ -687,6 +687,15 @@ class Graph(object):
                 'deep' if deep else 'shallow', repr(self)))
 
         return class_copy
+
+    def empty(self):
+        """
+        Report if the graph is empty (no nodes)
+
+        :rtype: :py:bool
+        """
+
+        return len(self) == 0
 
     def get(self, nid, key=None, defaultattr=None, default=None):
         """
