@@ -22,6 +22,7 @@ logger = logging.getLogger('pylie')
 
 
 def _open_anything(source):
+
     # Check if the source is a file and open
     if os.path.isfile(source):
         logger.debug("Reading file from disk {0}".format(source))
@@ -177,7 +178,6 @@ class MOL2Parser(object):
 
         read = False
         model = 0
-        mol_file = _open_anything(mol_file)
         for line in mol_file.readlines():
             if line.startswith('@<TRIPOS>ATOM'):
                 read = True
@@ -220,7 +220,6 @@ class PDBParser(object):
         modelline = re.compile('MODEL')
 
         modelcount = 0
-        pdb_file = _open_anything(pdb_file)
         for line in pdb_file.readlines():
             line = line[:-1]
 

@@ -1327,12 +1327,12 @@ class LIEContactFrame(LIEDataFrameBase):
     else:
       logger.error('Unknown filetype {0}'.format(filetype))
       return
-    
+
     # Add structure data to dataframe
     if structure_dict:
       for col in structure_dict:
         if len(structure_dict[col]): self[col] = structure_dict[col]
-    
+
     # Determine element types if not defined
     self._get_elements()
     
