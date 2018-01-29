@@ -63,13 +63,14 @@ def read_gromacs_energy_file(file_or_buffer, columns=None, lowercase=True):
     'FRAME' and 'Time' columns. Using `columns`, a columns selection can be
     specified next to the FRAME and Time columns.
 
-    :param columns:   selection of columns to import
-    :type columns:    :py:list
-    :param lowercase: convert all column headers to lowercase.
-    :type lowercase:  :py:bool
+    :param file_or_buffer:  GROMACS energy file path or file-like object
+    :param columns:         selection of columns to import
+    :type columns:          :py:list
+    :param lowercase:       convert all column headers to lowercase.
+    :type lowercase:        :py:bool
 
-    :return:          energy trajectory as Pandas DataFrame
-    :rtype:           :pandas:DataFrame
+    :return:                energy trajectory as Pandas DataFrame
+    :rtype:                 :pandas:DataFrame
     """
 
     # Which columns to extract. Always the first two, FRAME and Time
@@ -208,19 +209,19 @@ class MOL2Parser(object):
 
 
 class PDBParser(object):
-    def __init__(self, pdb_file, columns):
+    def __init__(self, columns):
 
-        self.pdb_file = pdb_file
         self.pdb_dict = dict([(n, []) for n in columns])
 
-    def parse(self):
+    def parse(self, pdb_file):
 
         atomline = re.compile('(ATOM)')
         hetatmline = re.compile('HETATM')
         modelline = re.compile('MODEL')
 
         modelcount = 0
-        for line in self.pdb_file.readlines():
+        pdb_file = _open_anything(pdb_file)
+        for line in pdb_file.readlines():
             line = line[:-1]
 
             if modelline.match(line):
@@ -244,6 +245,12 @@ class PDBParser(object):
 
     @staticmethod
     def __assign_sybyl_atomtype(valuedict):
+        """
+        Add SYBYL atom type information.
+
+        Only supports predefined SYBYL types for common amino-acid atoms based
+        on the AA_SYBYL_TYPES dictionary.
+        """
 
         ra_id = '{0}-{1}'.format(valuedict.get('resname', ''), valuedict.get('atname', ''))
         return AA_SYBYL_TYPES.get(ra_id, None)
