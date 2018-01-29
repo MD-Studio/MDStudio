@@ -1,15 +1,12 @@
 import logging
-import numpy
 import itertools
 import re
 import copy
 
-from   pandas                   import DataFrame, Series, concat, isnull
+from   pandas                   import DataFrame, concat, isnull
 from   scipy.spatial.distance   import pdist, squareform
 
 from   pylie.model.liebase      import LIEDataFrameBase
-from   pylie.model.liedataframe import LIEDataFrame
-from   pylie.model.lieseries    import LIESeries
 from   pylie.methods.fileio     import PDBParser, MOL2Parser, _open_anything
 from   pylie.methods.data       import METALS, STRUCTURE_DATA_INFO
 from   pylie.methods.geometry   import *
@@ -39,6 +36,7 @@ DEFAULT_CONTACT_COLUMN_NAMES = {'atnum':'atnum',
 # Initiate chemical information dictionary as pandas DataFrame
 cheminfo = DataFrame(STRUCTURE_DATA_INFO)
 
+
 def set_contact_type(current, add):
   
   current = current.split()
@@ -47,6 +45,7 @@ def set_contact_type(current, add):
   add = add.split()
   
   return ' '.join(set(current+add))
+
 
 def remove_contact_type(current, remove):
   
@@ -59,9 +58,9 @@ def remove_contact_type(current, remove):
   if current:
     return ' '.join(set(current))  
   return 'nd'
-  
+
+
 def coordinates(structure):
-  
   """
   TODO: This function should be added to the DataFrame and Series instead
   """
@@ -236,6 +235,7 @@ def eval_water_bridges(contact_frame, structure, min_wbridge_dist=2.5, max_wbrid
         contact_frame.loc[newindex,('source',mdx)] = tid[mdx].values[0]
     
   return contact_frame
+
 
 def eval_hbonds(contact_frame, structure, max_hbond_dist=4.1, hbond_don_anglediv=50, hbond_acc_anglediv=90, optimize=True):
   
@@ -453,6 +453,7 @@ def eval_hbonds(contact_frame, structure, max_hbond_dist=4.1, hbond_don_anglediv
   
   return contact_frame
 
+
 def eval_halogen_bonds(contact_frame, structure, max_halogen_dist=4.1, halogen_don_angle=165, halogen_acc_angle=120, halogen_angle_dev=30, halogens=('I','Br','Cl','F')):
   
   """
@@ -502,6 +503,7 @@ def eval_halogen_bonds(contact_frame, structure, max_halogen_dist=4.1, halogen_d
         contact_frame.loc[idx, 'target'].distance, donor_angle, acceptor_angle))
     
   return contact_frame
+
 
 def eval_saltbridge(contact_frame, structure, max_charge_dist=5.5, use_partial_charge=False, neg_cutoff=-0.3, pos_cutoff=0.3):
   
@@ -593,7 +595,8 @@ def eval_saltbridge(contact_frame, structure, max_charge_dist=5.5, use_partial_c
     contact_frame.loc[neg_pos.index, 'contact'] = set_contact_type(contact_frame.loc[neg_pos.index, 'contact'].values[0], 'sb-pn')
       
   return contact_frame
-  
+
+
 def eval_hydrophobic_interactions(contact_frame, structure, hydroph_dist_max=4.0):
   
   """
@@ -640,6 +643,7 @@ def eval_hydrophobic_interactions(contact_frame, structure, hydroph_dist_max=4.0
         contact_frame.loc[reset.values,'contact'] = remove_contact_type(contact_frame.loc[reset.values, 'contact'].values[0],'hf')
         
   return contact_frame
+
 
 def eval_heme_coordination(contact_frame, structure, rings=[], heme_dist_prefilter=5.5, heme_dist_max=3.5, heme_dist_min=0, min_heme_coor_angle=105, max_heme_coor_angle=160, 
                            fe_ox_dist=1.6, exclude=('H','O.3','O.2','O.co2','O.spc','O.t3p','C.cat','S.o2')):
@@ -800,6 +804,7 @@ def eval_heme_coordination(contact_frame, structure, rings=[], heme_dist_prefilt
         
   return contact_frame
 
+
 def eval_pication(contact_frame, structure, pication_dist_max=6.0, pication_offset_max=2.0, pication_amine_angle_min=90, use_partial_charge=False, pos_cutoff=0.3):
   
   """
@@ -900,7 +905,8 @@ def eval_pication(contact_frame, structure, pication_dist_max=6.0, pication_offs
           contact_frame.loc[newindex, ('source',label)] = ligatom[label].values[0]
   
   return contact_frame
-  
+
+
 def eval_pistacking(contact_frame, structure, rings=[], pistack_dist_max=7.5, pistack_ang_dev=30, pistack_offset_max=2.0):
   
   """
@@ -1031,7 +1037,8 @@ def eval_pistacking(contact_frame, structure, rings=[], pistack_dist_max=7.5, pi
               contact_frame.loc[newindex, ('target','elem')] = 'D'
               
   return contact_frame
-            
+
+
 def find_rings(structure, check_planar=True, check_aromatic=True, bond_cutoff=1.6, aromatic_planarity=7.5, maxiter=1000):
   
   """
@@ -1243,6 +1250,7 @@ def find_rings(structure, check_planar=True, check_aromatic=True, bond_cutoff=1.
   
   return ringlist
 
+
 class LIEContactFrame(LIEDataFrameBase):
   
   _class_name   = 'contact'
@@ -1313,8 +1321,8 @@ class LIEContactFrame(LIEDataFrameBase):
     elif filetype == 'mol2':
       
       # Init MOL2 parser class and parse PDB content
-      mol2 = MOL2Parser(file_or_buffer, columns=self._column_names.keys())
-      structure_dict = mol2.parse()
+      mol2 = MOL2Parser(self._column_names.keys())
+      structure_dict = mol2.parse(file_or_buffer)
       
     else:
       logger.error('Unknown filetype {0}'.format(filetype))
