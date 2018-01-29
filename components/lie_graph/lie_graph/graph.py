@@ -318,10 +318,10 @@ class Graph(object):
 
         :rtype: string
         """
-        msg = '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'
+        msg = '<{0} object {1}: id {2}, {3} nodes, {4} edges. Directed: {5}>'
 
         return msg.format(
-            type(self).__name__, id(self), len(self.nodes), len(self.edges),
+            type(self).__name__, id(self), self.nid, len(self.nodes), len(self.edges),
             self.is_directed)
 
     def __sub__(self, other):
