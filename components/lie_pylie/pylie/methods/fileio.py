@@ -151,18 +151,33 @@ def read_lie_etox_file(file_or_buffer):
 
 
 class MOL2Parser(object):
-    def __init__(self, mol_file, columns):
+    """
+    Parse a Tripos MOL2 file format.
+    """
+    def __init__(self, columns):
 
-        self.mol_file = mol_file
         self.mol_dict = dict([(n, []) for n in columns])
 
-    def parse(self):
+    def parse(self, mol_file):
+        """
+        Parse MOL2 atom definition into named columns and return as
+        dictionary.
+        Currently parses one model only and expects the order of the
+        columns to be respectively: aton number, atom name, x-coor,
+        y-coor, z-coor, SYBYL atom type, residue number, residue name
+        and charge.
+        MOL2 is a free format (no fixed column width). Their should be
+        at least one empty space between each subsequent value on a line.
+        The parser will raise an exception if this is not the case.
 
-        # NOTE: now only import one model
+        :param mol_file:
+        :return:
+        """
 
         read = False
         model = 0
-        for line in self.mol_file.readlines():
+        mol_file = _open_anything(mol_file)
+        for line in mol_file.readlines():
             if line.startswith('@<TRIPOS>ATOM'):
                 read = True
                 model += 1
@@ -172,17 +187,22 @@ class MOL2Parser(object):
                 break
 
             if read:
-                line = line.split()
+                l = line.split()
+                if not len(l) >= 9:
+                    raise IOError('FormatError in mol2. Line: {0}'.format(line))
 
-                self.mol_dict['atnum'].append(int(line[0]))
-                self.mol_dict['atname'].append(line[1].upper())
-                self.mol_dict['xcoor'].append(float(line[2]))
-                self.mol_dict['ycoor'].append(float(line[3]))
-                self.mol_dict['zcoor'].append(float(line[4]))
-                self.mol_dict['attype'].append(line[5])
-                self.mol_dict['resnum'].append(int(line[6]))
-                self.mol_dict['resname'].append(re.sub('{0}$'.format(line[6]), '', line[7]))
-                self.mol_dict['charge'].append(float(line[8]))
+                try:
+                    self.mol_dict['atnum'].append(int(l[0]))
+                    self.mol_dict['atname'].append(l[1].upper())
+                    self.mol_dict['xcoor'].append(float(l[2]))
+                    self.mol_dict['ycoor'].append(float(l[3]))
+                    self.mol_dict['zcoor'].append(float(l[4]))
+                    self.mol_dict['attype'].append(l[5])
+                    self.mol_dict['resnum'].append(int(l[6]))
+                    self.mol_dict['resname'].append(re.sub('{0}$'.format(l[6]), '', l[7]))
+                    self.mol_dict['charge'].append(float(l[8]))
+                except ValueError, e:
+                    raise IOError('FormatError in mol2. Line: {0}, error {1}'.format(line, e))
 
         return self.mol_dict
 
