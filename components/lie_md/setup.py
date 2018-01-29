@@ -7,7 +7,7 @@
 # Part of ‘lie_docking’, a package providing molecular docking functionality
 # for the LIEStudio package.
 #
-# Copyright © 2017 Marc van Dijk, VU University Amsterdam, the Netherlands
+# Copyright © 2018 Marc van Dijk, VU University Amsterdam, the Netherlands
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ setup(
     packages=find_packages(),
     package_data={'lie_md': ['data/*']},
     py_modules=[distribution_name],
-    install_requires=['cerise_client', 'numpy', 'pyparsing', 'panedr'],
+    install_requires=['cerise_client', 'numpy', 'pyparsing', 'panedr', 'retrying'],
     include_package_data=True,
     zip_safe=True,
     entry_points={
