@@ -39,7 +39,7 @@ class LIEWorkflow(LieApplicationSession):
         currdir = os.path.abspath(os.path.dirname(__file__))
         workdir = os.path.abspath(os.path.join(currdir, '../../lieproject'))
         liemodel = os.path.join(currdir, '1A2_model')
-        cerise_file = os.path.join(home, 'cerise_config.json')
+        cerise_file = os.path.join(home, 'cerise_config_das5.json')
 
         # Ligand to make prediction for
         ligand = 'O1[C@@H](CCC1=O)CCC'
@@ -220,6 +220,7 @@ class LIEWorkflow(LieApplicationSession):
             # Collect Gromacs bound and unbound MD energy trajectories in a dataframe
             t18 = wf.add_task('Create mdframe', task_type='WampTask',
                               uri='liestudio.pylie.collect_energy_trajectories', store_output=True)
+            wf.input(t18, lie_vdw_header='Ligand-Ligenv-vdw', lie_ele_header='Ligand-Ligenv-ele')
             wf.connect_task(t17, t18)
 
             # Determine stable regions in MDFrame and filter
@@ -249,25 +250,25 @@ class LIEWorkflow(LieApplicationSession):
                      ci_cutoff=modelfile['AD']['Tanimoto']['Furthest'])
             wf.connect_task(start.nid, t22)
 
-            # Applicability domain: 2. residue decomposition
-            t23 = wf.add_task('AD2, residue decomposition', task_type='WampTask',
-                             uri='liestudio.pylie.adan_residue_decomp', store_output=True)
-            wf.input(t23, model_pkl=modelpicklefile)
-            wf.connect_task(t17, t23)
+            # # Applicability domain: 2. residue decomposition
+            # t23 = wf.add_task('AD2, residue decomposition', task_type='WampTask',
+            #                  uri='liestudio.pylie.adan_residue_decomp', store_output=True)
+            # wf.input(t23, model_pkl=modelpicklefile)
+            # wf.connect_task(t17, t23)
 
-            # Applicability domain: 3. deltaG energy range
-            t24 = wf.add_task('AD3, dene yrange', task_type='WampTask', uri='liestudio.pylie.adan_dene_yrange',
-                             store_output=True)
-            wf.input(t24, ymin=modelfile['AD']['Yrange']['min'], ymax=modelfile['AD']['Yrange']['max'])
-            wf.connect_task(t21, t24, data_mapping={'liedeltag_file': 'dataframe'})
+            # # Applicability domain: 3. deltaG energy range
+            # t24 = wf.add_task('AD3, dene yrange', task_type='WampTask', uri='liestudio.pylie.adan_dene_yrange',
+            #                  store_output=True)
+            # wf.input(t24, ymin=modelfile['AD']['Yrange']['min'], ymax=modelfile['AD']['Yrange']['max'])
+            # wf.connect_task(t21, t24, data_mapping={'liedeltag_file': 'dataframe'})
 
-            # Applicability domain: 4. deltaG energy distribution
-            t25 = wf.add_task('AD4, dene distribution', task_type='WampTask', uri='liestudio.pylie.adan_dene',
-                              store_output=True)
-            wf.input(t25, model_pkl=modelpicklefile,
-                     center=list(modelfile['AD']['Dene']['Xmean']),
-                     ci_cutoff=modelfile['AD']['Dene']['Maxdist'])
-            wf.connect_task(t21, t25, data_mapping={'liedeltag_file': 'dataframe'})
+            # # Applicability domain: 4. deltaG energy distribution
+            # t25 = wf.add_task('AD4, dene distribution', task_type='WampTask', uri='liestudio.pylie.adan_dene',
+            #                   store_output=True)
+            # wf.input(t25, model_pkl=modelpicklefile,
+            #          center=list(modelfile['AD']['Dene']['Xmean']),
+            #          ci_cutoff=modelfile['AD']['Dene']['Maxdist'])
+            # wf.connect_task(t21, t25, data_mapping={'liedeltag_file': 'dataframe'})
 
         # Save the workflow specification
         wf.save(path=os.path.join(workdir, 'workflow_spec.json'))
@@ -300,4 +301,4 @@ if __name__ == '__main__':
         extra={'authid': u'lieadmin', 'password': u'liepw@#', 'authmethod':u'ticket'},
         # ssl=options
     )
-    runner.run(LIEWorkflow, auto_reconnect=False)
+    runner.run(LIEWorkflow, auto_reconnect=False, log_level='debug')

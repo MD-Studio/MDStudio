@@ -3,10 +3,12 @@
 from collections import defaultdict
 from twisted.logger import Logger
 import cerise_client.service as cc
+import docker
 import hashlib
 import json
 import os
 from os.path import join
+from retrying import retry
 from time import sleep
 
 # initialized twisted logger
@@ -54,6 +56,10 @@ def call_cerise_gromit(
     related to the Cerise services and jobs.
     :returns: Dict with the output paths.
     """
+    # wait for a bit in case there are other threads
+    # doing the same
+    sleep(2)
+
     srv_data = retrieve_service_from_db(
         cerise_config, gromacs_config, cerise_db)
 
@@ -99,18 +105,22 @@ def retrieve_service_from_db(
     return cerise_db.find_one(query)
 
 
+@retry(wait_random_min=500, wait_random_max=2000)
 def create_service(config):
     """
     Create a Cerise service if one is not already running,
     using the `config` file.
     """
-    srv = cc.require_managed_service(
-            config['docker_name'],
-            config.get('port', 29593),
-            config['docker_image'],
-            config['username'],
-            config['password'])
-    logger.info("Created a new Cerise-client service")
+    try:
+        srv = cc.require_managed_service(
+                config['docker_name'],
+                config.get('port', 29593),
+                config['docker_image'],
+                config['username'],
+                config['password'])
+        logger.info("Created a new Cerise-client service")
+    except docker.errors.APIError:
+        pass
 
     return srv
 

@@ -339,9 +339,9 @@ def writeOut(frames, output_file, columns):
     """
     write columns as a table
     """
-    frames.index.name = 'Frames'
     with open(output_file, 'w') as f:
-        f.write(frames[columns].to_string())
+        s = 'Frames' + frames[columns].to_string()
+        f.write(s)
 
 
 def create_residue_dict(gro_file):
