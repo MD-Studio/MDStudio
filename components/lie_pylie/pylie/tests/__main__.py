@@ -12,7 +12,7 @@ import unittest2
 import logging
 
 # Init basic logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # Add modules in package to path so we can import them
 modulepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -27,7 +27,7 @@ def module_test_suite():
 
     print('Running lie_graph unittests')
     testpath = os.path.join(os.path.dirname(__file__), 'module')
-    suite = loader.discover(testpath, pattern='module_liecontactframe*.py')
+    suite = loader.discover(testpath, pattern='module_*.py')
     runner = unittest2.TextTestRunner(verbosity=2)
     runner.run(suite)
 

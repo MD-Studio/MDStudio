@@ -15,15 +15,16 @@ from pylie.model.liecontactframe import *
 class TestLIEContactFrame(unittest2.TestCase):
     filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files'))
 
-    def test_contact_frame(self):
+    def run_test(self, case, ligand):
 
-        mol2 = os.path.join(self.filepath, 'contacts.mol2')
+        # Load the molecule
+        mol = os.path.join(self.filepath, '{0}.mol2'.format(case))
 
         contacts = LIEContactFrame()
-        contacts.from_file(mol2, filetype='mol2')
+        contacts.from_file(mol, filetype='mol2')
 
         # Get the ligand and resolve rings in the structure
-        lig = contacts[contacts['resname'] == '15']
+        lig = contacts[contacts['resname'] == ligand]
         rings = find_rings(lig)
 
         # Get atoms in the neighbourhood of the ligand (binding cavity)
@@ -39,4 +40,32 @@ class TestLIEContactFrame(unittest2.TestCase):
         contact_frame = eval_pistacking(contact_frame, contacts, rings=[r[0] for r in rings if r[1] in ('RPA', 'RPN')])
         contact_frame = eval_pication(contact_frame, contacts)
         contact_frame = eval_halogen_bonds(contact_frame, contacts)
-        contact_frame = eval_heme_coordination(contact_frame, contacts, rings=[r[0] for r in rings if r[1] in ('RPA', 'RPN')])
+        contact_frame = eval_heme_coordination(contact_frame, contacts,
+                                               rings=[r[0] for r in rings if r[1] in ('RPA', 'RPN')])
+
+        return contact_frame
+
+    def test_contacts_1acj(self):
+
+        df = self.run_test('1acj', 'THA')
+        print(df[df['contact'] != 'nd'])
+
+    def test_contacts_1aku(self):
+
+        df = self.run_test('1aku', 'FMN')
+        print(df[df['contact'] != 'nd'])
+
+    def test_contacts_1ay8(self):
+
+        df = self.run_test('1ay8', 'HCI')
+        print(df[df['contact'] != 'nd'])
+
+    def test_contacts_1bju(self):
+
+        df = self.run_test('1bju', 'GP6')
+        print(df[df['contact'] != 'nd'])
+
+    def test_contacts_1bma(self):
+
+        df = self.run_test('1bma', '0QH')
+        print(df[df['contact'] != 'nd'])
