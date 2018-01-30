@@ -3,35 +3,35 @@ import itertools
 import re
 import copy
 
-from   pandas                   import DataFrame, concat, isnull
-from   scipy.spatial.distance   import pdist, squareform
+from pandas import DataFrame, concat, isnull, merge
+from scipy.spatial.distance import pdist, squareform
 
-from   pylie.model.liebase      import LIEDataFrameBase
-from   pylie.methods.fileio     import PDBParser, MOL2Parser, _open_anything
-from   pylie.methods.data       import METALS, STRUCTURE_DATA_INFO
-from   pylie.methods.geometry   import *
+from pylie.model.liebase import LIEDataFrameBase
+from pylie.methods.fileio import PDBParser, MOL2Parser, _open_anything
+from pylie.methods.data import METALS, STRUCTURE_DATA_INFO
+from pylie.methods.geometry import *
 
 logger = logging.getLogger('pylie')
 
-DEFAULT_CONTACT_COLUMN_NAMES = {'atnum':'atnum',
-                                'atname':'atname',
-                                'atalt':'atalt',
-                                'attype':'attype',
-                                'resname':'resname',
-                                'chain':'chain',
-                                'model':'model',
-                                'label':'label',
-                                'resnum':'resnum',
-                                'resext':'resext',
-                                'xcoor':'xcoor',
-                                'ycoor':'ycoor',
-                                'zcoor':'zcoor',
-                                'occ':'occ',
-                                'b':'b',
-                                'segid':'segid',
-                                'elem':'elem',
-                                'charge':'charge',
-                                'group':'group'}
+DEFAULT_CONTACT_COLUMN_NAMES = {'atnum': 'atnum',
+                                'atname': 'atname',
+                                'atalt': 'atalt',
+                                'attype': 'attype',
+                                'resname': 'resname',
+                                'chain': 'chain',
+                                'model': 'model',
+                                'label': 'label',
+                                'resnum': 'resnum',
+                                'resext': 'resext',
+                                'xcoor': 'xcoor',
+                                'ycoor': 'ycoor',
+                                'zcoor': 'zcoor',
+                                'occ': 'occ',
+                                'b': 'b',
+                                'segid': 'segid',
+                                'elem': 'elem',
+                                'charge': 'charge',
+                                'group': 'group'}
 
 # Initiate chemical information dictionary as pandas DataFrame
 cheminfo = DataFrame(STRUCTURE_DATA_INFO)
@@ -39,202 +39,203 @@ cheminfo = DataFrame(STRUCTURE_DATA_INFO)
 
 def set_contact_type(current, add):
   
-  current = current.split()
-  if 'nd' in current:
-    current.remove('nd')
-  add = add.split()
-  
-  return ' '.join(set(current+add))
+    current = current.split()
+    if 'nd' in current:
+        current.remove('nd')
+    add = add.split()
+
+    return ' '.join(set(current+add))
 
 
 def remove_contact_type(current, remove):
   
-  if not remove in current:
-    return current
-  
-  current = current.split()
-  current.remove(remove)
-  
-  if current:
-    return ' '.join(set(current))  
-  return 'nd'
+    if remove not in current:
+        return current
+
+    current = current.split()
+    current.remove(remove)
+
+    if current:
+        return ' '.join(set(current))
+    return 'nd'
 
 
 def coordinates(structure):
-  """
-  TODO: This function should be added to the DataFrame and Series instead
-  """
-  
-  coordinates = structure[['xcoor','ycoor','zcoor']].values
-  
-  if len(structure) == 1 and len(coordinates) == 1:
-    return coordinates[0]
-  elif len(coordinates) > 1 and type(coordinates[0]) != type(list):
-    return coordinates
+    """
+    TODO: This function should be added to the DataFrame and Series instead
+    """
+
+    coordinates = structure[['xcoor','ycoor','zcoor']].values
+
+    if len(structure) == 1 and len(coordinates) == 1:
+        return coordinates[0]
+    elif len(coordinates) > 1 and type(coordinates[0]) != type(list):
+        return coordinates
     
 
-def eval_water_bridges(contact_frame, structure, min_wbridge_dist=2.5, max_wbridge_dist=4.0, min_omega_angle=75, max_omega_angle=140, min_theta_angle=100, wbfilter=True):
-  
-  """
-  Evaluate the presence of water mediated hydrogen bonded bridges
-  in the provided contact DataFrame.
-  
-  Algorithm:
-  1) Select all water oxygen atoms within the range defined by min_wbridge_dist
-     (Jiang et al., 2005) - 0.1 and max_wbridge_dist (Jiang et al., 2005) + 0.4.
-  2) For each water, get neighbouring atoms below max_wbridge_dist excluding other 
-     waters.
-  3) In two loops look for ligand donor - water - other acceptor pairs and 
-     ligand acceptor - water - other donor pairs.
-  4) For each pair check if there is at least one covalently bound hydrogen attached
-     to the donor.
-  5) Check the theta angle (water O - donor H - donor), should be larger than 
-     min_theta_angle (Jiang et al., 2005).
-  6) Check the omega angle (acceptor - water O - donor H), should be in the range
-     defined by min_omega_angle, max_omega_angle (Jiang et al., 2005).
-  7) If wbfilter option is True: a water molecule is only allowed to participate 
-     as donor in two hydrogen bonds (two hydrogen atoms as donors). In the case of 
-     more than two possible hydrogen bonds for a water molecule as donor, only the 
-     two contacts with a water angle closest to 110 deg. and/or smaller 
-     H-bond distances are kept.
-  """
-  
-  # Preselect all water oxygens close to ligand
-  wbdist = contact_frame[(contact_frame['target','distance'] > min_wbridge_dist) & (contact_frame['target','distance'] <= max_wbridge_dist) 
-                          & (contact_frame['target','resname'] == 'HOH') & (contact_frame['target','attype'] == 'O.3')]
-  if wbdist.empty:
-    return contact_frame
-  
-  logger.debug("Run water bridge detection on {0} possible contacts using: min_wbridge_dist={1}, max_wbridge_dist={2}, min_omega_angle={3}\
-  max_omega_angle={4}, min_theta_angle={5}, wbfilter={6}".format(wbdist.shape[0], min_wbridge_dist, max_wbridge_dist, min_omega_angle,
-    max_omega_angle, min_theta_angle, wbfilter))
-  
-  # Query for potential hbond donor-acceptor pairs
-  accpt_attypes = ('N.3','N.2','N.1','N.acid','N.ar','O.3','O.co2','O.2','S.m','S.a','F','Br','Cl')
-  donor_attypes = ('N.3','N.2','N.acid','N.am','N.4','N.pl3','N.plc','O.3')
-  
-  # Loop over waters looking for water bridges
-  ligresnum = wbdist['source','resnum'].unique()
-  for water in sorted(wbdist['target','resnum'].unique()):
-    
-    # Get neigbouring atoms
-    water = structure.loc[(structure['resnum'] == water) & (structure['attype'] == 'O.3')]
-    water_neigh = water.neighbours(cutoff=max_wbridge_dist)
-    w = coordinates(water)
-    
-    # Remove other waters
-    if not water_neigh.empty:
-      water_neigh = water_neigh[(water_neigh['resname'] != 'HOH')]
-    
-    # Query possible ligand donor - water - acceptor contacts
-    dwa_pairs = []
-    for idd,d in water_neigh[(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(donor_attypes))].iterrows():
-      
-      donor = structure[structure['atnum'] == d['atnum']]
-      covalent_neighbours = donor.neighbours(cutoff=1.6)
-      x = coordinates(donor)
-    
-      # There should at least be covalent neighbours (e.a. not ions etc.)
-      if not covalent_neighbours.empty:
-      
-        # Check if there are H-atoms attached and asses H-bond geometry criteria
-        for idy,h in covalent_neighbours[covalent_neighbours['attype'] == 'H'].iterrows():
-          y = coordinates(h)
-          
-          # Check theta angle: donor - hydrogen - water oxygen
-          theta = calc_angle(x,y,w)
-          if abs(theta) > min_theta_angle:
-          
-            # Loop over possible acceptors
-            for ida,a in water_neigh[~(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(accpt_attypes))].iterrows():
-              acceptor = coordinates(a)
-              
-              # Check omega angle: acceptor - water oxygen - donor h
-              omega = 180-calc_angle(acceptor,w,y)
-              if min_omega_angle < abs(omega) < max_omega_angle:
-                
-                dist_aw = distance(w,acceptor)
-                dist_wd = distance(w,x)
-                dwa_pairs.append((omega, theta, dist_aw, dist_wd, d['atnum'], a['atnum'], water.atnum.values[0]))
-                
-                logger.info("Water bridge: donor {0}-{1} {2}-{3}, acceptor {4}-{5} {6}-{7} via {8}-{9}. Dist d-w {10:.2f} a-w {11:.2f}. Omega: {12:.2f} Theta {13:.2f}".format(
-                  donor.resnum.values[0], donor.resname.values[0], donor.atnum.values[0], donor.atname.values[0], 
-                  a.resnum, a.resname, a.atnum, a.atname, water.resnum.values[0], water.atnum.values[0], dist_wd, dist_aw, omega, theta))
-    
-    if wbfilter and len(dwa_pairs) > 1:
-      dwa_pairs.sort(key=lambda x: (110-x[0])+(x[2]+x[3]))
-      dwa_pairs = [dwa_pairs[0]]
-    
-    for bridge in dwa_pairs:
-      cid = contact_frame[(contact_frame['source','atnum'] == bridge[4]) & (contact_frame['target','atnum'] == bridge[6])]
-      tid = structure[structure['atnum'] == bridge[5]]
-      contact_frame.loc[cid.index, 'contact'] = set_contact_type(contact_frame.loc[cid.index, 'contact'].values[0], 'wb-da')
-      contact_frame.loc[cid.index, ('target','angle')] = bridge[1]
-      
-      newindex = contact_frame.index.max()+1
-      contact_frame.loc[newindex,'contact'] = 'wb-da'
-      contact_frame.loc[newindex,('target','distance')] = bridge[2]
-      contact_frame.loc[newindex,('target','angle')] = bridge[0]
-      
-      for mdx in ('segid','chain','resname','resnum','atname','atnum','attype','elem'):
-        contact_frame.loc[newindex,('target',mdx)] = cid['target',mdx].values[0]
-        contact_frame.loc[newindex,('source',mdx)] = tid[mdx].values[0]
-      
-    # Query possible ligand acceptor - water - donor contacts
-    awd_pairs = []
-    for ida,a in water_neigh[(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(accpt_attypes))].iterrows():
-      acceptor = coordinates(a)
-      
-      # Loop over possible donors
-      for idd,d in water_neigh[~(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(donor_attypes))].iterrows():
-        
+def eval_water_bridges(contact_frame, structure, min_wbridge_dist=2.5, max_wbridge_dist=4.0, min_omega_angle=75,
+                       max_omega_angle=140, min_theta_angle=100, wbfilter=True):
+    """
+    Evaluate the presence of water mediated hydrogen bonded bridges
+    in the provided contact DataFrame.
+
+    Algorithm:
+    1) Select all water oxygen atoms within the range defined by min_wbridge_dist
+       (Jiang et al., 2005) - 0.1 and max_wbridge_dist (Jiang et al., 2005) + 0.4.
+    2) For each water, get neighbouring atoms below max_wbridge_dist excluding other
+       waters.
+    3) In two loops look for ligand donor - water - other acceptor pairs and
+       ligand acceptor - water - other donor pairs.
+    4) For each pair check if there is at least one covalently bound hydrogen attached
+       to the donor.
+    5) Check the theta angle (water O - donor H - donor), should be larger than
+       min_theta_angle (Jiang et al., 2005).
+    6) Check the omega angle (acceptor - water O - donor H), should be in the range
+       defined by min_omega_angle, max_omega_angle (Jiang et al., 2005).
+    7) If wbfilter option is True: a water molecule is only allowed to participate
+       as donor in two hydrogen bonds (two hydrogen atoms as donors). In the case of
+       more than two possible hydrogen bonds for a water molecule as donor, only the
+       two contacts with a water angle closest to 110 deg. and/or smaller
+       H-bond distances are kept.
+    """
+
+    # Preselect all water oxygens close to ligand
+    wbdist = contact_frame[(contact_frame['target','distance'] > min_wbridge_dist) & (contact_frame['target','distance']
+                                                                                      <= max_wbridge_dist)
+                            & (contact_frame['target','resname'] == 'HOH') & (contact_frame['target','attype'] == 'O.3')]
+    if wbdist.empty:
+        return contact_frame
+
+    logger.debug("Run water bridge detection on {0} possible contacts using: min_wbridge_dist={1}, max_wbridge_dist={2}, min_omega_angle={3}\
+    max_omega_angle={4}, min_theta_angle={5}, wbfilter={6}".format(wbdist.shape[0], min_wbridge_dist, max_wbridge_dist, min_omega_angle,
+        max_omega_angle, min_theta_angle, wbfilter))
+
+    # Query for potential hbond donor-acceptor pairs
+    accpt_attypes = ('N.3','N.2','N.1','N.acid','N.ar','O.3','O.co2','O.2','S.m','S.a','F','Br','Cl')
+    donor_attypes = ('N.3','N.2','N.acid','N.am','N.4','N.pl3','N.plc','O.3')
+
+    # Loop over waters looking for water bridges
+    ligresnum = wbdist['source','resnum'].unique()
+    for water in sorted(wbdist['target','resnum'].unique()):
+
+      # Get neigbouring atoms
+      water = structure.loc[(structure['resnum'] == water) & (structure['attype'] == 'O.3')]
+      water_neigh = water.neighbours(cutoff=max_wbridge_dist)
+      w = coordinates(water)
+
+      # Remove other waters
+      if not water_neigh.empty:
+        water_neigh = water_neigh[(water_neigh['resname'] != 'HOH')]
+
+      # Query possible ligand donor - water - acceptor contacts
+      dwa_pairs = []
+      for idd,d in water_neigh[(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(donor_attypes))].iterrows():
+
         donor = structure[structure['atnum'] == d['atnum']]
         covalent_neighbours = donor.neighbours(cutoff=1.6)
         x = coordinates(donor)
-        
+
         # There should at least be covalent neighbours (e.a. not ions etc.)
         if not covalent_neighbours.empty:
-      
+
           # Check if there are H-atoms attached and asses H-bond geometry criteria
           for idy,h in covalent_neighbours[covalent_neighbours['attype'] == 'H'].iterrows():
             y = coordinates(h)
-                        
+
             # Check theta angle: donor - hydrogen - water oxygen
             theta = calc_angle(x,y,w)
             if abs(theta) > min_theta_angle:
-              
-              # Check omega angle: acceptor - water oxygen - donor h
-              omega = 180 - calc_angle(acceptor,w,y)
-              if min_omega_angle < abs(omega) < max_omega_angle:
-                
-                dist_aw = distance(w,acceptor)
-                dist_wd = distance(w,x)
-                awd_pairs.append((omega, theta, dist_aw, dist_wd, d['atnum'], a['atnum'], water.atnum.values[0]))
-                
-                logger.info("Water bridge: donor {0}-{1} {2}-{3}, acceptor {4}-{5} {6}-{7} via {8}-{9}. Dist d-w {10:.2f} a-w {11:.2f}. Omega: {12:.2f} Theta {13:.2f}".format(
-                  donor.resnum.values[0], donor.resname.values[0], donor.atnum.values[0], donor.atname.values[0], 
-                  a.resnum, a.resname, a.atnum, a.atname, water.resnum.values[0], water.atnum.values[0], dist_wd, dist_aw, omega, theta))
-    
-    if wbfilter and len(awd_pairs) > 2:
-      awd_pairs.sort(key=lambda x: (110-x[0])+(x[2]+x[3]))
-      awd_pairs = awd_pairs[:2]
-      
-    for bridge in awd_pairs:
-      cid = contact_frame[(contact_frame['source','atnum'] == bridge[5]) & (contact_frame['target','atnum'] == bridge[6])]
-      tid = structure[structure['atnum'] == bridge[4]]
-      contact_frame.loc[cid.index, 'contact'] =  set_contact_type(contact_frame.loc[cid.index, 'contact'].values[0], 'wb-ad')
-      contact_frame.loc[cid.index, ('target','angle')] = bridge[1]
-      
-      newindex = contact_frame.index.max()+1
-      contact_frame.loc[newindex,'contact'] = 'wb-ad'
-      contact_frame.loc[newindex,('target','distance')] = bridge[2]
-      contact_frame.loc[newindex,('target','angle')] = bridge[0]
-      
-      for mdx in ('segid','chain','resname','resnum','atname','atnum','attype','elem'):
-        contact_frame.loc[newindex,('target',mdx)] = cid['target',mdx].values[0]
-        contact_frame.loc[newindex,('source',mdx)] = tid[mdx].values[0]
-    
-  return contact_frame
+
+              # Loop over possible acceptors
+              for ida,a in water_neigh[~(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(accpt_attypes))].iterrows():
+                acceptor = coordinates(a)
+
+                # Check omega angle: acceptor - water oxygen - donor h
+                omega = 180-calc_angle(acceptor,w,y)
+                if min_omega_angle < abs(omega) < max_omega_angle:
+
+                  dist_aw = distance(w,acceptor)
+                  dist_wd = distance(w,x)
+                  dwa_pairs.append((omega, theta, dist_aw, dist_wd, d['atnum'], a['atnum'], water.atnum.values[0]))
+
+                  logger.info("Water bridge: donor {0}-{1} {2}-{3}, acceptor {4}-{5} {6}-{7} via {8}-{9}. Dist d-w {10:.2f} a-w {11:.2f}. Omega: {12:.2f} Theta {13:.2f}".format(
+                    donor.resnum.values[0], donor.resname.values[0], donor.atnum.values[0], donor.atname.values[0],
+                    a.resnum, a.resname, a.atnum, a.atname, water.resnum.values[0], water.atnum.values[0], dist_wd, dist_aw, omega, theta))
+
+      if wbfilter and len(dwa_pairs) > 1:
+        dwa_pairs.sort(key=lambda x: (110-x[0])+(x[2]+x[3]))
+        dwa_pairs = [dwa_pairs[0]]
+
+      for bridge in dwa_pairs:
+        cid = contact_frame[(contact_frame['source','atnum'] == bridge[4]) & (contact_frame['target','atnum'] == bridge[6])]
+        tid = structure[structure['atnum'] == bridge[5]]
+        contact_frame.loc[cid.index, 'contact'] = set_contact_type(contact_frame.loc[cid.index, 'contact'].values[0], 'wb-da')
+        contact_frame.loc[cid.index, ('target','angle')] = bridge[1]
+
+        newindex = contact_frame.index.max()+1
+        contact_frame.loc[newindex,'contact'] = 'wb-da'
+        contact_frame.loc[newindex,('target','distance')] = bridge[2]
+        contact_frame.loc[newindex,('target','angle')] = bridge[0]
+
+        for mdx in ('segid','chain','resname','resnum','atname','atnum','attype','elem'):
+          contact_frame.loc[newindex,('target',mdx)] = cid['target',mdx].values[0]
+          contact_frame.loc[newindex,('source',mdx)] = tid[mdx].values[0]
+
+      # Query possible ligand acceptor - water - donor contacts
+      awd_pairs = []
+      for ida,a in water_neigh[(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(accpt_attypes))].iterrows():
+        acceptor = coordinates(a)
+
+        # Loop over possible donors
+        for idd,d in water_neigh[~(water_neigh['resnum'].isin(ligresnum)) & (water_neigh['attype'].isin(donor_attypes))].iterrows():
+
+          donor = structure[structure['atnum'] == d['atnum']]
+          covalent_neighbours = donor.neighbours(cutoff=1.6)
+          x = coordinates(donor)
+
+          # There should at least be covalent neighbours (e.a. not ions etc.)
+          if not covalent_neighbours.empty:
+
+            # Check if there are H-atoms attached and asses H-bond geometry criteria
+            for idy,h in covalent_neighbours[covalent_neighbours['attype'] == 'H'].iterrows():
+              y = coordinates(h)
+
+              # Check theta angle: donor - hydrogen - water oxygen
+              theta = calc_angle(x,y,w)
+              if abs(theta) > min_theta_angle:
+
+                # Check omega angle: acceptor - water oxygen - donor h
+                omega = 180 - calc_angle(acceptor,w,y)
+                if min_omega_angle < abs(omega) < max_omega_angle:
+
+                  dist_aw = distance(w,acceptor)
+                  dist_wd = distance(w,x)
+                  awd_pairs.append((omega, theta, dist_aw, dist_wd, d['atnum'], a['atnum'], water.atnum.values[0]))
+
+                  logger.info("Water bridge: donor {0}-{1} {2}-{3}, acceptor {4}-{5} {6}-{7} via {8}-{9}. Dist d-w {10:.2f} a-w {11:.2f}. Omega: {12:.2f} Theta {13:.2f}".format(
+                    donor.resnum.values[0], donor.resname.values[0], donor.atnum.values[0], donor.atname.values[0],
+                    a.resnum, a.resname, a.atnum, a.atname, water.resnum.values[0], water.atnum.values[0], dist_wd, dist_aw, omega, theta))
+
+      if wbfilter and len(awd_pairs) > 2:
+        awd_pairs.sort(key=lambda x: (110-x[0])+(x[2]+x[3]))
+        awd_pairs = awd_pairs[:2]
+
+      for bridge in awd_pairs:
+        cid = contact_frame[(contact_frame['source','atnum'] == bridge[5]) & (contact_frame['target','atnum'] == bridge[6])]
+        tid = structure[structure['atnum'] == bridge[4]]
+        contact_frame.loc[cid.index, 'contact'] =  set_contact_type(contact_frame.loc[cid.index, 'contact'].values[0], 'wb-ad')
+        contact_frame.loc[cid.index, ('target','angle')] = bridge[1]
+
+        newindex = contact_frame.index.max()+1
+        contact_frame.loc[newindex,'contact'] = 'wb-ad'
+        contact_frame.loc[newindex,('target','distance')] = bridge[2]
+        contact_frame.loc[newindex,('target','angle')] = bridge[0]
+
+        for mdx in ('segid','chain','resname','resnum','atname','atnum','attype','elem'):
+          contact_frame.loc[newindex,('target',mdx)] = cid['target',mdx].values[0]
+          contact_frame.loc[newindex,('source',mdx)] = tid[mdx].values[0]
+
+    return contact_frame
 
 
 def eval_hbonds(contact_frame, structure, max_hbond_dist=4.1, hbond_don_anglediv=50, hbond_acc_anglediv=90, optimize=True):
@@ -598,51 +599,54 @@ def eval_saltbridge(contact_frame, structure, max_charge_dist=5.5, use_partial_c
 
 
 def eval_hydrophobic_interactions(contact_frame, structure, hydroph_dist_max=4.0):
+    """
+    Evaluate hydrophobic-lipophilic contacts.
+    Contact is marked hydrophobic if both atoms involved in the contact are carbons,
+    have only carbon or hydrogen atoms as neighbours and their distance is lower than
+    hydroph_dist_max.
+
+    The number of hydrophobic contacts is reduced in size by appyling two filter steps:
+    - If the the atom pair is already involved in hydrophobic interactions between
+      rings interacting via phi-stacking they are not assigned as stacking is a form of
+      hydrophobic interactions. This does require the stacking routine to be run first.
+    - If one ligand atom contacts multiple target atoms, the one with the smallest
+      distance is kept.
+    """
   
-  """
-  Evaluate hydrophobic-lipophilic contacts.
-  Contact is marked hydrophobic if both atoms involved in the contact are carbons,
-  have only carbon or hydrogen atoms as neighbours and their distance is lower than 
-  hydroph_dist_max.
+    hfob_atom_list = {'C.3', 'C.2', 'C.1', 'C.ar', 'H'}
+    hfobdist = contact_frame[(contact_frame['source', 'attype'].isin(('C.3','C.2','C.1','C.ar'))) &
+                             (contact_frame['target', 'attype'].isin(('C.3','C.2','C.1','C.ar'))) &
+                             (contact_frame['target', 'distance'] < hydroph_dist_max)]
   
-  The number of hydrophobic contacts is reduced in size by appyling two filter steps:
-  - If the the atom pair is already involved in hydrophobic interactions between 
-    rings interacting via phi-stacking they are not assigned as stacking is a form of
-    hydrophobic interactions. This does require the stacking routine to be run first.
-  - If one ligand atom contacts multiple target atoms, the one with the smallest 
-    distance is kept.
-  """
+    if hfobdist.empty:
+        return contact_frame
   
-  hfob_atom_list = set(['C.3','C.2','C.1','C.ar','H'])
-  hfobdist = contact_frame[(contact_frame['source','attype'].isin(('C.3','C.2','C.1','C.ar'))) & 
-                           (contact_frame['target','attype'].isin(('C.3','C.2','C.1','C.ar'))) &
-                           (contact_frame['target','distance'] < hydroph_dist_max)]
+    logger.debug("Run hydrophobic interaction detection on {0} possible contacts using: hydroph_dist_max={1}".format(
+      hfobdist.shape[0], hydroph_dist_max))
   
-  if hfobdist.empty:
-    return contact_frame
+    for idx,n in hfobdist.iterrows():
+        source = structure[structure['atnum'] == n['source', 'atnum']]
+        target = structure[structure['atnum'] == n['target', 'atnum']]
+        source_neighbours = source.neighbours(cutoff=1.6)
+        target_neighbours = target.neighbours(cutoff=1.6)
+        if len(set(source_neighbours['attype']).difference(hfob_atom_list)) == 0 and len(set(
+                target_neighbours['attype']).difference(hfob_atom_list)) == 0:
+          contact_frame.loc[idx, 'contact'] = set_contact_type(contact_frame.loc[idx, 'contact'].values[0], 'hf')
   
-  logger.debug("Run hydrophobic interaction detection on {0} possible contacts using: hydroph_dist_max={1}".format(hfobdist.shape[0], hydroph_dist_max))
-  
-  for idx,n in hfobdist.iterrows():
-    source = structure[structure['atnum'] == n['source','atnum']]
-    target = structure[structure['atnum'] == n['target','atnum']]
-    source_neighbours = source.neighbours(cutoff=1.6)
-    target_neighbours = target.neighbours(cutoff=1.6)
-    if len(set(source_neighbours['attype']).difference(hfob_atom_list)) == 0 and len(set(target_neighbours['attype']).difference(hfob_atom_list)) == 0:
-      contact_frame.loc[idx, 'contact'] = set_contact_type(contact_frame.loc[idx, 'contact'].values[0], 'hf')
-  
-  # Cluster based on atom-atom contacts
-  hf = contact_frame[contact_frame['contact'] == 'hf']
-  if not hf.empty:
-    for atom in hf['target','atnum'].unique():
-      selection = hf[hf['target','atnum'] == atom]
+    # Cluster based on atom-atom contacts
+    hf = contact_frame[contact_frame['contact'] == 'hf']
+    if not hf.empty:
+        for atom in hf['target','atnum'].unique():
+            selection = hf[hf['target', 'atnum'] == atom]
       
-      if selection.shape[0] > 1:
-        logger.debug("{0} hydrophobic contacts identified to atom {1:.0f}. Keeping one with smallest distance".format(selection.shape[0],atom))
-        reset = selection[selection['target','distance'] != selection['target','distance'].min()].index
-        contact_frame.loc[reset.values,'contact'] = remove_contact_type(contact_frame.loc[reset.values, 'contact'].values[0],'hf')
+            if selection.shape[0] > 1:
+              logger.debug("{0} hydrophobic contacts identified to atom {1:.0f}. "
+                           "Keeping one with smallest distance".format(selection.shape[0],atom))
+              reset = selection[selection['target', 'distance'] != selection['target','distance'].min()].index
+              contact_frame.loc[reset.values, 'contact'] = remove_contact_type(
+                contact_frame.loc[reset.values, 'contact'].values[0],'hf')
         
-  return contact_frame
+    return contact_frame
 
 
 def eval_heme_coordination(contact_frame, structure, rings=[], heme_dist_prefilter=5.5, heme_dist_max=3.5, heme_dist_min=0, min_heme_coor_angle=105, max_heme_coor_angle=160, 
@@ -1173,11 +1177,11 @@ def find_rings(structure, check_planar=True, check_aromatic=True, bond_cutoff=1.
   # having only two connections and previously found to be part of
   # a ring.
   rings = []
-  for pathset in ('forward','reversed'):
+  for pathset in ('forward', 'reversed'):
     
     # Create a graph representation of the structure (atoms are nodes, bonds the edges)
-    if pathset == 'forward': graph = dict([(ida,list(a[a == 1].index.values)) for ida,a in boolmatr.iterrows()])
-    else: graph = dict([(ida,list(a[a == 1].index.values[::-1])) for ida,a in boolmatr.iterrows()])
+    if pathset == 'forward': graph = dict([(ida,list(a[a == 1].index.values)) for ida, a in boolmatr.iterrows()])
+    else: graph = dict([(ida,list(a[a == 1].index.values[::-1])) for ida, a in boolmatr.iterrows()])
     
     visited = {}; spanning_tree = {}
     subrings = []; ring = []
@@ -1188,7 +1192,7 @@ def find_rings(structure, check_planar=True, check_aromatic=True, bond_cutoff=1.
         dfs(atom) # Explore atom connections
         if (ring):
           subrings.append(ring)
-          visited = dict([(a,2) for c in subrings for a in c if len(graph[a]) == 2])
+          visited = dict([(a, 2) for c in subrings for a in c if len(graph[a]) == 2])
           ring = [] # Reset cycle list
           
     rings.extend(subrings)
@@ -1222,7 +1226,7 @@ def find_rings(structure, check_planar=True, check_aromatic=True, bond_cutoff=1.
     # Check planarity
     label = 'R'
     if check_planar:
-      coor = structure.loc[rings[r], ['xcoor','ycoor','zcoor']]
+      coor = structure.loc[rings[r], ['xcoor', 'ycoor', 'zcoor']]
       planar = True
       for n in itertools.combinations(coor.index, 4):
         dangle = dihedral(coor.loc[n[0],:].values, coor.loc[n[1],:].values, coor.loc[n[2],:].values, coor.loc[n[3],:].values)
@@ -1253,173 +1257,182 @@ def find_rings(structure, check_planar=True, check_aromatic=True, bond_cutoff=1.
 
 class LIEContactFrame(LIEDataFrameBase):
   
-  _class_name   = 'contact'
-  _column_names = DEFAULT_CONTACT_COLUMN_NAMES
+    _class_name   = 'contact'
+    _column_names = DEFAULT_CONTACT_COLUMN_NAMES
   
-  def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
       
-    super(LIEContactFrame, self).__init__(*args, **kwargs)
+        super(LIEContactFrame, self).__init__(*args, **kwargs)
     
-  @property
-  def _constructor(self):
+    @property
+    def _constructor(self):
     
-    return LIEContactFrame
+        return LIEContactFrame
   
-  def _init_distance_matrix(self):
+    def _init_distance_matrix(self):
     
-    # Create pair-wise distance matrix
-    coords = self[['xcoor','ycoor','zcoor']]
-    distances = pdist(coords.values)
-    self._distance_matrix = DataFrame(squareform(distances))
+        # Create pair-wise distance matrix
+        coords = self[['xcoor', 'ycoor', 'zcoor']]
+        distances = pdist(coords.values)
+        self._distance_matrix = DataFrame(squareform(distances))
     
-  def append(self, other, ignore_index=True, verify_integrity=False):
+    def append(self, other, ignore_index=True, verify_integrity=False):
     
-    # Change atom numbering target to match self
-    atnumend = self['atnum'].max() + 1
-    renumber = range(atnumend, atnumend + len(other))
-    other['atnum'] = renumber
+        # Change atom numbering target to match self
+        atnumend = self['atnum'].max() + 1
+        renumber = range(atnumend, atnumend + len(other))
+        other['atnum'] = renumber
     
-    new = super(LIEContactFrame, self).append(other, ignore_index=ignore_index, verify_integrity=verify_integrity)
-    new._metadata['parent'] = new
+        new = super(LIEContactFrame, self).append(other, ignore_index=ignore_index, verify_integrity=verify_integrity)
+        new._metadata['parent'] = new
     
-    # Recalculate distance matrix
-    if '_distance_matrix' in new._metadata:
-      del new._metadata['_distance_matrix']
-      new._init_distance_matrix()
+        # Recalculate distance matrix
+        if '_distance_matrix' in new._metadata:
+            del new._metadata['_distance_matrix']
+            new._init_distance_matrix()
     
-    return new
+        return new
   
-  def _get_elements(self):
+    def _get_elements(self):
+        """
+        Determine atom element type if not defined.
+        """
+
+        # Get known elements from the Cheminfo table
+        elements = cheminfo.loc[(cheminfo['type'] == 'atom') & (cheminfo['class'] == 'element'), 'name'].values
+
+        # Get atom names where element is not defined.
+        atnames = self.loc[self['elem'].isnull(), 'atname']
+
+        # Determine element type based on atom name
+        new_elements = []
+        for atom in atnames.values:
+            if atom in ('NA', 'NB', 'NE'):
+                new_elements.append('N')
+                continue
+
+            if atom in elements:
+                new_elements.append(atom)
+                continue
+
+            new_elements.append(re.sub('\d', '', atom)[0])
+
+        # Change elements in self
+        self.loc[atnames.index.values, 'elem'] = new_elements
     
-    # Determine element types if not defined
-    elements = cheminfo.loc[(cheminfo['type'] == 'atom') & (cheminfo['class'] == 'element'), 'name'].values
-    for idx,atom in self.iterrows():
-      if isnull(atom['elem']):
-        a = atom['atname']
-        if a in ('NA','NB','NE'): 
-          self.loc[idx,'elem'] = 'N'
-          continue
-          
-        if a in elements or a == atom['resname']:
-          self.loc[idx,'elem'] = a
-          continue
-          
-        a = re.sub('\d', '', a)
-        self.loc[idx,'elem'] = a[0]
+    def from_file(self, filepath, filetype='pdb', **kwargs):
     
-  def from_file(self, filepath, filetype='pdb', **kwargs):
+        # Open the input regardless of its type using open_anything
+        file_or_buffer = _open_anything(filepath)
     
-    # Open the input regardless of its type using open_anything
-    file_or_buffer = _open_anything(filepath)
-    
-    if filetype == 'pdb':
+        if filetype == 'pdb':
       
-      # Init PDB parser class and parse PDB content
-      pdb = PDBParser(file_or_buffer, columns=self._column_names.keys())
-      structure_dict = pdb.parse()
+            # Init PDB parser class and parse PDB content
+            pdb = PDBParser(file_or_buffer, columns=self._column_names.keys())
+            structure_dict = pdb.parse()
                 
-    elif filetype == 'mol2':
+        elif filetype == 'mol2':
       
-      # Init MOL2 parser class and parse PDB content
-      mol2 = MOL2Parser(self._column_names.keys())
-      structure_dict = mol2.parse(file_or_buffer)
+            # Init MOL2 parser class and parse PDB content
+            mol2 = MOL2Parser(self._column_names.keys())
+            structure_dict = mol2.parse(file_or_buffer)
       
-    else:
-      logger.error('Unknown filetype {0}'.format(filetype))
-      return
+        else:
+            logger.error('Unknown filetype {0}'.format(filetype))
+            return
 
-    # Add structure data to dataframe
-    if structure_dict:
-      for col in structure_dict:
-        if len(structure_dict[col]): self[col] = structure_dict[col]
+        # Add structure data to DataFrame.
+        # First build intermediate DataFrame and then merge ones. Its faster
+        for col in structure_dict.keys():
+            if not len(structure_dict[col]):
+                del structure_dict[col]
 
-    # Determine element types if not defined
-    self._get_elements()
+        df = DataFrame(structure_dict)
+        self[structure_dict.keys()] = df[structure_dict.keys()]
+
+        # Determine element types if not defined
+        self._get_elements()
+
+        # Create pair-wise distance matrix
+        self._init_distance_matrix()
     
-    # Create pair-wise distance matrix
-    self._init_distance_matrix()
+    def neighbours(self, target=None, cutoff=6.0):
+        """
+        Get all the neighbours of the current selection with respect to the full system
+        or with resepct to another selection
+        """
     
-  def neighbours(self, target=None, cutoff=6.0):
+        # Get index of source (current selection) and target (full system without source) atoms
+        source = set(self.index)
+        if target:
+            target = set(target.index).difference(source)
+        else:
+            target = set(self.parent.index).difference(source)
     
-    """
-    Get all the neighbours of the current selection with respect to the full system
-    or with resepct to another selection
-    """
+        # Get slice of contact matrix for source to target within cutoff distance
+        contacts = self._distance_matrix.loc[target, source]
+        contacts = contacts[contacts <= cutoff].dropna(how='all')
     
-    # Get index of source (current selection) and target (full system without source) atoms
-    source = set(self.index)
-    if target:
-      target = set(target.index).difference(source)
-    else:
-      target = set(self.parent.index).difference(source)
-    
-    # Get slice of contact matrix for source to target within cutoff distance
-    contacts = self._distance_matrix.loc[target, source]
-    contacts = contacts[contacts <= cutoff].dropna(how='all')
-    
-    return self.parent.loc[contacts.index, :]
+        return self.parent.loc[contacts.index, :]
   
-  def contacts(self, target, columns=['segid','chain','resname','resnum','atname','atnum','attype','elem']):
+    def contacts(self, target, columns=['segid', 'chain', 'resname', 'resnum', 'atname', 'atnum', 'attype', 'elem']):
+        """
+        Get the distance between the atoms in the current selection with respect to a target
+        """
     
-    """
-    Get the distance between the atoms in the current selection with respect to a target
-    """
+        # Get index of source (current selection) and target atoms
+        source = set(self.index)
+        target = set(target.index).difference(source)
     
-    # Get index of source (current selection) and target atoms
-    source = set(self.index)
-    target = set(target.index).difference(source)
+        # Get slice of contact matrix representing the selection, reformat to row based Dataframe
+        contacts = self._distance_matrix.loc[target, source]
+        contacts = contacts.unstack().reset_index()
+        contacts.index = range(len(contacts))
+        contacts.columns = ['source', 'target', 'distance']
     
-    # Get slice of contact matrix representing the selection, reformat to row based Dataframe
-    contacts = self._distance_matrix.loc[target, source]
-    contacts = contacts.unstack().reset_index()
-    contacts.index = range(len(contacts))
-    contacts.columns = ['source','target','distance']
+        # Get selection for source and target from parent, reindex and concatenate into new DataFrame
+        source = self.parent.loc[contacts['source'].values, columns]
+        source.index = range(len(source))
+        target = self.parent.loc[contacts['target'].values, columns]
+        target.index = range(len(target))
     
-    # Get selection for source and target from parent, reindex and concatenate into new DataFrame
-    source = self.parent.loc[contacts['source'].values, columns]
-    source.index = range(len(source))
-    target = self.parent.loc[contacts['target'].values, columns]
-    target.index = range(len(target))
+        contacts_frame = concat([source, target, contacts['distance']], axis=1)
+        multi_index = [(['source']*len(columns) + ['target']*(len(columns)+1)), columns*2 + ['distance']]
+        contacts_frame.columns = multi_index
     
-    contacts_frame = concat([source, target, contacts['distance']], axis=1)
-    multi_index = [(['source']*len(columns) + ['target']*(len(columns)+1)), columns*2 + ['distance']]
-    contacts_frame.columns = multi_index
+        # Add angle column (for contacts with angle constraints)
+        contacts_frame['target', 'angle'] = numpy.nan
     
-    # Add angle column (for contacts with angle constraints)
-    contacts_frame['target','angle'] = numpy.nan
+        # Add a contact column and fill it with 'nd' (type not determined)
+        contacts_frame['contact'] = 'nd'
     
-    # Add a contact column and fill it with 'nd' (type not determined)
-    contacts_frame['contact'] = 'nd'
-    
-    return contacts_frame
+        return contacts_frame
   
-  def is_protein(self, tolerance=0.8):
+    def is_protein(self, tolerance=0.8):
     
-    resnames = set(self['resname'].values)
-    chemlookup = cheminfo.loc[(cheminfo['name'].isin(resnames)) & (cheminfo['type'] == 'residue'), 'class']
-    chemlookup = list(chemlookup.values)
+        resnames = set(self['resname'].values)
+        chemlookup = cheminfo.loc[(cheminfo['name'].isin(resnames)) & (cheminfo['type'] == 'residue'), 'class']
+        chemlookup = list(chemlookup.values)
     
-    if not chemlookup:
-      return False
-    elif len(set(chemlookup)) == 1 and len(chemlookup) == len(resnames) and 'aa' in chemlookup:
-      return True
-    elif 'aa' in chemlookup and chemlookup.count('aa') / float(len(chemlookup)) >= tolerance:
-      logger.debug("Structure {0:.2f}% type protein but contains different residues ({1})".format(
-        (chemlookup.count('aa') / float(len(chemlookup)))*100, set(chemlookup)))
-      return True
-    else:
-      logger.debug("Structure of type {0}".format(set(chemlookup)))
-      return False
+        if not chemlookup:
+            return False
+        elif len(set(chemlookup)) == 1 and len(chemlookup) == len(resnames) and 'aa' in chemlookup:
+            return True
+        elif 'aa' in chemlookup and chemlookup.count('aa') / float(len(chemlookup)) >= tolerance:
+            logger.debug("Structure {0:.2f}% type protein but contains different residues ({1})".format(
+              (chemlookup.count('aa') / float(len(chemlookup)))*100, set(chemlookup)))
+            return True
+        else:
+            logger.debug("Structure of type {0}".format(set(chemlookup)))
+            return False
   
-  def is_ligand(self):
+    def is_ligand(self):
     
-    if self.is_protein():
-      return False
+        if self.is_protein():
+            return False
     
-    resnames = set(self['resname'].values)
-    if len(resnames.difference(set(METALS))) == 0:
-      return False
+        resnames = set(self['resname'].values)
+        if len(resnames.difference(set(METALS))) == 0:
+            return False
     
-    return True
-    
-    
+        return True
