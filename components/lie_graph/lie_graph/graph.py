@@ -36,7 +36,7 @@ class Graph(object):
     which a calculation will be performed.
 
     The graph class defines a `root` attribute for this purpose that is
-    undefined by default. It willbe set automatically in the following cases:
+    undefined by default. It will be set automatically in the following cases:
 
     * Node traversal: the first node selected (getnodes method) will be assigned
       root and traversal to `child` nodes will be done relative to the `root`.
@@ -318,10 +318,10 @@ class Graph(object):
 
         :rtype: string
         """
-        msg = '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'
+        msg = '<{0} object {1}: id {2}, {3} nodes, {4} edges. Directed: {5}>'
 
         return msg.format(
-            type(self).__name__, id(self), len(self.nodes), len(self.edges),
+            type(self).__name__, id(self), self.nid, len(self.nodes), len(self.edges),
             self.is_directed)
 
     def __sub__(self, other):
@@ -687,6 +687,15 @@ class Graph(object):
                 'deep' if deep else 'shallow', repr(self)))
 
         return class_copy
+
+    def empty(self):
+        """
+        Report if the graph is empty (no nodes)
+
+        :rtype: :py:bool
+        """
+
+        return len(self) == 0
 
     def get(self, nid, key=None, defaultattr=None, default=None):
         """

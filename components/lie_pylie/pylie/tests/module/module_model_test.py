@@ -59,4 +59,3 @@ class TestLIEModelBuilder(unittest2.TestCase):
         Test LIEModelBuilder model method
         """
         m = self.model.model()
-        print(m.model.summary())

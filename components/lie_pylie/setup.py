@@ -41,7 +41,7 @@ setup(
     test_suite="tests",
     test_requirements=test_requirements,
     install_requires=['numpy', 'pandas', 'statsmodels', 'jsonschema', 'matplotlib',
-                      'scikit-learn'] + test_requirements,
+                      'scikit-learn', 'openpyxl'] + test_requirements,
     include_package_data=True,
     zip_safe=True,
     entry_points={

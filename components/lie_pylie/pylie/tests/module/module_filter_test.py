@@ -78,7 +78,7 @@ class TestSplineFilter(unittest2.TestCase):
         available = glob.glob('*.png')
         self.tempfiles.extend([os.path.abspath(p) for p in available])
 
-        self.assertListEqual(available, expected)
+        self.assertListEqual(sorted(available), sorted(expected))
 
         # Save filter results as pdf file
         expected = ['{0}-{1}.pdf'.format(filtered.cases[0], pose) for pose in filtered.poses]
@@ -86,7 +86,7 @@ class TestSplineFilter(unittest2.TestCase):
         available = [f for f in expected if os.path.isfile(f)]
         self.tempfiles.extend([os.path.abspath(p) for p in available])
 
-        self.assertListEqual(available, expected)
+        self.assertListEqual(sorted(available), sorted(expected))
         self.assertEqual(len(axis), 5)
 
         os.chdir(currpath)

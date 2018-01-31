@@ -90,7 +90,6 @@ class TestLIEScanDataFrame(unittest2.TestCase):
         propd = self.abscan.propensity_distribution()
 
         self.assertIsInstance(propd, DataFrame)
-        self.assertEqual(list(propd['case']), self.abscan.cases)
-        self.assertEqual(list(propd['pose']), self.abscan.cases)
+        self.assertEqual(list(propd['case'].unique().astype(int)), self.abscan.cases)
         self.assertEqual(list(propd.columns), ['case', 'pose', 'tag', 'min', 'max',
                                                'mean', 'slope', 'total', 'overlap'])

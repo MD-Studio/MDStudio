@@ -26,9 +26,6 @@ class _Common(object):
     Methods common to all Pandas DataFrame and Series extensions
     """
 
-    _metadata = {}
-    plot_functions = {}
-
     @property
     def size(self):
         """
@@ -126,6 +123,9 @@ class LIESeriesBase(_Common, Series):
 
     def __init__(self, *args, **kwargs):
 
+        self._metadata = {}
+        self.plot_functions = {}
+
         for colname in [var for var in kwargs if var in self._column_names]:
             self._column_names[colname] = kwargs[colname]
             kwargs.pop(colname)
@@ -219,6 +219,9 @@ class LIEDataFrameBase(_Common, DataFrame):
         Initiate default columns in case not yet available and ensures that the
         default values for the train and filter columns are set to 0 instead of NaN.
         """
+
+        self._metadata = {}
+        self.plot_functions = {}
 
         for colname in [var for var in kwargs if var in self._column_names]:
             self._column_names[colname] = kwargs[colname]
