@@ -340,7 +340,7 @@ def writeOut(frames, output_file, columns):
     write columns as a table
     """
     with open(output_file, 'w') as f:
-        s = 'Frames' + frames[columns].to_string()
+        s = '# Frames' + frames[columns].to_string()
         f.write(s)
 
 
