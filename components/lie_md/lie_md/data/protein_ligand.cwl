@@ -114,36 +114,11 @@ outputs:
     outputSource: decompose/decompose_out
     
 steps:
-  gromit_solvent_ligand:
-    run: mdstudio/gromit.cwl
-    in:
-      protein_top: protein_top
-      ligand_file: ligand_file
-      topology_file: topology_file
-      forcefield: forcefield
-      periodic_distance: periodic_distance
-      pressure: pressure
-      prfc: prfc
-      ptau: ptau
-      resolution: resolution
-      salinity: salinity
-      sim_time: sim_time
-      solvent: solvent
-      temperature: temperature
-      ttau: ttau
-    out: [gromitout,gromiterr,gromacslog_step9,trajectory, energy,
-          gro, ndx, top, mdp]
-  energy_solvent_ligand:
-    run: mdstudio/energies.cwl
-    in:
-      edr:
-        source: gromit_solvent_ligand/energy
-    out: [energy_dataframe, energyout, energyerr]
   gromit:
     run: mdstudio/gromit.cwl
     in:
-      protein_file: protein_file
       protein_top: protein_top
+      protein_file: protein_file
       ligand_file: ligand_file
       topology_file: topology_file
       forcefield: forcefield
