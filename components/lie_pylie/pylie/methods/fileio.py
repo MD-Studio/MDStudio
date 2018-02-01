@@ -100,7 +100,7 @@ def read_gromacs_energy_file(file_or_buffer, columns=None, lowercase=True):
 
     # Try parsing the numeric data into a numpy array
     try:
-        data = numpy.loadtxt(file_or_buffer, skiprows=1)
+        data = numpy.loadtxt(file_or_buffer, comments='#')
     except IOError:
         logger.error("Unable to import trajectory data from GROMACS energy file {0}".format(file_or_buffer.name))
         return None

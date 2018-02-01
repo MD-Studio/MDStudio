@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-file: module_filter_test.py
+file: module_liemdframe_test.py
 
 Test pylie filter functions and workflows
 """
