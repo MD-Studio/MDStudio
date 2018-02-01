@@ -57,7 +57,7 @@ def process_energies(args, outName):
     path_edr = get_edr_file(args)
     frames = get_energy(path_edr)
     labs2print = [
-        'Time', 'Potential', 'Kinetic En.', 'Temperature', 'ele',
+        'Time', 'Potential', 'Kinetic_Energy', 'Temperature', 'ele',
         'vdw', 'Ligand-Ligenv-ele', 'Ligand-Ligenv-vdw']
     writeOut(frames, outName, labs2print)
 
@@ -340,7 +340,7 @@ def writeOut(frames, output_file, columns):
     write columns as a table
     """
     with open(output_file, 'w') as f:
-        s = '# Frames' + frames[columns].to_string()
+        s = '# FRAME ' + frames[columns].to_string()
         f.write(s)
 
 
