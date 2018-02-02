@@ -56,6 +56,7 @@ def process_energies(args, outName):
     """
     path_edr = get_edr_file(args)
     frames = get_energy(path_edr)
+    frames.rename(index=str, columns={'Kinetic En.': 'Kinetic_Energy'}, inplace=True)
     labs2print = [
         'Time', 'Potential', 'Kinetic_Energy', 'Temperature', 'ele',
         'vdw', 'Ligand-Ligenv-ele', 'Ligand-Ligenv-vdw']

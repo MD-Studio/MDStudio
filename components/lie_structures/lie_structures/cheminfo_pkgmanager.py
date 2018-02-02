@@ -149,12 +149,21 @@ import collections
 import importlib
 import logging
 
+from retrying import retry
 from twisted.logger import Logger
 
 logging = Logger()
 
 # Cheminformatics packages supported by cheminfo, the order matters!
 SUPPORTED_PACKAGES = ('webel', 'silverwebel', 'pybel', 'jchem', 'cdk', 'indy', 'opsin', 'rdk', 'pydpi')
+
+
+def retry_if_Index_Exception(exception):
+    """
+    There is a bug when importing pybel that triggers this error:
+    https://github.com/MD-Studio/MDStudio/issues/29
+    """
+    return isinstance(exception, IndexError)
 
 
 class CinfonyPackageManager(collections.MutableMapping):
@@ -194,6 +203,7 @@ class CinfonyPackageManager(collections.MutableMapping):
     def __len__(self):
         return len(self.__dict__)
 
+    @retry(retry_on_exception=retry_if_Index_Exception, stop_max_attempt_number=10)
     def _import_pkg(self, package, package_config):
         """
         Import packages by name or path and register in self.
@@ -231,5 +241,7 @@ class CinfonyPackageManager(collections.MutableMapping):
             logging.debug('Import error for package {0}: {1}'.format(package, e))
         except SyntaxError, e:
             logging.error('Syntax error on import of package {0}: {1}'.format(package, e))
-        except:
-            logging.error('Unexpected error for package {0}: {1}'.format(package, sys.exc_info()[0]))
+        except KeyError, e:
+            logging.error('Package {0}: not found.'.format(package))
+        # except:
+        #     logging.error('Unexpected error for package {0}: {1}'.format(package, sys.exc_info()[0]))
