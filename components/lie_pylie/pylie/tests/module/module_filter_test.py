@@ -116,8 +116,8 @@ class TestSplineFilter(unittest2.TestCase):
         # Check values
         self.assertListEqual(list(ave.poses), [1, 2, 3, 4, 5])
         self.assertListEqual(list(ave.cases), [1])
-        self.assertAlmostEqual(ave['coul'][0], 73.57244, places=5)
-        self.assertAlmostEqual(ave['vdw'][1], -53.76385, places=5)
+        self.assertAlmostEqual(ave['coul'][0], 73.55964, places=5)
+        self.assertAlmostEqual(ave['vdw'][1], -53.78007, places=5)
 
 
 class TestFilterGaussian(unittest2.TestCase):

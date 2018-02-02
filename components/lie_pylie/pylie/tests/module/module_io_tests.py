@@ -43,7 +43,7 @@ class TestFileIO(unittest2.TestCase):
         mol = os.path.join(self.filepath, 'example.mol2')
 
         parser = MOL2Parser(DEFAULT_CONTACT_COLUMN_NAMES)
-        mol2 = parser.parse(mol)
+        mol2 = parser.parse(open(mol, 'r'))
 
         # Check if required columns present and of appropriate type.
         for t in ('atname', 'attype', 'resname'):
@@ -71,12 +71,12 @@ class TestFileIO(unittest2.TestCase):
         mol = os.path.join(self.filepath, 'example2.mol2')
 
         parser = MOL2Parser(DEFAULT_CONTACT_COLUMN_NAMES)
-        self.assertRaises(IOError, parser.parse, mol)
+        self.assertRaises(IOError, parser.parse, open(mol, 'r'))
 
         mol = os.path.join(self.filepath, 'example3.mol2')
 
         parser = MOL2Parser(DEFAULT_CONTACT_COLUMN_NAMES)
-        self.assertRaises(IOError, parser.parse, mol)
+        self.assertRaises(IOError, parser.parse, open(mol, 'r'))
 
     def test_pdb_parser(self):
         """
@@ -86,7 +86,7 @@ class TestFileIO(unittest2.TestCase):
         mol = os.path.join(self.filepath, 'example.pdb')
 
         parser = PDBParser(DEFAULT_CONTACT_COLUMN_NAMES)
-        pdb = parser.parse(mol)
+        pdb = parser.parse(open(mol, 'r'))
 
         # Check if required columns present and of appropriate type.
         for t in ('atname', 'atalt', 'elem', 'resname', 'resext', 'chain', 'segid'):

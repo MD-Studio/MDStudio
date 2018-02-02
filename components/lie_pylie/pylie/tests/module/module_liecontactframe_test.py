@@ -48,24 +48,19 @@ class TestLIEContactFrame(unittest2.TestCase):
     def test_contacts_1acj(self):
 
         df = self.run_test('1acj', 'THA')
-        print(df[df['contact'] != 'nd'])
 
     def test_contacts_1aku(self):
 
         df = self.run_test('1aku', 'FMN')
-        print(df[df['contact'] != 'nd'])
 
     def test_contacts_1ay8(self):
 
         df = self.run_test('1ay8', 'HCI')
-        print(df[df['contact'] != 'nd'])
 
     def test_contacts_1bju(self):
 
         df = self.run_test('1bju', 'GP6')
-        print(df[df['contact'] != 'nd'])
 
     def test_contacts_1bma(self):
 
         df = self.run_test('1bma', '0QH')
-        print(df[df['contact'] != 'nd'])

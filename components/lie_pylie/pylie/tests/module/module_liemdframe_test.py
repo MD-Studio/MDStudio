@@ -55,8 +55,8 @@ class TestMDFrame(unittest2.TestCase):
         # Check values
         self.assertListEqual(list(ave.poses), [1, 2, 3, 4, 5])
         self.assertListEqual(list(ave.cases), [1])
-        self.assertAlmostEqual(ave['coul'][0], 60.11748, places=5)
-        self.assertAlmostEqual(ave['vdw'][1], -53.76385, places=5)
+        self.assertAlmostEqual(ave['coul'][0], 60.12452, places=5)
+        self.assertAlmostEqual(ave['vdw'][1], -53.78007, places=5)
 
     def test_liemdframe_calc_deltaE(self):
         """
@@ -68,7 +68,7 @@ class TestMDFrame(unittest2.TestCase):
         self.mdframe.calc_deltaE()
         self.assertTrue({'vdw_1', 'coul_1', 'vdw_2', 'coul_2', 'vdw_3',
                          'coul_3', 'vdw_4', 'coul_4', 'vdw_5', 'coul_5'}.issubset(set(self.mdframe.columns)))
-        self.assertEqual(self.mdframe['vdw_1'].count(), 999)
+        self.assertEqual(self.mdframe['vdw_1'].count(), 1000)
 
     def test_liemdframe_poses(self):
         """
@@ -89,11 +89,11 @@ class TestMDFrame(unittest2.TestCase):
 
         # Inliers, 'single' method
         inliers = filtered.inliers(method='single')
-        expected = [{'vdw_bound': (999, 1, 999), 'coul_bound': (500, 1, 500)},
-                    {'vdw_bound': (999, 1, 999), 'coul_bound': (999, 1, 999)},
-                    {'vdw_bound': (999, 1, 999), 'coul_bound': (158, 1, 158)},
-                    {'vdw_bound': (999, 1, 999), 'coul_bound': (999, 1, 999)},
-                    {'vdw_bound': (999, 1, 999), 'coul_bound': (126, 1, 126)}]
+        expected = [{'vdw_bound': (1000, 0, 999), 'coul_bound': (501, 0, 500)},
+                    {'vdw_bound': (1000, 0, 999), 'coul_bound': (1000, 0, 999)},
+                    {'vdw_bound': (1000, 0, 999), 'coul_bound': (158, 0, 157)},
+                    {'vdw_bound': (1000, 0, 999), 'coul_bound': (1000, 0, 999)},
+                    {'vdw_bound': (1000, 0, 999), 'coul_bound': (1000, 0, 999)}]
         for pose in inliers.poses:
             self.assertDictEqual(inliers.get_stable(pose), expected[pose-1])
 
@@ -106,7 +106,7 @@ class TestMDFrame(unittest2.TestCase):
         # Inliers, 'global' method. All the same
         inliers = filtered.inliers(method='global')
         for pose in inliers.poses:
-            self.assertDictEqual(inliers.get_stable(pose), {'vdw_bound': (126, 1, 126), 'coul_bound': (126, 1, 126)})
+            self.assertDictEqual(inliers.get_stable(pose), {'vdw_bound': (158, 0, 157), 'coul_bound': (158, 0, 157)})
 
     def test_liemdframe_set_stable(self):
         """
@@ -150,9 +150,9 @@ class TestGromacsImport(unittest2.TestCase):
         # Default import
         mdframe = read_gromacs_energy_file(ene_traj_file)
         self.assertTrue(isinstance(mdframe, DataFrame))
-        self.assertAlmostEqual(mdframe['elelie'].mean(), -143.54658, places=5)
-        self.assertAlmostEqual(mdframe['vdwlie'].mean(), -65.154801, places=5)
-        self.assertEqual(len(mdframe), 999)
+        self.assertAlmostEqual(mdframe['elelie'].mean(), -143.55004, places=5)
+        self.assertAlmostEqual(mdframe['vdwlie'].mean(), -65.15248, places=5)
+        self.assertEqual(len(mdframe), 1000)
         self.assertEqual(len(mdframe.columns), 13)
 
         # Regular headers, lowercase=False
@@ -183,9 +183,9 @@ class TestGromacsImport(unittest2.TestCase):
         mdframe = LIEMDFrame()
         mdframe.from_file(ene_traj_file, {'vdwLIE': 'vdw_unbound', 'EleLIE': 'coul_unbound'}, filetype='gromacs')
         self.assertTrue(isinstance(mdframe, LIEMDFrame))
-        self.assertAlmostEqual(mdframe['coul_unbound'].mean(), -143.54658, places=5)
-        self.assertAlmostEqual(mdframe['vdw_unbound'].mean(), -65.154801, places=5)
-        self.assertEqual(len(mdframe), 999)
+        self.assertAlmostEqual(mdframe['coul_unbound'].mean(), -143.55004, places=5)
+        self.assertAlmostEqual(mdframe['vdw_unbound'].mean(), -65.15248, places=5)
+        self.assertEqual(len(mdframe), 1000)
         self.assertEqual(len(mdframe.columns), 6)
 
         # No right translation dictionary
