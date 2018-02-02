@@ -10,12 +10,12 @@
             "maxItems": 3,
             "uniqueItems": true,
             "items": {
-                "$ref": "resource://mdstudio/topology/atomReference/v1"
+                "$ref": "resource://mdgroup/topology/atomReference/v1"
             },
             "additionalItems": false
         },
         "angleType": {
-            "$ref": "resource://mdstudio/topology/angleType/v1"
+            "$ref": "resource://mdgroup/topology/angleType/v1"
         }
     },
     "required": [

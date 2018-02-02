@@ -3,13 +3,13 @@
     "type": "object",
     "description": "The proper format of a sytems",
     "properties": {
-        "molecules": {
+        "groups": {
             "type": "array",
-            "description": "list of molecules",
+            "description": "list of groups",
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "resource://mdstudio/topology/molecule/v1"
+                    "$ref": "resource://mdgroup/topology/group/v1"
                 }
             ],
             "additionalItems": false

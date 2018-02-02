@@ -295,7 +295,7 @@
             "description": "charge on the cos particle (e)"
         },
         "vdwType": {
-            "$ref": "resource://mdstudio/topology/forcefieldReference/v1"
+            "$ref": "resource://mdgroup/topology/forcefieldReference/v1"
         },
         "position": {
             "type": "array",

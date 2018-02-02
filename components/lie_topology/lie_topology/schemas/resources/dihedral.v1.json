@@ -10,12 +10,12 @@
             "maxItems": 4,
             "uniqueItems": true,
             "items": {
-                "$ref": "resource://mdstudio/topology/atomReference/v1"
+                "$ref": "resource://mdgroup/topology/atomReference/v1"
             },
             "additionalItems": false
         },
         "dihedralType": {
-            "$ref": "resource://mdstudio/topology/dihedralType/v1"
+            "$ref": "resource://mdgroup/topology/dihedralType/v1"
         }
     },
     "required": [

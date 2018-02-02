@@ -9,7 +9,34 @@ from mdstudio.utc import now, from_utc_string
 class TopologyComponent(ComponentSession):
     @endpoint('parse-structure', 'structure-request', 'structure-response')
     def parseStructure(self, request, claims):
-        return { "system": "TEST" }
+        
+        return { "system": {
+                    "groups" : [   
+                        {
+                            "uid": "G0x01",
+                            "name": "chain_A",
+                            "molecules": [
+                                {
+                                    "uid": "M0x01",
+                                    "name": "TYR",
+                                    "atoms": [
+                                        {
+                                            "uid": "A0x01",
+                                            "name": "CA",
+                                            "element": "C"
+                                        },
+                                        {
+                                            "uid": "A0x02",
+                                            "name": "CB",
+                                            "element": "C"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                 }
+            }
 
     @endpoint('test-response', 'tti', 'tto')
     def reponseTiming(self, request, claims):

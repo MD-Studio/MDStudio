@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
     "type": "object",
-    "description": "The proper format of a molecule",
+    "description": "The proper format of molecular fragment",
     "properties": {
         "uid": {
             "type": "string",
@@ -9,17 +9,76 @@
         },
         "name": {
             "type": "string",
-            "description": "atom name",
+            "description": "fragment name",
             "minLength": 1,
             "maxLength": 4
         },
-        "fragments": {
+        "reference": {
+            "type": "integer",
+            "description": "reference number often used in structure formats"
+        },
+        "atoms": {
+            "type": "array",
+            "description": "list of atoms associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "resource://mdgroup/topology/atom/v1"
+                }
+            ],
+            "additionalItems": false
+        },
+        "bonds": {
+            "type": "array",
+            "description": "list of bonds associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "resource://mdgroup/topology/bond/v1"
+                }
+            ],
+            "additionalItems": false
+        },
+        "angles": {
+            "type": "array",
+            "description": "list of angles associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "resource://mdgroup/topology/angle/v1"
+                }
+            ],
+            "additionalItems": false
+        },
+        "dihedrals": {
             "type": "array",
             "description": "list of dihedrals associated with this fragment",
             "minItems": 1,
             "items": [
                 {
-                    "$ref": "resource://mdstudio/topology/fragment/v1"
+                    "$ref": "resource://mdgroup/topology/dihedral/v1"
+                }
+            ],
+            "additionalItems": false
+        },
+        "impropers": {
+            "type": "array",
+            "description": "list of impropers associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "resource://mdgroup/topology/improper/v1"
+                }
+            ],
+            "additionalItems": false
+        },
+        "exclusions": {
+            "type": "array",
+            "description": "list of exclusions associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "resource://mdgroup/topology/exclusion/v1"
                 }
             ],
             "additionalItems": false
@@ -28,7 +87,7 @@
     "required": [
         "uid",
         "name",
-        "fragments"
+        "atoms"
     ],
     "additionalProperties": false
 }

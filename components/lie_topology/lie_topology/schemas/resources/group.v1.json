@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "The proper format of a molecule",
+    "properties": {
+        "uid": {
+            "type": "string",
+            "description": "unique identifier"
+        },
+        "name": {
+            "type": "string",
+            "description": "group name"
+        },
+        "molecules": {
+            "type": "array",
+            "description": "list of dihedrals associated with this fragment",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "resource://mdgroup/topology/molecule/v1"
+                }
+            ],
+            "additionalItems": false
+        }
+    },
+    "required": [
+        "uid",
+        "name",
+        "fragments"
+    ],
+    "additionalProperties": false
+}
