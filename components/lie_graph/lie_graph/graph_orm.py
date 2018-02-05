@@ -32,9 +32,8 @@ class GraphORM(object):
         :rtype:          class
         """
 
-        # Get method resolution order for the base_cls and filter for base
-        # classes created by the GraphORM class to keep the mro clean.
-        base_cls_mro = [c for c in inspect.getmro(base_cls) if not self.__module__ == c.__module__]
+        # Get method resolution order for the base_cls
+        base_cls_mro = base_cls.mro()
 
         # Inherit previous custom modules or only graph module classes
         if not self._inherit:
@@ -44,7 +43,7 @@ class GraphORM(object):
         for n in reversed(classes):
             if n not in base_cls_mro:
                 base_cls_mro.insert(0, n)
-
+        
         # Build the new base class
         base_cls_name = self._class_name or base_cls.__name__
         base_cls = type(base_cls_name, tuple(base_cls_mro), {'adjacency': None, 'nodes': None, 'edges': None})
