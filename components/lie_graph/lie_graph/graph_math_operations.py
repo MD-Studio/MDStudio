@@ -8,7 +8,7 @@ Functions for performing 'set' like math operations on graphs.
 # TODO: add graph_intersection, graph_difference and graph_symmetric_difference methods
 """
 
-from .graph_helpers import _edge_list_to_adjacency
+from lie_graph.graph_helpers import edge_list_to_adjacency
 
 
 def graph_add(graph1, graph2):
@@ -42,7 +42,7 @@ def graph_add(graph1, graph2):
     graph1.auto_nid = auto_nid
 
     # Rebuild graph adjacency list
-    adjacency = _edge_list_to_adjacency(graph1.edges.keys())
+    adjacency = edge_list_to_adjacency(graph1.edges.keys())
     graph1.adjacency.update(adjacency)
 
     return graph1
@@ -78,7 +78,7 @@ def graph_union(graph1, graph2):
     graph1.auto_nid = auto_nid
 
     # Rebuild graph adjacency list
-    adjacency = _edge_list_to_adjacency(graph1.edges.keys())
+    adjacency = edge_list_to_adjacency(graph1.edges.keys())
     graph1.adjacency.update(adjacency)
 
     return graph1

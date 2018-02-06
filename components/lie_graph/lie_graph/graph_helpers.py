@@ -3,10 +3,10 @@
 import copy
 import logging as logger
 
-from .graph_dict import GraphDict
+from graph_storage_drivers.graph_dict import DictStorage
 
 
-def _adjacency_to_edges(nodes, adjacency, node_source):
+def adjacency_to_edges(nodes, adjacency, node_source):
     """
     Construct edges for nodes based on adjacency.
 
@@ -31,7 +31,7 @@ def _adjacency_to_edges(nodes, adjacency, node_source):
     return edges
 
 
-def _edge_list_to_adjacency(edges):
+def edge_list_to_adjacency(edges):
     """
     Create adjacency dictionary based on a list of edges
 
@@ -39,14 +39,14 @@ def _edge_list_to_adjacency(edges):
     :type edges:  list
     """
 
-    adjacency = dict([(n, []) for n in _edge_list_to_nodes(edges)])
+    adjacency = dict([(n, []) for n in edge_list_to_nodes(edges)])
     for edge in edges:
         adjacency[edge[0]].append(edge[1])
 
     return adjacency
 
 
-def _edge_list_to_nodes(edges):
+def edge_list_to_nodes(edges):
     """
     Create a list of nodes from a list of edges
 
@@ -57,7 +57,7 @@ def _edge_list_to_nodes(edges):
     return list(set(sum(edges, ())))
 
 
-def _make_edges(nodes, directed=True):
+def make_edges(nodes, directed=True):
     """
     Create an edge tuple from two nodes either directed
     (first to second) or undirected (two edges, both ways).
@@ -104,13 +104,13 @@ def renumber_id(graph, start):
     # Update nid if auto_nid
     if graph.auto_nid:
         newnodes = {v: graph.nodes[k] for k, v in mapper.items()}
-        graph.nodes = GraphDict(newnodes)
+        graph.nodes = DictStorage(newnodes)
 
     # Update edges.
     newedges = {}
     for eid, edge in graph.edges.items():
         newedges[(mapper.get(eid[0], eid[0]), mapper.get(eid[1], eid[1]))] = edge
-    graph.edges = GraphDict(newedges)
+    graph.edges = DictStorage(newedges)
 
     # Set new auto_nid counter and update adjacency
     graph._nodeid = start

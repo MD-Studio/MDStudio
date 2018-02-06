@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import logging as logger
+import abc
 
-from .graph_helpers import GraphException
-from .graph_io.io_helpers import _open_anything
+from lie_graph.graph_helpers import GraphException
 
 
-class _NodeEdgeBase(object):
+class NodeEdgeBaseClass(object):
     """
     Base class for classes that handle single node or edge graphs.
     """
@@ -109,7 +108,7 @@ class _NodeEdgeBase(object):
             self.set(key, value)
 
 
-class EdgeTools(_NodeEdgeBase):
+class EdgeTools(NodeEdgeBaseClass):
     """
     Graph methods to overload and extend the methods in the graph base class to
     deal with edge data in single edge graphs.
@@ -178,7 +177,7 @@ class EdgeTools(_NodeEdgeBase):
         self.edges[self.nid][key] = value
 
 
-class NodeTools(_NodeEdgeBase):
+class NodeTools(NodeEdgeBaseClass):
     """
     Graph methods to overload and extend the methods in the graph base class to
     deal with node data in single node graphs.
@@ -264,18 +263,3 @@ class NodeTools(_NodeEdgeBase):
         """
 
         self.nodes[self.nid][key] = value
-
-
-class FileHandler(object):
-
-    def get(self, **kwargs):
-        """
-        Return a file with a URI as file like object
-        """
-
-        uri = self._get(key='url', **kwargs)
-        if uri is None:
-            logger.warning('No file URI defined')
-
-        fobject = _open_anything(uri)
-        return fobject
