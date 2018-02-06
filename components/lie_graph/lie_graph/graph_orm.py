@@ -40,10 +40,12 @@ class GraphORM(object):
             base_cls_mro = [c for c in base_cls_mro if c.__module__.startswith('lie_graph')]
 
         # Add custom classes to the base class mro
+        custom_bases = []
         for n in reversed(classes):
             if n not in base_cls_mro:
-                base_cls_mro.insert(0, n)
-        
+                custom_bases.extend([c for c in n.mro()[0:-1] if c not in custom_bases]) # Exclude <'object'> from mro
+        base_cls_mro = custom_bases + base_cls_mro
+
         # Build the new base class
         base_cls_name = self._class_name or base_cls.__name__
         base_cls = type(base_cls_name, tuple(base_cls_mro), {'adjacency': None, 'nodes': None, 'edges': None})
