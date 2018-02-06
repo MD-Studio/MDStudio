@@ -26,8 +26,8 @@ class JSONSchemaParserTests(unittest2.TestCase):
         schema = os.path.abspath(os.path.join(self.currpath, '../files/jsonschema1.json',))
         parser = JSONSchemaParser(schema)
 
-        for e in parser.graph.children():
-            print(e.data, e.value)
+        for e in parser.graph:
+            print(e.data, e.value, e.nid)
 
         # Setting wrong type should raise error
         d = parser.graph.query_nodes({'data': 'dtend'})

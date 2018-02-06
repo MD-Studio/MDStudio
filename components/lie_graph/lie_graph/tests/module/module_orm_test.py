@@ -11,7 +11,6 @@ import unittest2
 
 from lie_graph.graph_io.io_tgf_format import read_tgf
 from lie_graph.graph_orm import GraphORM
-from lie_graph.graph_mixin import FileHandler
 
 
 class ORMtestMo(object):
@@ -59,7 +58,6 @@ class TestGraphORM(unittest2.TestCase):
         self.orm.map_edge(ORMtestBi, {'label': 'bi'})
         self.orm.map_node(ORMtestTgf6, {'tgf': "'six'"})
         self.orm.map_node(ORMtestTgf9, {'tgf': "'nine'"})
-        self.orm.map_node(FileHandler, {'tgf': "'four'"})
 
         self.graph.orm = self.orm
 
