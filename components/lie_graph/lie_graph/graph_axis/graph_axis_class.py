@@ -9,9 +9,11 @@ node.
 TODO: Some of the axis methods don't work for directed graphs
 """
 
-from .graph import Graph
-from .graph_helpers import GraphException
-from .graph_axis_methods import *
+from lie_graph.graph import Graph
+from lie_graph.graph_helpers import GraphException
+from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools, EdgeAxisTools
+from lie_graph.graph_axis.graph_axis_methods import (node_ancestors, node_children, node_descendants, node_neighbors,
+    node_parent, node_all_parents, node_siblings)
 
 
 class GraphAxis(Graph):
@@ -19,12 +21,19 @@ class GraphAxis(Graph):
     Graph axis based hierarchy query methods relative to a root node.
     The methods in the class wrap the axis functions in graph_axis_methods
     defining the node ID (nid) the root node and returning the query results
-    as new (sub)grah by default.
+    as new (sub)graph by default.
 
     This class is combined with the base Graph class to yield the GraphAxis
     class overloading some base methods to enforce root node definition and
     nid selection.
     """
+
+    def __init__(self, *args, **kwargs):
+
+        super(GraphAxis, self).__init__(*args, **kwargs)
+
+        self.node_tools = NodeAxisTools
+        self.edge_tools = EdgeAxisTools
 
     @property
     def nid(self):
@@ -37,7 +46,7 @@ class GraphAxis(Graph):
         """
 
         if self.root is None:
-            raise GraphException('Graph node descendancy requires a root node')
+            raise GraphException('Graph node descendant requires a root node')
 
         nids = list(self.nodes.keys())
         if len(nids):

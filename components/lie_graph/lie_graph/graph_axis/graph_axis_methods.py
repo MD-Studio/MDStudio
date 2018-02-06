@@ -14,7 +14,7 @@ defined.
 
 from itertools import combinations
 
-from .graph_algorithms import dijkstra_shortest_path, node_neighbors
+from lie_graph.graph_algorithms import dijkstra_shortest_path, node_neighbors
 
 
 def closest_to(graph, source, target):
@@ -124,8 +124,8 @@ def node_descendants(graph, nid, root, include_self=False):
                 _walk(c)
 
     # Start descendants walk from child nodes
-    for child_nid in [i for i in start if not i == nid]:
-        _walk(child_nid)
+    for cid in [i for i in start if not i == nid]:
+        _walk(cid)
 
     if not include_self:
         start.remove(nid)
