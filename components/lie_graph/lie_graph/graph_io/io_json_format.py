@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Import/Export files in JSON compliant format
+file: io_json_format.py
+
+Functions for reading and writing graph files in a JSON compliant format
 """
 
 import json
@@ -9,9 +11,9 @@ import json
 import logging as logger
 
 from .. import __version__
-from ..graph import Graph
-from ..graph_axis_class import GraphAxis
-from .io_helpers import _check_lie_graph_version, _open_anything
+from lie_graph.graph import Graph
+from lie_graph.graph_axis_class import GraphAxis
+from lie_graph.graph_io.io_helpers import _check_lie_graph_version, _open_anything
 
 
 BASICTYPES = (int, float, bool, long, str, unicode)

@@ -14,7 +14,7 @@ import pprint
 import pickle
 import logging as logger
 
-from ..graph import Graph
+from lie_graph.graph import Graph
 
 
 def write_graph(graph, path=os.path.join(os.getcwd(), 'graph.gpf'), pickle_graph=False):

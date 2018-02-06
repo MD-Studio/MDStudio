@@ -17,8 +17,8 @@ by means of a label.
 
 import logging as logger
 
-from ..graph import Graph
-from .io_helpers import _coarse_type
+from lie_graph.graph import Graph
+from lie_graph.graph_io.io_helpers import _coarse_type
 
 
 def read_tgf(tgf, edge_data_label='label'):
