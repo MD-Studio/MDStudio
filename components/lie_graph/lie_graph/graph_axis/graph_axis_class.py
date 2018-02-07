@@ -32,11 +32,10 @@ class GraphAxis(Graph):
 
         super(GraphAxis, self).__init__(*args, **kwargs)
 
-        self.node_tools = NodeAxisTools
-        self.edge_tools = EdgeAxisTools
+        self.__dict__['node_tools'] = NodeAxisTools
+        self.__dict__['edge_tools'] = EdgeAxisTools
 
-    @property
-    def nid(self):
+    def _resolve_nid(self):
         """
         Return the node ID (nid) of the current node
 
@@ -48,10 +47,10 @@ class GraphAxis(Graph):
         if self.root is None:
             raise GraphException('Graph node descendant requires a root node')
 
-        nids = list(self.nodes.keys())
-        if len(nids):
-            return nids[0]
-        return None
+        try:
+            return self.nid
+        except AttributeError:
+            return self.root
 
     def ancestors(self, node=None, include_self=False, return_nids=False):
         """
@@ -66,7 +65,7 @@ class GraphAxis(Graph):
         :type return_nids:   bool
         """
 
-        nid = node or self.nid
+        nid = node or self._resolve_nid()
         anc = node_ancestors(self, nid, self.root, include_self=include_self)
 
         if return_nids:
@@ -88,7 +87,7 @@ class GraphAxis(Graph):
         :rtype:              Graph object or :py:list
         """
 
-        nid = node or self.nid
+        nid = node or self._resolve_nid()
         nch = node_children(self, nid, self.root, include_self=include_self)
 
         if return_nids:
@@ -108,7 +107,7 @@ class GraphAxis(Graph):
         :type return_nids:   bool
         """
 
-        nid = node or self.nid
+        nid = node or self._resolve_nid()
         nds = node_descendants(self, nid, self.root, include_self=include_self)
 
         if return_nids:
@@ -132,6 +131,7 @@ class GraphAxis(Graph):
                              graph object representing the selection
         :type return_nids:   bool
         """
+
         if self.is_directed:
             leaves = [node for node in self.nodes()
                       if len(self.adjacency[node]) == 0]
@@ -160,7 +160,7 @@ class GraphAxis(Graph):
         :type return_nids:   bool
         """
 
-        nid = node or self.nid
+        nid = node or self._resolve_nid()
         nng = node_neighbors(self, nid)
 
         if return_nids:
@@ -182,7 +182,7 @@ class GraphAxis(Graph):
         :rtype:              Graph object
         """
 
-        nid = node or self.nid
+        nid = node or self._resolve_nid()
         if self.root == nid:
             self.getnodes(None)
 
@@ -206,7 +206,7 @@ class GraphAxis(Graph):
         :rtype:              Graph object or list
         """
         
-        nid = node or self.nid
+        nid = node or self._resolve_nid()
         anp = node_all_parents(self, nid, self.root)
         
         if return_nids:
@@ -227,7 +227,7 @@ class GraphAxis(Graph):
         :rtype:              Graph object or list
         """
 
-        nid = node or self.nid
+        nid = node or self._resolve_nid()
         nsb = node_siblings(self, nid, self.root)
 
         if return_nids:

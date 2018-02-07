@@ -11,14 +11,8 @@ from lie_graph.graph_mixin import NodeTools, EdgeTools
 
 class NodeAxisTools(NodeTools):
 
-    def __iter__(self):
-
-        for child in self.graph.children():
-            yield child
-
+    pass
 
 class EdgeAxisTools(EdgeTools):
 
-    def __iter__(self):
-        pass
-
+    pass
