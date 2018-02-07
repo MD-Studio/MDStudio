@@ -139,7 +139,7 @@ class Graph(object):
         .. warning:: This comparison is based on identity in node ID in the
                      graph adjacency, not node or edge attributes.
         """
-        
+
         if not isinstance(other, Graph):
             logger.error(
                 "Object {0} not instance of Graph base class".format(
@@ -889,8 +889,7 @@ class Graph(object):
         # to the old root node in hierarchy.
         if w.root is not None and self.is_masked:
             if w.root not in w.nodes() and len(w.nodes):
-                w.root = min(
-                    w.nodes[n].get('_id', self._nodeid) for n in w.nodes())
+                w.root = min(w.nodes[n].get('_id', self._nodeid) for n in w.nodes())
 
         return w
 
