@@ -91,7 +91,7 @@ outputs:
   mdp:
     type: File
     outputSource: gromit/mdp
-  energy:
+  energy_edr:
     type: File
     outputSource: gromit/energy
   energy_dataframe:

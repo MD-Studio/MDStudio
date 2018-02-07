@@ -46,7 +46,7 @@ class LIEWorkflow(LieApplicationSession):
         ligand_format = 'smi'
 
         # CYP1A2 Model data
-        with open(os.path.join(liemodel, 'model.dat'), 'r') as mdf:
+        with open(os.path.join(liemodel, 'model_2.dat'), 'r') as mdf:
             model = json.load(mdf)
 
         # CYP1A2 pre-calibrated model
@@ -162,7 +162,7 @@ class LIEWorkflow(LieApplicationSession):
                      protein_file=os.path.join(liemodel, model['proteinParams'][0]['proteinDock']),
                      min_rmsd_tolerance=3.0)
             wf.connect_task(t11, t12, data_mapping={'mol': 'ligand_file'})
-
+            
             # Get cluster median structures from docking
             t13 = wf.add_task('Get cluster medians', task_type='Task',
                               custom_func='allies_workflow_helpers.get_docking_medians')
@@ -172,7 +172,7 @@ class LIEWorkflow(LieApplicationSession):
             # Ligand in solution
             t14 = wf.add_task('MD ligand in water and MD on protein-ligand system', task_type='WampTask',
                               uri='liestudio.gromacs.liemd', store_output=True)
-            wf.input(t14, sim_time=0.001, forcefield=forcefield,
+            wf.input(t14, sim_time=0.1, forcefield=forcefield,
                      periodic_distance=periodic_distance, temperature=temperature, solvent=solvent, ptau=ptau,
                      prfc=prfc, ttau=ttau, salinity=salinity, charge=model['charge'],
                      path_cerise_config=cerise_file,
@@ -196,7 +196,7 @@ class LIEWorkflow(LieApplicationSession):
             # Run MD for protein + ligand
             t16 = wf.add_task('MD on protein-ligand system', task_type='WampTask', uri='liestudio.gromacs.liemd',
                               store_output=True)
-            wf.input(t16, sim_time=0.001, forcefield=forcefield,
+            wf.input(t16, sim_time=0.1, forcefield=forcefield,
                      periodic_distance=periodic_distance, temperature=temperature, solvent=solvent, ptau=ptau,
                      prfc=prfc, ttau=ttau, salinity=salinity, charge=model['charge'],
                      path_cerise_config=cerise_file,
@@ -226,7 +226,7 @@ class LIEWorkflow(LieApplicationSession):
             # Determine stable regions in MDFrame and filter
             t19 = wf.add_task('Detect stable regions', task_type='WampTask',
                               uri='liestudio.pylie.filter_stable_trajectory', store_output=True)
-            wf.input(t19, do_plot=True)
+            wf.input(t19, do_plot=True, minlength=45)
             wf.connect_task(t18, t19)
 
             # Extract average LIE energy values from the trajectory
@@ -301,4 +301,5 @@ if __name__ == '__main__':
         extra={'authid': u'lieadmin', 'password': u'liepw@#', 'authmethod':u'ticket'},
         # ssl=options
     )
-    runner.run(LIEWorkflow, auto_reconnect=False, log_level='debug')
+    # runner.run(LIEWorkflow, auto_reconnect=False, log_level='debug')
+    runner.run(LIEWorkflow, auto_reconnect=False)    

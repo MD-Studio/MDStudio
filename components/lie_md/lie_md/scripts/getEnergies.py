@@ -72,6 +72,10 @@ def get_energy(path, listRes=['Ligand']):
     :returns: Pandas dataframe.
     """
     df = edr_to_df(path)
+
+    # Reindex dataframe
+    df.reset_index(inplace=True)
+
     # Electrostatic Energy
     df['ele'] = sum_available_columns(
         df, ['Coulomb-14', 'Coulomb (SR)', 'Coulomb (LR)', 'Coul. recip.'])
