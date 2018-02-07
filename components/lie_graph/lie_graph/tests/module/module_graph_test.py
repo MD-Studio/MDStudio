@@ -341,9 +341,9 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(sub.get(), 1)
         self.assertEqual(sub.get('tgf'), "'one'")
 
-        # GraphException for KeyError and AttributeError
-        self.assertRaises(GraphException, sub.__getitem__, 'no_key')
-        self.assertRaises(GraphException, sub.__getattr__, 'no_key')
+        # KeyError and AttributeError
+        self.assertRaises(KeyError, sub.__getitem__, 'no_key')
+        self.assertRaises(AttributeError, sub.__getattr__, 'no_key')
         self.assertIsNone(sub.get('no_key'))
 
         # Specific single node methods: get connected edges
@@ -444,9 +444,9 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(sub.get(), 'mo')
         self.assertEqual(sub.get('label'), 'mo')
 
-        # GraphException for KeyError and AttributeError
-        self.assertRaises(GraphException, sub.__getitem__, 'no_key')
-        self.assertRaises(GraphException, sub.__getattr__, 'no_key')
+        # KeyError and AttributeError
+        self.assertRaises(KeyError, sub.__getitem__, 'no_key')
+        self.assertRaises(AttributeError, sub.__getattr__, 'no_key')
         self.assertIsNone(sub.get('no_key'))
 
     def test_graph_edge_attribute_set(self):

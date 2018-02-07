@@ -1,14 +1,35 @@
 # -*- coding: utf-8 -*-
 
+"""
+file: graph_mixin.py
+
+Defines an abstract base class for node and edge tool classes that are used for
+dynamic (ORM based) Graph class creation.
+Node and Edge tools are used when traversing a graph returns single nodes and
+single edges.
+"""
+
 import abc
 
-from lie_graph.graph_helpers import GraphException
 
+class NodeEdgeToolsBaseClass:
+    """
+    Abstract Base class for node specific tools operating on node data in single
+    node graphs.
+    """
+    __metaclass__ = abc.ABCMeta
 
-class NodeEdgeBaseClass(object):
-    """
-    Base class for classes that handle single node or edge graphs.
-    """
+    @abc.abstractmethod
+    def __contains__(self, key):
+        """
+        Check if node/edge dictionary contains key
+
+        :param key: key to check
+
+        :rtype:     :py:bool
+        """
+
+        return False
 
     def __getattr__(self, key):
         """
@@ -16,7 +37,7 @@ class NodeEdgeBaseClass(object):
 
         Expose node or edge dictionary keys as class attributes.
         Called after the default __getattribute__ lookup it will raise a
-        GraphException if the attribute was not found.
+        AttributeError if the attribute was not found.
         If the key is present, the `get` method is called for it's value.
 
         :param key: attribute name
@@ -26,7 +47,7 @@ class NodeEdgeBaseClass(object):
         if key not in self.__dict__:
             value = self.get(key=key, default='_Graph_no_key__')
             if value == '_Graph_no_key__':
-                raise GraphException('No such node or edge attribute: {0}'.format(key))
+                raise AttributeError('No such node or edge attribute: {0}'.format(key))
 
             return value
 
@@ -46,7 +67,7 @@ class NodeEdgeBaseClass(object):
 
         value = self.get(key=key, default='_Graph_no_key__')
         if value == '_Graph_no_key__':
-            raise GraphException('No such node or edge attribute: {0}'.format(key))
+            raise KeyError('No such node or edge attribute: {0}'.format(key))
 
         return value
 
@@ -107,20 +128,173 @@ class NodeEdgeBaseClass(object):
         else:
             self.set(key, value)
 
+    @abc.abstractmethod
+    def nid(self):
+        """
+        Property returning the current node or edge ID.
 
-class EdgeTools(NodeEdgeBaseClass):
+        This should return a single value as this property should only be
+        implemented on graphs having a single node or edge
+        """
+
+        return
+
+    @abc.abstractmethod
+    def get(self, key=None, default=None, defaultattr=None):
+        """
+        Return node/edge value
+
+        Implement to provide direct access to a node or edge key/value pair
+        preferably by using the `get` method of the node/edge storage API.
+
+        :param key:         node value attribute name. If not defined then
+                            attempt to use class wide `node_data_tag` attribute.
+        :type key:          mixed
+        :param defaultattr: node or edge value attribute to use as source of
+                            default data when `key` attribute is not present.
+        :type defaultattr:  mixed
+        :param default:     value to return when all fails
+        :type default:      mixed
+        """
+
+        return
+
+    @abc.abstractmethod
+    def set(self, key, value):
+        """
+        Set node/edge key/value pair
+
+        Implement to provide a direct setter for node or edge key/value pairs
+        preferably by using the `set` method of the node/edge storage API.
+
+        :param key:         node/edge key to set
+        :param value:       node/edge value
+        """
+
+        return
+
+
+class NodeTools(NodeEdgeToolsBaseClass):
     """
-    Graph methods to overload and extend the methods in the graph base class to
-    deal with edge data in single edge graphs.
+    Node specific tools
     """
 
     def __contains__(self, key):
+        """
+        Check if node/edge dictionary contains key
+
+        :param key: key to check
+
+        :rtype:     :py:bool
+        """
+
+        nid = self.nid
+        if nid:
+            return key in self.nodes[self.nid]
+        return False
+
+    @property
+    def isleaf(self):
+        """
+        Check if the current selected node is a leaf node.
+
+        :rtype: bool
+        """
+
+        return len(self.adjacency[self.nid]) == 1
+
+    @property
+    def nid(self):
+        """
+        Return the nid of the current selected node.
+
+        :return: node nid
+        """
+
+        if len(self.nodes) == 1:
+            return list(self.nodes.keys())[0]
+
+        return None
+
+    def connected_edges(self):
+        """
+        Return the connected edges to a node
+
+        :return: connected edges
+        :rtype:  list
+        """
+
+        return [edge for edge in self.edges if self.nid in edge]
+
+    def get(self, key=None, default=None, defaultattr=None):
+        """
+        Return node value
+
+        Used by the `value` method to get direct access to relevant node
+        attributes. The `value` method itself is a placeholder method that
+        can be overloaded by custom classes to post process the data
+        before returning it.
+
+        :param key:         node value attribute name. If not defined then
+                            attempt to use class wide `node_data_tag` attribute.
+        :type key:          mixed
+        :param defaultattr: node or edge value attribute to use as source of
+                            default data when `key` attribute is not present.
+        :type defaultattr:  mixed
+        :param default:     value to return when all fails
+        :type default:      mixed
+        """
+
+        # Get node attributes
+        target = self.nodes[self.nid]
+
+        key = key or self.node_data_tag
+        if key in target:
+            return target[key]
+        return target.get(defaultattr, default)
+
+    def set(self, key, value):
+        """
+        Set node attribute values.
+
+        :param key:   node attribute key
+        :param value: node attribute value
+        """
+
+        self.nodes[self.nid][key] = value
+
+
+class EdgeTools(NodeEdgeToolsBaseClass):
+    """
+    Edge specific tools
+    """
+
+    def __contains__(self, key):
+        """
+        Check if node/edge dictionary contains key
+
+        :param key: key to check
+
+        :rtype:     :py:bool
+        """
 
         nid = self.nid
         if nid:
             return key in self.edges[self.nid]
-
         return False
+
+    @property
+    def nid(self):
+        """
+        Return the eid of the current selected edge.
+
+        :return: edge eid
+        """
+
+        if len(self.edges) == 1:
+            return list(self.edges.keys())[0]
+
+        return None
 
     def get(self, key=None, defaultattr=None, default=None):
         """
@@ -150,20 +324,6 @@ class EdgeTools(NodeEdgeBaseClass):
             return target[key]
         return target.get(defaultattr, default)
 
-    @property
-    def nid(self):
-        """
-        Return the nid of the current selected edge.
-
-        This would actually be 'eid' for edge id rather than node id (nid).
-        """
-
-        nids = list(self.edges.keys())
-        if nids:
-            return nids[0]
-
-        return None
-
     def set(self, key, value):
         """
         Set edge attribute values.
@@ -175,91 +335,3 @@ class EdgeTools(NodeEdgeBaseClass):
         """
 
         self.edges[self.nid][key] = value
-
-
-class NodeTools(NodeEdgeBaseClass):
-    """
-    Graph methods to overload and extend the methods in the graph base class to
-    deal with node data in single node graphs.
-    """
-
-    def __contains__(self, key):
-
-        nid = self.nid
-        if nid:
-            return key in self.nodes[self.nid]
-        return False
-
-    def get(self, key=None, default=None, defaultattr=None):
-        """
-        Return node value
-
-        Used by the `value` method to get direct access to relevant node
-        attributes. The `value` method itself is a placeholder method that
-        can be overloaded by custom classes to post process the data
-        before returning it.
-
-        :param key:         node value attribute name. If not defined then
-                            attempt to use class wide `node_data_tag` attribute.
-        :type key:          mixed
-        :param defaultattr: node or edge value attribute to use as source of
-                            default data when `key` attribute is not present.
-        :type defaultattr:  mixed
-        :param default:     value to return when all fails
-        :type default:      mixed
-        """
-
-        # Get node attributes
-        target = self.nodes[self.nid]
-
-        key = key or self.node_data_tag
-        if key in target:
-            return target[key]
-        return target.get(defaultattr, default)
-
-    def connected_edges(self):
-        """
-        Return the connected edges to a node
-
-        :return: connected edges
-        :rtype:  list
-        """
-
-        return [edge for edge in self.edges if self.nid in edge]
-
-    @property
-    def isleaf(self):
-        """
-        Check if the current selected node is a leaf node.
-
-        :rtype: bool
-        """
-
-        return len(self.adjacency[self.nid]) == 1
-
-    @property
-    def nid(self):
-        """
-        Return the nid of the current selected node.
-
-        :return: node nid
-        :rtype:  mixed
-        """
-
-        nids = list(self.nodes.keys())
-        if nids:
-            return nids[0]
-
-        return None
-
-    def set(self, key, value):
-        """
-        Set node attribute values.
-        The method may be overloaded in custom classes to pre-process data
-        before setting.
-
-        :param key:   node attribute key
-        :param value: node attribute value
-        """
-
-        self.nodes[self.nid][key] = value
