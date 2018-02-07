@@ -394,7 +394,7 @@ def get_output(job, config):
         "gromacslog7": "{}_{}.out",
         "gromacslog8": "{}_{}.out",
         "gromacslog9": "{}_{}.out",
-        "energy":  "{}_{}.edr",
+        "energy_edr":  "{}_{}.edr",
         "energy_dataframe": "{}_{}.ene",
         "energyout": "{}_{}.out",
         "energyerr": "{}_{}.err",
