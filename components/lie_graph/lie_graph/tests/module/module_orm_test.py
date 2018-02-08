@@ -47,9 +47,15 @@ class ORMtestTgf9(object):
 
 class TestGraphORM(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _gpf_graph = os.path.join(currpath, '../', 'files', 'graph.tgf')
+    _gpf_graph = os.path.abspath(os.path.join(currpath, '../files/graph.tgf'))
 
     def setUp(self):
+        """
+        ConfigHandlerTests class setup
+
+        Load graph from file and assign custom classes to labels and register
+        with the ORM.
+        """
 
         self.graph = read_tgf(self._gpf_graph)
 
@@ -80,6 +86,50 @@ class TestGraphORM(unittest2.TestCase):
         self.assertRaises(AssertionError, self.orm.map_node, 'no_match_attr')
         self.assertRaises(AssertionError, self.orm.map_edge, 'no_match_attr')
 
+    def test_graph_orm_mapped_nodes(self):
+        """
+        Test if all nodes are correctly mapped
+        """
+
+        self.assertEqual(self.graph.orm.mapped_node_types.keys(), ['tgf'])
+        self.assertEqual(self.graph.orm.mapped_node_types.values(), [["'six'", "'nine'"]])
+
+    def test_graph_orm_mapped_edges(self):
+        """
+        Test if all edges are correctly mapped
+        """
+
+        self.assertEqual(self.graph.orm.mapped_edge_types.keys(), ['label'])
+        self.assertEqual(self.graph.orm.mapped_edge_types.values(), [['mo', 'bi']])
+
+    def test_graph_orm_node(self):
+        """
+        Test ORM class mapping for nodes
+        """
+
+        self.assertEqual(self.graph.getnodes(6).add, 6)
+        self.assertTrue(hasattr(self.graph.getnodes(6), 'get_label'))
+        self.assertEqual(self.graph.getnodes(6).get_label(), "tgf6 class 6")
+
+        # Node 9 has a custom class but misses the 'add' attribute
+        self.assertFalse(hasattr(self.graph.getnodes(9), 'add'))
+        self.assertTrue(hasattr(self.graph.getnodes(9), 'get_label'))
+        self.assertRaises(AttributeError, self.graph.getnodes(9).get_label)
+
+    def test_graph_orm_edge(self):
+        """
+        Test ORM class mapping for edges
+        """
+
+        for e, v in self.graph.edges.items():
+            label = v.get('label')
+            if label == 'bi':
+                self.assertTrue(hasattr(self.graph.getedges(e), 'get_label'))
+                self.assertEqual(self.graph.getedges(e).get_label(), "bi class")
+            elif label == 'mo':
+                self.assertTrue(hasattr(self.graph.getedges(e), 'get_label'))
+                self.assertEqual(self.graph.getedges(e).get_label(), "mo class")
+
     def test_graph_orm(self):
         """
         Test dynamic inheritance
@@ -95,4 +145,11 @@ class TestGraphORM(unittest2.TestCase):
 
         # Children should get node9 specific get_label method but with node6
         # attribute
+        self.assertEqual(children.get_label(), 'tgf9 class 6')
+
+        # Changing the custom class 'add' attribute only affects the
+        # particular node
+        node6.add += 1
+        self.assertEqual(children.add, 6)
+        self.assertEqual(node6.add, 7)
         self.assertEqual(children.get_label(), 'tgf9 class 6')

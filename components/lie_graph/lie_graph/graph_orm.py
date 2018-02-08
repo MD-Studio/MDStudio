@@ -41,7 +41,7 @@ class GraphORM(object):
 
         # Add custom classes to the base class mro
         custom_bases = []
-        for n in reversed(classes):
+        for n in classes:
             if n not in base_cls_mro:
                 custom_bases.extend([c for c in n.mro()[0:-1] if c not in custom_bases]) # Exclude <'object'> from mro
         base_cls_mro = custom_bases + base_cls_mro
