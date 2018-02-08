@@ -46,7 +46,7 @@ class LIEWorkflow(LieApplicationSession):
         ligand_format = 'smi'
 
         # CYP1A2 Model data
-        with open(os.path.join(liemodel, 'model_2.dat'), 'r') as mdf:
+        with open(os.path.join(liemodel, 'model.dat'), 'r') as mdf:
             model = json.load(mdf)
 
         # CYP1A2 pre-calibrated model
@@ -162,7 +162,7 @@ class LIEWorkflow(LieApplicationSession):
                      protein_file=os.path.join(liemodel, model['proteinParams'][0]['proteinDock']),
                      min_rmsd_tolerance=3.0)
             wf.connect_task(t11, t12, data_mapping={'mol': 'ligand_file'})
-            
+
             # Get cluster median structures from docking
             t13 = wf.add_task('Get cluster medians', task_type='Task',
                               custom_func='allies_workflow_helpers.get_docking_medians')
@@ -250,25 +250,25 @@ class LIEWorkflow(LieApplicationSession):
                      ci_cutoff=modelfile['AD']['Tanimoto']['Furthest'])
             wf.connect_task(start.nid, t22)
 
-            # # Applicability domain: 2. residue decomposition
-            # t23 = wf.add_task('AD2, residue decomposition', task_type='WampTask',
-            #                  uri='liestudio.pylie.adan_residue_decomp', store_output=True)
-            # wf.input(t23, model_pkl=modelpicklefile)
-            # wf.connect_task(t17, t23)
+            # Applicability domain: 2. residue decomposition
+            t23 = wf.add_task('AD2, residue decomposition', task_type='WampTask',
+                             uri='liestudio.pylie.adan_residue_decomp', store_output=True)
+            wf.input(t23, model_pkl=modelpicklefile)
+            wf.connect_task(t17, t23)
 
-            # # Applicability domain: 3. deltaG energy range
-            # t24 = wf.add_task('AD3, dene yrange', task_type='WampTask', uri='liestudio.pylie.adan_dene_yrange',
-            #                  store_output=True)
-            # wf.input(t24, ymin=modelfile['AD']['Yrange']['min'], ymax=modelfile['AD']['Yrange']['max'])
-            # wf.connect_task(t21, t24, data_mapping={'liedeltag_file': 'dataframe'})
+            # Applicability domain: 3. deltaG energy range
+            t24 = wf.add_task('AD3, dene yrange', task_type='WampTask', uri='liestudio.pylie.adan_dene_yrange',
+                              store_output=True)
+            wf.input(t24, ymin=modelfile['AD']['Yrange']['min'], ymax=modelfile['AD']['Yrange']['max'])
+            wf.connect_task(t21, t24, data_mapping={'liedeltag_file': 'dataframe'})
 
-            # # Applicability domain: 4. deltaG energy distribution
-            # t25 = wf.add_task('AD4, dene distribution', task_type='WampTask', uri='liestudio.pylie.adan_dene',
-            #                   store_output=True)
-            # wf.input(t25, model_pkl=modelpicklefile,
-            #          center=list(modelfile['AD']['Dene']['Xmean']),
-            #          ci_cutoff=modelfile['AD']['Dene']['Maxdist'])
-            # wf.connect_task(t21, t25, data_mapping={'liedeltag_file': 'dataframe'})
+            # Applicability domain: 4. deltaG energy distribution
+            t25 = wf.add_task('AD4, dene distribution', task_type='WampTask', uri='liestudio.pylie.adan_dene',
+                              store_output=True)
+            wf.input(t25, model_pkl=modelpicklefile,
+                     center=list(modelfile['AD']['Dene']['Xmean']),
+                     ci_cutoff=modelfile['AD']['Dene']['Maxdist'])
+            wf.connect_task(t21, t25, data_mapping={'liedeltag_file': 'dataframe'})
 
         # Save the workflow specification
         wf.save(path=os.path.join(workdir, 'workflow_spec.json'))
