@@ -2,11 +2,11 @@
 
 import logging as logger
 
-from ..graph_helpers import GraphException
-from ..graph import Graph
-from ..graph_axis_methods import closest_to
-from ..graph_algorithms import dijkstra_shortest_path
-from .io_helpers import _nest_flattened_dict
+from lie_graph.graph_helpers import GraphException
+from lie_graph.graph import Graph
+from lie_graph.graph_axis.graph_axis_methods import closest_to
+from lie_graph.graph_algorithms import dijkstra_shortest_path
+from lie_graph.graph_io.io_helpers import _nest_flattened_dict
 
 
 def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'):

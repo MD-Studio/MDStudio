@@ -16,14 +16,13 @@ import copy
 import logging as logger
 import weakref
 
-from .graph_dict import GraphDict
-from .graph_mixin import NodeTools, EdgeTools
-from .graph_orm import GraphORM
-from .graph_algorithms import nodes_are_interconnected
-from .graph_math_operations import graph_union, graph_update
-from .graph_helpers import (
-    GraphException, _adjacency_to_edges,  _edge_list_to_adjacency,
-    _edge_list_to_nodes, _make_edges)
+from lie_graph.graph_storage_drivers.graph_dict import DictStorage
+from lie_graph.graph_mixin import NodeTools, EdgeTools
+from lie_graph.graph_orm import GraphORM
+from lie_graph.graph_algorithms import nodes_are_interconnected
+from lie_graph.graph_math_operations import graph_union, graph_update
+from lie_graph.graph_helpers import (GraphException, adjacency_to_edges, edge_list_to_adjacency,
+                                     edge_list_to_nodes, make_edges)
 
 
 class Graph(object):
@@ -49,21 +48,21 @@ class Graph(object):
         """
         Implement class __init__
 
-        Initiate empty GraphDict for the adjacency, nodes and edges.
-        Update these objects with any adjacency, nodes or edges GraphDict
+        Initiate empty DictStorage for the adjacency, nodes and edges.
+        Update these objects with any adjacency, nodes or edges DictStorage
         objects passed as argument.
 
         :param adjacency:     object that stores the dictionary of node/edges
                               ID pairs. This is the graph adjacency.
                               Adjacency is optional and will be constructed
                               from edges by default.
-        :type adjacency:      GraphDict instance
+        :type adjacency:      DictStorage instance
         :param nodes:         object that stores the dictionary of node ID/node
                               data pairs
-        :type nodes:          GraphDict instance
+        :type nodes:          DictStorage instance
         :param edges:         object that stores the dictionary of edge ID/edge
                               data pairs
-        :type edges:          GraphDict instance
+        :type edges:          DictStorage instance
         :param orm:           graph Object Relations Mapper
         :type orm:            GraphORM object
         :param is_directed:   Rather the graph is directed or undirected
@@ -84,9 +83,9 @@ class Graph(object):
         """
 
         self.orm = orm or GraphORM()
-        self.nodes = GraphDict(nodes)
-        self.edges = GraphDict(edges)
-        self.adjacency = GraphDict(adjacency)
+        self.nodes = DictStorage(nodes)
+        self.edges = DictStorage(edges)
+        self.adjacency = DictStorage(adjacency)
 
         # Adjacency is optional and can be constructed from edges.
         if not adjacency and edges:
@@ -318,10 +317,14 @@ class Graph(object):
 
         :rtype: string
         """
-        msg = '<{0} object {1}: id {2}, {3} nodes, {4} edges. Directed: {5}>'
+        msg = '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'
+
+        edges = []
+        for e in self.nodes:
+            edges.extend(self.adjacency[e])
 
         return msg.format(
-            type(self).__name__, id(self), self.nid, len(self.nodes), len(self.edges),
+            type(self).__name__, id(self), len(self.nodes), len(set(edges).intersection(set(self.nodes.keys()))),
             self.is_directed)
 
     def __sub__(self, other):
@@ -372,7 +375,7 @@ class Graph(object):
         (re)create the adjacency list from the graph edges
         """
 
-        self.adjacency = GraphDict(_edge_list_to_adjacency(self.edges.keys()))
+        self.adjacency = DictStorage(edge_list_to_adjacency(self.edges.keys()))
 
     def add_edge(
             self, nd1, nd2=None, attr=None, directed=None, deepcopy=True,
@@ -417,7 +420,7 @@ class Graph(object):
         # Create edge tuples, directed or un-directed (local override possible for mixed graph).
         if directed is None:
             directed = self.is_directed
-        edges_to_add = _make_edges((nd1, nd2), directed=directed)
+        edges_to_add = make_edges((nd1, nd2), directed=directed)
 
         # Prepaire edge data dictionary
         if attr and isinstance(attr, dict):
@@ -442,9 +445,7 @@ class Graph(object):
             if not edge[1] in self.adjacency[edge[0]]:
                 self.adjacency[edge[0]].append(edge[1])
 
-            logger.debug(
-                'Add edge between node {0}-{1} with attributes {2}'.format(
-                    edge[0], edge[1], attr))
+            logger.debug('Add edge between node {0}-{1} with attributes {2}'.format(edge[0], edge[1], attr))
 
         return edges_to_add[0]
 
@@ -507,16 +508,13 @@ class Graph(object):
 
             # Node needs to be hashable
             if not isinstance(node, collections.Hashable):
-                raise GraphException(
-                    'Node {0} of type {1} not a hashable object'.format(
-                        nid, type(node).__name__))
+                raise GraphException('Node {0} of type {1} not a hashable object'.format(nid, type(node).__name__))
 
             # Node needs to be unique
             if nid in self.nodes:
                 raise GraphException('Node {0} already assigned'.format(nid))
 
-        logger.debug(
-            'Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
+        logger.debug('Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
 
         # Prepaire node data dictionary
         node_data = {'nid': nid, '_id': self._nodeid}
@@ -602,6 +600,8 @@ class Graph(object):
         self.nodes.clear()
         self.edges.clear()
         self.adjacency.clear()
+
+        # Reset node ID counter
         self._nodeid = 0
 
     def copy(self, deep=True, copy_view=True, clean=True):
@@ -625,7 +625,7 @@ class Graph(object):
                             adjacency dictionary and set any 'views'.
                             Otherwise, only make a deep copy of the 'view'
                             state.
-        :type copy_view:    bool
+        :type copy_view:    :py:bool
         :param clean:       Remove non-existing edges
         :type clean:        :py:bool
 
@@ -641,12 +641,12 @@ class Graph(object):
             class_copy = base_cls()
 
             class_copy.nodes.update(
-                copy.deepcopy(self.nodes.dict(return_full=True)))
+                copy.deepcopy(self.nodes.to_dict(return_full=True)))
             if copy_view:
                 class_copy.nodes._view = copy.deepcopy(self.nodes._view)
 
             class_copy.edges.update(copy.deepcopy(
-                self.edges.dict(return_full=True)))
+                self.edges.to_dict(return_full=True)))
             if copy_view:
                 class_copy.edges._view = copy.deepcopy(self.edges._view)
 
@@ -661,7 +661,7 @@ class Graph(object):
                 class_copy._set_adjacency()
             else:
                 class_copy.adjacency.update(
-                    copy.deepcopy(self.adjacency.dict(return_full=True)))
+                    copy.deepcopy(self.adjacency.to_dict(return_full=True)))
                 if copy_view:
                     class_copy.adjacency._view = copy.deepcopy(
                         self.adjacency._view)
@@ -743,8 +743,8 @@ class Graph(object):
         If `is_masked` equals True the new graph object will represent
         a fully isolated sub graph for the edges, the connected nodes and the
         adjacency using views on the respective nodes, edges and adjacency
-        GraphDict instances.
-        If `is_masked` equals False only the edges GraphDict will represent
+        DictStorage instances.
+        If `is_masked` equals False only the edges DictStorage will represent
         the sub graph as a view but nodes and adjacency will represent the full
         graph. As such, connectivity with the full graph remains.
 
@@ -800,9 +800,9 @@ class Graph(object):
         # Get nodes and adjacency for the edge selection if it represents
         # an isolated graph
         if self.is_masked:
-            adjacency = _edge_list_to_adjacency(edges)
+            adjacency = edge_list_to_adjacency(edges)
             w.nodes.set_view(adjacency.keys())
-            w.adjacency = GraphDict(adjacency)
+            w.adjacency = DictStorage(adjacency)
 
         # copy class attributes
         for key, value in self.__dict__.items():
@@ -820,8 +820,8 @@ class Graph(object):
         If `is_masked` equals True the new graph object will represent
         a fully isolated sub graph for the nodes, the edges that connect them
         and the adjacency using views on the respective nodes,
-        edges and adjacency GraphDict instances.
-        If `is_masked` equals False only the nodes GraphDict will represent
+        edges and adjacency DictStorage instances.
+        If `is_masked` equals False only the nodes DictStorage will represent
         the subgraph as a view but edges and adjacency will represent the full
         graph. As such, connectivity with the full graph remains.
         If nodes equals None or empty list, the returned Graph object will have
@@ -835,23 +835,20 @@ class Graph(object):
         the NodeTools class is added.
 
         :param nodes:   node id
-        :type nodes:    int
         :param orm_cls: custom classes to construct new node oriented Graph
                         class from.
         :type orm_cls:  list
         """
 
         # Coerce to list
-        if not (isinstance(nodes, tuple) or isinstance(nodes, list)) and nodes:
+        if not isinstance(nodes, (tuple, list)) and nodes:
             nodes = [nodes]
 
         # Nodes need to be in graph
         if nodes:
             nodes_not_present = [n for n in nodes if n not in self.adjacency]
             if nodes_not_present:
-                raise GraphException(
-                    'Following nodes are not in graph {0}'.format(
-                        nodes_not_present))
+                raise GraphException('Following nodes are not in graph {0}'.format(nodes_not_present))
         else:
             nodes = []
 
@@ -860,30 +857,25 @@ class Graph(object):
         custom_orm_cls = []
         if orm_cls:
             if not isinstance(orm_cls, list):
-                raise GraphException(
-                    'Custom node classes need to be defined as list')
+                raise GraphException('Custom node classes need to be defined as list')
             custom_orm_cls.extend(orm_cls)
         if len(nodes) == 1:
             custom_orm_cls.append(self.node_tools)
 
-        base_cls = self.orm.get(
-            self, nodes, self._get_class_object(), classes=custom_orm_cls)
-        w = base_cls(
-            adjacency=self.adjacency, nodes=self.nodes, edges=self.edges,
-            orm=self.orm)
-
+        base_cls = self.orm.get(self, nodes, self._get_class_object(), classes=custom_orm_cls)
+        w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
         w.nodes.set_view(nodes)
 
         # Get edges and adjacency for the node selection if it represents
         # an isolated graph
         if self.is_masked:
-            edges = _adjacency_to_edges(nodes, self.adjacency, nodes)
+            edges = adjacency_to_edges(nodes, self.adjacency, nodes)
             w.edges.set_view(edges)
 
             if edges:
-                w.adjacency = GraphDict(_edge_list_to_adjacency(edges))
+                w.adjacency = DictStorage(edge_list_to_adjacency(edges))
             else:
-                w.adjacency = GraphDict(dict([(n, []) for n in nodes]))
+                w.adjacency = DictStorage(dict([(n, []) for n in nodes]))
 
         # copy class attributes
         for key, value in self.__dict__.items():
@@ -897,8 +889,7 @@ class Graph(object):
         # to the old root node in hierarchy.
         if w.root is not None and self.is_masked:
             if w.root not in w.nodes() and len(w.nodes):
-                w.root = min(
-                    w.nodes[n].get('_id', self._nodeid) for n in w.nodes())
+                w.root = min(w.nodes[n].get('_id', self._nodeid) for n in w.nodes())
 
         return w
 
@@ -1005,7 +996,7 @@ class Graph(object):
             nd1 = (nd1, nd2)
 
         # Make edges, directed or undirected based on graph settings
-        for edge in _make_edges(nd1, directed=self.is_directed):
+        for edge in make_edges(nd1, directed=self.is_directed):
             if edge in self.edges:
                 # Remove from adjacency list
                 if edge[1] in self.adjacency[edge[0]]:
@@ -1053,7 +1044,7 @@ class Graph(object):
                 del self.edges[edge]
 
             # Remove node from other nodes adjacency list
-            adj_list = [e for e in _edge_list_to_nodes(edges) if not e == node]
+            adj_list = [e for e in edge_list_to_nodes(edges) if not e == node]
             for adj in adj_list:
                 self.adjacency[adj].remove(node)
 

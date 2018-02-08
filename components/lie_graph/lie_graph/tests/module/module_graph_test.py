@@ -245,7 +245,7 @@ class TestGraph(unittest2.TestCase):
     def test_graph_copy(self):
         """
         Test deepcopy of the graph. This should return a new graph class
-        with graph, nodes and edges GraphDict objects having a copy of the
+        with graph, nodes and edges DictStorage objects having a copy of the
         original dictionary.
         """
 
@@ -316,11 +316,11 @@ class TestGraph(unittest2.TestCase):
         Test node attribute 'getter' methods
         """
 
-        # Access node attributes directly (unmodified) using the nodes GraphDict
+        # Access node attributes directly (unmodified) using the nodes DictStorage
         self.assertEqual(self.graph.nodes[1]['_id'], 1)
         self.assertEqual(self.graph.nodes[3], {'data': 3, 'nid': 3, '_id': 3, 'tgf': "'three'"})
-        self.assertFalse(self.graph.nodes.get(22, False))  # Node does not exist
-        self.assertFalse(self.graph.nodes[3].get('notthere', False))
+        self.assertIsNone(self.graph.nodes.get(22))  # Node does not exist
+        self.assertIsNone(self.graph.nodes[3].get('notthere'))
 
         # Access node attributes by nid using the (sub)graph 'get' method
         sub = self.graph.getnodes([1, 2, 3])
@@ -341,9 +341,9 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(sub.get(), 1)
         self.assertEqual(sub.get('tgf'), "'one'")
 
-        # GraphException for KeyError and AttributeError
-        self.assertRaises(GraphException, sub.__getitem__, 'no_key')
-        self.assertRaises(GraphException, sub.__getattr__, 'no_key')
+        # KeyError and AttributeError
+        self.assertRaises(KeyError, sub.__getitem__, 'no_key')
+        self.assertRaises(AttributeError, sub.__getattr__, 'no_key')
         self.assertIsNone(sub.get('no_key'))
 
         # Specific single node methods: get connected edges
@@ -355,7 +355,7 @@ class TestGraph(unittest2.TestCase):
         Test node attribute 'setter' methods
         """
 
-        # Set node attributes directly (unmodified) using the nodes GraphDict
+        # Set node attributes directly (unmodified) using the nodes DictStorage
         self.graph.nodes[3]['data'] = 4
         self.graph.nodes[4].update({'data': 'node_four'})
         self.assertEqual(self.graph.nodes[3].get('data'), 4)
@@ -419,7 +419,7 @@ class TestGraph(unittest2.TestCase):
         Test node attribute 'getter' methods
         """
 
-        # Access edge attributes directly (unmodified) using the edges GraphDict
+        # Access edge attributes directly (unmodified) using the edges DictStorage
         self.assertEqual(self.graph.edges[(1, 2)]['label'], 'mo')
         self.assertEqual(self.graph.edges[(2, 3)], {'label': 'bi'})
         self.assertFalse(self.graph.edges.get((7, 9), False))  # edge does not exist
@@ -444,9 +444,9 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(sub.get(), 'mo')
         self.assertEqual(sub.get('label'), 'mo')
 
-        # GraphException for KeyError and AttributeError
-        self.assertRaises(GraphException, sub.__getitem__, 'no_key')
-        self.assertRaises(GraphException, sub.__getattr__, 'no_key')
+        # KeyError and AttributeError
+        self.assertRaises(KeyError, sub.__getitem__, 'no_key')
+        self.assertRaises(AttributeError, sub.__getattr__, 'no_key')
         self.assertIsNone(sub.get('no_key'))
 
     def test_graph_edge_attribute_set(self):
@@ -454,7 +454,7 @@ class TestGraph(unittest2.TestCase):
         Test edge attribute 'setter' methods
         """
 
-        # Set edge attributes directly (unmodified) using the nodes GraphDict
+        # Set edge attributes directly (unmodified) using the nodes DictStorage
         self.graph.edges[(1, 2)]['label'] = 4
         self.graph.edges[(2, 1)].update({'label': 'changed'})
         self.assertEqual(self.graph.edges[(1, 2)].get('label'), 4)

@@ -14,7 +14,7 @@ from lie_graph import GraphAxis
 from lie_graph.graph_helpers import GraphException
 from lie_graph.graph_io.io_dict_parser import dict_to_graph
 from lie_graph.graph_io.io_helpers import _nest_flattened_dict
-from lie_graph.graph_axis_methods import *
+from lie_graph.graph_axis.graph_axis_methods import *
 
 
 class GraphAxisTests(unittest2.TestCase):

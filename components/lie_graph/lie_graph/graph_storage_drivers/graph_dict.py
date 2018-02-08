@@ -5,14 +5,22 @@ file: graph_dict.py
 
 Unified view based dictionary class used by the Graph class to store node, edge
 and adjacency information.
+
+Based on GraphDriverBaseClass it implements key, value and items abstract
+methods using the Python 3.x concept of view based representations with the
+added feature to define views as data mask on the storage level.
 """
 
+import copy
 import weakref
 
+# Load Python 2.x collections abc else Python 3.x
 try:
     import collections as colabc
 except ImportError:
     import collections.abc as colabc
+
+from lie_graph.graph_storage_drivers.graph_driver_baseclass import GraphDriverBaseClass
 
 
 class DictWrapper(dict):
@@ -180,24 +188,15 @@ class ValuesView(colabc.ValuesView):
         return ''.join((type(self).__name__, '(', repr(tuple(self)), ')'))
 
 
-class GraphDict(colabc.MutableMapping, dict):
+class DictStorage(GraphDriverBaseClass, dict):
     """
-    GraphDict class
+    DictStorage class
 
     Provides a Python native dict like class with unified keys, values, and
     items based dictionary views across Python distributions.
     The class supports weak referencing of the internal dictionary (_storage)
     using the weakref module to reduce memory footprint and enable true
-    synchronized views across different instances of the GraphDict class.
-
-    Methods provided by collections.MutableMapping:
-    __contains__
-
-    TODO: should the GraphDict comparison methods return a new GraphDict
-          object with the intersection, difference, symmetric-difference
-          or union of the two graphs instead of the keys and leave the
-          respective key,value or item based comparison methods up to the
-          KeyView, ValueView and ItemView respectively?
+    synchronized views across different instances of the DictStorage class.
     """
 
     __slots__ = ('_storage', '_view')
@@ -207,7 +206,7 @@ class GraphDict(colabc.MutableMapping, dict):
         Implement class __init__
 
         Initiate the internal _storage dictionary.
-        If a GraphDict instance is provided, a _storage dictionary has been
+        If a DictStorage instance is provided, a _storage dictionary has been
         created and we will setup a weak reference to it. Otherwise init
         a new dictionary using args and/or kwargs as input to the native
         Python dict constructor.
@@ -217,10 +216,11 @@ class GraphDict(colabc.MutableMapping, dict):
         self._storage = None
 
         if len(args):
+            assert len(args) == 1, TypeError('update expected at most 1 arguments, got {0}'.format(len(args)))
             mappable = args[0]
 
-            # mappable is GraphDict instance, setup weakref to _storage
-            if isinstance(mappable, GraphDict):
+            # mappable is DictStorage instance, setup weakref to _storage
+            if isinstance(mappable, DictStorage):
                 self._storage = weakref.ref(mappable._storage)()
 
             # mappable is any type accepted by the dict class constructor
@@ -233,97 +233,6 @@ class GraphDict(colabc.MutableMapping, dict):
         else:
             self._storage = DictWrapper(**kwargs)
 
-    def __and__(self, other):
-        """
-        Implement class __and__
-
-        Implements the bitwise 'and' (or &) which
-        equals the intersection between the keys
-        of this _store and the other _store.
-        """
-
-        return self.intersection(other)
-
-    def __call__(self):
-        """
-        Implement class __call__
-
-        Calls the class `dict` method
-        """
-
-        return self.dict()
-
-    def __delitem__(self, key):
-        """
-        Implement class __delitem__
-
-        If the GraphDict instance represent a selective view of the main
-        dictionary, only allow item deletion for keys in the respective view.
-
-        ..  note:: Do not use this method directly to remove nodes or edges
-                   from the graph as it may leave the graph in a funny state.
-                   Use the graph remove_node or remove_edge methods instead.
-
-        :param key: dictionary key to remove
-        """
-
-        if self.is_view:
-            if key not in self._view:
-                raise KeyError('"{0}" not part of selective view'.format(key))
-            self._view.remove(key)
-
-        del self._storage[key]
-
-    def __eq__(self, other):
-        """
-        Implement class __eq__
-
-        Implements class equality (==) test as equality between the dictionary
-        items of self and other. Items respect dictionary views.
-
-        :rtype:  bool
-        """
-
-        if isinstance(other, dict):
-            return set(self.items()) == set(other.items())
-        return False
-
-    def __ge__(self, other):
-        """
-        Implement class __ge__
-
-        Implements the class greater or equal to (>=) operator calling
-        issuperset.
-
-        :rtype: bool
-        """
-
-        return self.issuperset(other, propper=False)
-
-    def __getitem__(self, key):
-        """
-        Implement class __getitem__
-
-        Calls the class `get` method
-        """
-
-        result = self.get(key)
-        if result is None:
-            raise KeyError(key)
-
-        return result
-
-    def __gt__(self, other):
-        """
-        Implement class __gt__
-
-        Implements the class greater then (>) operator calling issuperset.
-
-        :rtype: bool
-        """
-
-        return self.issuperset(other)
-
     def __iter__(self):
         """
         Implement class __iter__
@@ -335,18 +244,6 @@ class GraphDict(colabc.MutableMapping, dict):
             return iter(self._view)
 
         return iter(self._storage)
-
-    def __le__(self, other):
-        """
-        Implement class __le__
-
-        Implements the class less then or equal to (<=) operator calling
-        issubset
-
-        :rtype: bool
-        """
-
-        return self.issubset(other, propper=False)
 
     def __len__(self):
         """
@@ -361,90 +258,20 @@ class GraphDict(colabc.MutableMapping, dict):
 
         return len(self._storage)
 
-    def __lt__(self, other):
-        """
-        Implement class __ge__
-
-        Implements the class less then (<) operator calling issubset.
-
-        :rtype: bool
-        """
-
-        return self.issubset(other)
-
-    def __ne__(self, other):
-        """
-        Implement class __ne__
-
-        Implements class non-equality (!=) test as non-equality between the
-        dictionary items of self and other. Items respect dictionary views.
-
-        :rtype:  bool
-        """
-
-        if isinstance(other, dict):
-            return set(self.items()) != set(other.items())
-        return True
-
-    def __or__(self, other):
-        """
-        Implement class __or__
-
-        Implements the bitwise 'or' (or |) which
-        equals the union between the keys
-        of this _store and the other _store.
-        """
-
-        return self.union(other)
-
     def __repr__(self):
         """
         Implement class __repr__
 
         Returns a string representation of the object meta-data
         """
-        msg = '<{0} object {1}: {2} items, is_view: {3}>'
 
-        return msg.format(
+        return '<{0} object {1}: {2} items, is_view: {3}>'.format(
             self.__class__.__name__, id(self), len(self), self.is_view)
-
-    def __setitem__(self, key, value):
-        """
-        Implement class __setitem__
-
-        Calls the class `set` method
-
-        :param key:   dictionary key to add or update
-        :param value: key value
-        """
-
-        self.set(key, value)
-
-    def __str__(self):
-        """
-        Returns a string representation of the dictionary
-        The order of the printed dictionarty items may vary.
-
-        :rtype: str
-        """
-
-        return repr(self.dict())
-
-    def __xor__(self, other):
-        """
-        Implement class __and__
-
-        Implements the bitwise 'xor' (or ^) which
-        equals the symmetric_difference between the
-        keys of this _store and the other _store.
-        """
-
-        return self.symmetric_difference(other)
 
     @property
     def is_view(self):
         """
-        Does the current GraphDict represent a selective view on the
+        Does the current DictStorage represent a selective view on the
         parent dictionary?
 
         :rtype: bool
@@ -452,11 +279,11 @@ class GraphDict(colabc.MutableMapping, dict):
 
         return self._view is not None
 
-    def dict(self, return_full=False):
+    def to_dict(self, return_full=False):
         """
         Return a shallow copy of the full dictionary.
 
-        If the current GraphDict represent a selective view on the parent
+        If the current DictStorage represent a selective view on the parent
         dictionary then only return a dictionary with a shallow copy of the
         keys in the selective view.
 
@@ -477,42 +304,34 @@ class GraphDict(colabc.MutableMapping, dict):
         """
         Clear key/values from the dictionary.
 
-        If the GraphDict instance represent a selective view of the main
+        If the DictStorage instance represent a selective view of the main
         dictionary, only those keys will be cleared.
         """
 
         if self.is_view:
-            for key in self._view:
+            for key in copy.copy(self._view):
                 del self[key]
         else:
             self._storage.clear()
 
-    def difference(self, other):
-        """
-        Return the difference between the key set of self and other
-
-        :rtype: :py:class:set
-        """
-
-        return set(self.keys()).difference(set(other.keys()))
-
-    def fromkeys(self, keys):
+    def fromkeys(self, keys, value=None):
         """
         Return a shallow copy of the dictionary for selected keys.
 
-        If the GraphDict instance represent a selective view of the main
+        If the DictStorage instance represent a selective view of the main
         dictionary, only those keys will be considered.
 
-        :param keys: keys to return dictionary copy for
+        :param keys:  keys to return dictionary copy for
+        :param value: Default value keys
         """
 
-        return GraphDict([(k, self[k]) for k in keys if k in self])
+        return DictStorage([(k, self[k]) for k in keys if k in self])
 
     def get(self, key, default=None):
         """
         Implement dictionary getter
 
-        If the GraphDict instance represent a selective view of the main
+        If the DictStorage instance represent a selective view of the main
         dictionary, only allow item getter for keys in the respective view.
 
         ..  note:: Do not use this method directly to add nodes or edges
@@ -529,67 +348,6 @@ class GraphDict(colabc.MutableMapping, dict):
             return default
 
         return self._storage.get(key, default)
-
-    def intersection(self, other):
-        """
-        Return the intersection between the key set of self and other
-
-        :param other:   object to compare to
-        :type other:    :py:dict
-
-        :rtype: :py:class:set
-        """
-
-        return set(self.keys()).intersection(set(other.keys()))
-
-    def isdisjoint(self, other):
-        """
-        Returns a Boolean stating whether the key set in self overlap with the
-        specified key set or iterable of other.
-
-        :param other:   object to compare to
-        :type other:    :py:dict
-
-        :rtype: bool
-        """
-
-        return len(self.intersection(other)) == 0
-
-    def issubset(self, other, propper=True):
-        """
-        Keys in self are also in other but other contains more keys
-        (propper = True)
-
-        :param other:   object to compare to
-        :type other:    :py:dict
-        :param propper: ensure that both key lists are not the same.
-        :type propper:  :py:bool
-        """
-
-        self_keys = set(self.keys())
-        other_keys = set(other.keys())
-        if propper:
-            return self_keys.issubset(other_keys) and self_keys != other_keys
-        else:
-            return self_keys.issubset(other_keys)
-
-    def issuperset(self, other, propper=True):
-        """
-        Keys in self are also in other but self contains more keys
-        (propper = True)
-
-        :param other:   object to compare to
-        :type other:    :py:dict
-        :param propper: ensure that both key lists are not the same.
-        :type propper:  :py:bool
-        """
-
-        self_keys = set(self.keys())
-        other_keys = set(other.keys())
-        if propper:
-            return self_keys.issuperset(other_keys) and self_keys != other_keys
-        else:
-            return self_keys.issuperset(other_keys)
 
     def items(self):
         """
@@ -618,6 +376,27 @@ class GraphDict(colabc.MutableMapping, dict):
 
     iterkeys = keys
     viewkeys = keys
+
+    def remove(self, key):
+        """
+        Remove key, value pairs from the dictionary
+
+        If the DictStorage instance represent a selective view of the main
+        dictionary, only allow item deletion for keys in the respective view.
+
+        ..  note:: Do not use this method directly to remove nodes or edges
+                   from the graph as it may leave the graph in a funny state.
+                   Use the graph remove_node or remove_edge methods instead.
+
+        :param key: dictionary key to remove
+        """
+
+        if self.is_view:
+            if key not in self._view:
+                raise KeyError('"{0}" not part of selective view'.format(key))
+            self._view.remove(key)
+
+        del self._storage[key]
 
     def reset_view(self):
         """
@@ -653,25 +432,7 @@ class GraphDict(colabc.MutableMapping, dict):
         keys = [key for key in keys if key in self._storage]
         self._view = set(keys)
 
-    def symmetric_difference(self, other):
-        """
-        Return the symmetric difference between the key set of self and other
-
-        :rtype: :py:class:set
-        """
-
-        return set(self.keys()).symmetric_difference(set(other.keys()))
-
-    def union(self, other):
-        """
-        Return the union between the key set of self and other
-
-        :rtype: :py:class:set
-        """
-
-        return set(self.keys()).union(set(other.keys()))
-
-    def update(self, other):
+    def update(self, *args, **kwargs):
         """
         Update key/value pairs in also updating the view if needed
 
@@ -679,9 +440,12 @@ class GraphDict(colabc.MutableMapping, dict):
         :type other:  :py:dict
         """
 
-        self._storage.update(other)
+        self._storage.update(*args, **kwargs)
         if self.is_view:
-            self._view.update(list(other.keys()))
+            other = []
+            if args:
+                other = list(args[0].keys())
+            self._view.update(other + kwargs.keys())
 
     def values(self):
         """
