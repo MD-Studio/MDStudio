@@ -23,7 +23,6 @@ class SessionObserverTests(DBTestCase):
         self.session.component_root_path = mock.MagicMock(return_value='/')
 
         self.observer = SessionLogObserver(self.session)
-        self.observer.session = self.session
         self.observer.flusher = mock.MagicMock()
 
     def tearDown(self):
@@ -92,6 +91,7 @@ class SessionObserverTests(DBTestCase):
     @test_chainable
     def test_store_recovery(self):
         with Patcher() as patcher:
+            self.observer.session = self.session
             patcher.fs.MakeDirectory('/logs')
 
             self.assertLessEqual(now() - from_utc_string(self.observer.logs[0]['time']), timedelta(seconds=1))
@@ -114,6 +114,7 @@ class SessionObserverTests(DBTestCase):
     @test_chainable
     def test_store_recovery2(self):
         with Patcher() as patcher:
+            self.observer.session = self.session
             patcher.fs.MakeDirectory('/logs')
 
             self.observer.logs = []
