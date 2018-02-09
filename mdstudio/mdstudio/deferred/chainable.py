@@ -131,8 +131,8 @@ def inject_context(gen):
             ctx = ContextManager.get_context()
             res = yield res
             ContextManager.set_context(ctx)
-        except StopIteration:
-            return_value(None)
+        except StopIteration as e:
+            return_value(getattr(e, 'value', None))
 
             # Just to be sure, but break should not be reached
             break
