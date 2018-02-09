@@ -21,10 +21,13 @@ gro file for getting aton umber for residue is: ext='gro',pref='*?sol'
 import argparse
 import collections
 import fnmatch
+import glob
 import logging
 import numpy as np
+import pandas
 import os
 import re
+import shutil
 import subprocess
 import sys
 from multiprocessing import cpu_count
@@ -63,17 +66,23 @@ def process_energies(args, outName):
     writeOut(frames, outName, labs2print)
 
 
-def get_energy(path, listRes=['Ligand']):
+def get_energy(paths, listRes=['Ligand']):
     """
-    Read Energies from a .edr file and
-    use the `panedr` library to parse it.
+    Read Energies from .edr files and
+    use the `panedr` library to parse them.
 
-    :params path:  Path to the edr file.
+    :params paths:  Path to the edr files.
     :returns: Pandas dataframe.
     """
-    df = edr_to_df(path)
+    if not isinstance(paths, list):
+        df = edr_to_df(paths)
+    else:
+        # concatenate the data frames and reduce with the mean function
+        rs = [edr_to_df(p) for p in paths]
+        df = pandas.concat(rs)
+        df.groupby(df.index).mean()
 
-    # Reindex dataframe
+    # Reindex dataframe using sequential integers
     df.reset_index(inplace=True)
 
     # Electrostatic Energy
@@ -111,9 +120,10 @@ def decompose(args):
     top = search_file_in_args(args_dict, ext='top', pref='*-sol')
     files = Files(gro, ndx, trr, top, mdpIn, None)
 
-    energy_file = decomp(mdp_dict, args, files, gmx)
+    # rerun the molecular dynamics
+    energy_files = decomp(mdp_dict, args, files, gmx)
 
-    energy_analysis(args, energy_file)
+    energy_analysis(args, energy_files)
 
 
 def decomp(
@@ -121,37 +131,45 @@ def decomp(
     """
     Decompose the energy into its components for different residues.
     """
-    new_mdp_file = create_new_mdp_file(mdp_dict, args, ligGroup)
-    files = files._replace(mdp=new_mdp_file)
-
     # create a dictionary with the index of the atoms that belong
     # to a given residue
     dict_residues = create_residue_dict(files.gro)
 
-    # create new ndx file:
-    new_ndx_file = create_new_ndx_file(dict_residues, args, files.ndx)
-    files = files._replace(ndx=new_ndx_file)
+    def compute_decomposition(res, folder):
+        workdir = create_workdir(args.dataDir, folder)
 
-    # Generate new tpr file
-    new_tpr_file = create_new_tpr_file(args, files, gmx)
+        copy_include_files(args.dataDir, workdir)
 
-    # update files tuple
-    new_files = files._replace(ndx=new_ndx_file, tpr=new_tpr_file)
+        # Generate new mdp file including residues
+        new_mdp_file = create_new_mdp_file(mdp_dict, res, workdir, ligGroup)
 
-    return rerun_md(args, new_files, gmx)
+        # create new ndx file
+        new_ndx_file = create_new_ndx_file(dict_residues, res, workdir, files.ndx)
+
+        # Generate new tpr file
+        files_tpr = Files(files.gro, new_ndx_file, files.trr, files.top, new_mdp_file, None)
+        new_tpr_file = create_new_tpr_file(files_tpr, workdir, gmx, args.gmxEnv)
+
+        return rerun_md(new_tpr_file, files.trr, workdir, gmx, args.gmxEnv)
+
+    # it is only possible to compute with gromacs 64 energy groups of a time
+    residues = chunksOf(args.resList, 62)
+
+    return [compute_decomposition(res, folder='chunk_{}'.format(i))
+            for i, res in enumerate(residues)]
 
 
-def rerun_md(args, files, gmx):
+def rerun_md(tpr_file, trr_file, workdir, gmx, gmx_env):
     """
     Rerun the molecular dynamics and create decomposition of the energy.
     """
     mdrun = set_gmx_mpi_run(gmx)
-    cmd = ['-s', files.tpr, '-rerun', files.trr, '-deffnm', 'decompose']
-    rs, err = call_subprocess(mdrun + cmd, args.gmxEnv)
+    cmd = ['-s', tpr_file, '-rerun', trr_file, '-deffnm', 'decompose']
+    rs, err = call_subprocess(mdrun + cmd, gmx_env, workdir)
     logging.error(err)
     logging.info(rs)
 
-    energy_file = os.path.join(args.dataDir, 'decompose.edr')
+    energy_file = os.path.join(workdir, 'decompose.edr')
     if not os.path.exists(energy_file):
         msg = 'Something went wrong in the rerun decomposition analysis'
         log_and_quit(msg)
@@ -159,21 +177,21 @@ def rerun_md(args, files, gmx):
     return energy_file
 
 
-def energy_analysis(args, energy_file):
-    """Analysis of energy decomposition file after rerun"""
-    df = get_energy(energy_file)
+def energy_analysis(args, energy_files):
+    """Analysis of energy decomposition files after rerun"""
+    df = get_energy(energy_files)
 
     write_decomposition_ouput(df, args.outName, args.resList)
 
 
-def create_new_tpr_file(args, files, gmx):
+def create_new_tpr_file(files, workdir, gmx, gmx_env):
     """
     Call gromacs grompp `http://manual.gromacs.org/programs/gmx-grompp.html`.
     """
-    outTpr = os.path.join(args.dataDir, 'decompose.tpr')
+    outTpr = os.path.join(workdir, 'decompose.tpr')
     cmd = [gmx, 'grompp', '-f', files.mdp, '-c', files.gro, '-p',
            files.top, '-n', files.ndx, '-o', outTpr, '-maxwarn', '2']
-    rs, err = call_subprocess(cmd, args.gmxEnv)
+    rs, err = call_subprocess(cmd, gmx_env, cwd=workdir)
     logging.error(err)
 
     if not os.path.exists(outTpr):
@@ -207,7 +225,7 @@ def compute_mpi_ranks(ranks=''):
     return ranks
 
 
-def create_new_ndx_file(residues_dict, args, ndx_file):
+def create_new_ndx_file(residues_dict, residues, workdir, ndx_file):
     """
     Write a new ndx file mapping the residue numbers to their
     correspoding atoms, using a array `residues_dict` that contains
@@ -215,14 +233,14 @@ def create_new_ndx_file(residues_dict, args, ndx_file):
     the atoms contained in a given residue.
     """
     new = ''
-    for key in args.resList:
+    for key in residues:
         new += '[ {} ]\n'.format(key)
         data = np.array2string(
             np.arange(*residues_dict[key]),
             formatter={'int': lambda s: '{:>7d}'.format(s)})[1:-1]
         new += ' {}\n'.format(data)
 
-    new_ndx_file = os.path.join(args.dataDir, 'decompose.ndx')
+    new_ndx_file = os.path.join(workdir, 'decompose.ndx')
     with open(ndx_file, 'r') as f_inp, open(new_ndx_file, 'w') as f_out:
         old = f_inp.read()
         f_out.write(old + new)
@@ -230,7 +248,7 @@ def create_new_ndx_file(residues_dict, args, ndx_file):
     return new_ndx_file
 
 
-def create_new_mdp_file(mdp_dict, args, ligGroup):
+def create_new_mdp_file(mdp_dict, residues, workdir, ligGroup):
     """
     Create a new input mdp file using the previous `mdp_dict` data.
     """
@@ -256,7 +274,7 @@ def create_new_mdp_file(mdp_dict, args, ligGroup):
         'xtc-precision': '0', 'xtc-grps': '', 'nstlist': '1'}
 
     # the [1:-1] removes the [ ] from the beginning and the end
-    str_residues = np.array_str(args.resList, max_line_width=1000)[1:-1]
+    str_residues = np.array_str(residues, max_line_width=1000)[1:-1]
     energygrps = '{} {}'.format(ligGroup, str_residues)
 
     newKeys['energygrps'] = energygrps
@@ -269,7 +287,7 @@ def create_new_mdp_file(mdp_dict, args, ligGroup):
     for mdpKey in (x for x in listkeys if x in mdp_dict):
         new_input += fmt.format(mdpKey, mdp_dict[mdpKey])
 
-    mdp_file = os.path.join(args.dataDir, "decompose.mdp")
+    mdp_file = os.path.join(workdir, "decompose.mdp")
     with open(mdp_file, 'w') as f:
         f.write(new_input)
 
@@ -388,12 +406,7 @@ def write_decomposition_ouput(listFrames, outName, resList):
 def parseResidues(xs):
     """ return an array of the residues index """
     residues = np.array(xs.split(','), dtype=np.int32)
-    if residues.size > 62:
-        logging.info("""
-Warning: With NxN kernels not more than 64 energy groups are supported,
-Only the first 62 residues + Ligand + rest energy groups will be used """)
-        residues = residues[:62]
-        
+
     return residues
 
 
@@ -469,6 +482,27 @@ def get_edr_file(args):
         return args.edr
 
 
+def chunksOf(xs, n):
+    """Yield successive n-sized chunks from xs"""
+    for i in range(0, len(xs), n):
+        yield xs[i:i + n]
+
+
+def create_workdir(path, folder):
+    """create a workdir if it does not exist """
+    workdir = os.path.join(path, folder)
+    if not os.path.isdir(workdir):
+        os.mkdir(workdir)
+
+    return workdir
+
+
+def copy_include_files(path, workdir):
+    """ Copy all the include topology files in the workdir"""
+    for p in glob.glob("{}/*itp".format(path)):
+        shutil.copy(p, workdir)
+
+
 def process_line(line):
     """ Split a Line in key, value pairs """
     key, value = line.partition("=")[::2]
@@ -483,19 +517,20 @@ def search_file_in_args(args_dict, ext=None, pref=None):
     :params args: command line arguments
     :returns: path to file
     """
-    if ext in args_dict:
-        return args_dict[ext]
+    file_path = args_dict.get(ext)
+    if file_path is not None:
+        return file_path
     else:
-        return findFile(args_dict['dataDir'], ext='gro', pref='*sol')
+        return findFile(args_dict['dataDir'], ext=ext, pref=pref)
 
 
-def call_subprocess(cmd, env=None):
+def call_subprocess(cmd, env=None, cwd=None):
     """
     Execute shell command `cmd`, using the environment `env`
     and wait for the results.
     """
     try:
-        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=env)
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=env, cwd=cwd)
         rs = p.communicate()
         return rs
 
@@ -567,7 +602,7 @@ if __name__ == "__main__":
     # Arguments for both parsers
     for p in [parser_energy, parser_dec]:
         p.add_argument(
-            '-d', '--dir', required=False, dest='dataDir',
+            '-d', '--dir', required=False, dest='dataDir', type=os.path.abspath,
             help='directory with MD files to process', default=os.getcwd())
         p.add_argument(
             '-o', '--output', dest='outName', default='energy.out')

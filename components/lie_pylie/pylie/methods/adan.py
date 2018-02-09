@@ -33,9 +33,14 @@ def parse_gromacs_decomp(ene_file, parse_rest=True):
     :return:           pandas DataFrame
     :rtype:            :pandas:DataFrame
     """
-
     # Import file
-    decomp = LIEMDFrame(pandas.read_csv(ene_file, sep='\s+'))
+    with open(ene_file, 'r') as f:
+        line = f.readline()
+        df = pandas.read_csv(f, delim_whitespace=True, header=None)
+
+    # remove the # symbol from the columns
+    df.columns = line.split()[1:]
+    decomp = LIEMDFrame(df)
 
     # Select columns containing residue numbers
     residue_cols = decomp.get_columns('(\D+)?[0-9]+(\D+)?', regex=True)
