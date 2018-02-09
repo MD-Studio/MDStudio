@@ -59,6 +59,19 @@ def type_validate(value, ptype='string'):
 
 class SchemaNodeTools(NodeAxisTools):
 
+    def __iter__(self):
+        """
+        Implement class __iter__
+
+        Directly iterate over child nodes
+
+        :return: child node
+        :rtype:  GraphAxis
+        """
+
+        for child in self.children(return_nids=True):
+            yield self.getnodes(child)
+
     def set(self, key, value):
         """
         Overload default NodeTools set method to type check

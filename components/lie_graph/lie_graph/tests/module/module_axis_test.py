@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-file: module_graphaxis_test.py
+file: module_axis_test.py
 
 Unit tests for the Graph axis methods
 """
@@ -17,7 +17,7 @@ from lie_graph.graph_io.io_helpers import _nest_flattened_dict
 from lie_graph.graph_axis.graph_axis_methods import *
 
 
-class GraphAxisTests(unittest2.TestCase):
+class GraphAxisMethodsTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
     _settings_json = os.path.join(currpath, '../', 'files', 'config_handler_test.json')
 
@@ -252,6 +252,22 @@ class GraphAxisTests(unittest2.TestCase):
         # If root not defined, raise exception
         self.graph.root = None
         self.assertRaises(GraphException, self.graph.children)
+
+
+class GraphAxisTraversalTests(unittest2.TestCase):
+    currpath = os.path.dirname(__file__)
+    _settings_json = os.path.join(currpath, '../files/config_handler_test.json')
+
+    def setUp(self):
+        """
+        ConfigHandlerTests class setup
+
+        Load test settings file from config_handler_test.json
+        """
+
+        self.data = _nest_flattened_dict(json.load(open(self._settings_json)))
+        self.graph = GraphAxis()
+        dict_to_graph(self.data, self.graph)
 
     def test_graph_axis_iteration(self):
         """

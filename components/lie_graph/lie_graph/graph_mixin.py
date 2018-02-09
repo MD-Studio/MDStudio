@@ -12,7 +12,7 @@ single edges.
 import abc
 
 
-class NodeEdgeToolsBaseClass:
+class NodeEdgeToolsBaseClass(object):
     """
     Abstract Base class for node specific tools operating on node data in single
     node graphs.

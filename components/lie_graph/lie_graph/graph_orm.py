@@ -32,22 +32,21 @@ class GraphORM(object):
         :rtype:          class
         """
 
-        # Get method resolution order for the base_cls
-        base_cls_mro = base_cls.mro()
+        # Get method resolution order for the base_cls,
+        # exclude ORM build classes
+        base_cls_mro = [c for c in base_cls.mro() if not self.__module__ == c.__module__]
 
         # Inherit previous custom modules or only graph module classes
         if not self._inherit:
             base_cls_mro = [c for c in base_cls_mro if c.__module__.startswith('lie_graph')]
 
         # Add custom classes to the base class mro
-        custom_bases = []
         for n in classes:
             if n not in base_cls_mro:
-                custom_bases.extend([c for c in n.mro()[0:-1] if c not in custom_bases]) # Exclude <'object'> from mro
-        base_cls_mro = custom_bases + base_cls_mro
+                base_cls_mro.insert(0, n)
 
         # Build the new base class
-        base_cls_name = self._class_name or base_cls.__name__
+        base_cls_name = base_cls.__name__ or self._class_name
         base_cls = type(base_cls_name, tuple(base_cls_mro), {'adjacency': None, 'nodes': None, 'edges': None})
         return base_cls
 

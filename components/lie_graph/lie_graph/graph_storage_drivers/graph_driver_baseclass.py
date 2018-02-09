@@ -10,7 +10,7 @@ have to inherit from.
 import abc
 
 
-class GraphDriverBaseClass:
+class GraphDriverBaseClass(object):
     """
     Base class for graph data storage drivers
 

@@ -153,3 +153,19 @@ class TestGraphORM(unittest2.TestCase):
         self.assertEqual(children.add, 6)
         self.assertEqual(node6.add, 7)
         self.assertEqual(children.get_label(), 'tgf9 class 6')
+
+    def test_graph_orm_inherit(self):
+        """
+        Test inheritence of non-package classes in ORM generated classes
+        """
+
+        # Turn inheritance of
+        self.graph.orm._inherit = False
+
+        # First call to ORM from base, node 6 should still have 'add' attribute
+        node6 = self.graph.getnodes([6])
+        self.assertTrue(hasattr(node6, 'add'))
+
+        # Second call to ORM from node 6, node 9 should not have 'add'
+        node9 = node6.getnodes(9)
+        self.assertFalse(hasattr(node9, 'add'))

@@ -30,9 +30,7 @@ class TestGraphAlgorithms(unittest2.TestCase):
                    (7, 8): {}, (7, 6): {'type': 'universal'}, (13, 12): {'type': 'monotone'},
                    (3, 8): {'type': 'universal'}, (4, 5): {'type': 'universal'}, (12, 'object'): {'type': 'universal'},
                    (9, 11): {'type': 'universal'}, (4, 3): {'type': 'universal'}, (8, 3): {'type': 'universal'},
-                   (3, 4): {'type': 'universal'}, (10, 9): {'type': 'universal'}},
-            adjacency={1: [2], 2: [1, 3], 3: [2, 8, 4], 4: [5, 3], 5: [4, 6], 6: [5, 9, 7], 7: [8, 6], 8: [3],
-                       9: [10, 6, 11], 10: [9], 11: [9], 12: [13, 'object'], 13: [12], 'object': [12]}
+                   (3, 4): {'type': 'universal'}, (10, 9): {'type': 'universal'}}
         )
 
     def test_graph_shortest_path_method(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-file: module_graphmathop_test.py
+file: module_mathop_test.py
 
 Unit tests for graph 'set' like math operations functions
 """
