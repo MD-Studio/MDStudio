@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 
 import six
 
+from mdstudio.api.context import ContextManager
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.cursor import Cursor
@@ -314,4 +315,4 @@ class SessionDatabaseWrapper(IDatabase):
 
     def _call(self, uri, request):
         return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request,
-                                 claims=self.session.call_context.get_db_claims(self.connection_type))
+                                 claims=ContextManager.get('call_context').get_db_claims(self.connection_type))

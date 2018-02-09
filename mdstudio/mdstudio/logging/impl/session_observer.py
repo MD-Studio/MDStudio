@@ -28,12 +28,10 @@ class SessionLogObserver(object):
         self.session = None
         self.sessions = []
         self.log_type = log_type
-        self.logs = []
         self.lock = RLock()
+        self.logs = []
         self.flusher_lock = RLock()
         self.flushing = False
-
-        self.recovery_file_path = os.path.join(session.component_root_path(), 'logs', 'recovery.json')
 
         # noinspection PyUnresolvedReferences
         twisted.python.log.addObserver(self)
@@ -63,7 +61,7 @@ class SessionLogObserver(object):
     def store_recovery(self):
         yield self.lock.acquire()
         if len(self.logs) > 0:
-            with open(self.recovery_file_path, 'w') as recovery_file:
+            with open(self.recovery_file(self.session), 'w') as recovery_file:
                 json.dump(self.logs, recovery_file)
                 self.logs = []
         yield self.lock.release()
@@ -84,12 +82,14 @@ class SessionLogObserver(object):
             try:
                 yield self.session.flush_logs(self.logs)
                 self.logs = []
-            except TimeoutError:
+            except TimeoutError as e:
                 yield self.lock.release()
+                print(e)
                 # The crossbar router is down, wait a few seconds to see if it is back up
                 yield self.sleep(3)
-            except (ApplicationError, TransportLost, CallException):
+            except (ApplicationError, TransportLost, CallException) as e:
                 yield self.lock.release()
+                print(e)
                 # The log or db component is probably not awake yet, wait a bit longer
                 yield self.sleep(1)
             except Exception as e:
@@ -97,6 +97,7 @@ class SessionLogObserver(object):
                 self.log.error('Unrecognized exception during logging {failure}', failure=e)
             except:
                 yield self.lock.release()
+                raise
             else:
                 yield self.lock.release()
         else:
@@ -121,7 +122,7 @@ class SessionLogObserver(object):
                 with open(recovery, 'r') as recovery_file:
                     self.logs = json.load(recovery_file)
             except:
-                pass
+                self.logs = []
             finally:
                 os.remove(recovery)
 

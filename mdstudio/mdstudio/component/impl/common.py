@@ -13,7 +13,7 @@ from autobahn.wamp.request import Publication
 from twisted.python.failure import Failure
 
 from mdstudio.api.api_result import APIResult
-from mdstudio.api.context import UserContext, GroupRoleContext, GroupContext
+from mdstudio.api.context import UserContext, GroupRoleContext, GroupContext, ContextManager
 from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.exception import CallException
 from mdstudio.api.request_hash import request_hash
@@ -57,9 +57,7 @@ class CommonSession(ApplicationSession):
     def __init__(self, config=None):
         self.log = Logger(namespace=self.__class__.__name__)
         self.log_type = LogType.User
-        self.call_context = None
         self.default_call_context = None
-        self.call_context_stack = []
 
         self.component_config = self.Config()
         self.function_scopes = self.extract_custom_scopes()  # @todo: register these
@@ -89,7 +87,7 @@ class CommonSession(ApplicationSession):
             else:
                 call_context = GroupContext(self, context['group'])
 
-        self.call_context = self.default_call_context = call_context
+        self.default_call_context = call_context
 
         self.on_init()
 
@@ -111,21 +109,21 @@ class CommonSession(ApplicationSession):
         return False
 
     def default_context(self):
-        return self.default_call_context
+        return ContextManager({'call_context': self.default_call_context})
 
     def user_context(self):
-        return UserContext(self)
+        return ContextManager({'call_context': UserContext(self)})
 
     def group_context(self, group_name):
-        return GroupContext(self, group_name)
+        return ContextManager({'call_context': GroupContext(self, group_name)})
 
     def grouprole_context(self, group_name, group_role):
-        return GroupRoleContext(self, group_name, group_role)
+        return ContextManager({'call_context': GroupRoleContext(self, group_name, group_role)})
 
     # noinspection PyMethodOverriding
     @chainable
     def call(self, procedure, request, claims=None, **kwargs):
-        claims = self.call_context.get_claims(claims)
+        claims = ContextManager.get('call_context').get_claims(claims)
         claims['uri'] = procedure
         claims['action'] = 'call'
 
@@ -169,7 +167,7 @@ class CommonSession(ApplicationSession):
 
     @chainable
     def publish(self, topic, claims=None, options=None):
-        claims = self.call_context.get_claims(claims)
+        claims = ContextManager.get('call_context').get_claims(claims)
 
         signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 

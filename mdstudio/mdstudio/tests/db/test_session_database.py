@@ -4,7 +4,7 @@ from mock import mock
 from twisted.internet.defer import Deferred
 from twisted.trial.unittest import TestCase
 
-from mdstudio.api.context import UserContext
+from mdstudio.api.context import UserContext, ContextManager
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.fields import Fields
 from mdstudio.db.session_database import SessionDatabaseWrapper
@@ -16,7 +16,7 @@ class SessionDatabaseWrapperTests(TestCase):
     def setUp(self):
         self.session = mock.Mock()
         self.session.call = mock.MagicMock(return_value='namespace')
-        self.session.call_context = UserContext(self.session)
+        ContextManager.set_context({'call_context': UserContext(self.session)})
 
         self.wrapper = SessionDatabaseWrapper(self.session)
 
