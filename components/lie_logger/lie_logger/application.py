@@ -75,7 +75,9 @@ class LoggerComponent(CoreComponentSession):
         except CallException as _:
             return_value(APIResult(error='The database is not online, please try again later.'))
         else:
-            return_value(len(res))
+            return_value({
+                'inserted': len(res)
+            })
 
     @endpoint('push-event', 'push/event-request/v1', 'push/event-response/v1')
     @chainable

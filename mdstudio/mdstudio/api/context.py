@@ -1,8 +1,47 @@
 from copy import deepcopy
 
+import six
+
+from mdstudio.api.singleton import Singleton
 from mdstudio.cache.cache_type import CacheType
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.logging.log_type import LogType
+
+
+@six.add_metaclass(Singleton)
+class ContextWrapper(object):
+    def __init__(self):
+        self.context = None
+
+
+class ContextManager:
+    def __init__(self, ctx):
+        self.old_context = ContextWrapper().context
+        self.context = ctx
+
+    def __enter__(self, *args):
+        ContextWrapper().context = self.context
+
+    def __exit__(self, *args):
+        ContextWrapper().context = self.old_context
+
+    @staticmethod
+    def get(key):
+        ctx = ContextWrapper().context
+        return None if ctx is None else ctx.get(key)
+
+    @staticmethod
+    def get_context():
+        return ContextWrapper().context
+
+    @staticmethod
+    def set_context(ctx):
+        ContextWrapper().context = ctx
+
+    @staticmethod
+    def call_with_context(ctx, f, *args, **kwargs):
+        with ContextManager(ctx):
+            return f(*args, **kwargs)
 
 
 class IContext(object):
@@ -24,16 +63,6 @@ class IContext(object):
 
     def get_cache_claims(self, log_type):
         return NotImplementedError('Subclass should implement this')
-
-    def __enter__(self):
-        self.session.call_context_stack.append(self.session.call_context)
-        self.session.call_context = self
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        old_context = self.session.call_context
-        self.session.call_context = self.session.call_context_stack.pop()
-        assert old_context == self, 'Context switching was done improperly'
 
 
 class UserContext(IContext):

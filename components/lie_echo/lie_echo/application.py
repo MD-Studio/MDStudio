@@ -42,11 +42,12 @@ class EchoComponent(ComponentSession):
                 }
             })
 
-        response['returnTime'] = return_time = from_utc_string(response['returnTime'])
+        return_time = from_utc_string(response['returnTime'])
+        response['returnTime'] = return_time
         receive_time = now()
+
         self.report_delay('Component -> User', receive_time - return_time)
         self.report_delay('Total', receive_time - send_time)
 
-    def report_delay(self, direction, delay):
-        self.log.info('{direction:>20} delay: {delay:>8.2f} ms', direction=direction, delay=delay.total_seconds() * 1000)
-
+    def report_delay(self, delay_type, delay):
+        self.log.info('{delay_type:>20} delay: {delay:>8.2f} ms', delay_type=delay_type, delay=delay.total_seconds() * 1000)

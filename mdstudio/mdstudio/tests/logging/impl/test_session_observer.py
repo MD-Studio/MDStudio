@@ -23,6 +23,7 @@ class SessionObserverTests(DBTestCase):
         self.session.component_root_path = mock.MagicMock(return_value='/')
 
         self.observer = SessionLogObserver(self.session)
+        self.observer.session = self.session
         self.observer.flusher = mock.MagicMock()
 
     def tearDown(self):
@@ -41,7 +42,7 @@ class SessionObserverTests(DBTestCase):
             'message': 'Collecting logs on session "MagicMock"'
         }])
         self.assertEqual(self.observer.flushing, False)
-        self.assertEqual(os.path.abspath(self.observer.recovery_file_path), os.path.abspath('/logs/recovery.json'))
+        self.assertEqual(os.path.abspath(self.observer.recovery_file(self.session)), os.path.abspath('/logs/recovery.json'))
 
     def test_call(self):
         t = now()
@@ -103,7 +104,7 @@ class SessionObserverTests(DBTestCase):
 
             yield self.observer.store_recovery()
             self.assertEqual(self.observer.logs, [])
-            with open(self.observer.recovery_file_path) as f:
+            with open(self.observer.recovery_file(self.session)) as f:
                 self.assertEqual(json.load(f), [{
                     'level': 'info',
                     'source': 'mdstudio.logging.impl.session_observer.SessionLogObserver',
@@ -119,7 +120,7 @@ class SessionObserverTests(DBTestCase):
 
             yield self.observer.store_recovery()
             self.assertEqual(self.observer.logs, [])
-            self.assertFalse(os.path.isfile(self.observer.recovery_file_path))
+            self.assertFalse(os.path.isfile(self.observer.recovery_file(self.session)))
 
     @test_chainable
     def test_flush_logs(self):
@@ -282,7 +283,7 @@ class SessionObserverTests(DBTestCase):
         del self.observer.logs[0]['time']
         yield self.observer.flush_logs()
 
-        self.assertFalse(os.path.isfile(self.observer.recovery_file_path))
+        self.assertFalse(os.path.isfile(self.observer.recovery_file(self.session)))
 
         self.assertEqual(self.observer.logs, [])
         self.session.flush_logs.assert_called_once_with([{
@@ -296,7 +297,7 @@ class SessionObserverTests(DBTestCase):
     @test_chainable
     def test_start_flushing2(self):
         with Patcher() as patcher:
-            patcher.fs.CreateFile(self.observer.recovery_file_path, contents=json.dumps([{'est': 'error'}]))
+            patcher.fs.CreateFile(self.observer.recovery_file(self.session), contents=json.dumps([{'est': 'error'}]))
 
             self.observer.session = self.session
             self.observer.sleep = mock.MagicMock()
@@ -305,7 +306,7 @@ class SessionObserverTests(DBTestCase):
 
             yield self.observer.flush_logs()
 
-            self.assertFalse(os.path.isfile(self.observer.recovery_file_path))
+            self.assertFalse(os.path.isfile(self.observer.recovery_file(self.session)))
 
             self.session.flush_logs.assert_called_once_with([{'est': 'error'}])
             self.assertEqual(self.observer.session, self.session)
@@ -313,7 +314,7 @@ class SessionObserverTests(DBTestCase):
     @test_chainable
     def test_start_flushing3(self):
         with Patcher() as patcher:
-            patcher.fs.CreateFile(self.observer.recovery_file_path, contents='sdfwef')
+            patcher.fs.CreateFile(self.observer.recovery_file(self.session), contents='sdfwef')
 
             self.observer.session = self.session
             self.observer.sleep = mock.MagicMock()

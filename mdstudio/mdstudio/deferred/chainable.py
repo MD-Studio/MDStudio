@@ -1,9 +1,16 @@
+import types
+from functools import wraps
+
 from twisted.internet import defer
 
 from twisted.internet.defer import Deferred
 
 
 # noinspection PyPep8Naming
+from mdstudio.api.context import ContextManager
+from mdstudio.deferred.return_value import return_value
+
+
 class Chainable(object):
     @property
     def __class__(self):
@@ -115,14 +122,56 @@ class Chainable(object):
             raise NotImplementedError("This execution path should not be taken")
 
 
+@defer.inlineCallbacks
+def inject_context(gen):
+    res = None
+    while True:
+        try:
+            res = gen.send(res)
+            ctx = ContextManager.get_context()
+            res = yield res
+            ContextManager.set_context(ctx)
+        except StopIteration:
+            return_value(None)
+
+            # Just to be sure, but break should not be reached
+            break
+        except defer._DefGen_Return as e:
+            return_value(e.value)
+
+            # Just to be sure, but break should not be reached
+            break
+
+
 def chainable(f):
     # Allow syntax like the inlineCallbacks, but instead return a Chainable with the result
-    def _chainable(*args, **kwargs):
-        deferred = defer.inlineCallbacks(f)(*args, **kwargs)
-        return Chainable(deferred)
+    @wraps(f)
+    def unwindGenerator(*args, **kwargs):
+        try:
+            gen = f(*args, **kwargs)
+        except defer._DefGen_Return as e:
+            return Chainable(defer.succeed(e.value))
 
-    return _chainable
+        if not isinstance(gen, types.GeneratorType):
+            return Chainable(defer.succeed(gen))
+
+        return Chainable(inject_context(gen))
+
+    return unwindGenerator
 
 
 def test_chainable(f):
-    return defer.inlineCallbacks(f)
+    # Similar to chainable, but without actually wrapping the Deferred
+    @wraps(f)
+    def unwindGenerator(*args, **kwargs):
+        try:
+            gen = f(*args, **kwargs)
+        except defer._DefGen_Return as e:
+            return defer.succeed(e.value)
+
+        if not isinstance(gen, types.GeneratorType):
+            return defer.succeed(gen)
+
+        return inject_context(gen)
+
+    return unwindGenerator
