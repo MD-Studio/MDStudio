@@ -12,7 +12,7 @@ import logging as logger
 
 from .. import __version__
 from lie_graph.graph import Graph
-from lie_graph.graph_axis_class import GraphAxis
+from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_io.io_helpers import _check_lie_graph_version, _open_anything
 
 
@@ -137,11 +137,11 @@ def write_json(graph, indent=2, encoding="utf-8", **kwargs):
             json_format['graph'][key] = value
 
     # Update nodes with graph node attributes
-    json_format['nodes'].update(graph.nodes.dict())
+    json_format['nodes'].update(graph.nodes.to_dict())
 
     # JSON cannot encode dictionaries with tuple as keys
     # Split the two up
-    edgedata = graph.edges.dict()
+    edgedata = graph.edges.to_dict()
     for i, edge in enumerate(edgedata):
         json_format['edges'][i] = edge
         if edgedata[edge]:
