@@ -119,6 +119,52 @@ def renumber_id(graph, start):
     return graph, mapper
 
 
+def graph_directionality(graph):
+    """
+    Return a graph overall directionality as 'directional', 'undirectional'
+    or 'mixed'
+
+    :param graph: Graph to asses directionality of
+
+    :return:      'directional', 'undirectional' or 'mixed'
+    :rtype:       :py:str
+    """
+
+    edge_directionality = []
+    for node, adj in graph.adjacency.items():
+        edge_directionality.extend([node in graph.adjacency[n] for n in adj])
+
+    if all(edge_directionality):
+        return 'undirectional'
+    elif any(edge_directionality):
+        return 'mixed'
+    else:
+        return 'directional'
+
+
+def graph_to_undirectional(graph):
+    """
+    Convert a directional graph or graph of mixed directionality to a
+    undirectional graph by creating the missing edges and copying the
+    edge data from the directional counterpart
+
+    :param graph: Graph to correct directionality for
+
+    :return:      Undirectional graph
+    """
+
+    for node, adj in graph.adjacency.items():
+        for n in adj:
+            if not node in graph.adjacency[n]:
+                print('Missing edge from {0} to {1}. Create'.format(n, node))
+                graph.add_edge(n, node, attr=graph.edges.get((node, n)))
+
+    # Adjust graph is_directed labels to False
+    graph.is_directed = False
+
+    return graph
+
+
 class GraphException(Exception):
     """
     Graph Exception class.
