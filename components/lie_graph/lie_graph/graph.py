@@ -377,9 +377,7 @@ class Graph(object):
 
         self.adjacency = DictStorage(edge_list_to_adjacency(self.edges.keys()))
 
-    def add_edge(
-            self, nd1, nd2=None, attr=None, directed=None, deepcopy=True,
-            node_from_edge=False, **kwargs):
+    def add_edge(self, nd1, nd2=None, attr=None, directed=None, deepcopy=True, node_from_edge=False, **kwargs):
         """
         Add edge between two nodes to the graph
 
@@ -682,9 +680,13 @@ class Graph(object):
             if k not in notcopy:
                 class_copy.__dict__[k] = copy.deepcopy(v)
 
+        # Reset the graph root if needed
+        if class_copy.root and class_copy.root not in class_copy.nodes:
+            class_copy.root = min(class_copy.nodes)
+            logger.debug('Reset graph root to {0}'.format(class_copy.root))
+
         logger.debug(
-            'Return {0} copy of graph {1}'.format(
-                'deep' if deep else 'shallow', repr(self)))
+            'Return {0} copy of graph {1}'.format('deep' if deep else 'shallow', repr(self)))
 
         return class_copy
 
@@ -885,11 +887,9 @@ class Graph(object):
 
         # If root node set and is_masked, reset root to node in new sub(graph)
         # to prevent a root node that is not in the new subgraph.
-        # TODO: the newly selected root node is arbitrary and may not be the one closest
-        # to the old root node in hierarchy.
         if w.root is not None and self.is_masked:
             if w.root not in w.nodes() and len(w.nodes):
-                w.root = min(w.nodes[n].get('_id', self._nodeid) for n in w.nodes())
+                w.root = min(w.nodes[n].get('_id', n) for n in w.nodes())
 
         return w
 
@@ -979,24 +979,31 @@ class Graph(object):
         nodes = list(set(nodes))
         return self.getnodes(nodes, orm_cls=orm_cls)
 
-    def remove_edge(self, nd1, nd2=None):
+    def remove_edge(self, nd1, nd2=None, directed=None):
         """
         Removing an edge from the graph
 
         Checks if the graph contains the edge, then removes it.
         If the graph is undirectional, try to remove both edges
         of the undirectional pair.
+        Force directed removal of the edge using the 'directed' argument.
+        Useful in mixed (un)-directional graphs.
 
-        :param nd1 nd2: edge defined by two node ID's. nd1 may also be
-                        an edge tuple/list ignoring nd2
-        :type nd1 nd2:  int or tuple/list for nd1
+        :param nd1 nd2:  edge defined by two node ID's. nd1 may also be
+                         an edge tuple/list ignoring nd2
+        :type nd1 nd2:   int or tuple/list for nd1
+        :param directed: force directed removal of the edge
+        :type directed:  :py:bool
         """
 
         if not (isinstance(nd1, list) or isinstance(nd1, tuple)):
             nd1 = (nd1, nd2)
 
+        if not isinstance(directed, bool):
+            directed = self.is_directed
+
         # Make edges, directed or undirected based on graph settings
-        for edge in make_edges(nd1, directed=self.is_directed):
+        for edge in make_edges(nd1, directed=directed):
             if edge in self.edges:
                 # Remove from adjacency list
                 if edge[1] in self.adjacency[edge[0]]:
