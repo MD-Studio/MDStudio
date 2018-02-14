@@ -1053,7 +1053,8 @@ class Graph(object):
             # Remove node from other nodes adjacency list
             adj_list = [e for e in edge_list_to_nodes(edges) if not e == node]
             for adj in adj_list:
-                self.adjacency[adj].remove(node)
+                if node in self.adjacency[adj]:
+                    self.adjacency[adj].remove(node)
 
             # Remove node from adjacency and nodes object
             del self.adjacency[node]
