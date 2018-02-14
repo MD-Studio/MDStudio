@@ -6,12 +6,11 @@ file: wamp_services.py
 WAMP service methods the module exposes.
 """
 
-
 from autobahn.wamp.types import RegisterOptions
 from cerise_interface import (
     call_cerise_gromit, create_cerise_config)
 
-from lie_system import LieApplicationSession, WAMPTaskMetaData
+from lie_system import WAMPTaskMetaData
 from lie_md.settings import SETTINGS
 from md_config import set_gromacs_input
 from pymongo import MongoClient
@@ -19,10 +18,14 @@ from twisted.internet.defer import inlineCallbacks
 from twisted.logger import Logger
 import os
 
+from autobahn import wamp
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
+
 logger = Logger()
 
 
-class MDWampApi(LieApplicationSession):
+class MDWampApi(ComponentSession):
     """
     Molecular dynamics WAMP methods.
     """
@@ -49,6 +52,14 @@ class MDWampApi(LieApplicationSession):
             self.run_gromacs_liemd, u'liestudio.gromacs.liemd',
             options=RegisterOptions(invoke=u'roundrobin'))
 
+    def pre_init(self):
+        self.component_config.static.vendor = 'mdgroup'
+        self.component_config.static.component = 'md'
+
+    def authorize_request(self, uri, claims):
+        return True
+
+    @wamp.register(u'mdgroup.md.endpoint.gromacs.liemd')
     def run_gromacs_liemd(
             self, session={}, path_cerise_config=None, cwl_workflow=None,
             protein_file=None, protein_top=None, ligand_file=None,

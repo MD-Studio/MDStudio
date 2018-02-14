@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "User",
+  "type": "object",
+  "properties": {
+    "username": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_\\.]+$"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "password": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "default": "user"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "[0-9a-fA-F]+",
+      "description": "MongoDB object ID for the user",
+      "minLength": 12,
+      "maxLength": 12
+    }
+  }
+}

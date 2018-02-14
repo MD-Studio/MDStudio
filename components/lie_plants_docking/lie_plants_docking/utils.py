@@ -3,7 +3,7 @@
 """
 IO and subprocess related utility functions.
 
-TODO: Should eventually make there way into the lie_system module
+TODO: Should eventually make there way into the mdstudio module
       for general use.
 """
 

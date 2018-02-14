@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "GetSchema",
+  "type": "object",
+  "properties": {
+    "group": {
+      "type": "string",
+      "pattern": "^[a-z_]$"
+    },
+    "component": {
+      "type": "string",
+      "pattern": "^[a-z_]$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_\\-\\./]+$"
+    }
+  },
+  "additionalProperties": false
+}

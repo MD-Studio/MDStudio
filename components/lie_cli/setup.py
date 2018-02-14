@@ -4,9 +4,10 @@
 # package: lie_cli
 # file: setup.py
 #
-# A command line interface component to MDStudio
+# Part of ‘lie_cli’, a package providing cli access for the LIEStudio
+# package.
 #
-# Copyright © 2018 Marc van Dijk, VU University Amsterdam, the Netherlands
+# Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,28 +25,31 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_cli'
 
+
 setup(
     name=distribution_name,
-    version=0.1,
-    description='A command line interface component to MDStudio',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
-    url='https://github.com/MD-Studio/MDStudio',
+    version='1.0.0',
     license='Apache Software License 2.0',
-    keywords='MDStudio CLI',
+    description='CLI component for the LIEStudio application',
+    author='Marc van Dijk - VU University - Amsterdam,' \
+           'Paul Visscher - Zefiros Software (www.zefiros.eu),' \
+           'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
+    author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
+    url='https://github.com/MD-Studio/MDStudio',
+    keywords='LIEStudio CLI',
     platforms=['Any'],
     packages=find_packages(),
+    package_data={'': ['*.json']},
     py_modules=[distribution_name],
-    entry_points = {
-        'console_scripts': ['mdstudio_cli=lie_cli.cli_services:main']
-    },
+    install_requires=['mdstudio'],
+    test_suite="tests",
     include_package_data=True,
     zip_safe=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries',
+        'Topic :: System',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
     ],

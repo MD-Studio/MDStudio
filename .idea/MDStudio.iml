@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_amber" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_atb" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_auth" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_cli" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_db" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_graph" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_haddock" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_logger" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_md" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_plants_docking" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_schema" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_scriptrunner" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_structures" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_workflow" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/mdstudio" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_pylie" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_cache" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/components/lie_echo" isTestSource="false" />
+    </content>
+    <orderEntry type="jdk" jdkName="MDStudio - Docker-Compose" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_FOLDERS">
+      <list>
+        <option value="$MODULE_DIR$/app/node_modules/bower/lib/templates" />
+      </list>
+    </option>
+  </component>
+  <component name="TestRunnerService">
+    <option name="projectConfiguration" value="Nosetests" />
+    <option name="PROJECT_TEST_RUNNER" value="Nosetests" />
+  </component>
+</module>

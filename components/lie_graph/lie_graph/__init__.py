@@ -16,9 +16,9 @@ the graph topology.
 
 ###Node ID
 The node ID or nid for short is the unique identifier of a node and derived edges
-in the graph. The Graph class will automatically assign a nummeric (int) nid to
-all nodes by default stored as '\_id' and 'nid' in the node attributes. The nid
-itself could be any hasable object however but the '\_id' attribute will always be
+in the graph. The Graph class will automatically assign a numeric (int) nid to
+all nodes by default stored as `_id` and 'nid' in the node attributes. The nid
+itself could be any hashable object however but the `_id` attribute will always be
 numeric.
 
 ###Graph directionality
@@ -34,12 +34,12 @@ For performance reasons, most of these will return node or edge IDs. New Graph
 object representing a node and/or edge selection can returned using one of the
 following Graph methods:
 
-* getnodes: return subgraph based on one or more nodes
-* getedges: return subgraph based on one or more edges
-* iternodes: iterate over nodes in the graph. Uses getnodes
-* iteredges: iterate over edges in the graph. Uses getedges
-* query_nodes: return subgraph based on a query over node attributes
-* query_edges: return subgraph based on a query over edge attributes
+ * getnodes: return subgraph based on one or more nodes
+ * getedges: return subgraph based on one or more edges
+ * iternodes: iterate over nodes in the graph. Uses getnodes
+ * iteredges: iterate over edges in the graph. Uses getedges
+ * query_nodes: return subgraph based on a query over node attributes
+ * query_edges: return subgraph based on a query over edge attributes
 
 The subgraphs returned by these methods are implemented as a dictionary view over
 the keys in the nodes and edges DictStorage objects.

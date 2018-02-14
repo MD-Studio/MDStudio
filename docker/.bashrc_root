@@ -1,3 +1,0 @@
-alias lieuser='echo "Switching to usermode"; su lieuser -s $(which bash); [[ -f /tmp/noexit ]] && rm /tmp/noexit || exit'
-export HELPSHOWN=1
-lieuser

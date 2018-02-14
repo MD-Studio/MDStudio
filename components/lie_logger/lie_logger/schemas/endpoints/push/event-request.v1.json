@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "EventRequest",
+  "type": "object",
+  "properties": {
+    "event":{
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "not": {
+                  "enum": ["logs"]
+                },
+                "default": []
+              }
+            },
+            "meta": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "$ref": "resource://mdstudio/logger/event/v1"
+        }
+      ]
+    } 
+  }
+}

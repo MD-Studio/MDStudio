@@ -8,6 +8,7 @@ Functions for reading and writing graphs defined in Propitiatory Graph Format
 
 Graph nodes, edges and adjacency are stored as plain python dictionaries
 """
+import os
 
 import os
 import pprint
