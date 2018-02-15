@@ -29,7 +29,10 @@ setup(
     name=distribution_name,
     version=0.1,
     description='LIEStudio molecular simulation module',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+    author="""
+    Marc van Dijk - VU University - Amsterdam
+    Paul Visscher - Zefiros Software (www.zefiros.eu)
+    Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)""",
     author_email=['m4.van.dijk@vu.nl', 'f.zapata@esciencecenter.nl'],
     url='https://github.com/MD-Studio/MDStudio',
     license='Apache Software License 2.0',
