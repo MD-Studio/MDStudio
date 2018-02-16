@@ -7,7 +7,6 @@ WAMP service methods the module exposes.
 """
 from cerise_interface import (
     call_cerise_gromit, create_cerise_config)
-from lie_system import WAMPTaskMetaData
 from md_config import set_gromacs_input
 from mdstudio.api.endpoint import endpoint
 from mdstudio.component.session import ComponentSession

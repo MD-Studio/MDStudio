@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/gromacs_lie_schema.json",
+    "id": "http://mdstudio/schemas/gromacs_lie_request.json",
     "title": "GromacsLIE",
     "description": "LIE using GROMACS MD software",
     "type": "object",
@@ -115,5 +115,5 @@
             "description": "Path to GROMACS GMXRC file"
         }
     },
-    "required": ["protein_file", "ligand_file", "protein_top", "topology_file"]
+    "required": ["ligand_file", "protein_top", "topology_file", "residues"]
 }

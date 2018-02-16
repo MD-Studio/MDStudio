@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://mdstudio/schemas/gromacs_lie_response.json",
+    "title": "GromacsLIE",
+    "description": "Output of the LIE components using GROMACS MD software",
+    "type": "object",
+    "properties": {
+	"output": {
+	    "type": "object",
+	    "description": "Gromit energy dataframes"
+	} 
+    },
+    "required": ["output"]
+}
