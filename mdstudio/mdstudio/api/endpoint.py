@@ -65,7 +65,7 @@ class WampEndpoint(object):
         return self.instance.register(self, self.uri)
 
     def __call__(self, request, signed_claims=None):
-        with ContextManager(self.instance.default_call_context):
+        with ContextManager({'call_context': self.instance.default_call_context}):
             return self.execute(request, signed_claims)  # type: Chainable
 
     @chainable

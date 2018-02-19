@@ -82,8 +82,9 @@ class CoreComponentSession(CommonSession):
     def _on_join(self):
         print('{} is waiting for {}'.format(self.class_name(), [waiter.component for waiter in self.component_waiters]))
 
-        for waiter in self.component_waiters:
-            yield waiter.wait()
+        with self.group_context('mdstudio'):
+            for waiter in self.component_waiters:
+                yield waiter.wait()
 
         yield super(CoreComponentSession, self)._on_join()
 
