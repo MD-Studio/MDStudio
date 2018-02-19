@@ -15,14 +15,15 @@ else:
     from io import StringIO
     from urllib import parse as urlparse
 
-def _coarse_type(n):
+
+def coarse_type(n):
 
     if n.isdigit():
         return int(n)
     return n
 
 
-def _check_lie_graph_version(version=None):
+def check_lie_graph_version(version=None):
     """
     Check if the graph version of the file is (backwards) compatible with
     the current lie_graph module version
@@ -41,7 +42,7 @@ def _check_lie_graph_version(version=None):
     return True    
 
 
-def _open_anything(source, mode='r'):
+def open_anything(source, mode='r'):
     """
     Open input available from a file, a Python file like object, standard
     input, a URL or a string and return a uniform Python file like object
@@ -88,7 +89,7 @@ def _open_anything(source, mode='r'):
             return StringIO.StringIO(str(source))
 
 
-def _flatten_nested_dict(config, parent_key='', sep='.'):
+def flatten_nested_dict(config, parent_key='', sep='.'):
     """
     Flatten a nested dictionary by concatenating all
     nested keys.
@@ -115,14 +116,14 @@ def _flatten_nested_dict(config, parent_key='', sep='.'):
 
         new_key = unicode(parent_key + sep + key if parent_key else key)
         if isinstance(value, collections.MutableMapping):
-            items.extend(_flatten_nested_dict(value, new_key, sep=sep).items())
+            items.extend(flatten_nested_dict(value, new_key, sep=sep).items())
         else:
             items.append((new_key, value))
 
     return dict(items)
 
 
-def _nest_flattened_dict(graph_dict, sep='.'):
+def nest_flattened_dict(graph_dict, sep='.'):
     """
     Convert a dictionary that has been flattened by the
     `_flatten_nested_dict` method to a nested representation

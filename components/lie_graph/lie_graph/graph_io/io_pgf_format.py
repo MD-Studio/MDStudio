@@ -101,6 +101,6 @@ def read_graph(graph_file, graph=None, pickle_graph=False):
     else:
         with open(graph_file) as f:
             code = compile(f.read(), "GPF_file", 'exec')
-            exec(code, global_vars, local_vars)
+            exec(code)
 
     return graph

@@ -25,7 +25,7 @@ else:
     from io import StringIO
 
 from lie_graph.graph import Graph
-from lie_graph.graph_io.io_helpers import _coarse_type, _open_anything
+from lie_graph.graph_io.io_helpers import coarse_type, open_anything
 
 
 def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
@@ -68,7 +68,7 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
     :rtype:                 :lie_graph:Graph
     """
 
-    tgf_file = _open_anything(tgf)
+    tgf_file = open_anything(tgf)
     if not isinstance(graph, Graph):
         graph = Graph()
 
@@ -97,7 +97,7 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
                 continue
 
             # Coarse string to types
-            line = [_coarse_type(n) for n in line.split()]
+            line = [coarse_type(n) for n in line.split()]
 
             # Parse nodes
             if nodes:
@@ -145,7 +145,7 @@ def write_tgf(graph, node_data_tag=None, edge_data_tag=None):
     :type edge_data_tag:  :py:str
 
     :return:              TGF graph representation
-    :rtype:               string buffer
+    :rtype:               :py:str
     """
 
     # Define node and edge data tags to export
@@ -167,4 +167,4 @@ def write_tgf(graph, node_data_tag=None, edge_data_tag=None):
 
     # Reset buffer cursor
     string_buffer.seek(0)
-    return string_buffer
+    return string_buffer.read()
