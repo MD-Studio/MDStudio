@@ -4,17 +4,41 @@ import logging as logger
 
 from lie_graph.graph_helpers import GraphException
 from lie_graph.graph import Graph
+from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_axis.graph_axis_methods import closest_to
 from lie_graph.graph_algorithms import dijkstra_shortest_path
 from lie_graph.graph_io.io_helpers import _nest_flattened_dict
 
 
-def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'):
+def read_dict(dictionary, graph=None, node_data_tag=None, edge_data_tag=None, valuestring='value'):
+    """
+    Parse (hierarchical) dictionary data structure to a graph
+
+    :param dictionary:      dictionary
+    :type dictionary:       :py:dict
+    :param graph:           Graph object to import dictionary data in
+    :type graph:            :lie_graph:Graph
+    :param node_data_tag:   Data key to use for parsed node labels.
+    :type node_data_tag:    :py:str
+    :param edge_data_tag:   Data key to use for parsed edge labels.
+    :type edge_data_tag:    :py:str
+
+    :return:                Graph object
+    :rtype:                 :lie_graph:Graph
+    """
 
     assert isinstance(dictionary, dict), \
         TypeError("Requires dictionary, got: {0}".format(type(dictionary)))
 
-    graph.node_data_tag = keystring
+    if not isinstance(graph, Graph):
+        graph = GraphAxis()
+
+    # Define node/edge data labels
+    if node_data_tag:
+        graph.node_data_tag = node_data_tag
+    if edge_data_tag:
+        graph.edge_data_tag = edge_data_tag
+
     rootnid = graph.add_node('root')
     graph.root = rootnid
 
@@ -27,7 +51,8 @@ def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'):
             for k, v in sorted(item.items()):
                 _walk_dict(k, v, nid)
         else:
-            graph.nodes[nid][valuestring] = item
+            node = graph.getnodes(nid)
+            node.set(valuestring, item)
 
     for k, v in sorted(dictionary.items()):
         _walk_dict(k, v, rootnid)
@@ -35,7 +60,7 @@ def dict_to_graph(dictionary, graph, keystring='key', valuestring='value'):
     return graph
 
 
-def graph_to_dict(graph, keystring='key', valuestring=None, nested=True, sep='.',
+def write_dict(graph, keystring='key', valuestring=None, nested=True, sep='.',
                   path_method=dijkstra_shortest_path, default=None):
     """
     Export a graph to a (nested) dictionary
