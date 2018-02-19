@@ -22,12 +22,13 @@ SchemaType = Union[str, dict, ISchema]
 
 
 def validation_error(schema, instance, error, prefix, uri):
+
     return \
         '{prefix} validation on uri "{uri}" failed on "{property}": \n' \
         'Subschema:\n{subschema}\ndid not match actual value:\n{subproperty}'.format(
             prefix=prefix,
             uri=uri,
-            property='.'.join(error.schema_path),
+            property='.'.join(str(x) for x in error.schema_path),
             subschema=json.dumps(error.schema, indent=2),
             subproperty=json.dumps(error.instance, indent=2)
         )

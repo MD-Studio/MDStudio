@@ -260,86 +260,96 @@
                 "Mt"
             ]
         },
-        "occupancy": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "crystallographic occupancy"
+        "parameters":
+        {
+            "mass": {
+                "oneOf": [
+                    {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "description": "atomic mass (amu)"
+                    },
+                    {
+                        "$ref": "resource://mdgroup/topology/reference/v1"
+                    }
+                ]
+            },
+            "partialCharge": {
+                "oneOf": [
+                    {
+                        "type": "number",
+                        "description": "radial charge (e)"
+                    },
+                    {
+                        "$ref": "resource://mdgroup/topology/reference/v1"
+                    }
+                ]
+            },
+            "chargeGroup": {
+                "oneOf": [
+                    {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "molecular charge group index"
+                    },
+                    {
+                        "$ref": "resource://mdgroup/topology/reference/v1"
+                    }
+                ]
+            },
+            "polarizability": {
+                "oneOf": [
+                    {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "polarizability of the atom (nm^3)"
+                    },
+                    {
+                        "$ref": "resource://mdgroup/topology/reference/v1"
+                    }
+                ]
+            },
+            "cosCharge": {
+                "oneOf": [
+                    {
+                        "type": "number",
+                        "description": "charge on the cos particle (e)"
+                    },
+                    {
+                        "$ref": "resource://mdgroup/topology/reference/v1"
+                    }
+                ]
+            },
+            "vdwType": {
+                "$ref": "resource://mdgroup/topology/reference/v1"
+            }
         },
-        "bFactor": {
-            "type": "number",
-            "minimum": 0,
-            "description": "crystallographic b-factor"
+        "state": {
+            "position": {
+                "$ref": "resource://mdgroup/topology/vec3/v1"
+            },
+            "velocity": {
+                "$ref": "resource://mdgroup/topology/vec3/v1"
+            },
+            "force": {
+                "$ref": "resource://mdgroup/topology/vec3/v1"
+            },
+            "cosOffset": {
+                "$ref": "resource://mdgroup/topology/vec3/v1"
+            }
         },
-        "mass": {
-            "type": "number",
-            "minimum": 0,
-            "description": "atomic mass (amu)"
-        },
-        "partialCharge": {
-            "type": "number",
-            "description": "radial charge (e)"
-        },
-        "chargeGroup": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "molecular charge group index"
-        },
-        "polarizability": {
-            "type": "number",
-            "minimum": 0,
-            "description": "polarizability of the atom (nm^3)"
-        },
-        "cosCharge": {
-            "type": "number",
-            "description": "charge on the cos particle (e)"
-        },
-        "vdwType": {
-            "$ref": "resource://mdgroup/topology/forcefieldReference/v1"
-        },
-        "position": {
-            "type": "array",
-            "description": "position of the atom",
-            "items": [
-                {
-                    "type": "number"
-                }
-            ],
-            "maxItems": 3,
-            "minItems": 3
-        },
-        "velocity": {
-            "type": "array",
-            "description": "position of the atom",
-            "items": [
-                {
-                    "type": "number"
-                }
-            ],
-            "maxItems": 3,
-            "minItems": 3
-        },
-        "force": {
-            "type": "array",
-            "description": "position of the atom",
-            "items": [
-                {
-                    "type": "number"
-                }
-            ],
-            "maxItems": 3,
-            "minItems": 3
-        },
-        "cosOffset": {
-            "type": "array",
-            "description": "offset of the cos particle relative to the attached atom",
-            "items": [
-                {
-                    "type": "number"
-                }
-            ],
-            "maxItems": 3,
-            "minItems": 3
+        "experiment": {
+            "occupancy": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "crystallographic occupancy"
+            },
+            "bFactor": {
+                "type": "number",
+                "minimum": 0,
+                "description": "crystallographic b-factor"
+            }
         }
     },
     "required": [

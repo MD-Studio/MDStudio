@@ -35,8 +35,8 @@ class TopologyComponent(ComponentSession):
                             ]
                         }
                     ]
-                 }
-            }
+                  }
+               }
 
     @endpoint('test-response', 'tti', 'tto')
     def reponseTiming(self, request, claims):
@@ -79,7 +79,7 @@ class TopologyComponent(ComponentSession):
             "data": ""
         })
 
-        self.log.info(response2["system"])
+        self.log.info('debug_sytem {sys:s}', sys=str(response2["system"]))
 
 
     def report_delay(self, direction, delay):

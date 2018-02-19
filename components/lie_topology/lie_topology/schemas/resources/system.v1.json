@@ -7,11 +7,9 @@
             "type": "array",
             "description": "list of groups",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/group/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/group/v1"
+            },
             "additionalItems": false
         },
         "lattice": {
@@ -19,24 +17,14 @@
             "description": "lattice vectors",
             "minItems": 3,
             "maxItems": 3,
-            "items": [
-                {
-                    "type": "array",
-                    "description": "vector",
-                    "items": [
-                        {
-                            "type": "number"
-                        }
-                    ],
-                    "maxItems": 3,
-                    "minItems": 3
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/vec3/v1"
+            },
             "additionalItems": false
         }
     },
     "required": [
-        "molecules"
+        "groups"
     ],
     "additionalProperties": false
 }

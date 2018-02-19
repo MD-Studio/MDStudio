@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "a 3d vector",
+    "properties": {
+        "type": "array",
+        "description": "3d vector",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+            "type": "number",
+            "description": "3d vector components"
+        },
+        "additionalItems": false
+    },
+    "required": [
+        "groups"
+    ],
+    "additionalProperties": false
+}

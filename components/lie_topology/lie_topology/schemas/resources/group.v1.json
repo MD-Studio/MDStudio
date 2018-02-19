@@ -15,18 +15,16 @@
             "type": "array",
             "description": "list of dihedrals associated with this fragment",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/molecule/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/molecule/v1"
+            },
             "additionalItems": false
         }
     },
     "required": [
         "uid",
         "name",
-        "fragments"
+        "molecules"
     ],
     "additionalProperties": false
 }

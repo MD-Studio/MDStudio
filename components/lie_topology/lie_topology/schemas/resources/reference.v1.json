@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "description": "references used for forcefield and molecules",
+    "properties": {
+        "uri": {
+            "type": "array",
+            "description": "describes the location of the reference",
+            "minItems": 1,
+            "items": {
+                "key": {
+                    "type": "string",
+                    "additionalItems": false,
+                    "enum": [
+                        "bond",
+                        "angle",
+                        "dihedral",
+                        "improper",
+                        "charge",
+                        "vdw", 
+                        "system",
+                        "group",
+                        "molecule",
+                        "atom"
+                    ]
+                },
+                "value": {
+                    "type": "string",
+                    "additionalItems": false
+                }
+            },
+            "additionalItems": false
+        }
+    },
+    "required": [
+        "groups"
+    ],
+    "additionalProperties": false
+}

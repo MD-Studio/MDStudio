@@ -21,66 +21,54 @@
             "type": "array",
             "description": "list of atoms associated with this fragment",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/atom/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/atom/v1"
+            },
             "additionalItems": false
         },
         "bonds": {
             "type": "array",
             "description": "list of bonds associated with this fragment",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/bond/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/bond/v1"
+            },
             "additionalItems": false
         },
         "angles": {
             "type": "array",
             "description": "list of angles associated with this fragment",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/angle/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/angle/v1"
+            },
             "additionalItems": false
         },
         "dihedrals": {
             "type": "array",
             "description": "list of dihedrals associated with this fragment",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/dihedral/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/dihedral/v1"
+            },
             "additionalItems": false
         },
         "impropers": {
             "type": "array",
             "description": "list of impropers associated with this fragment",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/improper/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/improper/v1"
+            },
             "additionalItems": false
         },
         "exclusions": {
             "type": "array",
             "description": "list of exclusions associated with this fragment",
             "minItems": 1,
-            "items": [
-                {
-                    "$ref": "resource://mdgroup/topology/exclusion/v1"
-                }
-            ],
+            "items": {
+                "$ref": "resource://mdgroup/topology/exclusion/v1"
+            },
             "additionalItems": false
         }
     },
