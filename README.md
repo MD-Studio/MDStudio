@@ -2,9 +2,9 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/aff6245274f44a7991a3a25976ad6472)](https://www.codacy.com/app/tifonzafel/MDStudio?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MD-Studio/MDStudio&amp;utm_campaign=Badge_Grade)
 
-# LIEStudio
+# MDStudio
 
-LIEStudio is a stand-alone application featuring a web based graphical user interface.
+MDStudio is a stand-alone application featuring a web based graphical user interface.
 Most of the application is written in Python. The web based GUI runs as a client side
 Angular application.
     
@@ -79,7 +79,7 @@ When you want to keep track of the whole environment for yourself, you should fo
 instructions.
 
 ### Prerequisites
-The LIEStudio application is written in Python and mostly self contained thanks to the
+The MDStudio application is written in Python and mostly self contained thanks to the
 use of an in-application Python virtual environment.
 The application has currently been successfully tested with Python versions: 2.7
 
@@ -89,7 +89,7 @@ making available the `mongod` MongoDB exacutable in the users path.
 ### Installation
 Run the `installer.sh` script as:
 
-    >> ./liestudio/installer.sh -s
+    >> ./mdstudio/installer.sh -s
 
 for a quick install using the default Python version. Use -h for more information on
 customizing the installation.
@@ -98,13 +98,13 @@ A quick install will in sequence:
 
 * Setup a python virtual environment
 * Download the latest Crossbar release from GitHub using wget. This is required as the
-  LIEStudio application uses features in Crossbar that are not available in version
+  MDStudio application uses features in Crossbar that are not available in version
   0.15.0 from the Python package repository.
 * Install required packages from the Python package repository.
-* Install LIEStudio component Python packages and there dependencies
+* Install MDStudio component Python packages and there dependencies
 * Create a self-signed certificate for WAMP communication over TLS secured websockets.
   Certificate creation requires OpenSSL. If not available the default certificate
-  shipped with the package will be used (liestudio/data/crossbar).
+  shipped with the package will be used (mdstudio/data/crossbar).
   It is recommended to replace the certificate with a personal one signed by a offical
   certificate authority when using the application in a production environment.
 * Compile API documentation available from the browser when the program is running at
@@ -113,5 +113,5 @@ A quick install will in sequence:
 ### Usage
 The application is started on the command line as:
 
-    >> source liestudio/lie_venv/bin/activate
-    >> python liestudio
+    >> source mdstudio/venv/bin/activate
+    >> python mdstudio
