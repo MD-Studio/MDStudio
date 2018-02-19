@@ -1080,3 +1080,58 @@ class Graph(object):
 
         for node in nodes:
             self.remove_node(node)
+
+    # DICTIONARY LIKE NODE ACCESS
+    def items(self, keystring=None, valuestring='value'):
+        """
+        Python dict-like function to return node items in the (sub)graph.
+
+        Keystring defines the value lookup key in the node data dict.
+        This defaults to the graph node_data_tag.
+        Valuestring defines the value lookup key in the node data dict.
+
+        :param keystring:   Data key to use for dictionary keys.
+        :type keystring:    :py:str
+        :param valuestring: Data key to use for dictionary values.
+        :type valuestring:  :py:str
+
+        :return:            List of keys, value pairs
+        :rtype:             :py:list
+        """
+
+        keystring = keystring or self.node_data_tag
+
+        return [(n.get(keystring), n.get(valuestring)) for n in self.iternodes()]
+
+    def keys(self, keystring=None):
+        """
+        Python dict-like function to return node keys in the (sub)graph.
+
+        Keystring defines the value lookup key in the node data dict.
+        This defaults to the graph node_data_tag.
+
+        :param keystring:   Data key to use for dictionary keys.
+        :type keystring:    :py:str
+
+        :return:            List of keys
+        :rtype:             :py:list
+        """
+
+        keystring = keystring or self.node_data_tag
+
+        return [n.get(keystring) for n in self.iternodes()]
+
+    def values(self, valuestring='value'):
+        """
+        Python dict-like function to return node values in the (sub)graph.
+
+        Valuestring defines the value lookup key in the node data dict.
+
+        :param valuestring: Data key to use for dictionary values.
+        :type valuestring:  :py:str
+
+        :return:            List of values
+        :rtype:             :py:list
+        """
+
+        return [n.get(valuestring) for n in self.iternodes()]
