@@ -1,0 +1,27 @@
+from mdstudio.component.session import ComponentSession
+from mdstudio.runner import main
+
+ligand_file = "compound.pdb"
+protein_file = None
+protein_top = "protein.top"
+topology_file = "compound_ref.itp"
+include = ["attype.itp", "compound_ref-posre.itp", "ref_conf_1-posre.itp"]
+residues = [28, 29, 65, 73, 74]
+
+
+class Run_test(ComponentSession):
+
+    def on_run(self):
+        with self.group_context('mdgroup'):
+            self.call(
+                "mdgroup.liemd.endpoint.liemd",
+                {"ligand_file": ligand_file,
+                 "protein_file": None,
+                 "protein_top": protein_top,
+                 "topology_file": topology_file,
+                 "include": include,
+                 "residues": residues})
+        
+            
+if __name__ == "__main__":
+    main(Run_test)

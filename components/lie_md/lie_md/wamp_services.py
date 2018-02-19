@@ -18,15 +18,10 @@ class MDWampApi(ComponentSession):
     """
     Molecular dynamics WAMP methods.
     """
-    def pre_init(self):
-        self.component_config.static.vendor = 'mdgroup'
-        self.component_config.static.component = 'md'
-        self.component_config.db = None  # FIXME
-
     def authorize_request(self, uri, claims):
         return True
 
-    @endpoint('liemd', 'liemd-request', 'liemd_response')
+    @endpoint('liemd', 'liemd_request', 'liemd_response')
     def run_gromacs_liemd(self, request, claims):
         """
         First it calls gromit to compute the Ligand-solute energies, then
@@ -77,3 +72,5 @@ class MDWampApi(ComponentSession):
         # session['status'] = 'completed'
 
         # return {'session': session, 'output': output}
+
+        return {"output": {"answer": 42}}
