@@ -12,14 +12,18 @@ import unittest2
 from lie_graph import Graph, GraphAxis
 from lie_graph.graph_helpers import graph_directionality
 from lie_graph.graph_io.io_tgf_format import read_tgf, write_tgf
+from lie_graph.graph_io.io_json_format import read_json, write_json
+from lie_graph.graph_io.io_dict_format import read_dict, write_dict
 
 from lie_graph.graph_io.io_jsonschema_format import JSONSchemaParser
-from lie_graph.graph_io.io_dict_parser import graph_to_dict
 
 FILEPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files/'))
 
 
 class TGFParserTest(unittest2.TestCase):
+    """
+    Unit tests for parsing graphs in Trivial Graph Format (TGF)
+    """
     tempfiles = []
 
     def tearDown(self):
@@ -46,6 +50,7 @@ class TGFParserTest(unittest2.TestCase):
         self.assertEqual(graph.is_directed, False)
         self.assertEqual(graph_directionality(graph), 'directional')
         self.assertEqual(graph.root, None)
+        self.assertTrue(isinstance(graph, Graph))
 
         # Because default auto_nid is True, string based node IDs not supported
         self.assertTrue('eleven' not in graph.nodes)
@@ -63,7 +68,7 @@ class TGFParserTest(unittest2.TestCase):
         tgf = write_tgf(graph)
         outfile = os.path.join(FILEPATH, 'test_export.tgf')
         with open(outfile, 'w') as otf:
-            otf.write(tgf.read())
+            otf.write(tgf)
             self.tempfiles.append(outfile)
 
         self.assertTrue(os.path.isfile(outfile))
@@ -93,6 +98,127 @@ class TGFParserTest(unittest2.TestCase):
         self.assertTrue(isinstance(graph, GraphAxis))
         self.assertTrue('eleven' in graph.nodes)
 
+
+class JSONParserTest(unittest2.TestCase):
+    """
+    Unit tests for parsing graphs in lie_graph module specific JSON format
+    """
+    tempfiles = []
+
+    def tearDown(self):
+        """
+        tearDown method called after each unittest to cleanup
+        the files directory
+        """
+
+        for tmp in self.tempfiles:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+
+    def test_format_import(self):
+        """
+        Test import of format. The graph defines a root and thus will be
+        imported as a GraphAxis object.
+        """
+
+        json_file = os.path.join(FILEPATH, 'graph_axis.json')
+        graph = read_json(json_file)
+
+        # Default graph attributes set
+        self.assertEqual(len(graph), 35)
+        self.assertEqual(len(graph.edges), 72)
+        self.assertEqual(graph.is_directed, False)
+        self.assertEqual(graph_directionality(graph), 'undirectional')
+        self.assertEqual(graph.root, 1)
+        self.assertTrue(isinstance(graph, GraphAxis))
+
+        # Because default auto_nid is True, string based node IDs not supported
+        self.assertTrue('eleven' not in graph.nodes)
+        self.assertTrue(11 in graph.nodes)
+
+    def test_format_export(self):
+        """
+        Test export of format
+        """
+
+        json_file = os.path.join(FILEPATH, 'graph_axis.json')
+        graph = read_json(json_file)
+
+        # Export graph as JSON to file
+        jsonout = write_json(graph)
+        outfile = os.path.join(FILEPATH, 'test_export.json')
+        with open(outfile, 'w') as otf:
+            otf.write(jsonout)
+            self.tempfiles.append(outfile)
+
+        self.assertTrue(os.path.isfile(outfile))
+
+        # Import again and compare source graph
+        graph1 = read_json(outfile)
+        self.assertTrue(graph1 == graph)
+
+
+class DictParserTest(unittest2.TestCase):
+    """
+    Unit test for parsing a Python dictionary to a graph and vice versa
+    """
+    test_dict = {'one': 1, 'two': {'value': 2, 'extra': True}, 'three': {'value': 3, 'extra': False},
+                 4: {'value': 'four', 'five': {'value': 5, 'extra': [2.22, 4.67]}}}
+
+    def test_format_import(self):
+        """
+        Test import of format.
+        """
+
+        graph = read_dict(self.test_dict)
+
+        # Default graph attributes set
+        self.assertEqual(len(graph), 13)
+        self.assertEqual(len(graph.edges), 24)
+        self.assertEqual(graph.is_directed, False)
+        self.assertEqual(graph_directionality(graph), 'undirectional')
+        self.assertEqual(graph.root, 1)
+        self.assertTrue(isinstance(graph, GraphAxis))
+
+        # Because default auto_nid is True, string based node IDs not supported
+        self.assertTrue('three' not in graph.nodes)
+        self.assertTrue(8 in graph.nodes)
+
+        # Test hierarchy
+        self.assertEqual(graph.children().keys(), ['three', 4, 'two', 'one'])
+        self.assertEqual(graph.leaves().values(), [[2.22, 4.67], 5, 'four', 1, False, 3, True, 2])
+        self.assertEqual(graph.getnodes(4).values(), [[2.22, 4.67]])
+
+        query = graph.query_nodes({'data':'five'})
+        self.assertEqual(query.children().items(), [('extra', [2.22, 4.67]), ('value', 5)])
+
+    def test_format_export(self):
+        """
+        Test export of format
+        """
+
+        graph = read_dict(self.test_dict)
+
+        # Export to dict again
+        export = write_dict(graph)
+        self.assertDictEqual(export, self.test_dict)
+
+        # Export including root
+        export = write_dict(graph, include_root=True)
+        self.assertDictEqual(export, {'root': self.test_dict})
+
+    def test_format_export_flattened(self):
+        """
+        Test export of graph as flattened dictionary
+        """
+
+        result = {u'three.value': 3, u'two.extra': True, u'4.value': 'four', u'three.extra': False, u'two.value': 2,
+                  u'4.five.value': 5, u'4.five.extra': [2.22, 4.67], u'one': 1}
+        graph = read_dict(self.test_dict)
+
+        # Export to dict again
+        export = write_dict(graph, nested=False)
+        self.assertDictEqual(export, result)
 
 
 
