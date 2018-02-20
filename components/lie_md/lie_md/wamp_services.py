@@ -50,16 +50,16 @@ class MDWampApi(ComponentSession):
         """
         with open("request.json", "w") as f:
             json.dump(request, f)
-        # # logger.info("starting liemd task_id:{}".format(session['task_id']))
-        # workdir = request.get('workdir', os.getcwd())
 
-        # # Retrieve the WAMP session information
-        # session = WAMPTaskMetaData(metadata=request).dict()
-        # session['workdir'] = workdir
+        task_id = self.component_config.session.session_id
+        self.log.info("starting liemd task_id:{}".format(task_id))
+        workdir = request.get('workdir', os.getcwd())
 
-        # # Load GROMACS configuration
-        # gromacs_config = set_gromacs_input(
-        #     self.package_config.dict(), workdir, request)
+        # Load GROMACS configuration
+        gromacs_config = set_gromacs_input(request, workdir)
+
+        with open("gromacs.json", "w") as f:
+            json.dump(gromacs_config, f)
 
         # # Cerise Configuration
         # cerise_config = create_cerise_config(

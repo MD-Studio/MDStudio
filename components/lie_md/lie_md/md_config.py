@@ -7,19 +7,16 @@ from twisted.logger import Logger
 logger = Logger()
 
 
-def set_gromacs_input(gromacs_config, workdir, dict_input):
+def set_gromacs_input(dict_input, workdir):
     """
     Create input files for gromacs.
     """
-    # update input
-    gromacs_config.update(dict_input)
-
     # added a job type
-    job_type = "solvent_ligand_md" if gromacs_config['protein_file'] is None else "protein_ligand_md"
-    gromacs_config['job_type'] = job_type
+    job_type = "solvent_ligand_md" if dict_input['protein_file'] is None else "protein_ligand_md"
+    dict_input['job_type'] = job_type
 
     # correct topology
-    return fix_topology_ligand(gromacs_config, workdir)
+    return fix_topology_ligand(dict_input, workdir)
 
 
 def fix_topology_ligand(gromacs_config, workdir):
