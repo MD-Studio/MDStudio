@@ -1,17 +1,19 @@
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
+from os.path import join
 import os
 
-cerise_file = "cerise_config_gt.json"
-ligand_file = "compound.pdb"
-protein_file = None
-protein_top = "protein.top"
-topology_file = "input_GMX.itp"
-include = ["attype.itp", "ref_conf_1-posre.itp"]
 residues = [28, 29, 65, 73, 74]
-workdir = "mdstudio_test"
+workdir = "/app/scripts/simple_test/mdstudio_test"
 if not os.path.exists(workdir):
     os.mkdir(workdir)
+
+cerise_file = join(workdir, "cerise_config_gt.json")
+ligand_file = join(workdir, "compound.pdb")
+protein_file = None
+protein_top = join(workdir, "protein.top")
+topology_file = join(workdir, "input_GMX.itp")
+include = [join(workdir, "attype.itp"), join(workdir, "ref_conf_1-posre.itp")]
 
 
 class Run_test(ComponentSession):

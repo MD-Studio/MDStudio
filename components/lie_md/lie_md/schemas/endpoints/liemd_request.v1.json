@@ -25,6 +25,10 @@
 	    "type": "array",
 	    "description": "Indices of the protein residues use to compute the energy groups"
 	},
+	"cerise_file": {
+	    "type": "string",
+	    "description": "Path to the cerise path file configuration"
+	},
         "sim_time": {
             "type": "number",
             "description": "Simulation time in ns.",

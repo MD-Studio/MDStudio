@@ -15,29 +15,25 @@ from time import sleep
 logger = Logger()
 
 
-def create_cerise_config(
-        path_to_config, session, cwl_workflow, protein_file):
+def create_cerise_config(input_session):
     """
-    Creates a Cerise service using the `path_to_config`
-    yaml file, together with the `cwl_workflow` to run
+    Creates a Cerise service using the path_to_config
+    yaml file, together with the cwl_workflow to run
     and store the meta information in the session.
 
-    :param path_to_config: Path to the data use to
-    initialize a Cerise service.
-    :param session: Current Wamp session
-    :param cwl_workflow: File containing the CWL workflow.
+    :param input_dict: Object containing the cerise files.
     :returns: Dict containing the Cerise config.
     """
-    with open(path_to_config, 'r') as f:
+    with open(input_session['cerise_file'], 'r') as f:
         config = json.load(f)
 
     # Return None if key no in dict
-    config = defaultdict(lambda: None, **config)
-    config.update(session)
+    config = defaultdict(lambda: None, config)
 
     # Set Workflow
-    config['cwl_workflow'] = check_cwl_workflow(cwl_workflow, protein_file)
-    config['log'] = join(config['workdir'], 'cerise.log')
+    protein_file = input_session['protein_file']
+    config['cwl_workflow'] = choose_cwl_workflow(protein_file)
+    config['log'] = join(input_session['workdir'], 'cerise.log')
 
     return config
 
@@ -56,12 +52,12 @@ def call_cerise_gromit(
     related to the Cerise services and jobs.
     :returns: Dict with the output paths.
     """
-    # wait for a bit in case there are other threads
-    # doing the same
-    sleep(2)
-
     srv_data = retrieve_service_from_db(
         cerise_config, gromacs_config, cerise_db)
+
+    import sys
+    logger.info("BYE!!")
+    sys.exit()
 
     if srv_data is None:
         # Create a new service if one is not already running
@@ -106,18 +102,18 @@ def retrieve_service_from_db(
 
 
 @retry(wait_random_min=500, wait_random_max=2000)
-def create_service(config):
+def create_service(cerise_config):
     """
     Create a Cerise service if one is not already running,
-    using the `config` file.
+    using the `cerise_config` file.
     """
     try:
         srv = cc.require_managed_service(
-                config['docker_name'],
-                config.get('port', 29593),
-                config['docker_image'],
-                config['username'],
-                config['password'])
+                cerise_config['docker_name'],
+                cerise_config.get('port', 29593),
+                cerise_config['docker_image'],
+                cerise_config['username'],
+                cerise_config['password'])
         logger.info("Created a new Cerise-client service")
     except docker.errors.APIError:
         pass
@@ -435,16 +431,13 @@ def compute_md5(file_name):
     return hashlib.md5(xs).hexdigest()
 
 
-def check_cwl_workflow(cwl_workflow, protein_file):
+def choose_cwl_workflow(protein_file):
     """
-    Check whether a CWL worflow file exists and copy it to the workdir.
-    If there is neither a `cwl_workflow` file nor a `protein_file`
+    If there is not a `protein_file`
     perform a solvent-ligand simulation.
     """
     root = os.path.dirname(__file__)
-    if cwl_workflow is not None and os.path.isfile(cwl_workflow):
-        return cwl_workflow
-    elif protein_file is not None:
+    if protein_file is not None:
         return join(root, 'data/protein_ligand.cwl')
     else:
         return join(root, 'data/solvent_ligand.cwl')

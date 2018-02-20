@@ -7,7 +7,7 @@ from twisted.logger import Logger
 logger = Logger()
 
 
-def set_gromacs_input(dict_input, workdir):
+def set_gromacs_input(dict_input):
     """
     Create input files for gromacs.
     """
@@ -16,7 +16,7 @@ def set_gromacs_input(dict_input, workdir):
     dict_input['job_type'] = job_type
 
     # correct topology
-    return fix_topology_ligand(dict_input, workdir)
+    return fix_topology_ligand(dict_input, dict_input['workdir'])
 
 
 def fix_topology_ligand(gromacs_config, workdir):

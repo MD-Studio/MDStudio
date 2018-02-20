@@ -10,6 +10,7 @@ from lie_md.cerise_interface import (
 from lie_md.md_config import set_gromacs_input
 from mdstudio.api.endpoint import endpoint
 from mdstudio.component.session import ComponentSession
+import inspect
 import json
 import os
 
@@ -32,10 +33,15 @@ class MDWampApi(ComponentSession):
         http://cerise-client.readthedocs.io/en/master/index.html
 
         This function expects the following keywords files to call gromit:
+            * cerise_file
+            * protein_file (optional)
             * protein_top
             * ligand_file
             * topology_file
-            * protein_file (optional)
+            * residues
+
+        The cerise_file is the path to the file containing the configuration
+        information required to start a Cerise service.
 
         Further include files (e.g. *itp files) can be included as a list:
         include=[atom_types.itp, another_itp.itp]
@@ -48,29 +54,19 @@ class MDWampApi(ComponentSession):
         the method will perform a SOLVENT LIGAND MD if you provide the
         `protein_file` it will perform a PROTEIN-LIGAND MD.
         """
-        with open("request.json", "w") as f:
-            json.dump(request, f)
-
         task_id = self.component_config.session.session_id
         self.log.info("starting liemd task_id:{}".format(task_id))
-        workdir = request.get('workdir', os.getcwd())
 
         # Load GROMACS configuration
-        gromacs_config = set_gromacs_input(request, workdir)
+        gromacs_config = set_gromacs_input(request)
 
-        with open("gromacs.json", "w") as f:
-            json.dump(gromacs_config, f)
+        # Load Cerise configuration
+        cerise_config = create_cerise_config(request)
 
-        # # Cerise Configuration
-        # cerise_config = create_cerise_config(
-        #     request['path_cerise_config'], session, request['cwl_workflow'], request['protein_file'])
-
-        # # Run the MD and retrieve the energies
+        self.log.info(inspect.getmembers(self.db))
+        # Run the MD and retrieve the energies
         # output = call_cerise_gromit(
-        #     gromacs_config, cerise_config, self.db['cerise'])
+        #     gromacs_config, cerise_config, self.db.cerise)
 
-        # session['status'] = 'completed'
-
-        # return {'session': session, 'output': output}
-
-        return {"output": {"answer": 42}}
+        # return {'output': output}
+        return {'output': {"random": 42}}
