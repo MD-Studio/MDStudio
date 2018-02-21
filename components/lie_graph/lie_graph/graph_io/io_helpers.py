@@ -3,7 +3,9 @@
 import sys
 import os
 import collections
-import logging as logger
+import unicodedata
+import locale
+import logging
 
 from .. import __version__
 
@@ -32,11 +34,11 @@ def check_lie_graph_version(version=None):
     try:
         version = float(version)
     except TypeError:
-        logger.error('No valid lie_graph version identifier {0}'.format(version))
+        logging.error('No valid lie_graph version identifier {0}'.format(version))
         return False
     
     if version > float(__version__):
-        logger.error('Graph made with a newer version of lie_graph {0}, you have {1}'.format(version, __version__))
+        logging.error('Graph made with a newer version of lie_graph {0}, you have {1}'.format(version, __version__))
         return False
         
     return True    
@@ -58,17 +60,17 @@ def open_anything(source, mode='r'):
 
     # Check if the source is a file and open
     if os.path.isfile(source):
-        logger.debug('Reading file from disk {0}'.format(source))
+        logging.debug('Reading file from disk {0}'.format(source))
         return open(source, mode)
 
     # Check if source is file already openend using 'open' or 'file' return
     if hasattr(source, 'read'):
-        logger.debug('Reading file {0} from file object'.format(source.name))
+        logging.debug('Reading file {0} from file object'.format(source.name))
         return source
 
     # Check if source is standard input
     if source == '-':
-        logger.debug('Reading file from standard input')
+        logging.debug('Reading file from standard input')
         return sys.stdin
 
     else:
@@ -76,16 +78,16 @@ def open_anything(source, mode='r'):
         try:
             if urlparse.urlparse(source)[0] == 'http':
                 result = urllib.urlopen(source)
-                logger.debug("Reading file from URL with access info:\n {0}".format(result.info()))
+                logging.debug("Reading file from URL with access info:\n {0}".format(result.info()))
                 return result
         except IOError:
-            logger.info("Unable to access URL")
+            logging.info("Unable to access URL")
 
         # Check if source is file and try to open else regard as string
         try:
             return open(source)
         except IOError:
-            logger.debug("Unable to access as file, try to parse as string")
+            logging.debug("Unable to access as file, try to parse as string")
             return StringIO.StringIO(str(source))
 
 
@@ -111,7 +113,7 @@ def flatten_nested_dict(config, parent_key='', sep='.'):
 
         # parse key to string if needed
         if type(key) not in (str, unicode):
-            logger.debug('Dictionary key {0} of type {1}. Parse to unicode'.format(key, type(key)))
+            logging.debug('Dictionary key {0} of type {1}. Parse to unicode'.format(key, type(key)))
             key = unicode(key)
 
         new_key = unicode(parent_key + sep + key if parent_key else key)
@@ -153,3 +155,123 @@ def nest_flattened_dict(graph_dict, sep='.'):
         d[splitted[-1]] = value
 
     return nested_dict
+
+
+class FormatDetect(object):
+    """
+    Type cast string or unicode objects to float, integer or boolean.
+
+    Uses localization to identify
+    """
+
+    def __init__(self, set_locale='en_US.UTF-8', decimal_point=None, thousands_sep=None):
+
+        # Determine current localization and switch to international
+        # en_US localization or other.
+        self.curr_locale = locale.getdefaultlocale()
+        if self.curr_locale != set_locale:
+            logging.debug('Switch localization: {0} to {1}'.format('.'.join(self.curr_locale), set_locale))
+            locale.setlocale(locale.LC_ALL, set_locale)
+
+        # Register localization specific decimal and thousands seperator
+        locenv = locale.localeconv()
+        self.decimal_point = decimal_point or locenv['decimal_point']
+        self.thousands_sep = thousands_sep or locenv['thousands_sep']
+
+        # Register Boolean types
+        self.true_types = ['true']
+        self.false_types = ['false']
+
+    def to_integer(self, value):
+
+        if isinstance(value, (str, unicode)):
+            return locale.atoi(value)
+        return int(value)
+
+    def to_number(self, value):
+
+        if isinstance(value, (str, unicode)):
+            return locale.atof(value)
+        return float(value)
+
+    def to_string(self, value):
+
+        return unicode(value)
+
+    def to_boolean(self, value):
+
+        if value.lower() in self.true_types:
+            return True
+        if value.lower() in self.false_types:
+            return False
+
+        return value
+
+    def to_detect(self, value):
+
+        # if string contains spaces or very long, return
+        if ' ' in value or len(value) > 100:
+            return value
+
+        # str to unicode
+        value = self.to_string(value)
+        unicode_cats = [unicodedata.category(i)[0] for i in value]
+
+        # first try to convert unicode to float
+        try:
+            parsed = locale.atof(value)
+        except ValueError:
+            parsed = value
+
+        if isinstance(parsed, float):
+
+            # Maybe it was an integer
+            allnumbers = all([n[0] == 'N' for n in unicode_cats])
+            if value.isdigit() or value.isnumeric() or allnumbers:
+                parsed = locale.atoi(value)
+            if value.count(self.decimal_point) == 0:
+                parsed = int(parsed)
+
+            return parsed
+
+        # Try convert unicode to integer
+        try:
+            parsed = locale.atoi(value)
+        except ValueError:
+            parsed = value
+
+        if not isinstance(parsed, int):
+
+            # Cases that are fully numeric with thousand seperators (e.g. 123.222.12)
+            if value.count(self.decimal_point) > 1 and value.count(self.thousands_sep) == 0:
+                parsed = int(value.replace(self.decimal_point, ''))
+
+            # Unicode could be a boolean
+            parsed = self.to_boolean(value)
+
+        return parsed
+
+    def parse(self, value, target_type=None):
+        """
+        Parse an unknown value to a float, integer, boolean or else
+        remain in unicode.
+
+        :param value:       value to parse
+        :param target_type: type to convert to as 'integer', 'number', 'string',
+                            'boolean' or automatic 'detect'
+        :return:            parsed value
+        """
+
+        # target type not defined then try detect
+        if not target_type:
+
+            # if value already parsed to a type other than str or unicode return
+            if type(value) not in (str, unicode):
+                return value
+
+            target_type = 'detect'
+
+        parse_method = getattr(self, 'to_{0}'.format(target_type), None)
+        assert parse_method != None, 'Unknown type: {0}'.format(target_type)
+
+        return parse_method(value)
