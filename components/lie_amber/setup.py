@@ -47,7 +47,7 @@ setup(
         'Intended Audience :: Science/Research',
         ],
     scripts=[
-        'acpype.py'
+        'scripts/acpype.py'
     ],
     extras_require={'test': ['nose']}
 )
