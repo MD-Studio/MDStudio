@@ -14,10 +14,95 @@ from lie_graph.graph_helpers import graph_directionality
 from lie_graph.graph_io.io_tgf_format import read_tgf, write_tgf
 from lie_graph.graph_io.io_json_format import read_json, write_json
 from lie_graph.graph_io.io_dict_format import read_dict, write_dict
+from lie_graph.graph_io.io_web_format import read_web, write_web
 
 from lie_graph.graph_io.io_jsonschema_format import JSONSchemaParser
 
 FILEPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files/'))
+
+
+class WebParserTest(unittest2.TestCase):
+    """
+    Unit tests for parsing Spider serialized data structures (.web format)
+    """
+    tempfiles = []
+
+    def tearDown(self):
+        """
+        tearDown method called after each unittest to cleanup
+        the files directory
+        """
+
+        for tmp in self.tempfiles:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+
+    def test_format_import(self):
+        """
+        Test import of format
+        """
+
+        web_file = os.path.join(FILEPATH, 'graph.web')
+        graph = read_web(web_file)
+
+        # Default graph attributes set
+        self.assertEqual(len(graph), 615)
+        self.assertEqual(len(graph.edges), 1228)
+        self.assertEqual(graph.is_directed, False)
+        self.assertEqual(graph_directionality(graph), 'undirectional')
+        self.assertEqual(graph.root, 1)
+        self.assertTrue(isinstance(graph, GraphAxis))
+
+        # No ORM or format auto detect set, all values should be strings
+        self.assertTrue(isinstance(graph.query_nodes({'data': 'ntrials'}).value, str))
+        self.assertTrue(isinstance(graph.query_nodes({'data': 'rotate180_0'}).value, str))
+
+        for node in graph.query_nodes({'data': 'activereslist'}):
+            self.assertTrue(isinstance(node.value, str))
+
+        for node in graph.query_nodes({'type': 'FloatArray'}):
+            self.assertTrue(isinstance(node.value, list))
+            self.assertTrue(all([isinstance(n, str) for n in node.value]))
+
+    def test_format_import_autoformatparse(self):
+        """
+        Test import of format with automatic parsing of data types
+        """
+
+        web_file = os.path.join(FILEPATH, 'graph.web')
+        graph = read_web(web_file, auto_parse_format=True)
+
+        self.assertTrue(isinstance(graph.query_nodes({'data': 'ntrials'}).value, int))
+        self.assertTrue(isinstance(graph.query_nodes({'data': 'rotate180_0'}).value, bool))
+
+        for node in graph.query_nodes({'data': 'activereslist'}):
+            self.assertTrue(isinstance(node.value, (str, unicode)))
+
+        for node in graph.query_nodes({'type': 'FloatArray'}):
+            self.assertTrue(isinstance(node.value, list))
+            self.assertTrue(all([isinstance(n, float) for n in node.value]))
+
+    def test_format_export(self):
+        """
+        Test export of format
+        """
+
+        web_file = os.path.join(FILEPATH, 'graph.web')
+        graph = read_web(web_file, auto_parse_format=True)
+
+        # Export graph as TGF to file
+        web = write_web(graph)
+        outfile = os.path.join(FILEPATH, 'test_export.web')
+        with open(outfile, 'w') as otf:
+            otf.write(web)
+            self.tempfiles.append(outfile)
+
+        self.assertTrue(os.path.isfile(outfile))
+
+        # Import again and compare source graph
+        graph1 = read_web(outfile, auto_parse_format=True)
+        self.assertEqual(len(graph), len(graph1))
+        self.assertEqual(len(graph.edges), len(graph1.edges))
 
 
 class TGFParserTest(unittest2.TestCase):
