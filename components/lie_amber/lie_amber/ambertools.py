@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-import copy
 import glob
 
-from .settings import SETTINGS
 from subprocess import (PIPE, Popen)
 from twisted.logger import Logger
 
 logging = Logger()
 
 
-def _collect_acpype_output(path):
+def collect_acpype_output(path):
 
     outfiles = {}
     compound_name = os.path.basename(path).rstrip('.acpype')
@@ -34,7 +32,7 @@ def set_keyword_flags(options):
             if flag is not None and not isinstance(flag, bool)]
 
 
-def amber_acpype(mol, workdir=None, **kwargs):
+def amber_acpype(mol, options, workdir):
     """
     Run the ACPYPE program (AnteChamber PYthon Parser interfacE)
 
@@ -51,10 +49,6 @@ def amber_acpype(mol, workdir=None, **kwargs):
         logging.error('Input file does not exist {0}'.format(mol))
 
     # Construct CLI arguments
-    options = copy.deepcopy(SETTINGS['amber_acpype'])
-    options.update(
-        {k.lower().strip('-'): v for k, v in kwargs.items()}
-    )
 
     # Process sqm/mopac keywords
     if 'keyword' in options:
@@ -68,13 +62,7 @@ def amber_acpype(mol, workdir=None, **kwargs):
 
     flags = flags_1 + flags_2
 
-    not_supported = ['--{0}'.format(n) for n in kwargs
-                     if not n.lower() in SETTINGS['amber_acpype']]
-    if not_supported:
-        logging.warn(
-            "Following command line arguments not supported by ACPYPE: {0}".format(
-                ','.join(not_supported)))
-
+    # Workdir and command
     workdir_name = os.path.splitext(mol)[0]
     cmd = [acepype_exe, '-i', mol] + flags
 
@@ -91,14 +79,15 @@ def amber_acpype(mol, workdir=None, **kwargs):
 
     output_path = os.path.join(workdir, '{0}.acpype'.format(workdir_name))
     if os.path.isdir(output_path):
-        outfiles = _collect_acpype_output(output_path)
+        outfiles = collect_acpype_output(output_path)
         outfiles['path'] = output_path
         return outfiles
     else:
         logging.error('Acpype failed')
+        return None
 
 
-def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwargs):
+def amber_reduce(mol, options, workdir, output=None):
     """
     Run AmberTools "reduce" program for adding hydrogens to molecular
     structures.
@@ -135,22 +124,13 @@ def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwa
                     AMBER_HOME environmental variable).
     :type exe:      :py:str
     """
-
-    # Define executable
-    reduce_exe_path = os.path.join(SETTINGS['amberhome'], 'bin', exe)
-
-    # Check the input file
-    if not os.path.exists(mol):
-        logging.error('Input file does not exist {0}'.format(mol))
+    reduce_exe_path = 'reduce'
 
     # Define output file
     if not output:
         output = '{0}_h{1}'.format(*os.path.splitext(mol))
 
     # Construct CLI arguments
-    options = copy.deepcopy(SETTINGS['amber_reduce'])
-    options.update({k.lower().strip('-'): v for k, v in kwargs.items()})
-
     # Process boolean flags
     flags = set_bool_flags(options)
 
@@ -160,11 +140,8 @@ def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwa
          options.items() if type(flag) not in (bool, type(None))])
 
     logging.info("Running Amber 'reduce' with command line arguments: {0}".format(','.join(flags)))
-    not_supported = ['-{0}'.format(n) for n in kwargs if not n.lower()
-                     in SETTINGS['amber_reduce']]
-    if not_supported:
-        logging.warn("Command line arguments not supported by Amber 'reduce': {0}".format(','.join(not_supported)))
 
+    # Command
     cmd = [reduce_exe_path] + flags
     cmd.extend([mol, '>', output])
 
@@ -177,10 +154,7 @@ def amber_reduce(mol, output=None, return_output_path=False, exe='reduce', **kwa
 
     # Return output file
     if os.path.exists(output):
-        if return_output_path:
-            return output
-        else:
-            with open(output, 'r') as out:
-                return out.read()
+        return output
     else:
         logging.error('Reduce failed, not output file {0}'.format(output))
+        return None
