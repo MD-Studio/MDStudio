@@ -6,3 +6,6 @@ name = "pypi"
 [packages]
 mdstudio = {path = "../../mdstudio/", editable = true}
 local = {path = "./", editable = true}
+
+[dev-packages]
+nose = "*"

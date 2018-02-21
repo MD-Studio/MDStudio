@@ -48,5 +48,6 @@ setup(
         ],
     scripts=[
         'acpype.py'
-    ]
+    ],
+    extras_require={'test': ['nose']}
 )
