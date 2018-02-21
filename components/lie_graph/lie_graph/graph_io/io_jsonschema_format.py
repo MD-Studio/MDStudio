@@ -9,11 +9,15 @@ http://json-schema.org
 
 
 import json
-import urlparse
+import sys
+
+if sys.version_info[0] < 3:
+    import urlparse
+else:
+    from urllib import parse as urlparse
 
 from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools
-from lie_graph.graph_helpers import GraphException
 
 
 def type_parse(value, ptype='string'):
@@ -41,18 +45,18 @@ def type_validate(value, ptype='string'):
 
     if ptype == 'string':
         if not isinstance(value, (str, unicode)):
-            raise ValueError, 'Value {0} not of type {1}'.format(value, ptype)
+            raise ValueError('Value {0} not of type {1}'.format(value, ptype))
     elif ptype == 'number':
         if not isinstance(value, float):
-            raise ValueError, 'Value {0} not of type {1}'.format(value, ptype)
+            raise ValueError('Value {0} not of type {1}'.format(value, ptype))
     elif ptype == 'integer':
         if not isinstance(value, int):
-            raise ValueError, 'Value {0} not of type {1}'.format(value, ptype)
+            raise ValueError('Value {0} not of type {1}'.format(value, ptype))
     elif ptype == 'boolean':
         if not isinstance(value, bool):
-            raise ValueError, 'Value {0} not of type {1}'.format(value, ptype)
+            raise ValueError('Value {0} not of type {1}'.format(value, ptype))
     else:
-        raise ValueError, 'Unknow type {0} for value {1}'.format(ptype, value)
+        raise ValueError('Unknow type {0} for value {1}'.format(ptype, value))
 
     return value
 
