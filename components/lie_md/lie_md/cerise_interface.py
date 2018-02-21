@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
+from os.path import join
+from retrying import retry
+from time import sleep
+from mdstudio.deferred.chainable import chainable
 from twisted.logger import Logger
 import cerise_client.service as cc
 import docker
 import hashlib
 import json
 import os
-from os.path import join
-from retrying import retry
-from time import sleep
 
 # initialized twisted logger
 logger = Logger()
@@ -37,7 +38,7 @@ def create_cerise_config(input_session):
 
     return config
 
-
+@chainable
 def call_cerise_gromit(
         gromacs_config, cerise_config, cerise_db):
     """
@@ -52,35 +53,38 @@ def call_cerise_gromit(
     related to the Cerise services and jobs.
     :returns: Dict with the output paths.
     """
-    srv_data = retrieve_service_from_db(
+    logger.info("Searching for pending jobs in DB")
+
+    srv_data = yield retrieve_service_from_db(
         cerise_config, gromacs_config, cerise_db)
 
-    import sys
-    logger.info("BYE!!")
-    sys.exit()
-
-    if srv_data is None:
+    if srv_data['result'] is None:
+        logger.info("There are no pending jobs!")
         # Create a new service if one is not already running
         srv = create_service(cerise_config)
-        srv_data = submit_new_job(
-            srv, gromacs_config, cerise_config, cerise_db)
+        # srv_data = submit_new_job(
+        #     srv, gromacs_config, cerise_config, cerise_db)
 
-    # is the job still running?
-    elif srv_data['job_state'] == 'Running':
-        restart_srv_job(srv_data)
+    logger.info("BYE!!")
+    import sys
+    sys.exit()
 
-    else:
-        msg = "job is already done!"
-        logger.info(msg)
+    # # is the job still running?
+    # elif srv_data['job_state'] == 'Running':
+    #     restart_srv_job(srv_data)
 
-    # Simulation information including cerise data
-    sim_dict = extract_simulation_info(
-        srv_data, cerise_config, cerise_db)
+    # else:
+    #     msg = "job is already done!"
+    #     logger.info(msg)
 
-    # Shutdown Service if there are no other jobs running
-    try_to_close_service(srv_data, cerise_db)
+    # # Simulation information including cerise data
+    # sim_dict = extract_simulation_info(
+    #     srv_data, cerise_config, cerise_db)
 
-    return sim_dict
+    # # Shutdown Service if there are no other jobs running
+    # try_to_close_service(srv_data, cerise_db)
+
+    # return sim_dict
 
 
 def retrieve_service_from_db(
@@ -98,10 +102,10 @@ def retrieve_service_from_db(
         'ligand_md5': compute_md5(ligand_file),
         'name': cerise_config['docker_name']}
 
-    return cerise_db.find_one(query)
+    return cerise_db.find_one('cerise', query)
 
 
-@retry(wait_random_min=500, wait_random_max=2000)
+# @retry(wait_random_min=500, wait_random_max=2000)
 def create_service(cerise_config):
     """
     Create a Cerise service if one is not already running,
@@ -428,7 +432,7 @@ def compute_md5(file_name):
     with open(file_name) as f:
         xs = f.read()
 
-    return hashlib.md5(xs).hexdigest()
+    return hashlib.md5(xs.encode()).hexdigest()
 
 
 def choose_cwl_workflow(protein_file):
