@@ -8,21 +8,17 @@ WAMP service methods the module exposes.
 
 import os
 import json
-import jsonschema
 
-from autobahn import wamp
-from autobahn.wamp.types import RegisterOptions
 from twisted.internet.defer import inlineCallbacks
-
-from lie_plants_docking import settings, plants_docking_schema
 from lie_plants_docking.plants_docking import PlantsDocking
 from lie_plants_docking.utils import prepaire_work_dir
-from lie_system import LieApplicationSession, WAMPTaskMetaData
+from mdstudio.component.session import ComponentSession
+from mdstudio.api.endpoint import endpoint
 
 PLANTS_DOCKING_SCHEMA = json.load(open(plants_docking_schema))
 
 
-class DockingWampApi(LieApplicationSession):
+class DockingWampApi(ComponentSession):
 
     """
     Docking WAMP methods.
@@ -64,34 +60,18 @@ class DockingWampApi(LieApplicationSession):
             self.logger.error('File does not exists: {0}'.format(structure_path))
             return {'result': None}
 
-    def run_docking(self, session=None, **kwargs):
+    @endpoint('docking', 'docking-request', 'docking-response')
+    def run_docking(self, request, claims):
         """
         Perform a PLANTS (Protein-Ligand ANT System) molecular docking.
-
-        :param session:  call session information
-        :type session:   :py:dict
-        :param kwargs:   Plants configuration keyword arguments in accordance
-                         with the plants_docking_schema JSON schema.
-        :type kwargs:    :py:dict
-
-        :return:         Docking results
-        :rtype:          Task data construct
+        For a detail description of the input see the file:
+        schemas/endpoints/docking-request.v1.json
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
-        # Load PLANTS configuration and update
-        plants_config = self.package_config.lie_plants_docking.dict()
-        plants_config.update(kwargs)
-
-        # Validate against JSON schema
-        jsonschema.validate(plants_config, PLANTS_DOCKING_SCHEMA)
-
         # Run the docking
 
         # Prepaire docking directory
-        if 'workdir'not in plants_config:
+        workdir = request['workdir']
+        if workdir is None:
             plants_config['workdir'] = prepaire_work_dir(
                 plants_config.get('workdir', None),
                 user=session.get('authid', None),
@@ -100,7 +80,7 @@ class DockingWampApi(LieApplicationSession):
         # Run docking
         docking = PlantsDocking(user_meta=session, **plants_config)
         success = docking.run(
-            plants_config['protein_file'], plants_config['ligand_file'])
+            request['protein_file'], request['ligand_file'])
 
         if success:
             session['status'] = 'completed'
@@ -112,29 +92,3 @@ class DockingWampApi(LieApplicationSession):
             self.logger.error('PLANTS docking not successful', **session)
             docking.delete()
             return {'session': session}
-
-
-def make(config):
-    """
-    Component factory
-
-    This component factory creates instances of the application component
-    to run.
-
-    The function will get called either during development using an
-    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
-    a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
-    ComponentConfig class by default but any class specific keyword arguments
-    can be consument as well to populate the class session_config and
-    package_config dictionaries.
-
-    :param config: Autobahn ComponentConfig object
-    """
-
-    if config:
-        return DockingWampApi(config, package_config=settings)
-    else:
-        # if no config given, return a description of this WAMPlet ..
-        return {'label': 'LIEStudio docking management WAMPlet',
-                'description': 'WAMPlet proving LIEStudio docking management endpoints'}

@@ -5,6 +5,11 @@
     "description": "Plants docking method configuration schema",
     "type": "object",
     "properties": {
+	"workdir": {
+	    "type": "string"  ,
+	    "description": "Directory to run the docking simulation",
+	    "default": "null"
+	},
         "exec_path": {
             "type": "string",
             "description": "Path to PLANTS executable",
