@@ -2,11 +2,13 @@
 
 import os
 import glob
+import logging
 
 from subprocess import (PIPE, Popen)
-from twisted.logger import Logger
+# from twisted.logger import Logger
 
-logging = Logger()
+# logging = Logger()
+logger = logging.getLogger(__name__)
 
 
 def collect_acpype_output(path):
@@ -46,7 +48,8 @@ def amber_acpype(mol, options, workdir):
 
     # Check the input file
     if not os.path.exists(mol):
-        logging.error('Input file does not exist {0}'.format(mol))
+        logger.error('Input file does not exist {0}'.format(mol))
+        raise RuntimeError("Mol file doesn't exist!")
 
     # Construct CLI arguments
 
@@ -66,16 +69,16 @@ def amber_acpype(mol, options, workdir):
     workdir_name = os.path.splitext(mol)[0]
     cmd = [acepype_exe, '-i', mol] + flags
 
-    logging.info(
+    logger.info(
         "ACPYPE command: {0}".format(' '.join(cmd)))
 
     # Run the command
     os.chdir(workdir)
     p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     cmd_out, cmd_err = p.communicate()
-    logging.info("OUTPUT ACPYPE:\n{}".format(cmd_out))
+    logger.info("OUTPUT ACPYPE:\n{}".format(cmd_out))
     if cmd_err:
-        logging.error("Error ACPYPE:\n{}".format(cmd_err))
+        logger.error("Error ACPYPE:\n{}".format(cmd_err))
 
     output_path = os.path.join(workdir, '{0}.acpype'.format(workdir_name))
     if os.path.isdir(output_path):
@@ -83,7 +86,7 @@ def amber_acpype(mol, options, workdir):
         outfiles['path'] = output_path
         return outfiles
     else:
-        logging.error('Acpype failed')
+        logger.error('Acpype failed')
         return None
 
 
@@ -139,7 +142,7 @@ def amber_reduce(mol, options, workdir, output=None):
         ['-{0}{1}'.format(option, flag) for option, flag in
          options.items() if type(flag) not in (bool, type(None))])
 
-    logging.info("Running Amber 'reduce' with command line arguments: {0}".format(','.join(flags)))
+    logger.info("Running Amber 'reduce' with command line arguments: {0}".format(','.join(flags)))
 
     # Command
     cmd = [reduce_exe_path] + flags
@@ -148,13 +151,13 @@ def amber_reduce(mol, options, workdir, output=None):
     # Run the command
     p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     cmd_out, cmd_err = p.communicate()
-    logging.info("OUTPUT AMBER REDUCE:\n{}".format(cmd_out))
+    logger.debug("OUTPUT AMBER REDUCE:\n{}".format(cmd_out))
     if cmd_err:
-        logging.error("Error AMBER REDUCE:\n{}".format(cmd_err))
+        logger.error("Error AMBER REDUCE:\n{}".format(cmd_err))
 
     # Return output file
     if os.path.exists(output):
         return output
     else:
-        logging.error('Reduce failed, not output file {0}'.format(output))
+        logger.error('Reduce failed, not output file {0}'.format(output))
         return None

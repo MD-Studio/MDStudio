@@ -1,13 +1,52 @@
 # -*- coding: utf-8 -*-
 
+import glob
 import json
+import logging
 import os
 import pkgutil
 import shutil
+import sys
 import tempfile
+import unittest
 from lie_amber.wamp_services import get_amber_config
 from lie_amber.ambertools import amber_acpype
-from .util_test import (remove_workdir, schema_to_data)
+
+
+logging.basicConfig(stream=sys.stdout)
+
+
+def schema_to_data(schema, data=None, defdict=None):
+    """
+    Translate the schema for gromacs to an standard python
+    dictionary
+    """
+    default_data = defdict or {}
+
+    properties = schema.get('properties', {})
+    for key, value in properties.items():
+        if 'properties' in value:
+            default_data[key] = schema_to_data(value)
+        elif 'default' in value:
+            default_data[key] = value.get('default')
+
+    # Update with existing data
+    if data:
+        default_data.update(data)
+
+    return default_data
+
+
+def remove_file_directory(path):
+    """
+    Remove both a file or a directory
+    """
+    paths = glob.glob(path)
+    for p in paths:
+        if os.path.isfile(p):
+            os.remove(p)
+        else:
+            shutil.rmtree(p)
 
 
 ACPYPE_LIE_SCHEMA = os.path.join(
@@ -18,14 +57,28 @@ settings_acpype = get_amber_config(
     schema_to_data(json.loads(ACPYPE_LIE_SCHEMA)))
 
 
-@remove_workdir
-def test_amber_acepype():
-    path = os.path.join(os.path.dirname(__file__), 'files/input.mol2')
-    workdir = tempfile.mkdtemp('tmp', dir='.')
-    shutil.copy(path, workdir)
-    output = amber_acpype(path, settings_acpype, workdir)
-    assert os.path.isdir(output['path'])
+class Test_amber_components(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        self.addCleanup(remove_file_directory, "../tmp*")
+
+    def test_amber_acepype(self):
+        path = os.path.join(os.path.dirname(__file__), 'files/input.mol2')
+        workdir = tempfile.mkdtemp('tmp', dir='.')
+        shutil.copy(path, workdir)
+        output = amber_acpype(path, settings_acpype, workdir)
+        self.assertTrue(os.path.isdir(output['path']))
+
+    def test_amber_reduce(self):
+        pass
 
 
-def test_amber_reduce():
-    pass
+if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.level = logging.INFO
+    stream_handler = logging.StreamHandler(sys.stdout)
+    logger.addHandler(stream_handler)
+    unittest.main(verbosity=2)
