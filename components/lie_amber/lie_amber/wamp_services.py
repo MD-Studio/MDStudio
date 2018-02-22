@@ -70,7 +70,7 @@ def call_amber_package(request, config, function):
 
 def copy_structure(structure, from_file, tmp_file):
     if from_file and os.path.exists(structure):
-        shutil.copy(structure, tmp_file)
+        shutil.copyfile(structure, tmp_file)
     else:
         with open(tmp_file, 'w') as inp:
             inp.write(structure)

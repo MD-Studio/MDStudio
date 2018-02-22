@@ -43,11 +43,6 @@ def amber_acpype(mol, options, workdir):
     # ACPYPE executable
     acepype_exe = 'acpype.py'
 
-    # Check the input file
-    if not os.path.exists(mol):
-        logger.error('Input file does not exist {0}'.format(mol))
-        raise RuntimeError("Mol file doesn't exist!")
-
     # Construct CLI arguments
 
     # Process sqm/mopac keywords
@@ -70,8 +65,7 @@ def amber_acpype(mol, options, workdir):
         "ACPYPE command: {0}".format(' '.join(cmd)))
 
     # Run the command
-    os.chdir(workdir)
-    p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True, cwd=workdir)
     cmd_out, cmd_err = p.communicate()
     logger.info("OUTPUT ACPYPE:\n{}".format(cmd_out))
     if cmd_err:

@@ -13,9 +13,6 @@ from lie_amber.wamp_services import get_amber_config
 from lie_amber.ambertools import amber_acpype
 
 
-logging.basicConfig(stream=sys.stdout)
-
-
 def schema_to_data(schema, data=None, defdict=None):
     """
     Translate the schema for gromacs to an standard python
@@ -60,16 +57,15 @@ settings_acpype = get_amber_config(
 class Test_amber_components(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.workdir = tempfile.mkdtemp('tmp', dir='.')
 
     def tearDown(self):
         self.addCleanup(remove_file_directory, "../tmp*")
 
     def test_amber_acepype(self):
         path = os.path.join(os.path.dirname(__file__), 'files/input.mol2')
-        workdir = tempfile.mkdtemp('tmp', dir='.')
-        shutil.copy(path, workdir)
-        output = amber_acpype(path, settings_acpype, workdir)
+        shutil.copy(path, self.workdir)
+        output = amber_acpype('input.mol2', settings_acpype, self.workdir)
         self.assertTrue(os.path.isdir(output['path']))
 
     def test_amber_reduce(self):
