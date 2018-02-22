@@ -60,7 +60,7 @@ class Test_amber_components(unittest.TestCase):
         self.workdir = tempfile.mkdtemp('tmp', dir='.')
 
     def tearDown(self):
-        self.addCleanup(remove_file_directory, "../tmp*")
+        self.addCleanup(remove_file_directory, "tmp*")
 
     def test_amber_acepype(self):
         path = os.path.join(os.path.dirname(__file__), 'files/input.mol2')
