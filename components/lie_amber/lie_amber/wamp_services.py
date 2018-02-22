@@ -44,7 +44,8 @@ def get_amber_config(request):
     keys = ['workdir', 'structure', 'from_file']
 
     for k in keys:
-        d.pop(k)
+        if k in d:
+            d.pop(k)
 
     return d
 
