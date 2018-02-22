@@ -3,11 +3,8 @@
 import os
 import glob
 import logging
-
 from subprocess import (PIPE, Popen)
-# from twisted.logger import Logger
 
-# logging = Logger()
 logger = logging.getLogger(__name__)
 
 
