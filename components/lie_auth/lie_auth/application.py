@@ -11,6 +11,7 @@ from oauthlib.common import generate_client_id as generate_secret
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from lie_auth.user_repository import UserRepository, PermissionType
+from mdstudio.api.context import with_default_context
 from mdstudio.api.endpoint import endpoint
 from mdstudio.api.scram import SCRAM
 from mdstudio.component.impl.core import CoreComponentSession
@@ -48,6 +49,7 @@ class AuthComponent(CoreComponentSession):
         yield super(AuthComponent, self)._on_join()
 
     @wamp.register(u'mdstudio.auth.endpoint.sign', options=wamp.RegisterOptions(details_arg='details'))
+    @with_default_context
     @chainable
     def sign_claims(self, claims, details=None):
         role = details.caller_authrole
@@ -88,7 +90,7 @@ class AuthComponent(CoreComponentSession):
                 if group_role == role:
                     claims['role'] = role
                 else:
-                    raise Exception('This should not happen')
+                    raise Exception('This should not happen: claimed to be {} but was {}'.format(group_role, role))
         elif role == 'user':
             user = yield self.user_repository.find_user(details.caller_authid)
 
@@ -115,6 +117,7 @@ class AuthComponent(CoreComponentSession):
         return_value(jwt_encode(claims, self.jwt_key))
 
     @wamp.register(u'mdstudio.auth.endpoint.verify')
+    @with_default_context
     def verify_claims(self, signed_claims):
         try:
             claims = jwt_decode(signed_claims, self.jwt_key)
@@ -140,6 +143,7 @@ class AuthComponent(CoreComponentSession):
         return False
 
     @wamp.register(u'mdstudio.auth.endpoint.login')
+    @with_default_context
     @inlineCallbacks
     def user_login(self, realm, authid, details):
         assert authid
@@ -274,6 +278,7 @@ class AuthComponent(CoreComponentSession):
     #     returnValue(None)
 
     @wamp.register(u'mdstudio.auth.endpoint.authorize.admin')
+    @with_default_context
     def authorize_admin(self, session, uri, action, options):
         role = session.get('authrole')
         authid = session.get('authid')
@@ -299,6 +304,7 @@ class AuthComponent(CoreComponentSession):
         return authorization
 
     @wamp.register(u'mdstudio.auth.endpoint.authorize.ring0')
+    @with_default_context
     def authorize_ring0(self, session, uri, action, options):
         role = session.get('authrole')
 
@@ -316,6 +322,7 @@ class AuthComponent(CoreComponentSession):
 
 
     # @wamp.register(u'mdstudio.auth.endpoint.authorize.oauth')
+    # @with_default_context
     # @inlineCallbacks
     # def authorize_oauth(self, session, uri, action, options):
     #     role = session.get('authrole')
@@ -347,6 +354,7 @@ class AuthComponent(CoreComponentSession):
     #     returnValue(authorization)
 
     # @wamp.register(u'mdstudio.auth.endpoint.authorize.public')
+    # @with_default_context
     # def authorize_public(self, session, uri, action, options):
     #     #  TODO: authorize public to view unprotected resources
     #     authorization = False
@@ -354,6 +362,7 @@ class AuthComponent(CoreComponentSession):
     #     returnValue(authorization)
 
     @wamp.register(u'mdstudio.auth.endpoint.authorize.user')
+    @with_default_context
     @chainable
     def authorize_user(self, session, uri, action, options):
         username = session.get('authid')
@@ -409,6 +418,7 @@ class AuthComponent(CoreComponentSession):
             returnValue({})
 
     @wamp.register(u'mdstudio.auth.endpoint.logout', options=wamp.RegisterOptions(details_arg='details'))
+    @with_default_context
     @inlineCallbacks
     def user_logout(self, details):
         user = yield self._get_user(details.get('authid'))

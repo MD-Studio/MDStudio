@@ -65,6 +65,6 @@ class ComponentSession(CommonSession):
     @chainable
     def flush_logs(self, logs):
         with self.default_context() as c:
-            result = yield self.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, c.get_log_claims())
+            result = yield self.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, c.get('call_context').get_log_claims())
 
         return_value(result)
