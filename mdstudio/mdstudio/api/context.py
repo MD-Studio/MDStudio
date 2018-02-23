@@ -1,4 +1,5 @@
 from copy import deepcopy
+from functools import wraps
 
 import six
 
@@ -21,6 +22,7 @@ class ContextManager:
 
     def __enter__(self, *args):
         ContextWrapper().context = self.context
+        return self
 
     def __exit__(self, *args):
         ContextWrapper().context = self.old_context
@@ -42,6 +44,18 @@ class ContextManager:
     def call_with_context(ctx, f, *args, **kwargs):
         with ContextManager(ctx):
             return f(*args, **kwargs)
+
+
+def with_default_context(f):
+    @wraps(f)
+    def _f(instance, *args, **kwargs):
+        from mdstudio.component.impl.common import CommonSession
+        assert isinstance(instance, CommonSession)
+
+        with instance.default_context():
+            return f(instance, *args, **kwargs)
+
+    return _f
 
 
 class IContext(object):
@@ -93,7 +107,8 @@ class GroupContext(UserContext):
         return claims
 
     def get_db_claims(self, connection_type=ConnectionType.Group):
-        assert connection_type in [ConnectionType.User, ConnectionType.Group], 'Only user and group connections are allowed in the GroupContext'
+        assert connection_type in [ConnectionType.User,
+                                   ConnectionType.Group], 'Only user and group connections are allowed in the GroupContext'
 
         return self.get_claims({'connectionType': str(connection_type)})
 
