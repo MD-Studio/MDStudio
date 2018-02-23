@@ -12,6 +12,9 @@ class AmberWampApi(ComponentSession):
     """
     AmberTools WAMP methods.
     """
+    def authorize_request(self, uri, claims):
+        return True
+
     @endpoint('acpype', 'acpype-request', 'acpype-response')
     def run_amber_acpype(self, request, claims):
         """
