@@ -12,49 +12,43 @@ import jsonschema
 import tempfile
 
 from StringIO import StringIO
-from autobahn import wamp
 from Bio.PDB import PDBList
 from Bio.PDB.PDBIO import PDBIO
 from Bio.PDB.PDBParser import PDBParser
 
-from lie_system import LieApplicationSession, WAMPTaskMetaData
 from lie_structures import settings, toolkits
 from lie_structures.settings import _schema_to_data, STRUCTURES_SCHEMA, BIOPYTHON_SCHEMA
 from lie_structures.cheminfo_wamp.cheminfo_descriptors_wamp import CheminfoDescriptorsWampApi
 from lie_structures.cheminfo_wamp.cheminfo_molhandle_wamp import CheminfoMolhandleWampApi
 from lie_structures.cheminfo_wamp.cheminfo_fingerprints_wamp import CheminfoFingerprintsWampApi
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
 
 STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))
 BIOPYTHON_SCHEMA = json.load(open(BIOPYTHON_SCHEMA))
 
 
-class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi,
-                        CheminfoFingerprintsWampApi):
+class StructuresWampApi(
+        ComponentSession, CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi,
+        CheminfoFingerprintsWampApi):
     """
     Structure database WAMP methods.
     """
+    def authorize_request(self, uri, claims):
+        return True
 
-    require_config = ['system']
+    @endpoint('supported_toolkits', 'supported_toolkits_request', 'supported_toolkits_response')
+    def supported_toolkits(self, request, claims):
+        """
+        Query available toolkits.
+        """
+        return {'status': 'completed', 'toolkits': toolkits.keys()}
 
-    @wamp.register(u'liestudio.structures.supported_toolkits')
-    def supported_toolkits(self, session=None):
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session)
-
-        # Pack result in session
-        session.status = 'completed'
-        return {'session': session.dict(), 'toolkits': toolkits.keys()}
-
-    @wamp.register(u'liestudio.structure.remove_residues')
-    def remove_residues(self, session=None, **kwargs):
+    @endpoint('remove_residues', 'remove_residues_request', 'remove_residues_response')
+    def remove_residues(self, request, claims):
         """
         Remove residues from a PDB structure
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
         # Parse the structure
         parser = PDBParser(PERMISSIVE=True)
 
@@ -93,15 +87,11 @@ class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, Chemi
             outfile.seek(0)
             return {'session': session, 'mol': outfile.read()}
 
-    @wamp.register(u'liestudio.structure.retrieve_rcsb_structure')
+    @endpoint('retrieve_rcsb_structure', 'retrieve_rcsb_structure_request', 'retrieve_rcsb_structure_response')
     def fetch_rcsb_structure(self, session=None, **kwargs):
         """
         Download a structure file from the RCSB database using a PDB ID
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
         # Load configuration and update
         config = _schema_to_data(BIOPYTHON_SCHEMA)
         config.update(kwargs)
@@ -146,30 +136,3 @@ class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, Chemi
         session['status'] = 'failed'
         return {'session': session}
 
-
-def make(config):
-    """
-    Component factory
-
-    This component factory creates instances of the application component
-    to run.
-
-    The function will get called either during development using an
-    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
-    a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
-    ComponentConfig class by default but any class specific keyword arguments
-    can be consument as well to populate the class session_config and
-    package_config dictionaries.
-
-    :param config: Autobahn ComponentConfig object
-    """
-
-    if config:
-        return StructuresWampApi(config, package_config=settings)
-    else:
-        # if no config given, return a description of this WAMPlet ..
-        return {
-            'label': 'LIEStudio structure management WAMPlet',
-            'description':
-            'WAMPlet proving LIEStudio structure management endpoints'}

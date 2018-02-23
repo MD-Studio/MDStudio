@@ -10,40 +10,36 @@ import os
 import numpy
 import pandas
 
-from autobahn import wamp
-
-from lie_system import WAMPTaskMetaData
 from lie_structures.cheminfo_molhandle import mol_read
 from lie_structures.cheminfo_fingerprint import mol_fingerprint_cross_similarity
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
 
 
-class CheminfoFingerprintsWampApi(object):
+class CheminfoFingerprintsWampApi(ComponentSession):
     """
     Cheminformatics fingerprints WAMP API
     """
+    def authorize_request(self, uri, claims):
+        return True
 
-    @wamp.register(u'liestudio.cheminfo.chemical_similarity')
-    def calculate_chemical_similarity(self, test_set=None, reference_set=None, mol_format=None, toolkit='pybel',
-                                      fp_format='maccs', metric='tanimoto', ci_cutoff=None, session=None, **kwargs):
+    @endpoint('chemical_similarity', 'chemical_similarity_request', 'chemical_similarity_response')
+    def calculate_chemical_similarity(self, request, claims):
         """
         Calculate the chemical similarity between two sets each containing one
         or more structures.
         The structure formats needs to be identical for all structures in both
         sets.
 
-        :param test_set:        test set to calculate similarity for
-        :param reference_set:   set to calculate similarity against
-        :param mol_format:      structure format
-        :param toolkit:         cheminformatics toolkit to use
-        :param fp_format:       fingerprint format
-        :param metric:          similarity metric
-        :param ci_cutoff:       AP CI cutoff value
-        :param session:         WAMP session information
-        :return:
+        see the file schemas/endpoints/chemical_similarity_request.v1.json file
+        for a detail description of the input.
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session)
+        metric = request['metric']
+        toolkit = request['toolkit']
+        mol_format = request['mol_format']
+        test_set = request['test_set']
+        reference_set = request['reference_set']
+        fp_format = request['fp_format']
 
         # Import the molecules
         test_mols = [mol_read(x, mol_format=mol_format, toolkit=toolkit) for x in test_set]
@@ -81,4 +77,3 @@ class CheminfoFingerprintsWampApi(object):
 
         session.status = 'completed'
         return {'session': session.dict(), 'result': stats.to_dict()}
-

@@ -9,11 +9,11 @@
 	    "description": "Job final status",
 	    "enum": ["failed", "completed"]
 	},
-	"output": {
-	    "type": "string",
+	"descriptors": {
+	    "type": ["string", "null"],
 	    "description": "Molecular toolkit use",
 	    "default": "pybel"
 	}
     },
-    "required": ["status", "output"]
+    "required": ["status", "descriptors"]
 }
