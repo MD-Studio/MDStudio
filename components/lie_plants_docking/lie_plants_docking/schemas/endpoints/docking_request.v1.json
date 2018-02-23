@@ -8,7 +8,7 @@
 	"workdir": {
 	    "type": "string"  ,
 	    "description": "Directory to run the docking simulation",
-	    "default": "null"
+	    "default": "."
 	},
         "exec_path": {
             "type": "string",
