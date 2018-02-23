@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import glob
 import json
 import logging
 import os
@@ -34,18 +33,6 @@ def schema_to_data(schema, data=None, defdict=None):
     return default_data
 
 
-def remove_file_directory(path):
-    """
-    Remove both a file or a directory
-    """
-    paths = glob.glob(path)
-    for p in paths:
-        if os.path.isfile(p):
-            os.remove(p)
-        else:
-            shutil.rmtree(p)
-
-
 ACPYPE_LIE_SCHEMA = os.path.join(
     pkgutil.get_data(
         'lie_amber', 'schemas/endpoints/acpype-request.v1.json'))
@@ -60,7 +47,8 @@ class Test_amber_components(unittest.TestCase):
         self.workdir = tempfile.mkdtemp('tmp', dir='.')
 
     def tearDown(self):
-        self.addCleanup(remove_file_directory, "tmp*")
+        if self.workdir and os.path.exists(self.workdir):
+            shutil.rmtree(self.workdir)
 
     def test_amber_acepype(self):
         path = os.path.join(os.path.dirname(__file__), 'files/input.mol2')
