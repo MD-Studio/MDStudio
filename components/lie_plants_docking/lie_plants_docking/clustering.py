@@ -39,7 +39,7 @@ def coords_from_mol2(mol2_files):
                     break
                 elif read:
                     line = line.split()
-                    coords.append(map(float, line[2:5]))
+                    coords.append(list(map(float, line[2:5])))
             if coords:
                 sets.append(coords)
 
@@ -348,7 +348,7 @@ class ClusterStructures(object):
                 else:
                     a = sqmatr[cl[0]]
                     a = a[:, cl[0]]
-                    m = numpy.mean(numpy.hstack(a[i][:i] for i in xrange(a.shape[0])))
+                    m = numpy.mean(numpy.hstack(a[i][:i] for i in range(a.shape[0])))
                     x = (numpy.abs(a - m)).argmin()
                     lc = numpy.where(a == a.flat[x])[0]
 

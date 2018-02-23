@@ -19,25 +19,25 @@ amber_input = "input.mol2"
 
 class Run_test(ComponentSession):
 
-    # def on_run(self):
-    #     with self.group_context('mdgroup'):
-    #         self.call(
-    #             "mdgroup.liemd.endpoint.liemd",
-    #             {"cerise_file": cerise_file,
-    #              "ligand_file": ligand_file,
-    #              "protein_file": None,
-    #              "protein_top": protein_top,
-    #              "topology_file": topology_file,
-    #              "include": include,
-    #              "residues": residues,
-    #              "workdir": workdir})
-
     def on_run(self):
         with self.group_context('mdgroup'):
             self.call(
-                "mdgroup.lie_amber.endpoint.acpype",
-                {"structure": amber_input,
+                "mdgroup.liemd.endpoint.liemd",
+                {"cerise_file": cerise_file,
+                 "ligand_file": ligand_file,
+                 "protein_file": None,
+                 "protein_top": protein_top,
+                 "topology_file": topology_file,
+                 "include": include,
+                 "residues": residues,
                  "workdir": workdir})
+
+    # def on_run(self):
+    #     with self.group_context('mdgroup'):
+    #         self.call(
+    #             "mdgroup.lie_amber.endpoint.acpype",
+    #             {"structure": amber_input,
+    #              "workdir": workdir})
 
 
 if __name__ == "__main__":
