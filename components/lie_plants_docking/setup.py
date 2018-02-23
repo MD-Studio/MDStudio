@@ -40,7 +40,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['scipy'],
+    install_requires=['matplotlib', 'scipy'],
     include_package_data=True,
     zip_safe=True,
     classifiers=[

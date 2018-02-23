@@ -21,15 +21,15 @@ class DockingWampApi(ComponentSession):
         task_id = self.component_config.session.session_id
         self.log.info("Plants Docking ID: ", task_id)
 
-        # Docking options are equal to the request but for the workdir
+        # Docking options are equal to the request
         plants_config = request.copy()
-        plants_config.pop('workdir')
 
         # Prepaire docking directory
-        plants_workdir = prepaire_work_dir(request['workdir'], create=True)
+        plants_config["workdir"] = prepaire_work_dir(
+            request['workdir'], create=True)
 
         # Run docking
-        docking = PlantsDocking(plants_workdir, plants_config)
+        docking = PlantsDocking(**plants_config)
         success = docking.run(
             plants_config['protein_file'], plants_config['ligand_file'])
 

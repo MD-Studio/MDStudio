@@ -5,13 +5,11 @@ Unit tests for the docking component WAMP API
 """
 
 import os
-import sys
 import shutil
 
 # Add modules in package to path so we can import them
 __rootpath__ = os.path.dirname(__file__)
 
-from autobahn.twisted.util import sleep
 from autobahn.twisted import wamp
 from twisted.trial import unittest
 from twisted.internet import defer

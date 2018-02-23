@@ -12,6 +12,7 @@ import subprocess
 import time
 import json
 import logging
+import pkgutil
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +29,11 @@ def _schema_to_data(schema, data=None, defdict=None):
                 default_data[key] = _schema_to_data(value)
             else:
                 default_data[key] = value.get('default')
-    
+
     # Update with existing data
     if data:
         default_data.update(data)
-    
+
     return default_data
 
 
@@ -109,5 +110,6 @@ def cmd_runner(cmd, workdir):
     return output, errors
 
 
-PLANTS_DOCKING_SCHEMA = os.path.join(os.path.dirname(__file__), 'plants_docking_schema.json')
-settings = _schema_to_data(json.load(open(PLANTS_DOCKING_SCHEMA)))
+PLANTS_DOCKING_SCHEMA = os.path.join(
+    pkgutil.get_data('lie_plants_docking', 'schemas/endpoints/docking_request.v1.json'))
+settings = _schema_to_data(json.loads(PLANTS_DOCKING_SCHEMA))

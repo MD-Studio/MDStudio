@@ -52,11 +52,11 @@ class PlantsDocking(DockingBase):
     """
     logger = logging.getLogger(__name__)
 
-    def __init__(self, workdir, config, user_meta=None):
+    def __init__(self, workdir=None, user_meta={}, **kwargs):
 
-        self.user_meta = user_meta or {}
+        self.user_meta = user_meta
 
-        self.config = config
+        self.config = kwargs
         self.workdir = workdir
 
     def results(self):
@@ -141,22 +141,22 @@ class PlantsDocking(DockingBase):
         # Check required PLANTS configuration arguments
         self.workdir = os.path.abspath(self.workdir)
         if not os.path.exists(self.workdir):
-            self.logging.error('Working directory {0} does not exist'.format(self.workdir), **self.user_meta)
+            self.logger.error('Working directory {0} does not exist'.format(self.workdir), **self.user_meta)
             return False
         if not os.access(self.workdir, os.W_OK):
-            self.logging.error('Working directory {0} not writable'.format(self.workdir), **self.user_meta)
+            self.logger.error('Working directory {0} not writable'.format(self.workdir), **self.user_meta)
             return False
 
         exec_path = self.config.get('exec_path')
         if not os.path.exists(exec_path):
-            self.logging.error('Plants executable not available at: {0}'.format(exec_path), **self.user_meta)
+            self.logger.error('Plants executable not available at: {0}'.format(exec_path), **self.user_meta)
             return False
         if not os.access(exec_path, os.X_OK):
-            self.logging.error('Plants executable {0} does not have exacutable permissions'.format(exec_path), **self.user_meta)
+            self.logger.error('Plants executable {0} does not have exacutable permissions'.format(exec_path), **self.user_meta)
             return False
 
         if sum(self.config.get('bindingsite_center')) == 0 or len(self.config.get('bindingsite_center')) != 3:
-            self.logging.error('Malformed binding site center definition: {0}'.format(self.config.get('bindingsite_center')), **self.user_meta)
+            self.logger.error('Malformed binding site center definition: {0}'.format(self.config.get('bindingsite_center')), **self.user_meta)
             return False
 
         # Copy files to working directory
@@ -180,7 +180,7 @@ class PlantsDocking(DockingBase):
             conf.write(PLANTS_CONF_FILE_TEMPLATE.format(**self.config))
 
         cmd = [exec_path, '--mode', mode, 'plants.config']
-        self.logging.info(
+        self.logger.info(
             "Running plants_docking command:\n{}".format(' '.join(cmd)))
         output, error = cmd_runner(cmd, self.workdir)
 
