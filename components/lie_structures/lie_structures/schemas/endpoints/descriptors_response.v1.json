@@ -1,17 +1,18 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "docking output",
-    "description": "docking output",
+    "title": "Molecular descriptors output",
+    "description": "Molecular descriptors configuration",
     "type": "object",
     "properties": {
 	"status": {
 	    "type": "string",
-	    "description": "Plants Docking final status",
+	    "description": "Job final status",
 	    "enum": ["failed", "completed"]
 	},
 	"output": {
-	    "type": "object",
-	    "description": "Dictionary containing the Plants docking output files"
+	    "type": "string",
+	    "description": "Molecular toolkit use",
+	    "default": "pybel"
 	}
     },
     "required": ["status", "output"]

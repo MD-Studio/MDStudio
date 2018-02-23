@@ -13,5 +13,6 @@
 	    "type": "object",
 	    "description": "Dictionary containing the Amber reduce output files"
 	}
-    }
+    },
+    "required": ["status", "output"]
 }
