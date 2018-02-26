@@ -27,7 +27,7 @@ distribution_name = 'lie_structures'
 
 setup(
     name=distribution_name,
-    version=0.1,
+    version=0.2,
     description='MDStudio structure database module',
     author="""
     Marc van Dijk - VU University - Amsterdam
@@ -40,7 +40,7 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['biopython', 'cinfony', 'openbabel', 'jsonschema',
+    install_requires=['biopython', 'cinfony', 'openbabel',
                       'pydpi', 'JPype1', 'Pillow', 'retrying'],
     dependency_links=[
         "git+https://github.com/cinfony/cinfony.git@master#egg=cinfony-1.2"

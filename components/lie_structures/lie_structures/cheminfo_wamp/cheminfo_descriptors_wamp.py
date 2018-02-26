@@ -13,10 +13,12 @@ class CheminfoDescriptorsWampApi(ComponentSession):
         return True
 
     @endpoint('descriptors', 'descriptors_request', 'descriptors_response')
-    def get_descriptors(self, structure=None, mol_format=None, toolkit='pybel'):
+    def get_descriptors(self, request, claims):
 
         # Import the molecule
-        molobject = mol_read(structure, mol_format=mol_format, toolkit=toolkit)
+        molobject = mol_read(
+            request["structure"], mol_format=request["mol_format"],
+            toolkit=request["toolkit"])
         desc = molobject.calcdesc()
 
         if desc is not None:

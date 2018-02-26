@@ -40,6 +40,7 @@ class CheminfoFingerprintsWampApi(ComponentSession):
         test_set = request['test_set']
         reference_set = request['reference_set']
         fp_format = request['fp_format']
+        ci_cutoff = request['ci_cutoff']
 
         # Import the molecules
         test_mols = [mol_read(x, mol_format=mol_format, toolkit=toolkit) for x in test_set]
@@ -67,13 +68,12 @@ class CheminfoFingerprintsWampApi(ComponentSession):
             self.log.info('Chemical similarity AD analysis with cutoff {0}'.format(ci_cutoff))
 
         # Create workdir and save file
-        workdir = os.path.join(kwargs.get('workdir', None))
-        if workdir:
-            if not os.path.isdir(workdir):
-                os.mkdir(workdir)
-                self.log.debug('Create working directory: {0}'.format(workdir), **session)
-            filepath = os.path.join(workdir, 'adan_chemical_similarity.csv')
-            stats.to_csv(filepath)
+        workdir = request['workdir']
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+            self.log.debug('Create working directory: {0}'.format(workdir))
+        filepath = os.path.join(workdir, 'adan_chemical_similarity.csv')
+        stats.to_csv(filepath)
 
-        session.status = 'completed'
-        return {'session': session.dict(), 'result': stats.to_dict()}
+        status = 'completed'
+        return {'status': status, 'result': stats.to_dict()}

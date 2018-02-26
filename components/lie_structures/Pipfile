@@ -9,7 +9,6 @@ local = {path = "./", editable = true}
 biopython = "*"
 cinfony = "*"
 JPype1 = "*"
-jsonschema = "*"
 openbabel = "*"
 Pillow = "*"
 pydpi = "*"

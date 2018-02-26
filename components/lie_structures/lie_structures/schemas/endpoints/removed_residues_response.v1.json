@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Remove residues output",
+    "description": "Output description after removing residues",
+    "type": "object",
+    "properties": {
+	"status": {
+	    "type": "string",
+	    "description": "Job final status",
+	    "enum": ["failed", "completed"]
+	},
+	"mol": {
+	    "type": "string",
+	    "description": "Resulting molecule"
+	}
+    },
+    "required": ["status", "mol"]
+}

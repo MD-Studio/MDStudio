@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Chemical similarity output",
+    "description": "Calculate the chemical similarity between structures",
+    "type": "object",
+    "properties": {	
+	"status": {
+	    "type": "string",
+	    "description": "Job final status",
+	    "enum": ["failed", "completed"]
+	},
+	"results": {
+	    "type": ["object", "null"],
+	    "description": "Statistics object"
+	}
+    },
+    "required": ["status", "results"]
+} 

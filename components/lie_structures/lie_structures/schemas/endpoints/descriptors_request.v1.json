@@ -18,6 +18,6 @@
 	    "description": "Molecular toolkit use",
 	    "default": "pybel"
 	}
-    }
+    },
     "required": ["structure", "mol_format"]
 }
