@@ -20,7 +20,7 @@ class MDWampApi(ComponentSession):
     """
     def authorize_request(self, uri, claims):
         return True
-
+ 
     @endpoint('liemd', 'liemd_request', 'liemd_response')
     def run_gromacs_liemd(self, request, claims):
         """

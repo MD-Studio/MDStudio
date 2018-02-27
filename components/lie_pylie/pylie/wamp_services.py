@@ -9,17 +9,17 @@ WAMP service methods the module exposes.
 import os
 import tempfile
 import json
-import jsonschema
 import pickle
 
-from pandas import read_csv, read_json, read_excel, read_table, concat, DataFrame
+from pandas import (read_csv, read_json, read_excel, read_table, concat, DataFrame)
 from autobahn import wamp
 
 from pylie import LIEMDFrame, LIEDataFrame, pylie_config
 from pylie.filters.filtersplines import FilterSplines
 from pylie.filters.filtergaussian import FilterGaussian
 from pylie.methods.adan import ad_residue_decomp, ad_dene, ad_dene_yrange, parse_gromacs_decomp
-from lie_system import LieApplicationSession, WAMPTaskMetaData
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
 
 pylie_schema = json.load(open(os.path.join(os.path.dirname(__file__), 'pylie_schema.json')))
 
@@ -27,23 +27,20 @@ PANDAS_IMPORTERS = {'csv': read_csv, 'json': read_json, 'xlsx': read_excel, 'tbl
 PANDAS_EXPORTERS = {'csv': 'to_csv', 'json': 'to_json', 'xlsx': 'to_excel', 'tbl': 'to_string'}
 
 
-class PylieWampApi(LieApplicationSession):
+class PylieWampApi(ComponentSession):
     """
     Pylie WAMP methods.
 
     Defines `require_config` to retrieve system and database configuration
     upon WAMP session setup
     """
-
-    require_config = ['system']
+    def authorize_request(self, uri, claims):
+        return True
 
     def _get_config(self, config, name):
 
         ref_config = pylie_config.get(name).dict()
         ref_config.update(config)
-
-        # Validate the configuration
-        jsonschema.validate(pylie_schema, ref_config)
 
         return ref_config
 
@@ -80,70 +77,77 @@ class PylieWampApi(LieApplicationSession):
             return True
         return False
 
-    @wamp.register(u'liestudio.pylie.liedeltag')
-    def calculate_lie_deltag(self, dataframe=None, alpha=0.5, beta=0.5, gamma=0.0, kBt=2.49, session=None, **kwargs):
+    @endpoint('liedeltag', 'liedeltag_request', 'liedeltag_response')
+    def calculate_lie_deltag(self, request, claims):
 
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+        alpha_beta_gamma = request['alpha_beta_gamma']
 
         # Filter DataFrame
-        dfobject = LIEDataFrame(self._import_to_dataframe(dataframe))
-        dg_calc = dfobject.liedeltag(params=[alpha, beta, gamma], kBt=kBt)
+        dfobject = LIEDataFrame(self._import_to_dataframe(request['dataframe']))
+        dg_calc = dfobject.liedeltag(params=alpha_beta_gamma, kBt=request['kBt'])
 
         # Create workdir to save file
-        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
-            self.logger.debug('Create working directory: {0}'.format(workdir), **session)
+            self.logger.debug('Create working directory: {0}'.format(workdir))
 
         # Save dataframe
-        file_format = kwargs.get('file_format', 'csv')
+        file_format = request['file_format']
         filepath = os.path.join(workdir, 'liedeltag.{0}'.format(file_format))
         if self._export_dataframe(dg_calc, filepath, file_format=file_format):
-            session['status'] = 'completed'
-            return {'session': session, 'liedeltag_file': filepath, 'liedeltag': dg_calc.to_dict()}
+            status = 'completed'
+            results = dg_calc.to_dict()
+        else:
+            status = 'failed'
+            filepath = None
+            results = None
 
-        session['status'] = 'failed'
-        return {'session': session}
+            return {'status': status, 'liedeltag_file': filepath, 'liedeltag': results}
 
     @wamp.register(u'liestudio.pylie.concat_dataframes')
-    def concat_dataframes(self, dataframes=None, ignore_index=True, axis=0, join='outer', session=None, **kwargs):
+    # def concat_dataframes(self, dataframes=None, ignore_index=True, axis=0, join='outer', session=None, **kwargs)
+    def concat_dataframes(self, request, claims):
         """
         Combine multiple tabular DataFrames into one new DataFrame using
         the Python Pandas library.
 
-        :param dataframes: DataFrames to combine
-        :type dataframes:  :py:list
+        For a detailed input description see:
+          pylie/schemas/endpoints/concat_dataframes_request.json
+
+        For a detailed output description see:
+          pylie/schemas/endpoints/concat_dataframes_response.json
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
         # Import all files
         dfs = []
-        for dataframe in dataframes:
+        for dataframe in request['dataframes']:
             dfobject = self._import_to_dataframe(dataframe)
             if isinstance(dfobject, DataFrame):
                 dfs.append(dfobject)
 
         # Concatenate dataframes
         if len(dfs) > 1:
-            concat_df = concat(dfs, ignore_index=ignore_index, axis=axis, join=join)
-            session['status'] = 'completed'
+            concat_df = concat(
+                dfs, ignore_index=request['ignore_index'],
+                axis=request['axis'], join=request['join'])
+
+            status = 'completed'
 
             # Create workdir to save file
-            workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+            workdir = os.path.join(request['workdir'], tempfile.gettempdir())
             if not os.path.isdir(workdir):
                 os.mkdir(workdir)
-                self.logger.debug('Create working directory: {0}'.format(workdir), **session)
+                self.logger.debug('Create working directory: {0}'.format(workdir))
 
-            file_format = kwargs.get('file_format', 'csv')
+            file_format = request['file_format']
             filepath = os.path.join(workdir, 'joined.{0}'.format(file_format))
             if self._export_dataframe(concat_df, filepath, file_format=file_format):
-                return {'session': session, 'concat_mdframe': filepath}
+                concat_mdframe = filepath
+        else:
+            status = 'failed'
+            concat_mdframe = None
 
-        session['status'] = 'failed'
-        return {'session': session}
+        return {'status': status, 'concat_mdframe': concat_dataframe
 
     @wamp.register(u'liestudio.pylie.calculate_lie_average')
     def calculate_lie_average(self, mdframe=None, session=None, **kwargs):
@@ -465,29 +469,3 @@ class PylieWampApi(LieApplicationSession):
 
         session['status'] = 'completed'
         return {'session': session, 'decomp': ene.to_dict()}
-
-
-def make(config):
-    """
-    Component factory
-
-    This component factory creates instances of the application component
-    to run.
-
-    The function will get called either during development using an
-    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
-    a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
-    ComponentConfig class by default but any class specific keyword arguments
-    can be consument as well to populate the class session_config and
-    package_config dictionaries.
-
-    :param config: Autobahn ComponentConfig object
-    """
-
-    if config:
-        return PylieWampApi(config)
-    else:
-        # if no config given, return a description of this WAMPlet ..
-        return {'label': 'LIEStudio pylie management WAMPlet',
-                'description': 'WAMPlet proving LIEStudio pylie management endpoints'}
