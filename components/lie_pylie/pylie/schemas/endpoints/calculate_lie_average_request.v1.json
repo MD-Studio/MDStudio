@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://liestudio/schemas/lie_average_input.json",
+    "title"::"Calculated lie average",
+    "description":"Calculated lie average input",
+    "type": "object",
+    "properties": {
+	"mdframes": {
+	    "type": "string",
+	    "description": "molecular dynamics Dataframe"
+	},
+	"inlineFilter": {
+	    "type": "string",
+	    "default": "pair"
+	},
+	"workdir": {
+	    "type": "string",
+	    "default": "."
+	}
+    },
+    "required": ["dataframes"]
+}

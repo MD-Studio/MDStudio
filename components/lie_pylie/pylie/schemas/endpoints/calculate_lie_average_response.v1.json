@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/concat_output.json",
-    "title": "Concat dataframes output",
-    "description": "Concatenate dataframes",
+    "id": "http://liestudio/schemas/lie_average_output.json",
+    "title"::"Calculated lie average",
+    "description":"Calculated lie average ouput",
     "type": "object",
     "properties": {
 	"status": {
@@ -10,11 +10,11 @@
 	    "description": "Job final status",
 	    "enum": ["failed", "completed"]
 	},
-	"concat_mdframe": {
+	"averaged": {
 	    "type": "string",
 	    "description": "path to the resulting dataframe"
 	}
     },
-    "required": ["status", "concat_dataframe"]
+    "required": ["status", "averaged"]
+    
 }
-

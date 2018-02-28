@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/structures_schema.json",
+    "id": "http://liestudio/schemas/deltatag_input.json",
     "title": "Deltatag input",
     "description": "Deltatag",
     "type": "object",

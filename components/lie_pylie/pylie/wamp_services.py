@@ -79,7 +79,13 @@ class PylieWampApi(ComponentSession):
 
     @endpoint('liedeltag', 'liedeltag_request', 'liedeltag_response')
     def calculate_lie_deltag(self, request, claims):
+        """
+        For a detailed input description see:
+          pylie/schemas/endpoints/liedeltag_request.json
 
+        For a detailed output description see:
+          pylie/schemas/endpoints/liedeltag_response.json
+        """
         alpha_beta_gamma = request['alpha_beta_gamma']
 
         # Filter DataFrame
@@ -106,7 +112,6 @@ class PylieWampApi(ComponentSession):
             return {'status': status, 'liedeltag_file': filepath, 'liedeltag': results}
 
     @wamp.register(u'liestudio.pylie.concat_dataframes')
-    # def concat_dataframes(self, dataframes=None, ignore_index=True, axis=0, join='outer', session=None, **kwargs)
     def concat_dataframes(self, request, claims):
         """
         Combine multiple tabular DataFrames into one new DataFrame using
@@ -147,62 +152,57 @@ class PylieWampApi(ComponentSession):
             status = 'failed'
             concat_mdframe = None
 
-        return {'status': status, 'concat_mdframe': concat_dataframe
+        return {'status': status, 'concat_mdframe': concat_mdframe}
 
-    @wamp.register(u'liestudio.pylie.calculate_lie_average')
-    def calculate_lie_average(self, mdframe=None, session=None, **kwargs):
+    @endpoint('calculate_lie_average', 'calculate_lie_average_request', 'calculate_lie_average_response')
+    def calculate_lie_average(self, request, claims):
         """
         Calculate LIE electrostatic and Van der Waals energy averages from
         a MDFrame.
 
-        :param mdframe: path to LIEMDFrame
-        :type mdframe:  :py:str
-        :param session: WAMP session information
-        :type session:  :py:dict
+        For a detailed input description see:
+          pylie/schemas/endpoints/calculate_lie_average_request.v1.json
+
+        For a detailed output description see:
+          pydlie/schemas/endpoints/calculate_lie_average_response.v1.json
         """
+        mdframe = request['mdframe']
 
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
-        # Load MDFrame import configuration and update
-        filter_config = self._get_config(kwargs, 'LIEMDFrame')
-
-        if not mdframe or not os.path.isfile(mdframe):
-            self.logger.error('MDFrame csv file does not exist: {0}'.format(mdframe), **session)
-            session['status'] = 'failed'
-            return {'session': session}
+        if not os.path.isfile(mdframe):
+            self.logger.error('MDFrame csv file does not exist: {0}'.format(mdframe))
+            status = 'failed'
+            return {'status': status, 'averaged': None}
 
         # Create workdir to save file
-        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
-            self.logger.debug('Create working directory: {0}'.format(workdir), **session)
+            self.logger.debug('Create working directory: {0}'.format(workdir))
 
         # Import CSV file and run spline fitting filter
         liemdframe = LIEMDFrame(read_csv(mdframe))
         if 'Unnamed: 0' in liemdframe.columns:
             del liemdframe['Unnamed: 0']
 
-        ave = liemdframe.inliers(method=filter_config.get('inlierFilterMethod', 'pair')).get_average()
+        ave = liemdframe.inliers(method=request['inlierFilterMethod']).get_average()
         filepath = os.path.join(workdir, 'averaged.csv')
         ave.to_csv(filepath)
 
-        output = {}
-        session['status'] = 'completed'
         if os.path.isfile(filepath):
-            output['averaged'] = filepath
+            status = 'completed'
+            averaged = filepath
         else:
-            session['status'] = 'failed'
+            status = 'failed'
+            averaged = None
 
-        output['session'] = session
-
-        return output
+        return {'status': status, 'averaged': averaged}
 
     @wamp.register(u'liestudio.pylie.gaussian_filter')
     def filter_gaussian(self, dataframe=None, confidence=0.975, plot=True, session=None, **kwargs):
         """
         Use multivariate Gaussian Distribution analysis to filter VdW/Elec
         values
+
         :param dataframe: DataFrame to filter
         :type dataframe:  :pylie:LIEDataFrame
         """
