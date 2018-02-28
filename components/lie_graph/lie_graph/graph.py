@@ -477,16 +477,22 @@ class Graph(object):
         """
         Add a node to the graph
 
-        A node can be any hashable object that is internally represented by
-        an automatically assigned node ID that should not be changed (_id).
-        The node object is always part of a dictionary in the internal
-        database representation allowing it to be queried by the various
-        graph query functions. This allows for the use of custom node
-        identifiers.
+        All nodes are stored using a dictionary like data structure like:
 
-        Additional node metadata can be added add node creation by defining
-        them as keyword arguments to the method. If the attributes to add are
-        available as dictionary, use Pythons dictionary unpacking (**dict)
+            {nid: {'_id': auto_nid, attribute_key: attribute_value, ....}}
+
+        Where the nid is the unique node ID stored as node key that can be any
+        hashable object except None. The value is a dictionary that contains
+        at least the '_id' attribute representing a unique auto-incremented
+        integer node identifier and any additional arguments as key/value
+        pairs. The '_id' attribute is added automatically.
+        The API used to access stored node information reassembles a Python
+        dictionary like API. The method used to store data is determined by
+        the graph storage driver.
+
+        .. note:: 'add_node' checks if there is a node with nid in the graph
+                  already. If found, a warning is logged and the attributes
+                  of the existing node are updated.
 
         :param node:     object representing the node
         :type node:      any hashable object
@@ -510,9 +516,11 @@ class Graph(object):
             if not isinstance(node, collections.Hashable):
                 raise GraphException('Node {0} of type {1} not a hashable object'.format(nid, type(node).__name__))
 
-            # Node needs to be unique
+            # If node exist, log a warning, update attributes and return
             if nid in self.nodes:
-                raise GraphException('Node {0} already assigned'.format(nid))
+                logger.warning('Node {0} already assigned'.format(nid))
+                self.nodes[nid].update(copy.deepcopy(kwargs))
+                return nid
 
         logger.debug('Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
 

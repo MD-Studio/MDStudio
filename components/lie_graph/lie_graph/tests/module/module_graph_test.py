@@ -103,7 +103,6 @@ class TestGraph(unittest2.TestCase):
         self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'data': 'object'})
 
         self.assertRaises(GraphException, graph.add_node, [1.33, 3.4])  # Unhashable objects not accepted as nid
-        self.assertRaises(GraphException, graph.add_node, 'object')  # Duplicate nid not allowed
 
     def test_edge_addition(self):
         """
