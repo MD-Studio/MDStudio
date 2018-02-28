@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://liestudio/schemas/collect_energies_request.json",
+    "title": "Calculated lie average",
+    "description": "Import GROMACS MD trajectory energy files into a LIEMDFrame",
+    "type": "object",
+    "properties": {
+	"bound_trajectory": {
+	    "type": "array",
+	    "description": "protein ligand simulations"
+	},
+	"unbound_trajectory": {
+	    "type": "string",
+	    "default": "pair"
+	},
+
+    "inlierFilterMethod": "pair",
+    "filetype": "gromacs",
+    "lie_vdw_header": "vdwLIE",
+    "lie_ele_header": "EleLIE",
+
+
+	"workdir": {
+	    "type": "string",
+	    "default": "."
+	}
+    },
+    "required": ["dataframes"]
+}

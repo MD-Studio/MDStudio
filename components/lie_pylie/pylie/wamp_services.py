@@ -197,85 +197,79 @@ class PylieWampApi(ComponentSession):
 
         return {'status': status, 'averaged': averaged}
 
-    @wamp.register(u'liestudio.pylie.gaussian_filter')
-    def filter_gaussian(self, dataframe=None, confidence=0.975, plot=True, session=None, **kwargs):
+    @endpoint('gaussian_filter', 'gaussian_filter_request', 'gaussian_filter_response')
+    def filter_gaussian(self, request, claims):
         """
-        Use multivariate Gaussian Distribution analysis to filter VdW/Elec
-        values
+        Use multivariate Gaussian Distribution analysis to
+        filter VdW/Elec values
 
-        :param dataframe: DataFrame to filter
-        :type dataframe:  :pylie:LIEDataFrame
+        For a detailed input description see:
+          pylie/schemas/endpoints/gaussian_filter_request.v1.json
+
+        For a detailed output description see:
+          pydlie/schemas/endpoints/gaussian_filter_response.v1.json
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
         # Filter DataFrame
-        dfobject = LIEDataFrame(self._import_to_dataframe(dataframe))
-        gaussian = FilterGaussian(dfobject, confidence=confidence)
+        dfobject = LIEDataFrame(
+            self._import_to_dataframe(request['dataframe']))
+        gaussian = FilterGaussian(
+            dfobject, confidence=request["confidence"])
         filtered = gaussian.filter()
         self.log.info("Filter detected {0} outliers.".format(len(filtered.outliers.cases)))
 
         # Create workdir to save file
-        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
-            self.log.debug('Create working directory: {0}'.format(workdir), **session)
+            self.log.debug('Create working directory: {0}'.format(workdir))
 
         # Plot results
-        if plot:
+        if request['plot']:
             outp = os.path.join(workdir, 'gauss_filter.pdf')
             p = gaussian.plot()
             p.savefig(outp)
 
         # Save filtered dataframe
-        file_format = kwargs.get('file_format', 'csv')
+        file_format = request['file_format']
         filepath = os.path.join(workdir, 'gauss_filter.{0}'.format(file_format))
-        if self._export_dataframe(filtered, filepath, file_format=file_format):
-            session['status'] = 'completed'
-            return {'session': session, 'gauss_filter': filepath}
+        if self._export_dataframe(
+                filtered, filepath, file_format=file_format):
+            status = 'completed'
+        else:
+            status = 'failed'
+            filepath = None
 
-        session['status'] = 'failed'
-        return {'session': session}
+        return {'status': status, 'gauss_filter': filepath}
 
-    @wamp.register(u'liestudio.pylie.filter_stable_trajectory')
-    def filter_stable_trajectory(self, mdframe=None, session=None, **kwargs):
+    @endpoint('filter_stable', 'filter_stable_request', 'filter_stable_request')
+    def filter_stable_trajectory(self, request, claims):
         """
         Use FFT and spline-based filtering to detect and extract stable regions
         in the MD energy trajectory
 
-        :param mdframe: path to LIEMDFrame
-        :type mdframe:  :py:str
-        :param session: WAMP session information
-        :type session:  :py:dict
+        For a detailed input description see:
+          pylie/schemas/endpoints/filter_stable_request.v1.json
+
+        For a detailed output description see:
+          pydlie/schemas/endpoints/filter_stable_response.v1.json
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
-        # Load FilterSplines configuration and update
-        filter_config = self._get_config(kwargs, 'FilterSplines')
-
-        # Validate the configuration
-        jsonschema.validate(pylie_schema, filter_config)
-
-        if not mdframe or not os.path.isfile(mdframe):
-            self.logger.error('MDFrame csv file does not exist: {0}'.format(mdframe), **session)
-            session['status'] = 'failed'
-            return {'session': session}
+        mdframe = request['mdframe']
+        if not os.path.isfile(mdframe):
+            self.logger.error('MDFrame csv file does not exist: {0}'.format(mdframe))
+            return {'status': 'failed', 'output': None}
 
         # Create workdir to save file
-        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
+        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
         if not os.path.isdir(workdir):
             os.mkdir(workdir)
-            self.log.debug('Create working directory: {0}'.format(workdir), **session)
+            self.log.debug('Create working directory: {0}'.format(workdir))
 
         # Import CSV file and run spline fitting filter
         liemdframe = LIEMDFrame(read_csv(mdframe))
         if 'Unnamed: 0' in liemdframe.columns:
             del liemdframe['Unnamed: 0']
 
-        splines = FilterSplines(liemdframe, **filter_config)
+        splines = FilterSplines(liemdframe, request['FilterSplines'])
         liemdframe = splines.filter()
 
         output = {}
@@ -287,24 +281,21 @@ class PylieWampApi(ComponentSession):
                 output['stable_pose_{0}'.format(pose)] = stable
 
         # Create plots
-        if filter_config.get('do_plot', False):
+        if request['do_plot']:
             currpath = os.getcwd()
             os.chdir(workdir)
-            splines.plot(tofile=True, filetype=filter_config.get('plotFileType', 'pdf'))
+            splines.plot(tofile=True, filetype=request['plotFileType'])
             os.chdir(currpath)
 
         # Filter the mdframe
-        if filter_config.get('do_filter', True):
+        if request['do_filter']:
             filepath = os.path.join(workdir, 'mdframe_splinefiltered.csv')
             filtered.to_csv(filepath)
 
             if os.path.isfile(filepath):
                 output['filtered_mdframe'] = filepath
 
-        session['status'] = 'completed'
-        output['session'] = session
-
-        return output
+        return {'status': 'completed', 'output': output}
 
     @wamp.register(u'liestudio.pylie.collect_energy_trajectories')
     def import_mdene_files(self, bound_trajectory=None, unbound_trajectory=None, session=None, **kwargs):
@@ -316,26 +307,12 @@ class PylieWampApi(ComponentSession):
         or more simulations for the bound system with the ligand in potentially
         multiple binding poses.
 
-        :param bound_trajectory: one or multiple Gromacs energy trajectory
-                                 file paths for bound systems
-        :param unbound_trajectory: one or multiple Gromacs energy trajectory
-                                 file paths for unbound systems
-        :param lie_vdw_header:   header name for VdW energies
-        :type lie_vdw_header:    str
-        :param lie_ele_header:   header name for coulomb energies
-        :type lie_ele_header:    :py:str
-        :param case:             case ID
-        :type case:              :py:int
-        :param session:          WAMP session information
-        :type session:           :py:dict
+        For a detailed input description see:
+          pylie/schemas/endpoints/collect_energies_request.v1.json
+
+        For a detailed output description see:
+          pydlie/schemas/endpoints/collect_energies_response.v1.json
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
-        # Load MDFrame import configuration and update
-        mdframe_config = self._get_config(kwargs, 'LIEMDFrame')
-
         # Create workdir to save file
         workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
         if not os.path.isdir(workdir):

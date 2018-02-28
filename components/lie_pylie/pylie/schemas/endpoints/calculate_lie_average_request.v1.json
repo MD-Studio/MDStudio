@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/lie_average_input.json",
+    "id": "http://liestudio/schemas/lie_average_request.json",
     "title"::"Calculated lie average",
     "description":"Calculated lie average input",
     "type": "object",
@@ -9,7 +9,7 @@
 	    "type": "string",
 	    "description": "molecular dynamics Dataframe"
 	},
-	"inlineFilter": {
+	"inlineFilterMethod": {
 	    "type": "string",
 	    "default": "pair"
 	},
