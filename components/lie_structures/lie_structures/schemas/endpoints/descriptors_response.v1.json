@@ -1,5 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
+    "id": "http://mdstudio/schemas/descriptors_response.json",
     "title": "Molecular descriptors output",
     "description": "Molecular descriptors configuration",
     "type": "object",

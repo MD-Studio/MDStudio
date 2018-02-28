@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/structures_schema.json",
+    "id": "http://liestudio/schemas/addh_response.json",
     "title": "Add hydrogens output",
     "description": "Add hydrogens to molecule",
     "type": "object",

@@ -1,5 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
+    "id": "http://liestudio/schemas/descriptors_request.json",
     "title": "Molecular descriptors input",
     "description": "Molecular descriptors configuration",
     "type": "object",

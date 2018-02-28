@@ -1,6 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
     "title": "Chemical similarity input",
+    "id": "http://liestudio/schemas/similarity_request.json",
     "description": "Calculate the chemical similarity between structures",
     "type": "object",
     "properties": {

@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/structures_schema.json",
+    "id": "http://mdstudio/schemas/structures_schema.json",
     "title": "Remove hydrogens input",
     "description": "Remove hydrogens from molecule",
     "type": "object",

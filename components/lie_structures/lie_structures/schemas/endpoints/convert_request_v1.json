@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/structures_schema.json",
+    "id": "http://liestudio/schemas/convert_request.json",
     "title": "Convert molecule input",
     "description": "Convert molecule representation",
     "type": "object",

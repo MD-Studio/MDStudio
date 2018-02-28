@@ -1,5 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
+    "id": "http://mdstudio/schemas/removed_residues_request.json",
     "title": "Chemical similarity input",
     "description": "Calculate the chemical similarity between structures",
     "type": "object",
