@@ -490,6 +490,17 @@ class Graph(object):
         dictionary like API. The method used to store data is determined by
         the graph storage driver.
 
+        Node ID and node attributes
+        The nid is the primary way of identifying a node. If the nid is
+        automatically assigned (auto_nid) but `node` is defined, this data
+        is stored as attribute using the `node_key_tag` as key unless over
+        loaded by any of the supplied attributes.
+        Using the node_key_tag and node_value_tag is a convenient way of
+        storing node data that should be accessible using the same key.
+        The node_key_tag and node_value_tag are used as default in the various
+        dictionary style set and get methods of the graph, node and edge
+        classes.
+
         .. note:: 'add_node' checks if there is a node with nid in the graph
                   already. If found, a warning is logged and the attributes
                   of the existing node are updated.
@@ -497,8 +508,8 @@ class Graph(object):
         :param node:     object representing the node
         :type node:      any hashable object
         :param kwargs:   any additional keyword arguments to be added as
-                         node metadata.
-        :return:         node ID
+                         node attributes.
+        :return:         node ID (nid)
         :rtype:          int
         """
 
@@ -525,9 +536,9 @@ class Graph(object):
         logger.debug('Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
 
         # Prepare node data dictionary
-        node_data = {self.node_key_tag: node}
-
-        # Update node data dictionary with attributes
+        node_data = {}
+        if self.auto_nid:
+            node_data[self.node_key_tag] = node
         node_data.update(copy.deepcopy(kwargs))
 
         # Always set a unique ID to the node

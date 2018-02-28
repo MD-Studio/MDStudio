@@ -100,7 +100,7 @@ class TestGraph(unittest2.TestCase):
         nid = graph.add_node('object')
         self.assertEqual(nid, 'object')
         self.assertTrue(nid in graph.nodes)
-        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'data': 'object'})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1})
 
         self.assertRaises(GraphException, graph.add_node, [1.33, 3.4])  # Unhashable objects not accepted as nid
 
