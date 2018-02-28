@@ -41,24 +41,24 @@ class TestGraph(unittest2.TestCase):
         nid = graph.add_node(10, weight=1.2)
         self.assertEqual(nid, 1)
         self.assertTrue(nid in graph.nodes)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 1, '_id': 1, 'weight': 1.2, 'data': 10})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'weight': 1.2, 'data': 10})
 
         # Single node addition, no attributes but default ones
         nid = graph.add_node('one')
         self.assertTrue(nid in graph.nodes)
         self.assertEqual(nid, 2)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 2, '_id': 2, 'data': 'one'})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'data': 'one'})
 
         # Single node addition with a list as data and keyword based attribute
         nid = graph.add_node([1.22, 4.5, 6], **{'test': True, 'pv': 1.44})
         self.assertEqual(nid, 3)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 2, '_id': 2, 'test': True, 'pv': 1.44, 'data': [1.22, 4.5, 6]})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'test': True, 'pv': 1.44, 'data': [1.22, 4.5, 6]})
 
         # Single node addition with a function as data
         nid = graph.add_node(len)
         self.assertEqual(nid, 4)
         self.assertTrue(nid in graph.nodes)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 4, '_id': 4, 'data': len})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 4, 'data': len})
 
         # Single node addition using other graph as data
         nid = graph.add_node(self.graph)
@@ -79,14 +79,14 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(nids, [1, 2, 3])
         for attr, nid in enumerate(nids, start=2):
             self.assertTrue(nid in graph.nodes)
-            self.assertDictEqual(graph.nodes[nid], {'nid': nid, '_id': nid, 'data': attr, 'time': '2pm'})
+            self.assertDictEqual(graph.nodes[nid], {'_id': nid, 'data': attr, 'time': '2pm'})
 
         # Multiple node addition using string as iterable
         nids = graph.add_nodes('nodes')
         self.assertEqual(nids, [4, 5, 6, 7, 8])
         for attr, nid in enumerate(nids):
             self.assertTrue(nid in graph.nodes)
-            self.assertDictEqual(graph.nodes[nid], {'nid': nid, '_id': nid, 'data': 'nodes'[attr]})
+            self.assertDictEqual(graph.nodes[nid], {'_id': nid, 'data': 'nodes'[attr]})
 
     def test_objectnid_node_addition(self):
         """
@@ -100,7 +100,7 @@ class TestGraph(unittest2.TestCase):
         nid = graph.add_node('object')
         self.assertEqual(nid, 'object')
         self.assertTrue(nid in graph.nodes)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 'object', '_id': 1, 'data': 'object'})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'data': 'object'})
 
         self.assertRaises(GraphException, graph.add_node, [1.33, 3.4])  # Unhashable objects not accepted as nid
         self.assertRaises(GraphException, graph.add_node, 'object')  # Duplicate nid not allowed
@@ -323,14 +323,14 @@ class TestGraph(unittest2.TestCase):
         """
 
         # Access node attributes directly (unmodified) using the nodes DictStorage
-        self.assertEqual(self.graph.nodes[1]['_id'], 1)
-        self.assertDictEqual(self.graph.nodes[3], {'nid': 3, '_id': 3, 'data': 'three'})
+        self.assertEqual(self.graph.nodes[1]['data'], 'one')
+        self.assertDictEqual(self.graph.nodes[3], {'_id': 3, 'data': 'three'})
         self.assertIsNone(self.graph.nodes.get(22))  # Node does not exist
         self.assertIsNone(self.graph.nodes[3].get('notthere'))
 
         # Access node attributes by nid using the (sub)graph 'get' method
         sub = self.graph.getnodes([1, 2, 3])
-        self.assertEqual(self.graph.get(3, key='nid'), 3)
+        self.assertEqual(self.graph.get(3, key='data'), 'three')
         self.assertEqual(self.graph.get(3), 'three')        # uses default node data tag
         self.assertEqual(self.graph.get(3, key='no_key', defaultattr='data'), 'three')
         self.assertEqual(sub.get(3, key='data'), 'three')
@@ -338,7 +338,7 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(sub.get(3, key='no_key', defaultattr='data'), 'three')
 
         # Access node attributes using the 'attr' method
-        self.assertEqual(self.graph.attr(1)['_id'], 1)
+        self.assertEqual(self.graph.attr(1)['data'], 'one')
 
         # Access node attributes using single node graph 'get' method and magic methods
         sub = self.graph.getnodes(1)

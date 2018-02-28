@@ -6,7 +6,7 @@ from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_io.io_helpers import flatten_nested_dict
 
 
-def read_dict(dictionary, graph=None, node_data_tag=None, edge_data_tag=None, valuestring='value'):
+def read_dict(dictionary, graph=None, node_key_tag=None, edge_key_tag=None, valuestring='value'):
     """
     Parse (hierarchical) dictionary data structure to a graph
 
@@ -14,10 +14,10 @@ def read_dict(dictionary, graph=None, node_data_tag=None, edge_data_tag=None, va
     :type dictionary:       :py:dict
     :param graph:           Graph object to import dictionary data in
     :type graph:            :lie_graph:Graph
-    :param node_data_tag:   Data key to use for parsed node labels.
-    :type node_data_tag:    :py:str
-    :param edge_data_tag:   Data key to use for parsed edge labels.
-    :type edge_data_tag:    :py:str
+    :param node_key_tag:   Data key to use for parsed node labels.
+    :type node_key_tag:    :py:str
+    :param edge_key_tag:   Data key to use for parsed edge labels.
+    :type edge_key_tag:    :py:str
     :param valuestring:     Data key to use for dictionary values.
     :type valuestring:      :py:str
 
@@ -32,10 +32,10 @@ def read_dict(dictionary, graph=None, node_data_tag=None, edge_data_tag=None, va
         graph = GraphAxis()
 
     # Define node/edge data labels
-    if node_data_tag:
-        graph.node_data_tag = node_data_tag
-    if edge_data_tag:
-        graph.edge_data_tag = edge_data_tag
+    if node_key_tag:
+        graph.node_key_tag = node_key_tag
+    if edge_key_tag:
+        graph.edge_key_tag = edge_key_tag
 
     rootnid = graph.add_node('root')
     graph.root = rootnid
@@ -107,7 +107,7 @@ def write_dict(graph, keystring=None, valuestring='value', nested=True, sep='.',
     assert graph.root in graph.nodes(), 'Graph root node {0} not in graph'.format(graph.root)
 
     # Resolve node dictionary attributes for value
-    keystring = keystring or graph.node_data_tag
+    keystring = keystring or graph.node_key_tag
 
     # Construct the dictionary traversing the graph hierarchy
     def _walk_dict(node, target_dict):

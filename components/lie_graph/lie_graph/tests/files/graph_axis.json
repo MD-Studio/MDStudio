@@ -1,8 +1,8 @@
 {
   "graph": {
-    "node_data_tag": "data",
+    "node_key_tag": "data",
     "is_directed": false,
-    "edge_data_tag": "label",
+    "edge_key_tag": "label",
     "is_masked": false,
     "root": 1,
     "auto_nid": true

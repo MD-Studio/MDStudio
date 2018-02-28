@@ -16,10 +16,9 @@ the graph topology.
 
 ###Node ID
 The node ID or nid for short is the unique identifier of a node and derived edges
-in the graph. The Graph class will automatically assign a nummeric (int) nid to
-all nodes by default stored as '\_id' and 'nid' in the node attributes. The nid
-itself could be any hasable object however but the '\_id' attribute will always be
-numeric.
+in the graph. The nid itself can be any hasable object except None. Set auto_nid
+to True in the graph to ensure all added nodes are automatically assigned a unique
+auto incremented integer ID.
 
 ###Graph directionality
 A graph is undirected by default storing an two edges for every connected node,

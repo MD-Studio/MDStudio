@@ -148,7 +148,7 @@ class NodeEdgeToolsBaseClass(object):
         preferably by using the `get` method of the node/edge storage API.
 
         :param key:         node value attribute name. If not defined then
-                            attempt to use class wide `node_data_tag` attribute.
+                            attempt to use class wide `node_key_tag` attribute.
         :type key:          mixed
         :param defaultattr: node or edge value attribute to use as source of
                             default data when `key` attribute is not present.
@@ -236,7 +236,7 @@ class NodeTools(NodeEdgeToolsBaseClass):
         before returning it.
 
         :param key:         node value attribute name. If not defined then
-                            attempt to use class wide `node_data_tag` attribute.
+                            attempt to use class wide `node_key_tag` attribute.
         :type key:          mixed
         :param defaultattr: node or edge value attribute to use as source of
                             default data when `key` attribute is not present.
@@ -248,7 +248,7 @@ class NodeTools(NodeEdgeToolsBaseClass):
         # Get node attributes
         target = self.nodes[self.nid]
 
-        key = key or self.node_data_tag
+        key = key or self.node_key_tag
         if key in target:
             return target[key]
         return target.get(defaultattr, default)
@@ -306,7 +306,7 @@ class EdgeTools(NodeEdgeToolsBaseClass):
         before returning it.
 
         :param key:         node or edge value attribute name. If not defined
-                            then attempt to use class wide `node_data_tag`
+                            then attempt to use class wide `node_key_tag`
                             attribute.
         :type key:          mixed
         :param defaultattr: node or edge value attribute to use as source of
@@ -319,7 +319,7 @@ class EdgeTools(NodeEdgeToolsBaseClass):
         # Get edge attributes
         target = self.edges[self.nid]
 
-        key = key or self.edge_data_tag
+        key = key or self.edge_key_tag
         if key in target:
             return target[key]
         return target.get(defaultattr, default)

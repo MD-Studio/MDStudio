@@ -21,6 +21,18 @@ from lie_graph.graph_io.io_jsonschema_format import JSONSchemaParser
 FILEPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files/'))
 
 
+class FloatArray(object):
+
+    def set(self, key, value):
+        assert isinstance(value, list)
+
+        float_array = []
+        for v in value:
+            float_array.append(float(v))
+
+        self.nodes[self.nid][key] = float_array
+
+
 class WebParserTest(unittest2.TestCase):
     """
     Unit tests for parsing Spider serialized data structures (.web format)
@@ -79,6 +91,20 @@ class WebParserTest(unittest2.TestCase):
             self.assertTrue(isinstance(node.value, (str, unicode)))
 
         for node in graph.query_nodes({'type': 'FloatArray'}):
+            self.assertTrue(isinstance(node.value, list))
+            self.assertTrue(all([isinstance(n, float) for n in node.value]))
+
+    def test_format_import_orm(self):
+        """
+        Test import of format with custom ORM classes
+        """
+
+        web_file = os.path.join(FILEPATH, 'graph.web')
+        web = GraphAxis()
+        web.orm.map_node(FloatArray, {'type': 'FloatArray'})
+        web = read_web(web_file, graph=web)
+
+        for node in web.query_nodes({'type': 'FloatArray'}):
             self.assertTrue(isinstance(node.value, list))
             self.assertTrue(all([isinstance(n, float) for n in node.value]))
 

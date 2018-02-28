@@ -41,7 +41,7 @@ class GraphORM(object):
             base_cls_mro = [c for c in base_cls_mro if c.__module__.startswith('lie_graph')]
 
         # Add custom classes to the base class mro
-        for n in classes:
+        for n in reversed(classes):
             if n not in base_cls_mro:
                 base_cls_mro.insert(0, n)
 

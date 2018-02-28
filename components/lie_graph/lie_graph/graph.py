@@ -40,11 +40,11 @@ class Graph(object):
     * Node traversal: the first node selected (getnodes method) will be assigned
       root and traversal to `child` nodes will be done relative to the `root`.
       If multiple nodes are selected using `getnodes`, the root node is
-      ambiguous and will be set to the node with the lowest _id.
+      ambiguous and will be set to the node with the lowest nid.
     """
 
     def __init__(self, adjacency=None, nodes=None, edges=None, orm=None, root=None,
-                 is_directed=False, auto_nid=True, edge_data_tag='label', node_data_tag='data'):
+                 is_directed=False, auto_nid=True, edge_key_tag='label', node_key_tag='data'):
         """
         Implement class __init__
 
@@ -74,11 +74,13 @@ class Graph(object):
                               enforced to be unique, duplicate nodes will be
                               ignored.
         :type auto_nid:       bool, default True.
-        :param node_data_tag: dictionary key used to store node data
-        :type node_data_tag:  str
+        :param node_key_tag:  dictionary key used to store node data
+        :type node_key_tag:   str
+        :param edge_key_tag:  dictionary key used to store edge data
+        :type edge_key_tag:   str
         :param root:          root node nid used by various methods when
                               traversing the graph in a directed fashion where
-                              a notion of a parent is important.
+                              the notion of a parent is important.
         :type root:           mixed
         """
 
@@ -96,8 +98,8 @@ class Graph(object):
         self.is_masked = False
         self.auto_nid = auto_nid
         self.root = root
-        self.edge_data_tag = edge_data_tag
-        self.node_data_tag = node_data_tag
+        self.edge_key_tag = edge_key_tag
+        self.node_key_tag = node_key_tag
         self.node_tools = NodeTools
         self.edge_tools = EdgeTools
 
@@ -319,12 +321,8 @@ class Graph(object):
         """
         msg = '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'
 
-        edges = []
-        for e in self.nodes:
-            edges.extend(self.adjacency[e])
-
         return msg.format(
-            type(self).__name__, id(self), len(self.nodes), len(set(edges).intersection(set(self.nodes.keys()))),
+            type(self).__name__, id(self), len(self.nodes), len(self.edges),
             self.is_directed)
 
     def __sub__(self, other):
@@ -475,7 +473,7 @@ class Graph(object):
 
         return edges_added
 
-    def add_node(self, node, **kwargs):
+    def add_node(self, node=None, **kwargs):
         """
         Add a node to the graph
 
@@ -498,6 +496,10 @@ class Graph(object):
         :rtype:          int
         """
 
+        # If not auto_nid and not node that we cannot continue
+        if not self.auto_nid and node == None:
+            raise GraphException('Node ID required when auto_nid is disabled')
+
         # Use internal nid or node as node ID
         if self.auto_nid:
             nid = self._nodeid
@@ -514,18 +516,14 @@ class Graph(object):
 
         logger.debug('Add node. id: {0}, type: {1}'.format(nid, type(node).__name__))
 
-        # Prepaire node data dictionary
-        node_data = {'nid': nid, '_id': self._nodeid}
-        node_data[self.node_data_tag] = node
+        # Prepare node data dictionary
+        node_data = {self.node_key_tag: node}
 
-        # Update node data dictionary with attributes but exclude '_id'
-        # keyword and 'nid' if auto_nid equals True
-        exclude = ['_id']
-        if self.auto_nid:
-            exclude.append('nid')
-        for k, v in copy.deepcopy(kwargs).items():
-            if k not in exclude:
-                node_data[k] = v
+        # Update node data dictionary with attributes
+        node_data.update(copy.deepcopy(kwargs))
+
+        # Always set a unique ID to the node
+        node_data['_id'] = self._nodeid
 
         self.adjacency[nid] = []
         self.nodes[nid] = node_data
@@ -714,7 +712,7 @@ class Graph(object):
                             defined attempt to resolve using `nid` property.
         :type nid:          mixed
         :param key:         node or edge value attribute name. If not defined
-                            then attempt to use class wide `node_data_tag`
+                            then attempt to use class wide `node_key_tag`
                             attribute.
         :type key:          mixed
         :param defaultattr: node or edge value attribute to use as source of
@@ -729,9 +727,9 @@ class Graph(object):
 
         # Get key or default class node/edge data key
         if isinstance(nid, tuple) or isinstance(nid, list):
-            key = key or self.edge_data_tag
+            key = key or self.edge_key_tag
         else:
-            key = key or self.node_data_tag
+            key = key or self.node_key_tag
 
         if key in target:
             return target[key]
@@ -1087,7 +1085,7 @@ class Graph(object):
         Python dict-like function to return node items in the (sub)graph.
 
         Keystring defines the value lookup key in the node data dict.
-        This defaults to the graph node_data_tag.
+        This defaults to the graph node_key_tag.
         Valuestring defines the value lookup key in the node data dict.
 
         :param keystring:   Data key to use for dictionary keys.
@@ -1099,7 +1097,7 @@ class Graph(object):
         :rtype:             :py:list
         """
 
-        keystring = keystring or self.node_data_tag
+        keystring = keystring or self.node_key_tag
 
         return [(n.get(keystring), n.get(valuestring)) for n in self.iternodes()]
 
@@ -1108,7 +1106,7 @@ class Graph(object):
         Python dict-like function to return node keys in the (sub)graph.
 
         Keystring defines the value lookup key in the node data dict.
-        This defaults to the graph node_data_tag.
+        This defaults to the graph node_key_tag.
 
         :param keystring:   Data key to use for dictionary keys.
         :type keystring:    :py:str
@@ -1117,7 +1115,7 @@ class Graph(object):
         :rtype:             :py:list
         """
 
-        keystring = keystring or self.node_data_tag
+        keystring = keystring or self.node_key_tag
 
         return [n.get(keystring) for n in self.iternodes()]
 

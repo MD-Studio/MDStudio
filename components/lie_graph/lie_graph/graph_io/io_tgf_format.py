@@ -28,7 +28,7 @@ from lie_graph.graph import Graph
 from lie_graph.graph_io.io_helpers import coarse_type, open_anything
 
 
-def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
+def read_tgf(tgf, graph=None, node_key_tag=None, edge_key_tag=None):
     """
     Read graph in Trivial Graph Format
 
@@ -41,7 +41,7 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
     Simple node and edge labels are supported in TGF as all characters that
     follow the node or edge ID's. They are parsed and stored in the Graph
     node and edge data stores using the graphs default or custom
-    'node_data_tag' and 'edge_data_tag'.
+    'node_key_tag' and 'edge_key_tag'.
 
     TGF data is imported into a default Graph object if no custom Graph
     instance is provided. The graph behaviour and the data import process is
@@ -59,10 +59,10 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
     :type tgf:              File, string, stream or URL
     :param graph:           Graph object to import TGF data in
     :type graph:            :lie_graph:Graph
-    :param node_data_tag:   Data key to use for parsed node labels.
-    :type node_data_tag:    :py:str
-    :param edge_data_tag:   Data key to use for parsed edge labels.
-    :type edge_data_tag:    :py:str
+    :param node_key_tag:   Data key to use for parsed node labels.
+    :type node_key_tag:    :py:str
+    :param edge_key_tag:   Data key to use for parsed edge labels.
+    :type edge_key_tag:    :py:str
 
     :return:                Graph object
     :rtype:                 :lie_graph:Graph
@@ -73,10 +73,10 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
         graph = Graph()
 
     # Define node/edge data labels
-    if node_data_tag:
-        graph.node_data_tag = node_data_tag
-    if edge_data_tag:
-        graph.edge_data_tag = edge_data_tag
+    if node_key_tag:
+        graph.node_key_tag = node_key_tag
+    if edge_key_tag:
+        graph.edge_key_tag = edge_key_tag
 
     # TGF defines edges in a directed fashion. Enforce but restore later
     default_directionality = graph.is_directed
@@ -105,7 +105,7 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
                 attr = {}
                 # Has node data
                 if len(line) > 1:
-                    attr = {graph.node_data_tag: ' '.join(line[1:])}
+                    attr = {graph.node_key_tag: ' '.join(line[1:])}
                 nid = graph.add_node(line[0], **attr)
                 node_dict[line[0]] = nid
 
@@ -117,7 +117,7 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
                 attr = {}
                 # Has edge data
                 if len(line) > 2:
-                    attr = {graph.edge_data_tag: ' '.join(line[2:])}
+                    attr = {graph.edge_key_tag: ' '.join(line[2:])}
                 graph.add_edge(e1, e2, **attr)
 
     tgf_file.close()
@@ -128,7 +128,7 @@ def read_tgf(tgf, graph=None, node_data_tag=None, edge_data_tag=None):
     return graph
 
 
-def write_tgf(graph, node_data_tag=None, edge_data_tag=None):
+def write_tgf(graph, node_key_tag=None, edge_key_tag=None):
     """
     Export a graph in Trivial Graph Format
 
@@ -139,31 +139,31 @@ def write_tgf(graph, node_data_tag=None, edge_data_tag=None):
 
     :param graph:         Graph object to export
     :type graph:          :lie_graph:Graph
-    :param node_data_tag: node data key
-    :type node_data_tag:  :py:str
-    :param edge_data_tag: edge data key
-    :type edge_data_tag:  :py:str
+    :param node_key_tag: node data key
+    :type node_key_tag:  :py:str
+    :param edge_key_tag: edge data key
+    :type edge_key_tag:  :py:str
 
     :return:              TGF graph representation
     :rtype:               :py:str
     """
 
     # Define node and edge data tags to export
-    node_data_tag = node_data_tag or graph.node_data_tag
-    edge_data_tag = edge_data_tag or graph.edge_data_tag
+    node_key_tag = node_key_tag or graph.node_key_tag
+    edge_key_tag = edge_key_tag or graph.edge_key_tag
 
     # Create empty file buffer
     string_buffer = StringIO.StringIO()
 
     # Export nodes
     for node in graph.iternodes():
-        string_buffer.write('{0} {1}\n'.format(node.nid, node.get(node_data_tag, default='')))
+        string_buffer.write('{0} {1}\n'.format(node.nid, node.get(node_key_tag, default='')))
 
     # Export edges
     string_buffer.write('#\n')
     for edge in graph.iteredges():
         e1, e2 = edge.nid
-        string_buffer.write('{0} {1} {2}\n'.format(e1, e2, edge.get(edge_data_tag, default='')))
+        string_buffer.write('{0} {1} {2}\n'.format(e1, e2, edge.get(edge_key_tag, default='')))
 
     # Reset buffer cursor
     string_buffer.seek(0)
