@@ -60,7 +60,7 @@ def read_dict(dictionary, graph=None, node_key_tag=None, edge_key_tag=None, valu
     return graph
 
 
-def write_dict(graph, keystring=None, valuestring='value', nested=True, sep='.', default=None, include_root=False):
+def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', default=None, include_root=False):
     """
     Export a graph to a (nested) dictionary
 
@@ -106,8 +106,9 @@ def write_dict(graph, keystring=None, valuestring='value', nested=True, sep='.',
     assert graph.root is not None, 'Graph has no root node defined'
     assert graph.root in graph.nodes(), 'Graph root node {0} not in graph'.format(graph.root)
 
-    # Resolve node dictionary attributes for value
+    # Resolve node dictionary attributes for key/value
     keystring = keystring or graph.node_key_tag
+    valuestring = valuestring or graph.node_value_tag
 
     # Construct the dictionary traversing the graph hierarchy
     def _walk_dict(node, target_dict):

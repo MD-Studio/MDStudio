@@ -43,8 +43,8 @@ class Graph(object):
       ambiguous and will be set to the node with the lowest nid.
     """
 
-    def __init__(self, adjacency=None, nodes=None, edges=None, orm=None, root=None,
-                 is_directed=False, auto_nid=True, edge_key_tag='label', node_key_tag='data'):
+    def __init__(self, adjacency=None, nodes=None, edges=None, orm=None, root=None, is_directed=False,
+                 auto_nid=True, edge_key_tag='label', node_key_tag='data', node_value_tag='value'):
         """
         Implement class __init__
 
@@ -74,8 +74,10 @@ class Graph(object):
                               enforced to be unique, duplicate nodes will be
                               ignored.
         :type auto_nid:       bool, default True.
-        :param node_key_tag:  dictionary key used to store node data
+        :param node_key_tag:  dictionary key used to store node data key
         :type node_key_tag:   str
+        :param node_value_tag:dictionary key used to store node data value
+        :type node_value_tag: str
         :param edge_key_tag:  dictionary key used to store edge data
         :type edge_key_tag:   str
         :param root:          root node nid used by various methods when
@@ -100,6 +102,7 @@ class Graph(object):
         self.root = root
         self.edge_key_tag = edge_key_tag
         self.node_key_tag = node_key_tag
+        self.node_value_tag = node_value_tag
         self.node_tools = NodeTools
         self.edge_tools = EdgeTools
 
