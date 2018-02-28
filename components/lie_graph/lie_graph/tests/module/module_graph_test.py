@@ -113,7 +113,7 @@ class TestGraph(unittest2.TestCase):
         graph.add_nodes([1, 2, 3, 4, 5])
 
         # undirectional edge addition (default)
-        edge = graph.add_edge(1, 2, {'type': 'monotone'})
+        edge = graph.add_edge(1, 2, type='monotone')
         self.assertEqual(edge, (1, 2))
         self.assertTrue(edge in graph.edges)
         self.assertItemsEqual(graph.edges[edge], {'type': 'monotone'})

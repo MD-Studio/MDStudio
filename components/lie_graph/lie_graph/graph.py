@@ -375,7 +375,7 @@ class Graph(object):
 
         self.adjacency = DictStorage(edge_list_to_adjacency(self.edges.keys()))
 
-    def add_edge(self, nd1, nd2=None, attr=None, directed=None, deepcopy=True, node_from_edge=False, **kwargs):
+    def add_edge(self, nd1, nd2=None, directed=None, node_from_edge=False, **kwargs):
         """
         Add edge between two nodes to the graph
 
@@ -386,14 +386,9 @@ class Graph(object):
         :param nd1 nd2:        edge defined by two node ID's. nd1 may also be
                                an edge tuple/list ignoring nd2
         :type nd1 nd2:         int or tuple/list for nd1
-        :param attr:           edge metadata to add
-        :type attr:            dict
         :param directed:       override the graph definition for is_directed
                                for the added edge.
         :type directed:        bool, None by default
-        :param deepcopy:       make a deepcopy of the node before adding it to
-                               the graph.
-        :type deepcopy:        bool
         :param node_from_edge: make node for edge node id's not in graph
         :type node_from_edge:  bool, default False
         :param kwargs:         any additional keyword arguments to be added as
@@ -418,22 +413,13 @@ class Graph(object):
             directed = self.is_directed
         edges_to_add = make_edges((nd1, nd2), directed=directed)
 
-        # Prepaire edge data dictionary
-        if attr and isinstance(attr, dict):
-            attr.update(kwargs)
-        else:
-            attr = kwargs
-
         for edge in edges_to_add:
             if edge in self.edges:
                 logger.warning('Edge between nodes {0}-{1} exists. Use edge update to change attributes.'.format(*edge))
                 continue
 
             # Make a deepcopy of the added attributes
-            if deepcopy:
-                self.edges[edge] = copy.deepcopy(attr)
-            else:
-                self.edges[edge] = attr
+            self.edges[edge] = copy.deepcopy(kwargs)
 
             # Add target node as neighbour of source node in graph
             # adjacency object
@@ -441,7 +427,7 @@ class Graph(object):
             if not edge[1] in self.adjacency[edge[0]]:
                 self.adjacency[edge[0]].append(edge[1])
 
-            logger.debug('Add edge between node {0}-{1} with attributes {2}'.format(edge[0], edge[1], attr))
+            logger.debug('Add edge between node {0}-{1}'.format(*edge))
 
         return edges_to_add[0]
 
