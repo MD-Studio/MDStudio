@@ -44,7 +44,7 @@ class Graph(object):
     """
 
     def __init__(self, adjacency=None, nodes=None, edges=None, orm=None, root=None, is_directed=False,
-                 auto_nid=True, edge_key_tag='label', node_key_tag='data', node_value_tag='value'):
+                 auto_nid=True, edge_key_tag='label', node_key_tag='key', node_value_tag='value'):
         """
         Implement class __init__
 
@@ -605,8 +605,9 @@ class Graph(object):
         self.edges.clear()
         self.adjacency.clear()
 
-        # Reset node ID counter
-        self._nodeid = 0
+        # Reset node ID counter if the full graph is cleared
+        if len(self) == len(self._full_graph):
+            self._nodeid = 0
 
     def copy(self, deep=True, copy_view=True, clean=True):
         """
@@ -937,6 +938,7 @@ class Graph(object):
 
         Returns a new graph view object for the given node and it's edges.
         The dynamically created object contains additional node tools.
+        Nodes are returned in node ID sorted order.
 
         :param orm_cls: custom classes to construct new Graph class from for
                         every node that is returned
@@ -1127,7 +1129,7 @@ class Graph(object):
 
         return [n.get(keystring) for n in self.iternodes()]
 
-    def values(self, valuestring='value'):
+    def values(self, valuestring=None):
         """
         Python dict-like function to return node values in the (sub)graph.
 
@@ -1140,4 +1142,5 @@ class Graph(object):
         :rtype:             :py:list
         """
 
+        valuestring = valuestring or self.node_value_tag
         return [n.get(valuestring) for n in self.iternodes()]

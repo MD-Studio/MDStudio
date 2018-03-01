@@ -55,7 +55,7 @@ class WebParserTest(unittest2.TestCase):
         """
 
         web_file = os.path.join(FILEPATH, 'graph.web')
-        graph = read_web(web_file)
+        graph = read_web(web_file, array_to_nodes=False)
 
         # Default graph attributes set
         self.assertEqual(len(graph), 615)
@@ -66,15 +66,14 @@ class WebParserTest(unittest2.TestCase):
         self.assertTrue(isinstance(graph, GraphAxis))
 
         # No ORM or format auto detect set, all values should be strings
-        self.assertTrue(isinstance(graph.query_nodes({'data': 'ntrials'}).value, str))
-        self.assertTrue(isinstance(graph.query_nodes({'data': 'rotate180_0'}).value, str))
+        self.assertTrue(isinstance(graph.query_nodes({'key': 'ntrials'}).value, str))
+        self.assertTrue(isinstance(graph.query_nodes({'key': 'rotate180_0'}).value, str))
 
-        for node in graph.query_nodes({'data': 'activereslist'}):
+        for node in graph.query_nodes({'key': 'activereslist'}):
             self.assertTrue(isinstance(node.value, str))
 
         for node in graph.query_nodes({'type': 'FloatArray'}):
-            self.assertTrue(isinstance(node.value, list))
-            self.assertTrue(all([isinstance(n, str) for n in node.value]))
+            self.assertTrue(all([isinstance(n, str) for n in node.get()]))
 
     def test_format_import_autoformatparse(self):
         """
@@ -82,17 +81,16 @@ class WebParserTest(unittest2.TestCase):
         """
 
         web_file = os.path.join(FILEPATH, 'graph.web')
-        graph = read_web(web_file, auto_parse_format=True)
+        graph = read_web(web_file, auto_parse_format=True, array_to_nodes=False)
 
-        self.assertTrue(isinstance(graph.query_nodes({'data': 'ntrials'}).value, int))
-        self.assertTrue(isinstance(graph.query_nodes({'data': 'rotate180_0'}).value, bool))
+        self.assertTrue(isinstance(graph.query_nodes({'key': 'ntrials'}).value, int))
+        self.assertTrue(isinstance(graph.query_nodes({'key': 'rotate180_0'}).value, bool))
 
-        for node in graph.query_nodes({'data': 'activereslist'}):
+        for node in graph.query_nodes({'key': 'activereslist'}):
             self.assertTrue(isinstance(node.value, (str, unicode)))
 
         for node in graph.query_nodes({'type': 'FloatArray'}):
-            self.assertTrue(isinstance(node.value, list))
-            self.assertTrue(all([isinstance(n, float) for n in node.value]))
+            self.assertTrue(all([isinstance(n, float) for n in node.get()]))
 
     def test_format_import_orm(self):
         """
@@ -102,11 +100,10 @@ class WebParserTest(unittest2.TestCase):
         web_file = os.path.join(FILEPATH, 'graph.web')
         web = GraphAxis()
         web.orm.map_node(FloatArray, {'type': 'FloatArray'})
-        web = read_web(web_file, graph=web)
+        web = read_web(web_file, graph=web, array_to_nodes=False)
 
         for node in web.query_nodes({'type': 'FloatArray'}):
-            self.assertTrue(isinstance(node.value, list))
-            self.assertTrue(all([isinstance(n, float) for n in node.value]))
+            self.assertTrue(all([isinstance(n, float) for n in node.get()]))
 
     def test_format_export(self):
         """
@@ -296,11 +293,11 @@ class DictParserTest(unittest2.TestCase):
         self.assertTrue(8 in graph.nodes)
 
         # Test hierarchy
-        self.assertEqual(graph.children().keys(), ['three', 4, 'two', 'one'])
+        self.assertEqual(graph.children().keys(), [4, 'one', 'three', 'two'])
         self.assertEqual(graph.leaves().values(), [[2.22, 4.67], 5, 'four', 1, False, 3, True, 2])
         self.assertEqual(graph.getnodes(4).values(), [[2.22, 4.67]])
 
-        query = graph.query_nodes({'data':'five'})
+        query = graph.query_nodes({'key':'five'})
         self.assertEqual(query.children().items(), [('extra', [2.22, 4.67]), ('value', 5)])
 
     def test_format_export(self):
@@ -344,12 +341,12 @@ class JSONSchemaParserTests(unittest2.TestCase):
         parser = JSONSchemaParser(schema)
         #
         # for e in parser.graph:
-        #     print(e.data, e.value, e.nid)
+        #     print(e.key, e.value, e.nid)
         #
         # # Setting wrong type should raise error
-        # d = parser.graph.query_nodes({'data': 'dtend'})
-        # self.assertRaises(ValueError, d.set, 'data', 3)
+        # d = parser.graph.query_nodes({'key': 'dtend'})
+        # self.assertRaises(ValueError, d.set, 'key', 3)
 
         # import pprint
         # pp = pprint.PrettyPrinter()
-        # pp.pprint(graph_to_dict(parser.graph, keystring='data', valuestring='value'))
+        # pp.pprint(graph_to_dict(parser.graph, keystring='key', valuestring='value'))

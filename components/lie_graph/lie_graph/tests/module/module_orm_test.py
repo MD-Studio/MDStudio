@@ -62,8 +62,8 @@ class TestGraphORM(unittest2.TestCase):
         self.orm = GraphORM()
         self.orm.map_edge(ORMtestMo, {'label': 'mo'})
         self.orm.map_edge(ORMtestBi, {'label': 'bi'})
-        self.orm.map_node(ORMtestTgf6, {'data': 'six'})
-        self.orm.map_node(ORMtestTgf9, {'data': 'nine'})
+        self.orm.map_node(ORMtestTgf6, {'key': 'six'})
+        self.orm.map_node(ORMtestTgf9, {'key': 'nine'})
 
         self.graph.orm = self.orm
 
@@ -79,8 +79,8 @@ class TestGraphORM(unittest2.TestCase):
         self.assertRaises(AssertionError, self.orm.get, self.graph, ((1, 2), 'node'), base_cls)
 
         # Mapper only accepts classes
-        self.assertRaises(AssertionError, self.orm.map_node, 'not_a_class', {'data': 'two'})
-        self.assertRaises(AssertionError, self.orm.map_edge, 'not_a_class', {'data': 'two'})
+        self.assertRaises(AssertionError, self.orm.map_node, 'not_a_class', {'key': 'two'})
+        self.assertRaises(AssertionError, self.orm.map_edge, 'not_a_class', {'key': 'two'})
 
         # No query attributes, nothing to match
         self.assertRaises(AssertionError, self.orm.map_node, 'no_match_attr')
@@ -91,7 +91,7 @@ class TestGraphORM(unittest2.TestCase):
         Test if all nodes are correctly mapped
         """
 
-        self.assertEqual(self.graph.orm.mapped_node_types.keys(), ['data'])
+        self.assertEqual(self.graph.orm.mapped_node_types.keys(), ['key'])
         self.assertEqual(self.graph.orm.mapped_node_types.values(), [['six', 'nine']])
 
     def test_graph_orm_mapped_edges(self):
