@@ -94,9 +94,7 @@ class PylieWampApi(ComponentSession):
 
         # Create workdir to save file
         workdir = os.path.join(request['workdir'], tempfile.gettempdir())
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-            self.logger.debug('Create working directory: {0}'.format(workdir))
+        self.create_workdir(workdir)
 
         # Save dataframe
         file_format = request['file_format']
@@ -140,9 +138,7 @@ class PylieWampApi(ComponentSession):
 
             # Create workdir to save file
             workdir = os.path.join(request['workdir'], tempfile.gettempdir())
-            if not os.path.isdir(workdir):
-                os.mkdir(workdir)
-                self.logger.debug('Create working directory: {0}'.format(workdir))
+            self.create_workdir(workdir)
 
             file_format = request['file_format']
             filepath = os.path.join(workdir, 'joined.{0}'.format(file_format))
@@ -175,10 +171,7 @@ class PylieWampApi(ComponentSession):
 
         # Create workdir to save file
         workdir = os.path.join(request['workdir'], tempfile.gettempdir())
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-            self.logger.debug('Create working directory: {0}'.format(workdir))
-
+        self.create_workdir(workdir)
         # Import CSV file and run spline fitting filter
         liemdframe = LIEMDFrame(read_csv(mdframe))
         if 'Unnamed: 0' in liemdframe.columns:
@@ -219,10 +212,7 @@ class PylieWampApi(ComponentSession):
 
         # Create workdir to save file
         workdir = os.path.join(request['workdir'], tempfile.gettempdir())
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-            self.log.debug('Create working directory: {0}'.format(workdir))
-
+        self.create_workdir(workdir)
         # Plot results
         if request['plot']:
             outp = os.path.join(workdir, 'gauss_filter.pdf')
@@ -241,7 +231,7 @@ class PylieWampApi(ComponentSession):
 
         return {'status': status, 'gauss_filter': filepath}
 
-    @endpoint('filter_stable', 'filter_stable_request', 'filter_stable_request')
+    @endpoint('filter_stable_trajectory', 'filter_stable_request', 'filter_stable_request')
     def filter_stable_trajectory(self, request, claims):
         """
         Use FFT and spline-based filtering to detect and extract stable regions
@@ -260,10 +250,7 @@ class PylieWampApi(ComponentSession):
 
         # Create workdir to save file
         workdir = os.path.join(request['workdir'], tempfile.gettempdir())
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-            self.log.debug('Create working directory: {0}'.format(workdir))
-
+        self.create_workdir(workdir)
         # Import CSV file and run spline fitting filter
         liemdframe = LIEMDFrame(read_csv(mdframe))
         if 'Unnamed: 0' in liemdframe.columns:
@@ -297,8 +284,8 @@ class PylieWampApi(ComponentSession):
 
         return {'status': 'completed', 'output': output}
 
-    @wamp.register(u'liestudio.pylie.collect_energy_trajectories')
-    def import_mdene_files(self, bound_trajectory=None, unbound_trajectory=None, session=None, **kwargs):
+    @endpoint('collect_energy_trajectories', 'collect_energy_request', 'collect_energy_response')
+    def import_mdene_files(self, request, claims):
         """
         Import GROMACS MD trajectory energy files into a LIEMDFrame.
 
@@ -308,141 +295,146 @@ class PylieWampApi(ComponentSession):
         multiple binding poses.
 
         For a detailed input description see:
-          pylie/schemas/endpoints/collect_energies_request.v1.json
+          pylie/schemas/endpoints/collect_energy_request.v1.json
 
         For a detailed output description see:
-          pydlie/schemas/endpoints/collect_energies_response.v1.json
+          pydlie/schemas/endpoints/collect_energy_response.v1.json
         """
         # Create workdir to save file
-        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-            self.logger.debug('Create working directory: {0}'.format(workdir), **session)
-
-        # Support multiple trajectory paths at once
-        if not isinstance(bound_trajectory, list):
-            bound_trajectory = [bound_trajectory]
-        if not isinstance(unbound_trajectory, list):
-            unbound_trajectory = [unbound_trajectory]
-
+        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
+        self.create_workdir(workdir)
         # Collect trajectories
         mdframe = LIEMDFrame()
-        vdw_header = mdframe_config.get('lie_vdw_header', 'vdwLIE')
-        ele_header = mdframe_config.get('lie_ele_header', 'EleLIE')
-        for pose, trj in enumerate(bound_trajectory):
+        vdw_header = request['lie_vdw_header']
+        ele_header = request['lie_ele_header']
+        for pose, trj in enumerate(request['bound_trajectory']):
             if not os.path.exists(trj):
-                self.log.error('File does not exists: {0}'.format(trj), **session)
+                self.log.error('File does not exists: {0}'.format(trj))
                 continue
-            mdframe.from_file(trj, {vdw_header: 'vdw_bound_{0}'.format(pose + 1),
-                                    ele_header: 'coul_bound_{0}'.format(pose + 1)},
-                              filetype=mdframe_config['filetype'])
+            mdframe.from_file(
+                trj, {vdw_header: 'vdw_bound_{0}'.format(pose + 1),
+                      ele_header: 'coul_bound_{0}'.format(pose + 1)},
+                filetype=request['filetype'])
             self.log.debug('Import file: {0}, pose: {1}'.format(trj, pose))
 
-        for trj in unbound_trajectory:
+        for trj in ['unbound_trajectory']:
             if not os.path.exists(trj):
-                self.logger.error('File does not exists: {0}'.format(trj), **session)
+                self.logger.error('File does not exists: {0}'.format(trj))
                 continue
-            mdframe.from_file(trj, {vdw_header: 'vdw_unbound', ele_header: 'coul_unbound'},
-                              filetype=mdframe_config['filetype'])
+            mdframe.from_file(
+                trj, {vdw_header: 'vdw_unbound', ele_header: 'coul_unbound'},
+                filetype=request['filetype'])
             self.log.debug('Import unbound file: {0}'.format(trj))
 
         # Set the case ID
-        mdframe.case = mdframe_config.get('case', 1)
+        mdframe.case = request['case']
 
         # Store to file
         filepath = os.path.join(workdir, 'mdframe.csv')
         mdframe.to_csv(filepath)
 
-        session['status'] = 'completed'
+        status = 'completed'
 
-        return {'session': session, 'mdframe': filepath}
+        return {'status': status, 'mdframe': filepath}
 
-    @wamp.register(u'liestudio.pylie.adan_residue_decomp')
-    def adan_residue_decomp(self, decomp_files=None, model_pkl=None, cases=None, session=None, **kwargs):
+    @endpoint('adan_residue_decomp', 'adan_residue_decomp_request', 'adan_residue_decomp_response')
+    def adan_residue_decomp(self, request, claims):
+        """
+        For a detailed input description see:
+          pylie/schemas/endpoints/adan_residue_decomp_request.v1.json
 
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
+        For a detailed output description see:
+          pydlie/schemas/endpoints/adan_residue_decomp_response.v1.json
+        """
+        model_pkl = request['model_pkl']
         # Load the model
         if not os.path.isfile(model_pkl):
             self.log.error('eTOX model file does not exist: {0}'.format(model_pkl))
-            session['status'] = 'failed'
-            return {'session': session}
+
+            return {'status': 'failed', 'decomp': None}
 
         model = pickle.load(open(model_pkl))
 
         # Parse gromacs residue decomposition energy files to DataFrame
         decomp_dfs = []
-        for dcfile in decomp_files:
+        for dcfile in request['decomp_files']:
             decomp_dfs.append(parse_gromacs_decomp(dcfile))
 
         # Run AD test
-        ene = ad_residue_decomp(decomp_dfs, model['AD']['decVdw'], model['AD']['decEle'], cases=cases)
+        ene = ad_residue_decomp(
+            decomp_dfs, model['AD']['decVdw'], model['AD']['decEle'], cases=request['cases'])
 
         # Create workdir and save file
-        workdir = os.path.join(kwargs.get('workdir', None))
-        if workdir:
-            if not os.path.isdir(workdir):
-                os.mkdir(workdir)
-                self.log.debug('Create working directory: {0}'.format(workdir), **session)
-            filepath = os.path.join(workdir, 'adan_residue_decomp.csv')
-            ene.to_csv(filepath)
+        workdir = request['workdir']
+        self.create_workdir(workdir)
 
-        session['status'] = 'completed'
-        return {'session': session, 'decomp': ene.to_dict()}
+        filepath = os.path.join(workdir, 'adan_residue_decomp.csv')
+        ene.to_csv(filepath)
 
-    @wamp.register(u'liestudio.pylie.adan_dene')
-    def adan_dene(self, dataframe=None, model_pkl=None, center=None, ci_cutoff=None, session=None, **kwargs):
+        return {'status': 'completed', 'decomp': ene.to_dict()}
 
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+    @endpoint('adan_dene', 'adan_dene_request', 'adan_dene_response')
+    def adan_dene(self, request, claims):
+        """
+        For a detailed input description see:
+          pylie/schemas/endpoints/adan_dene_request.v1.json
+
+        For a detailed output description see:
+          pydlie/schemas/endpoints/adan_dene_response.v1.json
+        """
+        model_pkl = request['model_pkl']
 
         # Load the model
         if not os.path.isfile(model_pkl):
             self.log.error('eTOX model file does not exist: {0}'.format(model_pkl))
-            session['status'] = 'failed'
-            return {'session': session}
+
+            return {'session': 'failed', 'decomp': None}
 
         model = pickle.load(open(model_pkl))
 
         # Parse gromacs residue decomposition energy files to DataFrame
-        dfobject = self._import_to_dataframe(dataframe)
+        dfobject = self._import_to_dataframe(request['dataframe'])
 
         # Run AD test
-        ene = ad_dene(dfobject, model['AD']['Dene']['CovMatrix'], center=center, ci_cutoff=ci_cutoff)
+        ene = ad_dene(
+            dfobject, model['AD']['Dene']['CovMatrix'], center=request['center'], ci_cutoff=request['ci_cutoff'])
 
         # Create workdir and save file
-        workdir = os.path.join(kwargs.get('workdir', None))
-        if workdir:
-            if not os.path.isdir(workdir):
-                os.mkdir(workdir)
-                self.log.debug('Create working directory: {0}'.format(workdir), **session)
-            filepath = os.path.join(workdir, 'adan_dene.csv')
-            ene.to_csv(filepath)
+        workdir = request['workdir']
+        self.create_workdir(workdir)
 
-        session['status'] = 'completed'
-        return {'session': session, 'decomp': ene.to_dict()}
+        filepath = os.path.join(workdir, 'adan_dene.csv')
+        ene.to_csv(filepath)
 
-    @wamp.register(u'liestudio.pylie.adan_dene_yrange')
-    def adan_dene_yrange(self, dataframe=None, ymin=None, ymax=None, session=None, **kwargs):
+        return {'status':  'completed', 'decomp': ene.to_dict()}
 
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
+    @endpoint('adan_dene_yrange', 'adan_dene_yrange_request', 'adan_dene_yrange_response')
+    def adan_dene_yrange(self, request, claims):
+        """
+        For a detailed input description see:
+          pylie/schemas/endpoints/adan_dene_yrange_request.v1.json
 
+        For a detailed output description see:
+          pydlie/schemas/endpoints/adan_dene_yrange_response.v1.json
+        """
         # Parse gromacs residue decomposition energy files to DataFrame
-        dfobject = self._import_to_dataframe(dataframe)
+        dfobject = self._import_to_dataframe(request['dataframe'])
 
         # Run AD test
-        ene = ad_dene_yrange(dfobject, ymin, ymax)
+        ene = ad_dene_yrange(dfobject, request['ymin'], request['ymax'])
 
         # Create workdir and save file
-        workdir = os.path.join(kwargs.get('workdir', None))
-        if workdir:
-            if not os.path.isdir(workdir):
-                os.mkdir(workdir)
-                self.log.debug('Create working directory: {0}'.format(workdir), **session)
-            filepath = os.path.join(workdir, 'adan_dene_yrange.csv')
-            ene.to_csv(filepath)
+        workdir = request['workdir']
+        self.create_workdir(workdir)
 
-        session['status'] = 'completed'
-        return {'session': session, 'decomp': ene.to_dict()}
+        filepath = os.path.join(workdir, 'adan_dene_yrange.csv')
+        ene.to_csv(filepath)
+
+        return {'status': 'completed', 'decomp': ene.to_dict()}
+
+    def create_workdir(self, workdir):
+        """ Create working directory if it does not exist"""
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+            self.log.debug(
+                'Create working directory: {0}'.format(workdir))

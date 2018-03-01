@@ -10,20 +10,31 @@
 	    "description": "protein ligand simulations"
 	},
 	"unbound_trajectory": {
-	    "type": "string",
-	    "default": "pair"
+	    "type": "array",
+	    "description": "Ligand in solvent simulation"
 	},
-
-    "inlierFilterMethod": "pair",
-    "filetype": "gromacs",
-    "lie_vdw_header": "vdwLIE",
-    "lie_ele_header": "EleLIE",
-
-
+	"filetype":{
+	    "type": "string",
+	    "default": "gromacs"
+	},
+	"lie_vdw_header": {
+	    "type": "string",
+	    "default": "vdwLIE",
+	    "description": "van der Waals term"
+	},
+	"lie_ele_header": {
+	    "type": "string",
+	    "default": "EleLIE",
+	    "description": "Electronic term"
+	},
+	"case": {
+	    "type": "number",
+	    "default": 1
+	},
 	"workdir": {
 	    "type": "string",
 	    "default": "."
 	}
     },
-    "required": ["dataframes"]
+    "required": ["bound_trajectories", "unbound_trajectories"]
 }
