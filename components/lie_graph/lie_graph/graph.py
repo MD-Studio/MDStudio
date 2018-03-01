@@ -943,7 +943,7 @@ class Graph(object):
         :type orm_cls:  list
         """
 
-        for node in self.nodes:
+        for node in sorted(self.nodes.keys()):
             yield self.getnodes(node, orm_cls=orm_cls)
 
     def query_edges(self, query, orm_cls=None):

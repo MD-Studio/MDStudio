@@ -129,7 +129,7 @@ class GraphAxis(Graph):
         nch = node_children(self, nid, self.root, include_self=include_self)
 
         if return_nids:
-            return sorted(nch)
+            return nch
         return self.getnodes(nch)
 
     def descendants(self, node=None, include_self=False, return_nids=False):
