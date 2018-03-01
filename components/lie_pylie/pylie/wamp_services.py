@@ -8,20 +8,17 @@ WAMP service methods the module exposes.
 
 import os
 import tempfile
-import json
 import pickle
 
 from pandas import (read_csv, read_json, read_excel, read_table, concat, DataFrame)
 from autobahn import wamp
 
-from pylie import LIEMDFrame, LIEDataFrame, pylie_config
+from pylie import (LIEMDFrame, LIEDataFrame, pylie_config)
 from pylie.filters.filtersplines import FilterSplines
 from pylie.filters.filtergaussian import FilterGaussian
-from pylie.methods.adan import ad_residue_decomp, ad_dene, ad_dene_yrange, parse_gromacs_decomp
+from pylie.methods.adan import (ad_residue_decomp, ad_dene, ad_dene_yrange, parse_gromacs_decomp)
 from mdstudio.api.endpoint import endpoint
 from mdstudio.component.session import ComponentSession
-
-pylie_schema = json.load(open(os.path.join(os.path.dirname(__file__), 'pylie_schema.json')))
 
 PANDAS_IMPORTERS = {'csv': read_csv, 'json': read_json, 'xlsx': read_excel, 'tbl': read_table}
 PANDAS_EXPORTERS = {'csv': 'to_csv', 'json': 'to_json', 'xlsx': 'to_excel', 'tbl': 'to_string'}
@@ -76,6 +73,20 @@ class PylieWampApi(ComponentSession):
 
             return True
         return False
+
+    def _check_file_status(self, filepath):
+        if os.path.isfile(filepath):
+            return 'completed'
+        else:
+            self.log.error("File: {} does not exist!".format(filepath))
+            return 'failed'
+
+    def create_workdir(self, workdir):
+        """ Create working directory if it does not exist"""
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+            self.log.debug(
+                'Create working directory: {0}'.format(workdir))
 
     @endpoint('liedeltag', 'liedeltag_request', 'liedeltag_response')
     def calculate_lie_deltag(self, request, claims):
@@ -181,14 +192,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'averaged.csv')
         ave.to_csv(filepath)
 
-        if os.path.isfile(filepath):
-            status = 'completed'
-            averaged = filepath
-        else:
-            status = 'failed'
-            averaged = None
-
-        return {'status': status, 'averaged': averaged}
+        return {'status': self._check_file_status(filepath), 'averaged': filepath}
 
     @endpoint('gaussian_filter', 'gaussian_filter_request', 'gaussian_filter_response')
     def filter_gaussian(self, request, claims):
@@ -227,7 +231,6 @@ class PylieWampApi(ComponentSession):
             status = 'completed'
         else:
             status = 'failed'
-            filepath = None
 
         return {'status': status, 'gauss_filter': filepath}
 
@@ -279,10 +282,9 @@ class PylieWampApi(ComponentSession):
             filepath = os.path.join(workdir, 'mdframe_splinefiltered.csv')
             filtered.to_csv(filepath)
 
-            if os.path.isfile(filepath):
-                output['filtered_mdframe'] = filepath
+        output['filtered_mdframe'] = filepath
 
-        return {'status': 'completed', 'output': output}
+        return {'status': self._check_file_status(filepath), 'output': output}
 
     @endpoint('collect_energy_trajectories', 'collect_energy_request', 'collect_energy_response')
     def import_mdene_files(self, request, claims):
@@ -333,9 +335,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'mdframe.csv')
         mdframe.to_csv(filepath)
 
-        status = 'completed'
-
-        return {'status': status, 'mdframe': filepath}
+        return {'status': self._check_file_status(filepath), 'mdframe': filepath}
 
     @endpoint('adan_residue_decomp', 'adan_residue_decomp_request', 'adan_residue_decomp_response')
     def adan_residue_decomp(self, request, claims):
@@ -371,7 +371,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'adan_residue_decomp.csv')
         ene.to_csv(filepath)
 
-        return {'status': 'completed', 'decomp': ene.to_dict()}
+        return {'status': self._check_file_status(filepath), 'decomp': ene.to_dict()}
 
     @endpoint('adan_dene', 'adan_dene_request', 'adan_dene_response')
     def adan_dene(self, request, claims):
@@ -397,7 +397,8 @@ class PylieWampApi(ComponentSession):
 
         # Run AD test
         ene = ad_dene(
-            dfobject, model['AD']['Dene']['CovMatrix'], center=request['center'], ci_cutoff=request['ci_cutoff'])
+            dfobject, model['AD']['Dene']['CovMatrix'],
+            center=request['center'], ci_cutoff=request['ci_cutoff'])
 
         # Create workdir and save file
         workdir = request['workdir']
@@ -406,7 +407,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'adan_dene.csv')
         ene.to_csv(filepath)
 
-        return {'status':  'completed', 'decomp': ene.to_dict()}
+        return {'status': self._check_file_status(filepath), 'decomp': ene.to_dict()}
 
     @endpoint('adan_dene_yrange', 'adan_dene_yrange_request', 'adan_dene_yrange_response')
     def adan_dene_yrange(self, request, claims):
@@ -430,11 +431,4 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'adan_dene_yrange.csv')
         ene.to_csv(filepath)
 
-        return {'status': 'completed', 'decomp': ene.to_dict()}
-
-    def create_workdir(self, workdir):
-        """ Create working directory if it does not exist"""
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-            self.log.debug(
-                'Create working directory: {0}'.format(workdir))
+        return {'status': self._check_file_status(filepath), 'decomp': ene.to_dict()}
