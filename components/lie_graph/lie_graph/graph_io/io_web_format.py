@@ -29,17 +29,18 @@ by an object relations mapper such as the one used in the lie_graph package.
 import logging
 import sys
 
+from lie_graph.graph_axis.graph_axis_class import GraphAxis
+from lie_graph.graph_axis.graph_axis_methods import node_parent
+from lie_graph.graph_io.io_helpers import open_anything, FormatDetect
+
 if sys.version_info[0] < 3:
     import StringIO
 else:
     from io import StringIO
 
-from lie_graph.graph_axis.graph_axis_class import GraphAxis
-from lie_graph.graph_axis.graph_axis_methods import node_parent
-from lie_graph.graph_io.io_helpers import open_anything, FormatDetect
 
-
-def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_tag=None, auto_parse_format=False):
+def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_tag=None,
+             auto_parse_format=False, array_to_nodes=True):
     """
     Import hierarchical data structures defined in the Spider .web format
 
@@ -48,17 +49,19 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
     Graph ORM mapper for custom data exchange in the graph.
 
     :param web:               Spider .web data format to import
-    :type tgf:                file, string, stream or URL
+    :type web:                file, string, stream or URL
     :param graph:             graph object to import TGF data in
     :type graph:              :lie_graph:Graph
     :param orm_data_tag:      data key to use for .web data identifier
     :type orm_data_tag:       :py:str
-    :param node_key_tag:     data key to use for parsed node labels.
-    :type node_key_tag:      :py:str
-    :param edge_key_tag:     data key to use for parsed edge labels.
-    :type edge_key_tag:      :py:str
+    :param node_key_tag:      data key to use for parsed node labels.
+    :type node_key_tag:       :py:str
+    :param edge_key_tag:      data key to use for parsed edge labels.
+    :type edge_key_tag:       :py:str
     :param auto_parse_format: automatically detect basic format types
     :type auto_parse_format:  :py:bool
+    :param array_to_nodes:    store Array type items as nodes instead of a list
+    :type array_to_nodes:     :py:bool
 
     :return:                  Graph object
     :rtype:                   :lie_graph:Graph
@@ -118,7 +121,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
                 # If there is data in the array store, add it to node
                 if len(array_store):
                     array_node = graph.getnodes(curr_obj_nid)
-                    array_node.set('value', array_store)
+                    array_node.set(graph.node_value_tag, array_store)
 
                 # Move one level up the object three
                 curr_obj_nid = node_parent(graph, curr_obj_nid, graph.root)
@@ -137,11 +140,20 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
                     graph.add_edge(curr_obj_nid, leaf_nid)
 
                     leaf_node = graph.getnodes(leaf_nid)
-                    leaf_node.set('value', params[1])
+                    leaf_node.set(graph.node_value_tag, params[1])
 
                 # Parse single values as array data
                 elif len(params) == 1:
-                    array_store.extend(params)
+
+                    # Store array items as nodes
+                    if array_to_nodes:
+                        leaf_nid = graph.add_node('array_item')
+                        graph.add_edge(curr_obj_nid, leaf_nid)
+
+                        leaf_node = graph.getnodes(leaf_nid)
+                        leaf_node.set(graph.node_value_tag, params[0])
+                    else:
+                        array_store.extend(params)
 
                 else:
                     logging.warning('Unknown .web data formatting on line: {0}, {1}'.format(i, line))
@@ -167,10 +179,10 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
     :type graph:          :lie_graph:Graph
     :param orm_data_tag:  data key to use for .web data identifier
     :type orm_data_tag:   :py:str
-    :param node_key_tag: node data key
-    :type node_key_tag:  :py:str
-    :param indnt:         .web file white space indentation level
-    :type edge_key_tag:  :py:int
+    :param node_key_tag:  node data key
+    :type node_key_tag:   :py:str
+    :param indent:        .web file white space indentation level
+    :type indent:         :py:int
 
     :return:              Spyder .web graph representation
     :rtype:               :py:str
@@ -178,6 +190,7 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
 
     # Define node data tags to export
     node_key_tag = node_key_tag or graph.node_key_tag
+    node_value_tag = graph.node_value_tag
 
     # Create empty file buffer
     string_buffer = StringIO.StringIO()
@@ -188,14 +201,14 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
         # First, collect all leaf nodes and write
         for leaf in [n for n in node.children() if n.isleaf]:
 
-            # Format 'Array' types
+            # Format 'Array' types when they are list style leaf nodes
             if 'Array' in leaf.get(orm_data_tag, ''):
                 string_buffer.write('{0}{1} = {2} (\n'.format(' ' * indent_level,
                                                              leaf.get(node_key_tag),
                                                              leaf.get(orm_data_tag)))
 
                 array_indent = indent_level + indent
-                for array_type in leaf.get('value', default=[]):
+                for array_type in leaf.get(node_value_tag, default=[]):
                     string_buffer.write('{0}{1},\n'.format(' ' * array_indent, array_type))
 
                 string_buffer.write('{0}),\n'.format(' ' * indent_level))
@@ -204,7 +217,7 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
             else:
                 string_buffer.write('{0}{1} = {2},\n'.format(' ' * indent_level,
                                                              leaf.get(node_key_tag),
-                                                             leaf.get('value', default='')))
+                                                             leaf.get(node_value_tag, default='')))
 
         # Second, process child non-leaf nodes
         for child in [n for n in node.children() if not n.isleaf]:
@@ -216,7 +229,14 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
 
             # Indent new data block one level down
             indent_level += indent
-            _walk_dict(child, indent_level)
+
+            # Format 'Array' types when items are stored as nodes
+            if 'Array' in child.get(orm_data_tag, ''):
+                for array_type in child.children():
+                    string_buffer.write('{0}{1},\n'.format(' ' * indent_level,
+                                                           array_type.get(node_value_tag)))
+            else:
+                _walk_dict(child, indent_level)
 
             # Close data block and indent one level up
             indent_level -= indent
