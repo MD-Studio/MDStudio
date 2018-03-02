@@ -26,17 +26,71 @@ These identifiers are usually coupled to classes in charge of data exchange
 by an object relations mapper such as the one used in the lie_graph package.
 """
 
+import collections
 import logging
 import sys
 
 from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_axis.graph_axis_methods import node_parent
 from lie_graph.graph_io.io_helpers import open_anything, FormatDetect
+from lie_graph.graph_mixin import NodeTools
+from lie_graph.graph_orm import GraphORM
 
 if sys.version_info[0] < 3:
     import StringIO
 else:
     from io import StringIO
+
+
+class RestraintsInterface(NodeTools):
+    """
+    Class to handle residue restraint specific formatting for .web
+    files to custom `get` and `set` methods used during graph
+    import and export.
+    """
+
+    def get(self, key=None, default=None, defaultattr=None):
+        """
+        Serialize residue restraints as a comma separated string
+
+        Expects an iterable with integer values but will return
+        a string anyway.
+
+        :return:  string of comma separated residue numbers
+        :rtype:   :py:str
+        """
+
+        key = key or self.node_value_tag
+        target = self.nodes[self.nid]
+
+        if key in target:
+            if isinstance(target[key], collections.Iterable):
+                return ','.join([str(i) for i in target[key]])
+
+            logging.warning('RestraintsInterface get method expected an iterable, got {0}.'.format(type(target[key])))
+            return str(target[key])
+
+        return target.get(defaultattr, default)
+
+    def set(self, key, value=None):
+        """
+        Parse residue restraint definitions from a comma seperated string of
+        integer values to a list
+
+        :param key:     node key to set
+        :type key:      :py:str
+        :param value:   node value to set
+        :type value:    :py:str
+        """
+
+        if value == None:
+            value = []
+
+        if isinstance(value, str):
+            value = [int(n) for n in value.strip("'").split(',') if n]
+
+        assert all([isinstance(n, int) for n in value])
+        self.nodes[self.nid][key] = value
 
 
 def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_tag=None,
@@ -76,6 +130,15 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
         graph.node_key_tag = node_key_tag
     if edge_key_tag:
         graph.edge_key_tag = edge_key_tag
+
+    # Buid ORM with format specific conversion classes
+    weborm = GraphORM()
+    weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'activereslist'})
+    weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'passivereslist'})
+
+    # Set current ORM aside and register new one.
+    curr_orm = graph.orm
+    graph.orm = weborm
 
     # Auto-convert format types
     if auto_parse_format:
@@ -163,6 +226,9 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
     # Object blocks opening '(' and closing ')' tag count should be balanced
     assert object_open_tags == object_close_tags, 'Unbalanced object block, something is wrong with the file format'
 
+    # Restore original ORM
+    graph.orm = curr_orm
+
     return graph
 
 
@@ -191,6 +257,15 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
     # Define node data tags to export
     node_key_tag = node_key_tag or graph.node_key_tag
     node_value_tag = graph.node_value_tag
+
+    # Buid ORM with format specific conversion classes
+    weborm = GraphORM()
+    weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'activereslist'})
+    weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'passivereslist'})
+
+    # Set current ORM aside and register new one.
+    curr_orm = graph.orm
+    graph.orm = weborm
 
     # Create empty file buffer
     string_buffer = StringIO.StringIO()
@@ -246,6 +321,9 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
     string_buffer.write('{0} (\n'.format(rootnode.get(orm_data_tag)))
     _walk_dict(rootnode, indent)
     string_buffer.write(')\n')
+
+    # Restore original ORM
+    graph.orm = curr_orm
 
     # Reset buffer cursor
     string_buffer.seek(0)
