@@ -1090,7 +1090,7 @@ class Graph(object):
             self.remove_node(node)
 
     # DICTIONARY LIKE NODE ACCESS
-    def items(self, keystring=None, valuestring='value'):
+    def items(self, keystring=None, valuestring=None):
         """
         Python dict-like function to return node items in the (sub)graph.
 
@@ -1108,6 +1108,7 @@ class Graph(object):
         """
 
         keystring = keystring or self.node_key_tag
+        valuestring = valuestring or self.node_value_tag
 
         return [(n.get(keystring), n.get(valuestring)) for n in self.iternodes()]
 
@@ -1126,7 +1127,6 @@ class Graph(object):
         """
 
         keystring = keystring or self.node_key_tag
-
         return [n.get(keystring) for n in self.iternodes()]
 
     def values(self, valuestring=None):

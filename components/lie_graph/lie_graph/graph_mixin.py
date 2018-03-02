@@ -146,6 +146,14 @@ class NodeEdgeToolsBaseClass(object):
 
         Implement to provide direct access to a node or edge key/value pair
         preferably by using the `get` method of the node/edge storage API.
+        The method can be used to manipulate data in the model before returning
+        it to the user.
+
+        The method is also used by all format import and export functions to
+        get and set (using `set` method) the data from and set to a specific
+        format respectively. The graph classes therefor do not have separate
+        serializer methods but instead use different get methods to serialize
+        the data.
 
         :param key:         node value attribute name. If not defined then
                             attempt to use class wide `node_value_tag` attribute.
@@ -253,7 +261,7 @@ class NodeTools(NodeEdgeToolsBaseClass):
             return target[key]
         return target.get(defaultattr, default)
 
-    def set(self, key, value):
+    def set(self, key, value=None):
         """
         Set node attribute values.
 
