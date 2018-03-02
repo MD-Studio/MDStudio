@@ -19,12 +19,12 @@ class System(object):
     @property
     def groups(self):
         for group in self._groups.items():
-            yield molecule 
+            yield group 
 
-    def add_molecule(self):
+    def add_group(self):
 
         uid = uuid.uuid4()
-        molecule = Molecule(uid=uid)
-        self._molecules[uid] = molecule
+        group = Group(uid=uid)
+        self._groups[uid] = group
 
-        return molecule
+        return group
