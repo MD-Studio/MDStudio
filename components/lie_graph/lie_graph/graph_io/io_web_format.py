@@ -64,10 +64,13 @@ class RestraintsInterface(NodeTools):
         target = self.nodes[self.nid]
 
         if key in target:
-            if isinstance(target[key], collections.Iterable):
-                return ','.join([str(i) for i in target[key]])
 
-            logging.warning('RestraintsInterface get method expected an iterable, got {0}.'.format(type(target[key])))
+            if key == self.node_value_tag:
+                if isinstance(target[key], collections.Iterable):
+                    joined = ','.join([str(i) for i in target[key]])
+                    return "'{0}'".format(joined)
+
+                logging.warning('RestraintsInterface get method expected an iterable, got {0}.'.format(type(target[key])))
             return str(target[key])
 
         return target.get(defaultattr, default)
@@ -83,13 +86,15 @@ class RestraintsInterface(NodeTools):
         :type value:    :py:str
         """
 
-        if value == None:
-            value = []
+        if key == self.node_value_tag:
+            if value == None:
+                value = []
 
-        if isinstance(value, str):
-            value = [int(n) for n in value.strip("'").split(',') if n]
+            if isinstance(value, str):
+                value = [int(n) for n in value.strip("'").split(',') if n]
 
-        assert all([isinstance(n, int) for n in value])
+            assert all([isinstance(n, int) for n in value])
+
         self.nodes[self.nid][key] = value
 
 

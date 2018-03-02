@@ -145,6 +145,7 @@ class GraphORM(object):
 
         TODO: extend matching engine to match only key or values and use
               logical operators on values.
+        TODO: now only match single objects to prevent 'unambiguous' mapping
 
         If there is nothing to map, return the base class which by default is
         the same class as the Graph instance making the call to the get method.
@@ -159,6 +160,9 @@ class GraphORM(object):
                                             building custom Graph class
         :type classes:                      list or tuple
         """
+
+        if len(objects) > 1:
+            return self._class_factory(base_cls, [])
 
         # Are we matching edges? or nodes?
         is_edges = all([type(i) in (tuple, list) for i in objects])
@@ -189,7 +193,8 @@ class GraphORM(object):
         # Match
         orm_classes = []
         for node, mapping in mapper.items():
-            if mapping.intersection(query) == mapping:
+
+            if mapping.intersection(query):
                 orm_classes.append(node)
 
         # Build and return custom class
