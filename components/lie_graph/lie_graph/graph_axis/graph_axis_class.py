@@ -48,13 +48,6 @@ class GraphAxis(Graph):
     node ID's with 'return_nids' equals True.
     """
 
-    def __init__(self, *args, **kwargs):
-
-        super(GraphAxis, self).__init__(*args, **kwargs)
-
-        self.__dict__['node_tools'] = NodeAxisTools
-        self.__dict__['edge_tools'] = EdgeAxisTools
-
     def _resolve_nid(self):
         """
         Return the node ID (nid) of the current node
