@@ -25,14 +25,16 @@
 from setuptools import setup, find_packages
 
 distribution_name = 'lie_propka'
-test_requirements = ['unittest2']
 
 setup(
     name=distribution_name,
-    version=0.1,
-    description='LIEStudio component providing an interface to the PropKa software suite',
-    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
-    author_email='m4.van.dijk@vu.nl',
+    version=0.2,
+    description='MDStudio component providing an interface to the PropKa software suite',
+    author="""
+    Marc van Dijk - VU University - Amsterdam
+    Paul Visscher - Zefiros Software (www.zefiros.eu)
+    Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)""",
+    author_email=['m4.van.dijk@vu.nl', 'f.zapata@esciencecenter.nl'],
     url='https://github.com/MD-Studio/MDStudio',
     license='Apache Software License 2.0',
     keywords='LIEStudio PropKa pKa',
@@ -41,13 +43,11 @@ setup(
     package_data={'': ['*.json']},
     py_modules=[distribution_name],
     include_package_data=True,
-    install_requires=['jsonschema', 'pandas', 'propkatraj'] + test_requirements,
-    zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_propka.wamp_services:make'
-        ],
+    install_requires=['pandas', 'propkatraj'],
+    extra_requirements={
+        'test': ['unittest2']
     },
+    zip_safe=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
