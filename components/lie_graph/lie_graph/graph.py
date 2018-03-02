@@ -66,20 +66,20 @@ class Graph(object):
         :param orm:           graph Object Relations Mapper
         :type orm:            GraphORM object
         :param is_directed:   Rather the graph is directed or undirected
-        :type is_directed:    bool, default False
+        :type is_directed:    :py:bool
         :param auto_nid:      Use integers as node ID, automatically assigned
                               and internally managed. If False, the node object
                               added will itself be used as node ID as long as
                               it is hashable. In the latter case, nodes are
                               enforced to be unique, duplicate nodes will be
                               ignored.
-        :type auto_nid:       bool, default True.
+        :type auto_nid:       :py:bool
         :param node_key_tag:  dictionary key used to store node data key
-        :type node_key_tag:   str
+        :type node_key_tag:   :py:str
         :param node_value_tag:dictionary key used to store node data value
-        :type node_value_tag: str
+        :type node_value_tag: :py:str
         :param edge_key_tag:  dictionary key used to store edge data
-        :type edge_key_tag:   str
+        :type edge_key_tag:   :py:str
         :param root:          root node nid used by various methods when
                               traversing the graph in a directed fashion where
                               the notion of a parent is important.
@@ -266,8 +266,8 @@ class Graph(object):
 
         Iterate over nodes using iternodes
 
-        :return: number of nodes
-        :rtype:  int
+        :return: single node Graph
+        :rtype:  :lie_graph:Graph
         """
 
         return self.iternodes()
@@ -320,7 +320,7 @@ class Graph(object):
 
         String representation of the class listing node and edge count.
 
-        :rtype: string
+        :rtype: :py:str
         """
         msg = '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'
 
@@ -358,8 +358,7 @@ class Graph(object):
         """
 
         if len(self.adjacency):
-            self._nodeid = max(
-                i if isinstance(i, int) else 0 for i in self.adjacency) + 1
+            self._nodeid = max(i if isinstance(i, int) else 0 for i in self.adjacency) + 1
 
     def _set_full_graph(self, graph):
         """
@@ -386,18 +385,22 @@ class Graph(object):
         Edge metadata defined as a dictionary allows it to be queried
         by the various graph query functions.
 
-        :param nd1 nd2:        edge defined by two node ID's. nd1 may also be
+        :param nd1:            edge defined by two node ID's. nd1 may also be
                                an edge tuple/list ignoring nd2
-        :type nd1 nd2:         int or tuple/list for nd1
+        :type nd1:             int or tuple/list
+        :param nd2:            edge defined by two node ID's. nd1 may also be
+                               an edge tuple/list ignoring nd2
+        :type nd2:             :py:int
         :param directed:       override the graph definition for is_directed
                                for the added edge.
-        :type directed:        bool, None by default
+        :type directed:        :py:bool
         :param node_from_edge: make node for edge node id's not in graph
-        :type node_from_edge:  bool, default False
+        :type node_from_edge:  :py:bool
         :param kwargs:         any additional keyword arguments to be added as
                                edge metadata.
+
         :return:               edge ID
-        :rtype:                tuple of two ints
+        :rtype:                :py:tuple
         """
 
         if isinstance(nd1, list) or isinstance(nd1, tuple):
@@ -503,7 +506,7 @@ class Graph(object):
         """
 
         # If not auto_nid and not node that we cannot continue
-        if not self.auto_nid and node == None:
+        if not self.auto_nid and node is None:
             raise GraphException('Node ID required when auto_nid is disabled')
 
         # Use internal nid or node as node ID
@@ -572,7 +575,7 @@ class Graph(object):
         :param key:       node or edge identifier to return data for
         :type key:        mixed
         :param copy_attr: Return a deep copy of the data dictionary
-        :type copy_attr:  boolean
+        :type copy_attr:  :py:bool
 
         :return:          Node or edge attribute.
         :rtype:           Node ID as integer or edge ID as tuple of 2 node ID's
@@ -625,7 +628,7 @@ class Graph(object):
         default (clean attribute)
 
         :param deep:        return a deep copy of the Graph object
-        :type deep:         bool
+        :type deep:         :py:bool
         :param copy_view:   make a deep copy of the full nodes, edges and
                             adjacency dictionary and set any 'views'.
                             Otherwise, only make a deep copy of the 'view'
@@ -1009,9 +1012,12 @@ class Graph(object):
         Force directed removal of the edge using the 'directed' argument.
         Useful in mixed (un)-directional graphs.
 
-        :param nd1 nd2:  edge defined by two node ID's. nd1 may also be
+        :param nd1:      edge defined by two node ID's. nd1 may also be
                          an edge tuple/list ignoring nd2
-        :type nd1 nd2:   int or tuple/list for nd1
+        :type nd1:       int or tuple/list for nd1
+        :param nd2:      second node ID in edge definition, may be None
+                         if nd1 is a tuple/list
+        :type nd2:       :py:int
         :param directed: force directed removal of the edge
         :type directed:  :py:bool
         """
