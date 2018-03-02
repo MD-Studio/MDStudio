@@ -948,7 +948,7 @@ class Graph(object):
         for node in sorted(self.nodes.keys()):
             yield self.getnodes(node, orm_cls=orm_cls)
 
-    def query_edges(self, query, orm_cls=None):
+    def query_edges(self, query=None, orm_cls=None, **kwargs):
         """
         Select nodes and edges based on edge data query
 
@@ -958,15 +958,21 @@ class Graph(object):
         :type orm_cls:  list
         """
 
-        query = set(query.items())
+        # Build query
+        query_set = []
+        if isinstance(query, dict):
+            query_set.extend(query.items())
+        query_set.extend(kwargs.items())
+
+        query_set = set(query_set)
         edges = []
         for edge, attr in sorted(self.edges.items()):
-            if all([q in attr.items() for q in query]):
+            if all([q in attr.items() for q in query_set]):
                 edges.append(edge)
 
         return self.getedges(edges, orm_cls=orm_cls)
 
-    def query_nodes(self, query, orm_cls=None):
+    def query_nodes(self, query=None, orm_cls=None, **kwargs):
         """
         Select nodes and edges based on node data query
 
@@ -978,10 +984,16 @@ class Graph(object):
         :type orm_cls:  list
         """
 
-        query = set(query.items())
+        # Build query
+        query_set = []
+        if isinstance(query, dict):
+            query_set.extend(query.items())
+        query_set.extend(kwargs.items())
+
+        query_set = set(query_set)
         nodes = []
         for node, attr in sorted(self.nodes.items()):
-            if all([q in attr.items() for q in query]):
+            if all([q in attr.items() for q in query_set]):
                 nodes.append(node)
 
         nodes = list(set(nodes))
