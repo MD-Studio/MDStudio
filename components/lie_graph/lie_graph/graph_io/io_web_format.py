@@ -90,7 +90,7 @@ class RestraintsInterface(NodeTools):
             if value == None:
                 value = []
 
-            if isinstance(value, str):
+            if isinstance(value, (str, unicode)):
                 value = [int(n) for n in value.strip("'").split(',') if n]
 
             assert all([isinstance(n, int) for n in value])
