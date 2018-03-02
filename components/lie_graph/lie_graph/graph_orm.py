@@ -161,15 +161,15 @@ class GraphORM(object):
         :type classes:                      list or tuple
         """
 
-        if len(objects) > 1:
-            return self._class_factory(base_cls, [])
-
         # Are we matching edges? or nodes?
         is_edges = all([type(i) in (tuple, list) for i in objects])
         if not is_edges:
 
             is_nodes = all([type(i) in (int, str, unicode) for i in objects])
             assert is_nodes, 'Query need to be only nodes or only edges not mixed.'
+
+        if len(objects) > 1:
+            return self._class_factory(base_cls, [])
 
         # Get the node/edge attributes to match against
         query = []

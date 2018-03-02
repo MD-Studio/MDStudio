@@ -70,7 +70,7 @@ class WebParserTest(unittest2.TestCase):
         self.assertTrue(isinstance(graph.query_nodes({'key': 'rotate180_0'}).value, str))
 
         for node in graph.query_nodes({'key': 'activereslist'}):
-            self.assertTrue(isinstance(node.value, str))
+            self.assertTrue(isinstance(node.value, list))
 
         for node in graph.query_nodes({'type': 'FloatArray'}):
             self.assertTrue(all([isinstance(n, str) for n in node.get()]))
@@ -87,7 +87,7 @@ class WebParserTest(unittest2.TestCase):
         self.assertTrue(isinstance(graph.query_nodes({'key': 'rotate180_0'}).value, bool))
 
         for node in graph.query_nodes({'key': 'activereslist'}):
-            self.assertTrue(isinstance(node.value, (str, unicode)))
+            self.assertTrue(isinstance(node.value, list))
 
         for node in graph.query_nodes({'type': 'FloatArray'}):
             self.assertTrue(all([isinstance(n, float) for n in node.get()]))
@@ -103,7 +103,7 @@ class WebParserTest(unittest2.TestCase):
         web = read_web(web_file, graph=web, array_to_nodes=False)
 
         for node in web.query_nodes({'type': 'FloatArray'}):
-            self.assertTrue(all([isinstance(n, float) for n in node.get()]))
+            self.assertTrue(all([isinstance(n, str) for n in node.get()]))
 
     def test_format_export(self):
         """

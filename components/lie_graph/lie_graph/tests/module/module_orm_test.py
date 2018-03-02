@@ -92,7 +92,7 @@ class TestGraphORM(unittest2.TestCase):
         """
 
         self.assertEqual(self.graph.orm.mapped_node_types.keys(), ['key'])
-        self.assertEqual(self.graph.orm.mapped_node_types.values(), [['six', 'nine']])
+        self.assertEqual(self.graph.orm.mapped_node_types.values()[0], ['nine', 'six'])
 
     def test_graph_orm_mapped_edges(self):
         """
@@ -100,7 +100,7 @@ class TestGraphORM(unittest2.TestCase):
         """
 
         self.assertEqual(self.graph.orm.mapped_edge_types.keys(), ['label'])
-        self.assertEqual(self.graph.orm.mapped_edge_types.values(), [['mo', 'bi']])
+        self.assertEqual(self.graph.orm.mapped_edge_types.values()[0], ['mo', 'bi'])
 
     def test_graph_orm_node(self):
         """
