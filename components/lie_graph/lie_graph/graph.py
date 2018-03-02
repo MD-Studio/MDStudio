@@ -322,11 +322,12 @@ class Graph(object):
 
         :rtype: :py:str
         """
-        msg = '<{0} object {1}: {2} nodes, {3} edges. Directed: {4}>'
+
+        msg = '<{0} object {1}: {2} nodes, {3} edges>'
+        edges = sum([len(self.adjacency[n]) for n in self.nodes])
 
         return msg.format(
-            type(self).__name__, id(self), len(self.nodes), len(self.edges),
-            self.is_directed)
+            type(self).__name__, id(self), len(self.nodes), edges)
 
     def __sub__(self, other):
         """
