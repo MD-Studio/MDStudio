@@ -9,10 +9,16 @@
 	    "type": "string",
 	    "description": "molecular dynamics Dataframe"
 	},
-	"inlineFilterMethod": {
-	    "type": "string",
-	    "default": "pair"
-	},
+        "inlierFilterMethod": {
+            "type": "string",
+            "description": "Filter method for selecting inlier coulomb/VdW energy pairs",
+            "default": "pair",
+            "enum": [
+                "single",
+                "pair",
+                "global"
+            ]
+        },
 	"workdir": {
 	    "type": "string",
 	    "default": "."
