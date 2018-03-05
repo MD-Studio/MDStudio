@@ -201,6 +201,21 @@ class NodeTools(NodeEdgeToolsBaseClass):
             return key in self.nodes[self.nid]
         return False
 
+    def __repr__(self):
+        """
+        Implement class __repr__
+
+        String representation of the class listing node and edge count.
+
+        :rtype: :py:str
+        """
+
+        msg = '<{0} "{1}" object {2} (id: {3}): {4} edges>'
+
+        return msg.format(
+            type(self).__name__, self.nodes[self.nid].get(self.node_key_tag, ''), id(self),
+            self.nodes[self.nid].get('_id', ''), len(self.adjacency[self.nid]))
+
     @property
     def isleaf(self):
         """
