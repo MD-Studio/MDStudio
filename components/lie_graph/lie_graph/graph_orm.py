@@ -149,8 +149,7 @@ class GraphORM(object):
 
         Both attribute key and value are considered in the matching.
 
-        TODO: extend matching engine to match only key or values and use
-              logical operators on values.
+        TODO: extend matching engine to match only key or values and use logical operators on values.
         TODO: now only match single objects to prevent 'unambiguous' mapping
 
         If there is nothing to map, return the base class which by default is

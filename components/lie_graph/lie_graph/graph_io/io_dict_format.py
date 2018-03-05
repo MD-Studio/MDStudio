@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from lie_graph.graph_helpers import GraphException
-from lie_graph.graph import Graph
+"""
+file: io_dict_format.py
+
+Functions for exporting and importing graphs to and from Python dictionary
+objects
+"""
+
+from lie_graph.graph import Graph, GraphException
 from lie_graph.graph_axis.graph_axis_class import GraphAxis
-from lie_graph.graph_io.io_helpers import flatten_nested_dict
+from lie_graph.graph_io.io_helpers import flatten_nested_dict, resolve_root_node
 
 
 def read_dict(dictionary, graph=None, node_key_tag=None, edge_key_tag=None, valuestring='value'):
@@ -25,8 +31,7 @@ def read_dict(dictionary, graph=None, node_key_tag=None, edge_key_tag=None, valu
     :rtype:                 :lie_graph:GraphAxis
     """
 
-    assert isinstance(dictionary, dict), \
-        TypeError("Requires dictionary, got: {0}".format(type(dictionary)))
+    assert isinstance(dictionary, dict), TypeError("Requires dictionary, got: {0}".format(type(dictionary)))
 
     if not isinstance(graph, Graph):
         graph = GraphAxis()
@@ -60,7 +65,8 @@ def read_dict(dictionary, graph=None, node_key_tag=None, edge_key_tag=None, valu
     return graph
 
 
-def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', default=None, include_root=False):
+def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', default=None, root_nid=None,
+               include_root=False):
     """
     Export a graph to a (nested) dictionary
 
@@ -90,21 +96,21 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     :type default:       mixed
     :param include_root: Include the root node in the hierarchy
     :type include_root:  :py:bool
+    :param root_nid:     Root node ID in graph hierarchy
 
     :rtype:              :py:dict
     """
-
-    # Graph should inherit from Graph baseclass
-    if not isinstance(graph, GraphAxis):
-        raise GraphException('Graph {0} not a valid "GraphAxis" object'.format(type(graph)))
 
     # No nodes, return empty dict
     if graph.empty():
         return {}
 
-    # Root node should be defined
-    assert graph.root is not None, 'Graph has no root node defined'
-    assert graph.root in graph.nodes(), 'Graph root node {0} not in graph'.format(graph.root)
+    # Resolve the root node (if any) for hierarchical data structures
+    if root_nid:
+        assert root_nid in graph.nodes, GraphException('Root node ID {0} not in graph'.format(root_nid))
+    else:
+        root_nid = resolve_root_node(graph)
+        assert root_nid is not None, GraphException('Unable to resolve root node ID')
 
     # Resolve node dictionary attributes for key/value
     keystring = keystring or graph.node_key_tag
@@ -122,12 +128,12 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
 
     # Include root node
     graph_dict = {}
-    root = graph.getnodes(graph.root)
+    root = graph.getnodes(root_nid)
     rootkey = root.get(keystring, default='root')
     if include_root:
         graph_dict[rootkey] = {}
 
-    for child_node in graph.children():
+    for child_node in root.children():
         _walk_dict(child_node, graph_dict.get(rootkey, graph_dict))
 
     # Flatten the dictionary if needed
