@@ -10,10 +10,10 @@ import sys
 import logging
 
 from autobahn.wamp.exception import ApplicationError
+from mdstudio.component.session import ComponentSession
+
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet import reactor
-
-from lie_system import LieApplicationSession
 
 # Override txaio logger to print result to stdout
 lg = logging.getLogger('clilogger')
@@ -21,10 +21,16 @@ lg.setLevel(logging.INFO)
 lg.addHandler(logging.StreamHandler(sys.stdout))
 
 
-class CliWampApi(LieApplicationSession):
+class CliWampApi(ComponentSession):
     """
     CLI WAMP methods.
     """
+    def authorize_request(self, uri, claims):
+        """
+        If you were allowed to call this in the first place,
+        I will assume you are authorized
+        """
+        return True
 
     def _result_callback(self, result):
 

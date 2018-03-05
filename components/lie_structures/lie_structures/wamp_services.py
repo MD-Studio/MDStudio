@@ -7,66 +7,54 @@ WAMP service methods the module exposes.
 """
 
 import os
-import json
-import jsonschema
 import tempfile
 
 from StringIO import StringIO
-from autobahn import wamp
 from Bio.PDB import PDBList
 from Bio.PDB.PDBIO import PDBIO
 from Bio.PDB.PDBParser import PDBParser
 
-from lie_system import LieApplicationSession, WAMPTaskMetaData
-from lie_structures import settings, toolkits
-from lie_structures.settings import _schema_to_data, STRUCTURES_SCHEMA, BIOPYTHON_SCHEMA
+from lie_structures import toolkits
 from lie_structures.cheminfo_wamp.cheminfo_descriptors_wamp import CheminfoDescriptorsWampApi
 from lie_structures.cheminfo_wamp.cheminfo_molhandle_wamp import CheminfoMolhandleWampApi
 from lie_structures.cheminfo_wamp.cheminfo_fingerprints_wamp import CheminfoFingerprintsWampApi
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
 
-STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))
-BIOPYTHON_SCHEMA = json.load(open(BIOPYTHON_SCHEMA))
 
-
-class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi,
-                        CheminfoFingerprintsWampApi):
+class StructuresWampApi(
+        ComponentSession, CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi,
+        CheminfoFingerprintsWampApi):
     """
     Structure database WAMP methods.
     """
+    def authorize_request(self, uri, claims):
+        return True
 
-    require_config = ['system']
+    @endpoint('supported_toolkits', 'supported_toolkits_request', 'supported_toolkits_response')
+    def supported_toolkits(self, request, claims):
+        """
+        Query available toolkits.
+        """
+        return {'status': 'completed', 'toolkits': toolkits.keys()}
 
-    @wamp.register(u'liestudio.structures.supported_toolkits')
-    def supported_toolkits(self, session=None):
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session)
-
-        # Pack result in session
-        session.status = 'completed'
-        return {'session': session.dict(), 'toolkits': toolkits.keys()}
-
-    @wamp.register(u'liestudio.structure.remove_residues')
-    def remove_residues(self, session=None, **kwargs):
+    @endpoint('remove_residues', 'remove_residues_request', 'remove_residues_response')
+    def remove_residues(self, request, claims):
         """
         Remove residues from a PDB structure
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
         # Parse the structure
         parser = PDBParser(PERMISSIVE=True)
 
-        if kwargs.get('from_file', False):
-            struc_obj = open(kwargs.get('mol'), 'r')
+        if request.get('from_file', False):
+            struc_obj = open(request.get('mol'), 'r')
         else:
-            struc_obj = StringIO(kwargs.get('mol'))
+            struc_obj = StringIO(request.get('mol'))
 
         structure = parser.get_structure('mol_object', struc_obj)
         struc_obj.close()
 
-        to_remove = [r.upper() for r in kwargs.get('residues', [])]
+        to_remove = [r.upper() for r in request.get('residues', [])]
         removed = []
         for model in structure:
             for chain in model:
@@ -82,50 +70,34 @@ class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, Chemi
         pdbio = PDBIO()
         pdbio.set_structure(structure)
 
-        session['status'] = 'completed'
-        if kwargs.get('workdir'):
-            outfile = os.path.join(kwargs.get('workdir'), 'structure.pdb')
-            pdbio.save(outfile)
-            return {'session': session, 'mol': outfile}
+        status = 'completed'
+        if request.get('workdir'):
+            result = os.path.join(request.get('workdir'), 'structure.pdb')
+            pdbio.save(result)
         else:
             outfile = StringIO()
             pdbio.save(outfile)
             outfile.seek(0)
-            return {'session': session, 'mol': outfile.read()}
+            result = outfile.read()
 
-    @wamp.register(u'liestudio.structure.retrieve_rcsb_structure')
-    def fetch_rcsb_structure(self, session=None, **kwargs):
+        return {'status': status, 'mol': result}
+
+    @endpoint('retrieve_rcsb_structure', 'retrieve_rcsb_structure_request', 'retrieve_rcsb_structure_response')
+    def fetch_rcsb_structure(self, request, claims):
         """
         Download a structure file from the RCSB database using a PDB ID
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
-        # Load configuration and update
-        config = _schema_to_data(BIOPYTHON_SCHEMA)
-        config.update(kwargs)
-
-        # Validate the configuration
-        try:
-            jsonschema.validate(config, BIOPYTHON_SCHEMA)
-        except ValueError, e:
-            self.log.error('Unvalid function arguments: {0}'.format(e))
-            session['status'] = 'failed'
-            return {'session': session}
-
         # Create workdir and save file
-        workdir = os.path.join(config.get('workdir', tempfile.gettempdir()))
+        workdir = os.path.join(request.get('workdir', tempfile.gettempdir()))
         if not os.path.isdir(workdir):
             os.makedirs(workdir)
 
         # Retrieve the PDB file
-        pdb_id = config['pdb_id'].upper()
+        pdb_id = request['pdb_id'].upper()
         pdb = PDBList()
-        dfile = pdb.retrieve_pdb_file(pdb_id,
-                              file_format=config.get('rcsb_file_format', 'pdb'),
-                              pdir=workdir,
-                              overwrite=True)
+        dfile = pdb.retrieve_pdb_file(
+            pdb_id, file_format=request.get('rcsb_file_format', 'pdb'), pdir=workdir,
+            overwrite=True)
 
         # Change file extension
         base, ext = os.path.splitext(dfile)
@@ -136,40 +108,17 @@ class StructuresWampApi(LieApplicationSession, CheminfoDescriptorsWampApi, Chemi
         # Return file path if workdir in function arguments else return
         # file content inline.
         if os.path.isfile(dfile):
-            session['status'] = 'completed'
-            if 'workdir' in config:
-                return {'session': session, 'mol': dfile}
+            status = 'completed'
+            if 'workdir' in request:
+                molecule = dfile
             else:
-                return {'session': session, 'mol': open(dfile).read()}
+                with open(dfile, 'r') as f:
+                    molecule = f.read()
 
-        self.log.error('Unable to download structure: {0}'.format(pdb_id), **session)
-        session['status'] = 'failed'
-        return {'session': session}
+        else:
+            self.log.error(
+                'Unable to download structure: {0}'.format(pdb_id))
+            status = 'failed'
+            molecule = None
 
-
-def make(config):
-    """
-    Component factory
-
-    This component factory creates instances of the application component
-    to run.
-
-    The function will get called either during development using an
-    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
-    a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
-    ComponentConfig class by default but any class specific keyword arguments
-    can be consument as well to populate the class session_config and
-    package_config dictionaries.
-
-    :param config: Autobahn ComponentConfig object
-    """
-
-    if config:
-        return StructuresWampApi(config, package_config=settings)
-    else:
-        # if no config given, return a description of this WAMPlet ..
-        return {
-            'label': 'LIEStudio structure management WAMPlet',
-            'description':
-            'WAMPlet proving LIEStudio structure management endpoints'}
+        return {'status': status, 'mol': molecule}

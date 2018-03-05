@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "LogsResponse",
+  "type": "object",
+  "properties": {
+    "inserted": {
+      "type": "integer",
+      "minimum": 0
+    }    
+  }
+}

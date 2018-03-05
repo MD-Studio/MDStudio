@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "CountRequest",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "collection": {
+          "$ref": "resource://mdstudio/db/collection/v1"
+        },
+        "filter": {
+          "$ref": "resource://mdstudio/db/filter/v1"
+        },
+        "skip": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fields": {
+          "$ref": "resource://mdstudio/db/fields/v1"
+        }
+      },
+      "required": [
+        "collection"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "cursorId": {
+          "type": "string"
+        },
+        "withLimitAndSkip": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "cursorId",
+        "withLimitAndSkip"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

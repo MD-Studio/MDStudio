@@ -199,9 +199,6 @@ fabric.properties
 # files generated on merge conflicts
 *.orig
 
-# Ignore pycharm helper files
-.pycharm_helpers/
-
 # Ignore compiled typescript
 app/gulp/*.js
 app/gulp/*.map
@@ -213,10 +210,17 @@ app/src/**/*.js
 app/gulpfile.js
 app/gulpfile.js.map
 app/bower_components/*
+components/*/data
+docker/.USERDONE
+/key.priv
+/key.pub
 
 # emacs
 *~
-venv
 
 # MDSTUDIO
 cerise_config.json
+venv
+.env
+**/.settings.*.yml
+

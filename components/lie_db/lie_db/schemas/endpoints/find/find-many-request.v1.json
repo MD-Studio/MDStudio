@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "FindManyRequest",
+  "type": "object",
+  "properties": {
+    "collection": {
+      "$ref": "resource://mdstudio/db/collection/v1"
+    },
+    "filter": {
+      "$ref": "resource://mdstudio/db/filter/v1"
+    },
+    "projection": {
+      "$ref": "resource://mdstudio/db/projection/v1"
+    },
+    "skip": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sort": {
+      "$ref": "resource://mdstudio/db/sort/v1"
+    },
+    "fields": {
+      "$ref": "resource://mdstudio/db/fields/v1"
+    }
+  },
+  "required": [
+    "collection",
+    "filter"
+  ],
+  "additionalProperties": false
+}
