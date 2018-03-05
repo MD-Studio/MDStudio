@@ -306,6 +306,20 @@ class EdgeTools(NodeEdgeToolsBaseClass):
             return key in self.edges[self.nid]
         return False
 
+    def __repr__(self):
+        """
+        Implement class __repr__
+
+        String representation of the class listing node and edge count.
+
+        :rtype: :py:str
+        """
+
+        msg = '<{0} "{1}" object {2} id: {3}>'
+
+        return msg.format(
+            type(self).__name__, self.edges[self.nid].get(self.edge_key_tag, ''), id(self), self.nid)
+
     @property
     def nid(self):
         """
