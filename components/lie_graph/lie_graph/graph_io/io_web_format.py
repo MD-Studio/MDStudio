@@ -3,7 +3,7 @@
 """
 file: io_web_format.py
 
-Functions for reading and writing hierarchical data structures defined in the
+Functions for reading and writing hierarchical data structures defined by the
 Spider data modelling package as .web format files.
 
 A .web format defines data blocks containing key, value pairs or Array data
@@ -215,7 +215,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
 
                     # Store array items as nodes
                     if array_to_nodes:
-                        leaf_nid = graph.add_node('array_item')
+                        leaf_nid = graph.add_node('array_item_{0}'.format(i))
                         graph.add_edge(curr_obj_nid, leaf_nid)
 
                         leaf_node = graph.getnodes(leaf_nid)
