@@ -278,3 +278,54 @@ class GraphAxis(Graph):
         if return_nids:
             return sorted(nsb)
         return self.getnodes(nsb)
+
+    # DICTIONARY LIKE NODE ACCESS
+    def items(self, keystring=None, valuestring=None, desc=True):
+        """
+        Python dict-like function to return node items in the (sub)graph.
+
+        Keystring defines the value lookup key in the node data dict.
+        This defaults to the graph node_key_tag.
+        Valuestring defines the value lookup key in the node data dict.
+
+        :param keystring:   Data key to use for dictionary keys.
+        :type keystring:    :py:str
+        :param valuestring: Data key to use for dictionary values.
+        :type valuestring:  :py:str
+        :param desc:        return nested values as new GraphAxis objects
+        :type desc:         :py:bool
+
+        :return:            List of keys, value pairs
+        :rtype:             :py:list
+        """
+
+        keystring = keystring or self.node_key_tag
+        valuestring = valuestring or self.node_value_tag
+
+        if desc:
+            return [(n.get(keystring), n.get(valuestring)) if n.isleaf else (n.get(keystring), n)
+                    for n in self.iternodes()]
+        return [(n.get(keystring), n.get(valuestring)) for n in self.iternodes()]
+
+    def values(self, valuestring=None, desc=True):
+        """
+        Python dict-like function to return node values in the (sub)graph.
+
+        Valuestring defines the value lookup key in the node data dict.
+
+        :param valuestring: Data key to use for dictionary values.
+        :type valuestring:  :py:str
+        :param desc:        return nested values as new GraphAxis objects
+        :type desc:         :py:bool
+
+
+        :return:            List of values
+        :rtype:             :py:list
+        """
+
+        valuestring = valuestring or self.node_value_tag
+
+        if desc:
+            return [n.get(valuestring) if n.isleaf else n for n in self.iternodes()]
+        return [n.get(valuestring) for n in self.iternodes()]
+
