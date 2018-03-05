@@ -48,13 +48,6 @@ class GraphAxis(Graph):
     node ID's with 'return_nids' equals True.
     """
 
-    def __init__(self, *args, **kwargs):
-
-        super(GraphAxis, self).__init__(*args, **kwargs)
-
-        self.__dict__['node_tools'] = NodeAxisTools
-        self.__dict__['edge_tools'] = EdgeAxisTools
-
     def _resolve_nid(self):
         """
         Return the node ID (nid) of the current node
@@ -129,7 +122,7 @@ class GraphAxis(Graph):
         nch = node_children(self, nid, self.root, include_self=include_self)
 
         if return_nids:
-            return sorted(nch)
+            return nch
         return self.getnodes(nch)
 
     def descendants(self, node=None, include_self=False, return_nids=False):

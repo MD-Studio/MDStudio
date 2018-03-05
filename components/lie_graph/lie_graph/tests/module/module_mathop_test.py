@@ -28,9 +28,13 @@ class TestGraphMathOperations(unittest2.TestCase):
         """
 
         self.graph1 = read_tgf(self._gpf_graph)
+
         self.graph2 = read_tgf(self._gpf_graph)
+        self.graph2.is_directed = True
         self.graph2.remove_nodes([1, 2, 3, 4, 5])
+
         self.graph3 = read_tgf(self._gpf_graph)
+        self.graph3.is_directed = True
         self.graph3.remove_nodes([6, 7, 8, 9, 10, 11])
 
     def test_math_operations_update(self):

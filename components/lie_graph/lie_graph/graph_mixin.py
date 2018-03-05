@@ -146,9 +146,17 @@ class NodeEdgeToolsBaseClass(object):
 
         Implement to provide direct access to a node or edge key/value pair
         preferably by using the `get` method of the node/edge storage API.
+        The method can be used to manipulate data in the model before returning
+        it to the user.
+
+        The method is also used by all format import and export functions to
+        get and set (using `set` method) the data from and set to a specific
+        format respectively. The graph classes therefor do not have separate
+        serializer methods but instead use different get methods to serialize
+        the data.
 
         :param key:         node value attribute name. If not defined then
-                            attempt to use class wide `node_data_tag` attribute.
+                            attempt to use class wide `node_value_tag` attribute.
         :type key:          mixed
         :param defaultattr: node or edge value attribute to use as source of
                             default data when `key` attribute is not present.
@@ -230,13 +238,13 @@ class NodeTools(NodeEdgeToolsBaseClass):
         """
         Return node value
 
-        Used by the `value` method to get direct access to relevant node
-        attributes. The `value` method itself is a placeholder method that
-        can be overloaded by custom classes to post process the data
-        before returning it.
+        Get direct access to relevant node attributes. If `key` is not defined
+        the method returns the value of the default node_value_tag which is
+        equivalent to returning the value for a dictionary key where the key
+        is either the nid or the node_key_tag attribute.
 
         :param key:         node value attribute name. If not defined then
-                            attempt to use class wide `node_data_tag` attribute.
+                            attempt to use class wide `node_value_tag` attribute.
         :type key:          mixed
         :param defaultattr: node or edge value attribute to use as source of
                             default data when `key` attribute is not present.
@@ -248,12 +256,12 @@ class NodeTools(NodeEdgeToolsBaseClass):
         # Get node attributes
         target = self.nodes[self.nid]
 
-        key = key or self.node_data_tag
+        key = key or self.node_value_tag
         if key in target:
             return target[key]
         return target.get(defaultattr, default)
 
-    def set(self, key, value):
+    def set(self, key, value=None):
         """
         Set node attribute values.
 
@@ -306,7 +314,7 @@ class EdgeTools(NodeEdgeToolsBaseClass):
         before returning it.
 
         :param key:         node or edge value attribute name. If not defined
-                            then attempt to use class wide `node_data_tag`
+                            then attempt to use class wide `node_key_tag`
                             attribute.
         :type key:          mixed
         :param defaultattr: node or edge value attribute to use as source of
@@ -319,7 +327,7 @@ class EdgeTools(NodeEdgeToolsBaseClass):
         # Get edge attributes
         target = self.edges[self.nid]
 
-        key = key or self.edge_data_tag
+        key = key or self.edge_key_tag
         if key in target:
             return target[key]
         return target.get(defaultattr, default)

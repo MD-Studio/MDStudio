@@ -13,6 +13,7 @@ import unittest2
 
 from lie_graph import Graph
 from lie_graph.graph import GraphException
+from lie_graph.graph_helpers import graph_to_undirectional
 from lie_graph.graph_io.io_tgf_format import read_tgf
 
 
@@ -40,30 +41,30 @@ class TestGraph(unittest2.TestCase):
         nid = graph.add_node(10, weight=1.2)
         self.assertEqual(nid, 1)
         self.assertTrue(nid in graph.nodes)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 1, '_id': 1, 'weight': 1.2, 'data': 10})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'weight': 1.2, 'key': 10})
 
         # Single node addition, no attributes but default ones
         nid = graph.add_node('one')
         self.assertTrue(nid in graph.nodes)
         self.assertEqual(nid, 2)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 2, '_id': 2, 'data': 'one'})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'key': 'one'})
 
         # Single node addition with a list as data and keyword based attribute
         nid = graph.add_node([1.22, 4.5, 6], **{'test': True, 'pv': 1.44})
         self.assertEqual(nid, 3)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 2, '_id': 2, 'test': True, 'pv': 1.44, 'data': [1.22, 4.5, 6]})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1, 'test': True, 'pv': 1.44, 'key': [1.22, 4.5, 6]})
 
         # Single node addition with a function as data
         nid = graph.add_node(len)
         self.assertEqual(nid, 4)
         self.assertTrue(nid in graph.nodes)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 4, '_id': 4, 'data': len})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 4, 'key': len})
 
         # Single node addition using other graph as data
         nid = graph.add_node(self.graph)
         self.assertEqual(nid, 5)
         self.assertTrue(nid in graph.nodes)
-        self.assertEqual(graph.nodes[nid]['data'], self.graph)
+        self.assertEqual(graph.nodes[nid]['key'], self.graph)
 
     def test_autonid_nodes_addition(self):
         """
@@ -78,14 +79,14 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(nids, [1, 2, 3])
         for attr, nid in enumerate(nids, start=2):
             self.assertTrue(nid in graph.nodes)
-            self.assertDictEqual(graph.nodes[nid], {'nid': nid, '_id': nid, 'data': attr, 'time': '2pm'})
+            self.assertDictEqual(graph.nodes[nid], {'_id': nid, 'key': attr, 'time': '2pm'})
 
         # Multiple node addition using string as iterable
         nids = graph.add_nodes('nodes')
         self.assertEqual(nids, [4, 5, 6, 7, 8])
         for attr, nid in enumerate(nids):
             self.assertTrue(nid in graph.nodes)
-            self.assertDictEqual(graph.nodes[nid], {'nid': nid, '_id': nid, 'data': 'nodes'[attr]})
+            self.assertDictEqual(graph.nodes[nid], {'_id': nid, 'key': 'nodes'[attr]})
 
     def test_objectnid_node_addition(self):
         """
@@ -99,10 +100,9 @@ class TestGraph(unittest2.TestCase):
         nid = graph.add_node('object')
         self.assertEqual(nid, 'object')
         self.assertTrue(nid in graph.nodes)
-        self.assertItemsEqual(graph.nodes[nid], {'nid': 'object', '_id': 1, 'data': 'object'})
+        self.assertItemsEqual(graph.nodes[nid], {'_id': 1})
 
         self.assertRaises(GraphException, graph.add_node, [1.33, 3.4])  # Unhashable objects not accepted as nid
-        self.assertRaises(GraphException, graph.add_node, 'object')  # Duplicate nid not allowed
 
     def test_edge_addition(self):
         """
@@ -113,7 +113,7 @@ class TestGraph(unittest2.TestCase):
         graph.add_nodes([1, 2, 3, 4, 5])
 
         # undirectional edge addition (default)
-        edge = graph.add_edge(1, 2, {'type': 'monotone'})
+        edge = graph.add_edge(1, 2, type='monotone')
         self.assertEqual(edge, (1, 2))
         self.assertTrue(edge in graph.edges)
         self.assertItemsEqual(graph.edges[edge], {'type': 'monotone'})
@@ -209,6 +209,9 @@ class TestGraph(unittest2.TestCase):
         Test edge removal in a directed graph
         """
 
+        # Imported graph is directed, convert to undirected
+        self.graph = graph_to_undirectional(self.graph)
+
         edge_to_remove = (3, 8)
         self.graph.is_directed = True
         self.graph.remove_edge(edge_to_remove)
@@ -296,7 +299,9 @@ class TestGraph(unittest2.TestCase):
 
         # Addition
         graph1 = read_tgf(self._gpf_graph)
+        graph1.is_directed = True
         graph2 = read_tgf(self._gpf_graph)
+        graph2.is_directed = True
 
         graph1.remove_nodes([1, 2, 3])
         graph2.remove_nodes([9, 10, 11])
@@ -317,29 +322,29 @@ class TestGraph(unittest2.TestCase):
         """
 
         # Access node attributes directly (unmodified) using the nodes DictStorage
-        self.assertEqual(self.graph.nodes[1]['_id'], 1)
-        self.assertEqual(self.graph.nodes[3], {'data': 3, 'nid': 3, '_id': 3, 'tgf': "'three'"})
+        self.assertEqual(self.graph.nodes[1]['key'], 'one')
+        self.assertDictEqual(self.graph.nodes[3], {'_id': 3, 'key': 'three'})
         self.assertIsNone(self.graph.nodes.get(22))  # Node does not exist
         self.assertIsNone(self.graph.nodes[3].get('notthere'))
 
         # Access node attributes by nid using the (sub)graph 'get' method
         sub = self.graph.getnodes([1, 2, 3])
-        self.assertEqual(self.graph.get(3, key='data'), 3)
-        self.assertEqual(self.graph.get(3), 3)        # uses default node data tag
-        self.assertEqual(self.graph.get(3, key='no_key', defaultattr='tgf'), "'three'")
-        self.assertEqual(sub.get(3, key='data'), 3)
-        self.assertEqual(sub.get(3), 3)               # uses default node data tag
-        self.assertEqual(sub.get(3, key='no_key', defaultattr='tgf'), "'three'")
+        self.assertEqual(self.graph.get(3, key='key'), 'three')
+        self.assertEqual(self.graph.get(3), 'three')        # uses default node data tag
+        self.assertEqual(self.graph.get(3, key='no_key', defaultattr='key'), 'three')
+        self.assertEqual(sub.get(3, key='key'), 'three')
+        self.assertEqual(sub.get(3), 'three')               # uses default node data tag
+        self.assertEqual(sub.get(3, key='no_key', defaultattr='key'), 'three')
 
         # Access node attributes using the 'attr' method
-        self.assertEqual(self.graph.attr(1)['_id'], 1)
+        self.assertEqual(self.graph.attr(1)['key'], 'one')
 
         # Access node attributes using single node graph 'get' method and magic methods
         sub = self.graph.getnodes(1)
-        self.assertEqual(sub['data'], 1)
-        self.assertEqual(sub.data, 1)
-        self.assertEqual(sub.get(), 1)
-        self.assertEqual(sub.get('tgf'), "'one'")
+        self.assertEqual(sub['key'], 'one')
+        self.assertEqual(sub.key, 'one')
+        self.assertEqual(sub.get(), None)   # Default get returns value, not set
+        self.assertEqual(sub.get('key'), 'one')
 
         # KeyError and AttributeError
         self.assertRaises(KeyError, sub.__getitem__, 'no_key')
@@ -348,7 +353,7 @@ class TestGraph(unittest2.TestCase):
 
         # Specific single node methods: get connected edges
         sub = self.graph.getnodes(3)
-        self.assertItemsEqual(sub.connected_edges(), [(3, 2), (2, 3), (8, 3), (3, 4), (3, 8), (4, 3)])
+        self.assertItemsEqual(sub.connected_edges(), [(2, 3), (3, 4), (3, 8)])
 
     def test_graph_node_attribute_set(self):
         """
@@ -356,10 +361,10 @@ class TestGraph(unittest2.TestCase):
         """
 
         # Set node attributes directly (unmodified) using the nodes DictStorage
-        self.graph.nodes[3]['data'] = 4
-        self.graph.nodes[4].update({'data': 'node_four'})
-        self.assertEqual(self.graph.nodes[3].get('data'), 4)
-        self.assertEqual(self.graph.nodes[4]['data'], 'node_four')
+        self.graph.nodes[3]['key'] = 4
+        self.graph.nodes[4].update({'key': 'node_four'})
+        self.assertEqual(self.graph.nodes[3].get('key'), 4)
+        self.assertEqual(self.graph.nodes[4]['key'], 'node_four')
 
         # Set node attributes using the 'attr' method
         self.graph.attr(1)['tgf'] = 'changed'
@@ -372,9 +377,9 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(sub.nodes[5]['tgf'], 'five')
         self.assertEqual(sub.nodes[5]['new'], 23.88)
 
-        sub['data'] = 10
+        sub['key'] = 10
         sub.tgf = 'attr'
-        self.assertEqual(sub.nodes[5]['data'], 10)
+        self.assertEqual(sub.nodes[5]['key'], 10)
         self.assertEqual(sub.nodes[5]['tgf'], 'attr')
 
     def test_node_query(self):
@@ -383,12 +388,11 @@ class TestGraph(unittest2.TestCase):
         """
 
         # Query for nodes
-        self.assertEqual(len(self.graph.query_nodes({'tgf': "'six'"}).nodes()),
-                         len([e for e in self.graph.nodes() if self.graph.nodes[e].get('tgf') == "'six'"]))
+        self.assertEqual(len(self.graph.query_nodes({'key': 'six'}).nodes()),
+                         len([e for e in self.graph.nodes() if self.graph.nodes[e].get('key') == 'six']))
 
         from asq.initiators import query
-        q = query(self.graph.nodes.values()).where(lambda n: n['tgf'].startswith("'s")).select(lambda s: s['nid'])
-        print(q)
+        q = query(self.graph.nodes.values()).where(lambda n: n['key'].startswith("'s")).select(lambda s: s['nid'])
 
     def test_node_iteration(self):
         """
@@ -456,25 +460,26 @@ class TestGraph(unittest2.TestCase):
 
         # Set edge attributes directly (unmodified) using the nodes DictStorage
         self.graph.edges[(1, 2)]['label'] = 4
-        self.graph.edges[(2, 1)].update({'label': 'changed'})
+        self.graph.edges[(2, 3)].update({'label': 'changed'})
         self.assertEqual(self.graph.edges[(1, 2)].get('label'), 4)
-        self.assertEqual(self.graph.edges[(2, 1)]['label'], 'changed')
+        self.assertEqual(self.graph.edges[(2, 3)]['label'], 'changed')
 
         # Set edge attributes using the 'attr' method
-        self.graph.attr((1, 2))['tgf'] = 'changed'
-        self.assertEqual(self.graph.edges[(1, 2)]['tgf'], 'changed')
+        self.graph.attr((1, 2))['key'] = 'changed'
+        self.assertEqual(self.graph.edges[(1, 2)]['key'], 'changed')
 
         # Set edge attributes using single graph 'set' method and magic methods
         sub = self.graph.getnodes(5)
-        sub.set('tgf', 'five')
+        sub.set('key', 'five')
         sub.set('new', 23.88)
-        self.assertEqual(sub.nodes[5]['tgf'], 'five')
+        self.assertEqual(sub.nodes[5]['key'], 'five')
         self.assertEqual(sub.nodes[5]['new'], 23.88)
 
-        sub['data'] = 10
-        sub.tgf = 'attr'
-        self.assertEqual(sub.nodes[5]['data'], 10)
-        self.assertEqual(sub.nodes[5]['tgf'], 'attr')
+        sub['key'] = 10
+        self.assertEqual(sub.nodes[5]['key'], 10)
+
+        sub.key = 'attr'
+        self.assertEqual(sub.nodes[5]['key'], 'attr')
 
     def test_edge_query(self):
         """
