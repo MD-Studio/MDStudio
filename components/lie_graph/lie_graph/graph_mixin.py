@@ -18,6 +18,7 @@ class NodeEdgeToolsBaseClass(object):
     node graphs.
     """
     __metaclass__ = abc.ABCMeta
+    __isnetbc__ = True
 
     @abc.abstractmethod
     def __contains__(self, key):
@@ -205,7 +206,7 @@ class NodeTools(NodeEdgeToolsBaseClass):
         """
         Implement class __repr__
 
-        String representation of the class listing node and edge count.
+        String representation of the node class.
 
         :rtype: :py:str
         """
@@ -310,7 +311,7 @@ class EdgeTools(NodeEdgeToolsBaseClass):
         """
         Implement class __repr__
 
-        String representation of the class listing node and edge count.
+        String representation of the edge class.
 
         :rtype: :py:str
         """

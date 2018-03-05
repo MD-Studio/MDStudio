@@ -9,7 +9,6 @@ node.
 
 from lie_graph.graph import Graph
 from lie_graph.graph_helpers import GraphException
-from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools, EdgeAxisTools
 from lie_graph.graph_axis.graph_axis_methods import (node_ancestors, node_children, node_descendants, node_neighbors,
     node_parent, node_all_parents, node_siblings, node_leaves)
 
