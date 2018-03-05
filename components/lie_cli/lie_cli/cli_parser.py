@@ -14,12 +14,6 @@ MDStudio command line interface.
 
 Call a method exposed by a MDStudio microservice using it's public URI
 
-Authentication:
-User name and password are retrieved from the shell MDSTUDIO_USER and
-MDSTUDIO_PW environmental variables by default or provided using the
-'authid' and 'password' command line arguments respectivly. 
-
-Default authentication method ('authmethod') is set to 'ticket'.
 """
 
 
@@ -118,12 +112,6 @@ def lie_cli_parser():
 
     # Parse application session and microservice WAMP arguments
     parser.add_argument('-u', '--uri', type=_commandline_arg, dest='uri', required=True, help='Microservice method URI')
-    parser.add_argument('-c', '--authid', type=_commandline_arg, dest='authid', default=os.environ.get('MDSTUDIO_USER'),
-                        help="MDStudio user id")
-    parser.add_argument('-p', '--password', type=_commandline_arg, dest='password',
-                        default=os.environ.get('MDSTUDIO_PW'), help="MDStudio user pasword")
-    parser.add_argument('-m', '--authmethod', type=_commandline_arg, dest='authmethod', default='ticket',
-                        help="MDStudio authentication method")
 
     # parse command line arguments
     options, method_args = parser.parse_known_args()
