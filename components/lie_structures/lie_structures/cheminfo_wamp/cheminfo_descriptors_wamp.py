@@ -1,31 +1,35 @@
 # -*- coding: utf-8 -*-
 
+"""
+file: wamp_services.py
+
+WAMP service methods the module exposes.
+"""
+
+from autobahn import wamp
+
+from lie_system import WAMPTaskMetaData
 from lie_structures.cheminfo_molhandle import mol_read
-from mdstudio.api.endpoint import endpoint
-from mdstudio.component.session import ComponentSession
 
-
-class CheminfoDescriptorsWampApi(ComponentSession):
+class CheminfoDescriptorsWampApi(object):
     """
     Cheminformatics descriptors WAMP API
     """
-    def authorize_request(self, uri, claims):
-        return True
 
-    @endpoint('descriptors', 'descriptors_request', 'descriptors_response')
-    def get_descriptors(self, request, claims):
+    @wamp.register(u'liestudio.cheminfo.descriptors')
+    def get_descriptors(self, structure=None, mol_format=None, toolkit='pybel', session=None):
+
+        # Retrieve the WAMP session information
+        session = WAMPTaskMetaData(metadata=session)
 
         # Import the molecule
-        molobject = mol_read(
-            request["structure"], mol_format=request["mol_format"],
-            toolkit=request["toolkit"])
+        molobject = mol_read(structure, mol_format=mol_format, toolkit=toolkit)
         desc = molobject.calcdesc()
 
-        if desc is not None:
-            status = 'completed'
-            output = desc
-        else:
-            status = 'failed'
-            output = None
+        if desc:
+            session.status = 'completed'
+            return {'session': session.dict(), 'descriptors': desc}
 
-        return {'session': status, 'descriptors': output}
+        session.status = 'failed'
+        return {'session': session.dict()}
+

@@ -1,6 +1,0 @@
-{
-  "$schema": "http://json-schema.org/schema#",
-  "name": "DatabaseDocument",
-  "description": "A valid MongoDB document.",
-  "type": "object"
-}

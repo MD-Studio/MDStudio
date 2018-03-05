@@ -1,0 +1,24 @@
+{
+  "decorator_method_defined": {
+    "lv": 2,
+    "gv": 3,
+    "other": "additional"
+  },
+  "decorator_class": {
+    "lv": 2,
+    "gv": 3,
+    "other": "additional",
+    "decorated_run": {
+      "mod": 5
+    }
+  },
+  "decorator_method_withkwargs": {
+    "lv": 2,
+    "gv": 3,
+    "other": "additional",
+    "nested": {"sec": true}
+  },
+  "system": {
+    "lv": 10
+  }
+}

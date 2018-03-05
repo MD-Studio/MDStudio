@@ -1,44 +1,47 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-from os.path import join
-from retrying import retry
-from time import sleep
-from mdstudio.deferred.chainable import chainable
 from twisted.logger import Logger
 import cerise_client.service as cc
 import docker
 import hashlib
 import json
 import os
+from os.path import join
+from retrying import retry
+from time import sleep
 
 # initialized twisted logger
 logger = Logger()
 
 
-def create_cerise_config(input_session):
+def create_cerise_config(
+        path_to_config, session, cwl_workflow, protein_file):
     """
-    Creates a Cerise service using the path_to_config
-    yaml file, together with the cwl_workflow to run
+    Creates a Cerise service using the `path_to_config`
+    yaml file, together with the `cwl_workflow` to run
     and store the meta information in the session.
 
-    :param input_dict: Object containing the cerise files.
+    :param path_to_config: Path to the data use to
+    initialize a Cerise service.
+    :param session: Current Wamp session
+    :param cwl_workflow: File containing the CWL workflow.
     :returns: Dict containing the Cerise config.
     """
-    with open(input_session['cerise_file'], 'r') as f:
+    with open(path_to_config, 'r') as f:
         config = json.load(f)
 
     # Return None if key no in dict
-    config = defaultdict(lambda: None, config)
+    config = defaultdict(lambda: None, **config)
+    config.update(session)
 
     # Set Workflow
-    protein_file = input_session['protein_file']
-    config['cwl_workflow'] = choose_cwl_workflow(protein_file)
-    config['log'] = join(input_session['workdir'], 'cerise.log')
+    config['cwl_workflow'] = check_cwl_workflow(cwl_workflow, protein_file)
+    config['log'] = join(config['workdir'], 'cerise.log')
 
     return config
 
-@chainable
+
 def call_cerise_gromit(
         gromacs_config, cerise_config, cerise_db):
     """
@@ -53,38 +56,35 @@ def call_cerise_gromit(
     related to the Cerise services and jobs.
     :returns: Dict with the output paths.
     """
-    logger.info("Searching for pending jobs in DB")
+    # wait for a bit in case there are other threads
+    # doing the same
+    sleep(2)
 
-    srv_data = yield retrieve_service_from_db(
+    srv_data = retrieve_service_from_db(
         cerise_config, gromacs_config, cerise_db)
 
-    if srv_data['result'] is None:
-        logger.info("There are no pending jobs!")
+    if srv_data is None:
         # Create a new service if one is not already running
         srv = create_service(cerise_config)
-        # srv_data = submit_new_job(
-        #     srv, gromacs_config, cerise_config, cerise_db)
+        srv_data = submit_new_job(
+            srv, gromacs_config, cerise_config, cerise_db)
 
-    logger.info("BYE!!")
-    import sys
-    sys.exit()
+    # is the job still running?
+    elif srv_data['job_state'] == 'Running':
+        restart_srv_job(srv_data)
 
-    # # is the job still running?
-    # elif srv_data['job_state'] == 'Running':
-    #     restart_srv_job(srv_data)
+    else:
+        msg = "job is already done!"
+        logger.info(msg)
 
-    # else:
-    #     msg = "job is already done!"
-    #     logger.info(msg)
+    # Simulation information including cerise data
+    sim_dict = extract_simulation_info(
+        srv_data, cerise_config, cerise_db)
 
-    # # Simulation information including cerise data
-    # sim_dict = extract_simulation_info(
-    #     srv_data, cerise_config, cerise_db)
+    # Shutdown Service if there are no other jobs running
+    try_to_close_service(srv_data, cerise_db)
 
-    # # Shutdown Service if there are no other jobs running
-    # try_to_close_service(srv_data, cerise_db)
-
-    # return sim_dict
+    return sim_dict
 
 
 def retrieve_service_from_db(
@@ -102,22 +102,22 @@ def retrieve_service_from_db(
         'ligand_md5': compute_md5(ligand_file),
         'name': cerise_config['docker_name']}
 
-    return cerise_db.find_one('cerise', query)
+    return cerise_db.find_one(query)
 
 
-# @retry(wait_random_min=500, wait_random_max=2000)
-def create_service(cerise_config):
+@retry(wait_random_min=500, wait_random_max=2000)
+def create_service(config):
     """
     Create a Cerise service if one is not already running,
-    using the `cerise_config` file.
+    using the `config` file.
     """
     try:
         srv = cc.require_managed_service(
-                cerise_config['docker_name'],
-                cerise_config.get('port', 29593),
-                cerise_config['docker_image'],
-                cerise_config['username'],
-                cerise_config['password'])
+                config['docker_name'],
+                config.get('port', 29593),
+                config['docker_image'],
+                config['username'],
+                config['password'])
         logger.info("Created a new Cerise-client service")
     except docker.errors.APIError:
         pass
@@ -432,16 +432,19 @@ def compute_md5(file_name):
     with open(file_name) as f:
         xs = f.read()
 
-    return hashlib.md5(xs.encode()).hexdigest()
+    return hashlib.md5(xs).hexdigest()
 
 
-def choose_cwl_workflow(protein_file):
+def check_cwl_workflow(cwl_workflow, protein_file):
     """
-    If there is not a `protein_file`
+    Check whether a CWL worflow file exists and copy it to the workdir.
+    If there is neither a `cwl_workflow` file nor a `protein_file`
     perform a solvent-ligand simulation.
     """
     root = os.path.dirname(__file__)
-    if protein_file is not None:
+    if cwl_workflow is not None and os.path.isfile(cwl_workflow):
+        return cwl_workflow
+    elif protein_file is not None:
         return join(root, 'data/protein_ligand.cwl')
     else:
         return join(root, 'data/solvent_ligand.cwl')

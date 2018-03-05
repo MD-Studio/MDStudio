@@ -14,11 +14,11 @@ When using this component in scientific work please cite:
 """
 
 import os
-from wamp_services import RunPropka
+import json
 
 __module__ = 'lie_propka'
 __docformat__ = 'restructuredtext'
-__version__ = '{major:d}.{minor:d}'.format(major=0, minor=2)
+__version__ = '{major:d}.{minor:d}'.format(major=0, minor=1)
 __author__ = 'Marc van Dijk'
 __status__ = 'pre-release beta1'
 __date__ = '5 august 2016'
@@ -27,3 +27,30 @@ __url__ = 'https://github.com/MD-Studio/MDStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 __all__ = ['RunPropka']
+
+
+def _schema_to_data(schema, data=None, defdict=None):
+    default_data = defdict or {}
+
+    properties = schema.get('properties', {})
+
+    for key, value in properties.items():
+        if 'default' in value:
+            if 'properties' in value:
+                default_data[key] = _schema_to_data(value)
+            else:
+                default_data[key] = value.get('default')
+        else:
+            default_data[key] = None
+
+    # Update with existing data
+    if data:
+        default_data.update(data)
+
+    return default_data
+
+
+propka_schema = json.load(open(os.path.join(__rootpath__, 'propka_schema.json')))
+settings = _schema_to_data(propka_schema)
+
+from wamp_services import RunPropka

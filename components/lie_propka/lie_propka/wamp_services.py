@@ -7,16 +7,19 @@ WAMP service methods the module exposes.
 """
 
 import os
+import jsonschema
+import pkg_resources
 import logging
 import tempfile
 import MDAnalysis as mda
 
-from collections import defaultdict
-from mdstudio.api.endpoint import endpoint
-from mdstudio.component.session import ComponentSession
-
 from propka import molecular_container
 from propkatraj import get_propka
+from autobahn.wamp.types import RegisterOptions
+from twisted.internet.defer import inlineCallbacks
+from lie_system import LieApplicationSession, WAMPTaskMetaData
+
+from . import settings, propka_schema
 from .propka_helpers import parse_propka_pkaoutput
 
 
@@ -27,9 +30,9 @@ class Struct:
 
 
 class RunPropka(object):
-    def run_propkatraj(
-            self, topology=None, trajectory=None, sel='protein',
-            start=None, stop=None, step=None, session=None):
+
+    def run_propkatraj(self, topology=None, trajectory=None, sel='protein',
+                       start=None, stop=None, step=None, session=None):
         """
         Run propkatraj
 
@@ -44,6 +47,10 @@ class RunPropka(object):
         :return:        PROPKA results
         :rtype:         :py:dict
         """
+
+        # Load WAMP session if any
+        session = WAMPTaskMetaData(metadata=session).dict()
+
         # Load trajectory
         universe = mda.Universe(topology, trajectory)
 
@@ -52,12 +59,37 @@ class RunPropka(object):
 
         return {'session': session}
 
-    def run_propka(self, propka_config):
+    def run_propka(self, session=None, **kwargs):
         """
-        see: https://github.com/jensengroup/propka-3.1
+        Run PROPKA
+
+        :param kwargs:  PROPKA options
+        :type kwargs:   :py:dict
+        :param session: WAMP session object
+        :type session:  :py:dict
+
+        :return:        PROPKA results
+        :rtype:         :py:dict
         """
+
+        # Load WAMP session if any
+        session = WAMPTaskMetaData(metadata=session).dict()
+
+        # Load PROPKA configuration file
+        propka_config = kwargs
+        if not propka_config.get('parameters'):
+            propka_config['parameters'] = pkg_resources.resource_filename("propka", "propka.cfg")
+
+        # Validate against JSON schema
+        jsonschema.validate(propka_config, propka_schema)
+
+        # Update with JSON settings
+        for k, v in settings.items():
+            if k not in propka_config:
+                propka_config[k] = v
+
         # Parse titration
-        if propka_config['titrate_only']:
+        if propka_config.get('titrate_only'):
             newtitr = []
             for titr in propka_config['titrate_only'].split(','):
                 chain, resnum_str = titr.split(":")
@@ -66,72 +98,92 @@ class RunPropka(object):
 
         # Create workdir and save file
         currdir = os.getcwd()
-        workdir = os.path.join(propka_config['workdir'], tempfile.gettempdir())
+        workdir = os.path.join(kwargs.get('workdir', tempfile.gettempdir()))
         if not os.path.isdir(workdir):
             os.makedirs(workdir)
         os.chdir(workdir)
         logging.info('PropKa working directory: {0}'.format(workdir))
 
-        pdb = propka_config['pdb']
-        if propka_config['from_file']:
+        if propka_config.get('from_file', False):
             pdbfile = os.path.join(workdir, 'propka.pdb')
             with open(pdbfile) as infile:
-                infile.write(pdb)
+                infile.write(propka_config.get('pdb'))
         else:
-            pdbfile = pdb
+            pdbfile = propka_config.get('pdb')
 
         # Wrap options dictionary as object (needed for PROPKA)
         propka_config = Struct(propka_config)
 
         # Run PROPKA
-        my_molecule = molecular_container.Molecular_container(pdbfile, propka_config['parameters'])
+        my_molecule = molecular_container.Molecular_container(pdbfile, propka_config)
         my_molecule.calculate_pka()
         my_molecule.write_pka()
         logging.info('Running PROPKA 3.1: {0}'.format(type(my_molecule.version).__name__.split('.')[-1]))
 
         # Parse PROPKA output
-        output = {}
+        output_dict = {}
         for output_types in ('pka', 'propka_input'):
             outputfile = os.path.join(workdir, '{0}.{1}'.format(my_molecule.name, output_types))
 
             if not os.path.isfile(outputfile):
                 logging.error('Propka failed to create output: {0}'.format(outputfile))
-                status = 'failed'
                 continue
 
             if output_types == 'pka':
                 pkadf = parse_propka_pkaoutput(outputfile)
-                output['pka'] = pkadf.to_dict()
-                status = 'completed'
+                output_dict['pka'] = pkadf.to_dict()
+                session['status'] = 'completed'
 
-            output['{0}_file'.format(output_types)] = outputfile
+            output_dict['{0}_file'.format(output_types)] = outputfile
 
         # Calculate molecule PI
         pi_labels = ('pi_folded', 'pi_unfolded')
         for i, pi in enumerate(my_molecule.getPI()):
-            output[pi_labels[i]] = pi
+            output_dict[pi_labels[i]] = pi
 
         # Change back to original dir and return results
+        output_dict['session'] = session
         os.chdir(currdir)
-        return {'status': status, 'output': output}
+        return output_dict
 
 
-class PropkaWampApi(ComponentSession, RunPropka):
+class PropkaWampApi(LieApplicationSession, RunPropka):
 
-    def authorize_request(self, uri, claims):
+    @inlineCallbacks
+    def onRun(self, details):
         """
-        If you were allowed to call this in the first place,
-        I will assume you are authorized
+        Register WAMP docking methods with support for `roundrobin` load
+        balancing.
         """
-        return True
 
-    @endpoint('propka', 'propka_request', 'propka_response')
-    def run_propka(self, request, claims):
-        """
-        For a detailed input description see:
-          lie_propka/schemas/endpoints/propka_request.json
+        # Register WAMP methods
+        yield self.register(self.run_propka, u'liestudio.propka.run_propka',
+                            options=RegisterOptions(invoke=u'roundrobin'))
 
-        For a detailed output description see:
-          lie_propka/schemas/endpoints/propka_response.json
-        """
-        return super().run_propka(request)
+
+def make(config):
+    """
+    Component factory
+
+    This component factory creates instances of the application component
+    to run.
+
+    The function will get called either during development using an
+    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
+    a Crossbar.io worker.
+    The LieApplicationSession class is initiated with an instance of the
+    ComponentConfig class by default but any class specific keyword arguments
+    can be consument as well to populate the class session_config and
+    package_config dictionaries.
+
+    :param config: Autobahn ComponentConfig object
+    """
+
+    if config:
+        return PropkaWampApi(config, package_config=settings)
+    else:
+        # if no config given, return a description of this WAMPlet ..
+        return {
+            'label': 'LIEStudio PropKa WAMPlet',
+            'description':
+            'WAMPlet proving LIEStudio PropKa endpoints'}

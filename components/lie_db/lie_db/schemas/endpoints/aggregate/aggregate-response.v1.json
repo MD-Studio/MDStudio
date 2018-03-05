@@ -1,6 +1,0 @@
-{
-  "$schema": "http://json-schema.org/schema#",
-  "title": "AggregateResponse",
-  "type": "object",
-  "$ref": "resource://mdstudio/db/cursor/v1"
-}

@@ -1,0 +1,1 @@
+alias root='echo "Switching to root";touch /tmp/noexit; exit'

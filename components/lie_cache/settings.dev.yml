@@ -1,4 +1,0 @@
-settings:
-  nodes:
-    - host: localhost
-      port: 6379

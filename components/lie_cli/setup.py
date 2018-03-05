@@ -4,10 +4,9 @@
 # package: lie_cli
 # file: setup.py
 #
-# Part of ‘lie_cli’, a package providing cli access for the LIEStudio
-# package.
+# A command line interface component to MDStudio
 #
-# Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
+# Copyright © 2018 Marc van Dijk, VU University Amsterdam, the Netherlands
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,31 +24,28 @@ from setuptools import setup, find_packages
 
 distribution_name = 'lie_cli'
 
-
 setup(
     name=distribution_name,
-    version='1.0.0',
-    license='Apache Software License 2.0',
-    description='CLI component for the LIEStudio application',
-    author='Marc van Dijk - VU University - Amsterdam,' \
-           'Paul Visscher - Zefiros Software (www.zefiros.eu),' \
-           'Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)',
-    author_email='m4.van.dijk@vu.nl, contact@zefiros.eu',
+    version=0.1,
+    description='A command line interface component to MDStudio',
+    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
+    author_email='m4.van.dijk@vu.nl',
     url='https://github.com/MD-Studio/MDStudio',
-    keywords='LIEStudio CLI',
+    license='Apache Software License 2.0',
+    keywords='MDStudio CLI',
     platforms=['Any'],
     packages=find_packages(),
-    package_data={'': ['*.json']},
     py_modules=[distribution_name],
-    install_requires=['mdstudio'],
-    test_suite="tests",
+    entry_points = {
+        'console_scripts': ['mdstudio_cli=lie_cli.cli_services:main']
+    },
     include_package_data=True,
     zip_safe=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
-        'Topic :: System',
+        'Topic :: Software Development :: Libraries',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
     ],

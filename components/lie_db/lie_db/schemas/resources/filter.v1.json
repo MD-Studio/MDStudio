@@ -1,6 +1,0 @@
-{
-  "$schema": "http://json-schema.org/schema#",
-  "title": "DatabaseFilter",
-  "description": "A valid MongoDB filter constructed of operators: https://docs.mongodb.com/manual/reference/operator/query/",
-  "type": "object"
-}

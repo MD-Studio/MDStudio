@@ -3,7 +3,35 @@
   <component name="RemoteMappingsManager">
     <list>
       <list>
-        <remote-mappings server-id="python@docker-compose://[docker-compose.yml]:crossbar//root/.local/share/virtualenvs/app-4PlAip0Q/bin/python" />
+        <remote-mappings server-id="python@ssh://root@127.0.0.1:65432/app/lie_venv/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/app" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@ssh://root@127.0.0.1:65432/app/lie_venv/bin/python2.7">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/app" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@ssh://root@127.0.0.1:65432/root/.local/share/virtualenvs/app/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/app" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@ssh://root@127.0.0.1:65432/app/.venv/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$/.venv/lib" remote-root="/app/.venv/local/lib" />
+              <mapping local-root="$PROJECT_DIR$" remote-root="/app" />
+            </list>
+          </settings>
+        </remote-mappings>
       </list>
     </list>
   </component>

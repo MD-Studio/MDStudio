@@ -136,7 +136,7 @@ class API(object):
             if self.debug:
                 self.log.debug(u'Querying {url}'.format(url=full_url))
 
-            if method == u'POST' and any([isinstance(value, (str, unicode)) or u'read' in dir(value) for (key, value) in data.items()]):
+            if method == u'POST' and any([isinstance(value, str) or u'read' in dir(value) for (key, value) in data_items]):
                 def file_for(content):
                     u'''Cast a content object to a file for request.post'''
                     if u'read' in dir(content):
@@ -144,7 +144,7 @@ class API(object):
                     else:
                         file_handler = TemporaryFile(mode=u'w+b')
                         file_handler.write(
-                            content if isinstance(content, (str, unicode)) else unicode(content).encode(),
+                            content if isinstance(content, str) else unicode(content).encode(),
                         )
                         file_handler.seek(0) # Rewind the files to future .read()
                         return file_handler
@@ -382,7 +382,7 @@ class Molecules(API):
             # Either write response to file 'fnme', or return its content
             if kwargs.get(u'fnme'):
                 fnme = unicode(kwargs.get(u'fnme'))
-                with open(fnme, u'w' + (u'b' if isinstance(response_content, str, unicode) else u't')) as fh:
+                with open(fnme, u'w' + (u'b' if isinstance(response_content, str) else u't')) as fh:
                     fh.write(response_content)
                 return fnme
             else:

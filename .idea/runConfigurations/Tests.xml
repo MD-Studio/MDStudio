@@ -1,0 +1,49 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Tests" type="tests" factoryName="Unittests" activateToolWindowBeforeRun="false" singleton="true">
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="IS_DOCKER" value="1" />
+      <env name="VIRTUAL_ENV" value="/app/.venv/" />
+      <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="MONGO_HOST" value="mongo" />
+    </envs>
+    <option name="SDK_HOME" value="ssh://root@127.0.0.1:65432/app/.venv/bin/python" />
+    <option name="WORKING_DIRECTORY" value="" />
+    <option name="IS_MODULE_SDK" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <module name="LIEStudio" />
+    <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/test.py" />
+    <option name="CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="FOLDER_NAME" value="$PROJECT_DIR$/" />
+    <option name="TEST_TYPE" value="TEST_SCRIPT" />
+    <option name="PATTERN" value="tests/test.py" />
+    <option name="USE_PATTERN" value="true" />
+    <option name="PUREUNITTEST" value="false" />
+    <option name="PARAMS" value="" />
+    <option name="USE_PARAM" value="false" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="IS_DOCKER" value="1" />
+      <env name="VIRTUAL_ENV" value="/app/.venv/" />
+      <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="MONGO_HOST" value="mongo" />
+    </envs>
+    <option name="SDK_HOME" value="ssh://root@127.0.0.1:65432/app/.venv/bin/python" />
+    <option name="WORKING_DIRECTORY" value="" />
+    <option name="IS_MODULE_SDK" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="false" />
+    <option name="ADD_SOURCE_ROOTS" value="false" />
+    <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+    <option name="_new_pattern" value="&quot;&quot;" />
+    <option name="_new_additionalArguments" value="&quot;&quot;" />
+    <option name="_new_legacyInformationCopiedToNew" value="true" />
+    <option name="_new_target" value="&quot;/app/lietest.py&quot;" />
+    <option name="_new_targetType" value="&quot;PATH&quot;" />
+    <method />
+  </configuration>
+</component>

@@ -1,0 +1,71 @@
+{
+    "version": 2,
+    "controller": {},
+    "workers": [
+        {
+            "type": "router",
+            "realms": [
+                {
+                    "name": "wamp_test",
+                    "roles": [
+                        {
+                            "name": "anonymous",
+                            "permissions": [
+                                {
+                                    "uri": "",
+                                    "match": "prefix",
+                                    "allow": {
+                                        "call": true,
+                                        "register": true,
+                                        "publish": true,
+                                        "subscribe": true
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "transports": [
+                {
+                    "type": "universal",
+                    "endpoint": {
+                        "type": "tcp",
+                        "port": 8080
+                    },
+                    "websocket": {
+                        "ws": {
+                            "type": "websocket"
+                        }
+                    },
+                    "web": {
+                        "paths": {
+                            "/": {
+                                "type": "static",
+                                "directory": ".."
+                            }
+                        }
+                    }
+                }
+            ],
+            "options": {
+                "pythonpath": ["../../"]
+             },
+            "components": [
+                {
+                   "type": "class",
+                   "realm": "wamp_test",
+                   "classname": "lie_config.wamp_services.ConfigWampApi",
+                   "extra": {
+                     "package_config": "../config_handler_test.json"
+                   }
+                }
+             ]
+        }
+    ]
+}

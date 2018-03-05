@@ -1,0 +1,18 @@
+{
+    "status": "ready",
+    "itime": 1493199329,
+    "package_name": "__main__",
+    "authid": "lieadmin",
+    "class_name": "LIEWorkflow",
+    "app": "liestudio",
+    "session": 6660686194578667,
+    "log_level": "info",
+    "realm": "liestudio",
+    "utime": 1493199329,
+    "system_user": "mvdijk",
+    "authrole": "admin",
+    "authmethod": "ticket",
+    "log_format": "Simulating a LIE workflow",
+    "status_message": null,
+    "task_id": "1493220139-8864"
+}

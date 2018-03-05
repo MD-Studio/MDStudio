@@ -1,2 +1,0 @@
-class DatabaseException(Exception):
-    pass

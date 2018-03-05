@@ -27,12 +27,9 @@ distribution_name = 'lie_md'
 
 setup(
     name=distribution_name,
-    version=0.2,
+    version=0.1,
     description='LIEStudio molecular simulation module',
-    author="""
-    Marc van Dijk - VU University - Amsterdam
-    Paul Visscher - Zefiros Software (www.zefiros.eu)
-    Felipe Zapata - eScience Center (https://www.esciencecenter.nl/)""",
+    author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
     author_email=['m4.van.dijk@vu.nl', 'f.zapata@esciencecenter.nl'],
     url='https://github.com/MD-Studio/MDStudio',
     license='Apache Software License 2.0',
@@ -44,6 +41,11 @@ setup(
     install_requires=['cerise_client', 'numpy', 'pyparsing', 'panedr', 'retrying'],
     include_package_data=True,
     zip_safe=True,
+    entry_points={
+        'autobahn.twisted.wamplet': [
+            'wamp_services = lie_md.wamp_services:make'
+        ],
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
