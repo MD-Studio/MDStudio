@@ -133,6 +133,11 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     if include_root:
         graph_dict[rootkey] = {}
 
+    # In case root is a leaf node
+    if root.isleaf:
+        graph_dict[root.get(keystring)] = root.get(valuestring, default=default)
+
+    # Traverse root descendants
     for child_node in root.children():
         _walk_dict(child_node, graph_dict.get(rootkey, graph_dict))
 
