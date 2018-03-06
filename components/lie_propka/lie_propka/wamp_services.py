@@ -11,7 +11,6 @@ import logging
 import tempfile
 import MDAnalysis as mda
 
-from collections import defaultdict
 from mdstudio.api.endpoint import endpoint
 from mdstudio.component.session import ComponentSession
 
