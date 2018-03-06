@@ -7,7 +7,6 @@ Functions for building and validating graphs based on a JSON schema definition.
 http://json-schema.org
 """
 
-
 import json
 import sys
 
@@ -54,6 +53,9 @@ def type_validate(value, ptype='string'):
             raise ValueError('Value {0} not of type {1}'.format(value, ptype))
     elif ptype == 'boolean':
         if not isinstance(value, bool):
+            raise ValueError('Value {0} not of type {1}'.format(value, ptype))
+    elif ptype == 'array':
+        if not isinstance(value, list):
             raise ValueError('Value {0} not of type {1}'.format(value, ptype))
     else:
         raise ValueError('Unknow type {0} for value {1}'.format(ptype, value))
