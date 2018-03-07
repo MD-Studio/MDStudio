@@ -32,7 +32,8 @@ import sys
 
 from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_axis.graph_axis_methods import node_parent
-from lie_graph.graph_io.io_helpers import open_anything, FormatDetect
+from lie_graph.graph_io.io_helpers import open_anything, FormatDetect, resolve_root_node
+from lie_graph.graph_helpers import GraphException
 from lie_graph.graph_mixin import NodeTools
 from lie_graph.graph_orm import GraphORM
 
@@ -237,7 +238,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
     return graph
 
 
-def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
+def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2, root_nid=None,):
     """
     Export a graph in Spyder .web format
 
@@ -254,6 +255,7 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
     :type node_key_tag:   :py:str
     :param indent:        .web file white space indentation level
     :type indent:         :py:int
+    :param root_nid:      Root node ID in graph hierarchy
 
     :return:              Spyder .web graph representation
     :rtype:               :py:str
@@ -267,6 +269,13 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
     weborm = GraphORM()
     weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'activereslist'})
     weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'passivereslist'})
+
+    # Resolve the root node (if any) for hierarchical data structures
+    if root_nid:
+        assert root_nid in graph.nodes, GraphException('Root node ID {0} not in graph'.format(root_nid))
+    else:
+        root_nid = resolve_root_node(graph)
+        assert root_nid is not None, GraphException('Unable to resolve root node ID')
 
     # Set current ORM aside and register new one.
     curr_orm = graph.orm
@@ -322,7 +331,7 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2):
             indent_level -= indent
             string_buffer.write('{0}),\n'.format(' ' * indent_level))
 
-    rootnode = graph.getnodes(graph.root)
+    rootnode = graph.getnodes(root_nid)
     string_buffer.write('{0} (\n'.format(rootnode.get(orm_data_tag)))
     _walk_dict(rootnode, indent)
     string_buffer.write(')\n')
