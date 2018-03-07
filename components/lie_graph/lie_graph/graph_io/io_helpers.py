@@ -18,6 +18,62 @@ else:
     from urllib import parse as urlparse
 
 
+def initial_node(nodes):
+    """
+    Return node ID of node with smallest _ID identifier.
+
+    :param nodes: graph 'nodes' object
+
+    :return:      node ID
+    """
+
+    minid = min([n['_id'] for n in nodes.values()])
+    for node, attr in nodes.items():
+        if attr['_id'] == minid:
+            return node
+
+
+def resolve_root_node(graph):
+    """
+    Resolve the node ID of the root node of the graph.
+
+    For Graph objects there is no strict concept of a root node and by default
+    the 'root' attribute of the grpah is not defined. Here, the root will
+    resolve to the node nid with the smallest _id number which usually is the
+    first node added when the graph was created.
+
+    For GraphAxis object a root is essential for defining the graph hierarchy
+    and thus, the graph 'root' attribute should be defined. If it is not
+    defined it will also default to the node nid with the smallest _id number.
+    If the user defined or default root is in the (sub)graph it is returned.
+    If not, an attempt will be made to resolve it following:
+
+    * If the graph is a single node, its node ID will be root.
+    * If the graph has multiple nodes and the root is defined in the full_graph,
+      return the node ID closest to the root
+
+    :param graph: graph to resolve root node for
+    :type grpah:  Graph or GraphAxis object
+
+    :return:      root node ID
+    """
+
+    # Default graph root node
+    root = graph.root or initial_node(graph.nodes())
+
+    # If root in current (sub)graph, return
+    if root in graph.nodes:
+        return root
+
+    # If one node, return as root
+    if len(graph) == 1:
+        return list(graph.nodes.keys())[0]
+
+    # If multiple nodes, resolve closest to root
+    if root in graph._full_graph.nodes():
+        return initial_node(graph.nodes())
+
+
 def coarse_type(n):
 
     if n.isdigit():

@@ -10,23 +10,24 @@ class GraphORM(object):
 
         self._node_orm_mapping = {}
         self._edge_orm_mapping = {}
-        self._node_mapping = {}
-        self._edge_mapping = {}
         self._class_name = 'Graph'
         self._inherit = inherit
-    
-    def _class_factory(self, base_cls, classes):
+
+    def _class_factory(self, base_cls, classes, exclude_node_edge=False):
         """
         Factory for custom Graph classes
 
         Build custom Graph class by adding classes to base_cls.
         The factory resolves the right method resolution order (mro).
 
-        :param base_cls: graph base class. Needs to be based on Graph class
-        :type base_cls:  Graph (inherited) class
-        :param classes:  additional classes to include in base class when
-                         building custom Graph class
-        :type classes:   list or tuple
+        :param base_cls:          graph base class. Needs to be based on Graph
+        :type base_cls:           Graph (inherited) class
+        :param classes:           additional classes to include in base class
+                                  when building custom Graph class
+        :type classes:            list or tuple
+        :param exclude_node_edge: prevent inheriting from node/edge classes if
+                                  returning interface to multiple nodes/edges
+        :type exclude_node_edge:  :py:bool
 
         :return:         custom Graph class
         :rtype:          class
@@ -39,6 +40,11 @@ class GraphORM(object):
         # Inherit previous custom modules or only graph module classes
         if not self._inherit:
             base_cls_mro = [c for c in base_cls_mro if c.__module__.startswith('lie_graph')]
+
+        # Prevent inheritance of node/edge tools for instance for a query
+        # returning multiple nodes called from a single node object.
+        if exclude_node_edge:
+            base_cls_mro = [n for n in base_cls_mro if not '__isnetbc__' in dir(n)]
 
         # Add custom classes to the base class mro
         for n in reversed(classes):
@@ -143,8 +149,7 @@ class GraphORM(object):
 
         Both attribute key and value are considered in the matching.
 
-        TODO: extend matching engine to match only key or values and use
-              logical operators on values.
+        TODO: extend matching engine to match only key or values and use logical operators on values.
         TODO: now only match single objects to prevent 'unambiguous' mapping
 
         If there is nothing to map, return the base class which by default is
@@ -169,7 +174,8 @@ class GraphORM(object):
             assert is_nodes, 'Query need to be only nodes or only edges not mixed.'
 
         if len(objects) > 1:
-            return self._class_factory(base_cls, [])
+            customcls = classes or []
+            return self._class_factory(base_cls, customcls, exclude_node_edge=True)
 
         # Get the node/edge attributes to match against
         query = []

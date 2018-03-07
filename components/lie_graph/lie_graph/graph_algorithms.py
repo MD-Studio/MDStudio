@@ -21,6 +21,9 @@ def node_neighbors(graph, nid):
     :type nid:    :py:int
     """
 
+    if nid is None:
+        return []
+
     if graph.is_masked:
         nodes = set(graph.nodes.keys())
     else:
