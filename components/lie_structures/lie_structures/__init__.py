@@ -17,13 +17,10 @@ __url__ = 'https://github.com/NLeSC/LIEStudio'
 __copyright__ = "Copyright (c) VU University, Amsterdam"
 __rootpath__ = os.path.dirname(__file__)
 
-from .settings import STRUCTURES_SCHEMA as structures_schema
-from .settings import settings
 from .cheminfo_pkgmanager import CinfonyPackageManager
 
 # Load the toolkits
-paths = dict((k, v) for k, v in settings.items()
-             if k in ('indy_path', 'rdk_path'))
+paths = {}
 toolkits = CinfonyPackageManager(paths)
 
-__all__ = ['toolkits', 'structures_schema']
+__all__ = ['toolkits']

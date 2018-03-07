@@ -35,6 +35,11 @@ class StructuresWampApi(
     def supported_toolkits(self, request, claims):
         """
         Query available toolkits.
+
+        For a detailed input description see the file:
+           lie_structures/schemas/endpoints/supported_toolkits_request_v1.json
+        And for a detailed description of the output see:
+           lie_structures/schemas/endpoints/supported_toolkits_response_v1.json
         """
         return {'status': 'completed', 'toolkits': toolkits.keys()}
 
@@ -42,6 +47,11 @@ class StructuresWampApi(
     def remove_residues(self, request, claims):
         """
         Remove residues from a PDB structure
+
+        For a detailed input description see the file:
+           lie_structures/schemas/endpoints/removed_residues_request_v1.json
+        And for a detailed description of the output see:
+           lie_structures/schemas/endpoints/removed_residues_response_v1.json
         """
         # Parse the structure
         parser = PDBParser(PERMISSIVE=True)
@@ -86,6 +96,11 @@ class StructuresWampApi(
     def fetch_rcsb_structure(self, request, claims):
         """
         Download a structure file from the RCSB database using a PDB ID
+
+        For a detailed input description see the file:
+           lie_structures/schemas/endpoints/retrieve_rcsb_structures_request_v1.json
+        And for a detailed description of the output see:
+           lie_structures/schemas/endpoints/retrieve_rcsb_structures_response_v1.json
         """
         # Create workdir and save file
         workdir = os.path.join(request.get('workdir', tempfile.gettempdir()))
