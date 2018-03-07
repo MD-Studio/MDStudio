@@ -80,7 +80,7 @@ class CheminfoMolhandleWampApi(ComponentSession):
 
         return {'mol': output, 'status': status}
 
-    @endpoint('removeh', 'removeh_request', 'remove_response')
+    @endpoint('removeh', 'removeh_request', 'removeh_response')
     def removeh_structures(self, request, claims):
         """
         Remove hydrogens from the input structure. For a detailed

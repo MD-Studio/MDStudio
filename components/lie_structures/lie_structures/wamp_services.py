@@ -23,8 +23,8 @@ from mdstudio.component.session import ComponentSession
 
 
 class StructuresWampApi(
-        ComponentSession, CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi,
-        CheminfoFingerprintsWampApi):
+        CheminfoDescriptorsWampApi, CheminfoMolhandleWampApi,
+        CheminfoFingerprintsWampApi, ComponentSession):
     """
     Structure database WAMP methods.
     """
