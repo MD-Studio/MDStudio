@@ -219,6 +219,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
 
                 # Parse key,value pairs and add as leaf node
                 params = [n.strip() for n in line.strip(',').split('=', 1)]
+                params = [n.strip("'") for n in params]
                 if auto_parse_format:
                     params = [autoformat.parse(v) for v in params]
 
