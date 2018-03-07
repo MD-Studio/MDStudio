@@ -43,6 +43,24 @@ else:
     from io import StringIO
 
 
+class WebNodeTools(NodeTools):
+
+    def get(self, key=None, default=None, defaultattr=None):
+        """
+        Serialize all string/unicode values as quoted strings
+        """
+
+        key = key or self.node_value_tag
+        target = self.nodes[self.nid]
+
+        if key in target:
+            if key == self.node_value_tag and isinstance(target[key], (str, unicode)):
+                return "'{0}'".format(target[key])
+            return target[key]
+
+        return target.get(defaultattr, default)
+
+
 class RestraintsInterface(NodeTools):
     """
     Class to handle residue restraint specific formatting for .web
@@ -277,6 +295,10 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2, root_nid=
         root_nid = resolve_root_node(graph)
         assert root_nid is not None, GraphException('Unable to resolve root node ID')
 
+    # Set current NodeTools aside and register new one
+    curr_nt = graph.node_tools
+    graph.node_tools = WebNodeTools
+
     # Set current ORM aside and register new one.
     curr_orm = graph.orm
     graph.orm = weborm
@@ -336,7 +358,8 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2, root_nid=
     _walk_dict(rootnode, indent)
     string_buffer.write(')\n')
 
-    # Restore original ORM
+    # Restore original ORM and NodeTools
+    graph.node_tools = curr_nt
     graph.orm = curr_orm
 
     # Reset buffer cursor
