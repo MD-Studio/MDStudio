@@ -6,11 +6,11 @@
     "type": "object",
     "properties": {
 	"test_set" : {
-	    "type": "", 
+	    "type": "array", 
 	    "description": " test set to calculate similarity"
 	},
 	"reference_set": {
-	    "type": "",
+	    "type": "array",
 	    "description": "set to calculate similarity against"
 	},
 	"mol_format": {
@@ -35,7 +35,7 @@
 	    "default": "pybel"
 	},
 	"ci_cutoff": {
-	    "type": "",
+	    "type": "number",
 	    "description": "AP CI cutoff value"
 	}
 	
