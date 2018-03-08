@@ -5,54 +5,24 @@ file: wamp_services.py
 
 WAMP service methods the module exposes.
 """
-
-
-from autobahn.wamp.types import RegisterOptions
-from cerise_interface import (
+from lie_md.cerise_interface import (
     call_cerise_gromit, create_cerise_config)
-
-from lie_system import LieApplicationSession, WAMPTaskMetaData
-from lie_md.settings import SETTINGS
-from md_config import set_gromacs_input
-from pymongo import MongoClient
-from twisted.internet.defer import inlineCallbacks
-from twisted.logger import Logger
+from lie_md.md_config import set_gromacs_input
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
+import json
 import os
 
-logger = Logger()
 
-
-class MDWampApi(LieApplicationSession):
+class MDWampApi(ComponentSession):
     """
     Molecular dynamics WAMP methods.
     """
-    db = None
-    require_config = ['system']
-
-    def __init__(self, config, package_config=None, **kwargs):
-
-        super(MDWampApi, self).__init__(config, package_config, **kwargs)
-
-        if self.db is None:
-            host = os.getenv('MONGO_HOST', 'localhost')
-            self.db = MongoClient(
-                host=host, port=27017, serverSelectionTimeoutMS=1)['mdstudio']
-
-    @inlineCallbacks
-    def onRun(self, details):
-        """
-        Register WAMP MD simulation with support for `roundrobin` load
-        balancing.
-        """
-        # Register WAMP methods
-        yield self.register(
-            self.run_gromacs_liemd, u'liestudio.gromacs.liemd',
-            options=RegisterOptions(invoke=u'roundrobin'))
-
-    def run_gromacs_liemd(
-            self, session={}, path_cerise_config=None, cwl_workflow=None,
-            protein_file=None, protein_top=None, ligand_file=None,
-            topology_file=None, include=[], residues=None, **kwargs):
+    def authorize_request(self, uri, claims):
+        return True
+ 
+    @endpoint('liemd', 'liemd_request', 'liemd_response')
+    def run_gromacs_liemd(self, request, claims):
         """
         First it calls gromit to compute the Ligand-solute energies, then
         calls gromit to calculate the protein-ligand energies.
@@ -62,10 +32,15 @@ class MDWampApi(LieApplicationSession):
         http://cerise-client.readthedocs.io/en/master/index.html
 
         This function expects the following keywords files to call gromit:
+            * cerise_file
+            * protein_file (optional)
             * protein_top
             * ligand_file
             * topology_file
-            * protein_file (optional)
+            * residues
+
+        The cerise_file is the path to the file containing the configuration
+        information required to start a Cerise service.
 
         Further include files (e.g. *itp files) can be included as a list:
         include=[atom_types.itp, another_itp.itp]
@@ -78,57 +53,18 @@ class MDWampApi(LieApplicationSession):
         the method will perform a SOLVENT LIGAND MD if you provide the
         `protein_file` it will perform a PROTEIN-LIGAND MD.
         """
-        logger.info("starting liemd task_id:{}".format(session['task_id']))
-        workdir = kwargs.get('workdir', os.getcwd())
+        task_id = self.component_config.session.session_id
+        self.log.info("starting liemd task_id:{}".format(task_id))
 
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-        session['workdir'] = workdir
+        # Load GROMACS configuration
+        gromacs_config = set_gromacs_input(request)
 
-        # Load GROMACS configuration and update it
-        input_dict = {
-            'protein_file': protein_file, 'protein_top': protein_top,
-            'ligand_file': ligand_file, 'topology_file': topology_file,
-            'include': include, 'residues': residues}
-        input_dict.update(**kwargs)
-
-        gromacs_config = set_gromacs_input(
-            self.package_config.dict(), workdir, input_dict)
-
-        # Cerise Configuration
-        cerise_config = create_cerise_config(
-            path_cerise_config, session, cwl_workflow, protein_file)
-
+        # Load Cerise configuration
+        cerise_config = create_cerise_config(request)
         # Run the MD and retrieve the energies
         output = call_cerise_gromit(
-            gromacs_config, cerise_config, self.db['cerise'])
+            gromacs_config, cerise_config, self.db)
 
-        session['status'] = 'completed'
-
-        return {'session': session, 'output': output}
-
-
-def make(config):
-    """
-    Component factory
-
-    This component factory creates instances of the application component
-    to run.
-
-    The function will get called either during development using an
-    ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
-    a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
-    ComponentConfig class by default but any class specific keyword arguments
-    can be consument as well to populate the class session_config and
-    package_config dictionaries.
-
-    :param config: Autobahn ComponentConfig object
-    """
-
-    if config:
-        return MDWampApi(config, package_config=SETTINGS)
-    else:
-        # if no config given, return a description of this WAMPlet ..
-        return {'label': 'LIEStudio Molecular Dynamics WAMPlet',
-                'description': 'WAMPlet proving LIEStudio molecular dynamics endpoints'}
+        # status = 'failed' if output is None else 'completed'
+        # return {'status': status, 'output': output}
+        return {'output': {"random": 42}}

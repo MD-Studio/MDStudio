@@ -9,9 +9,9 @@ WAMP service methods the module exposes.
 from   autobahn               import wamp
 from   twisted.internet.defer import inlineCallbacks
 
-from   lie_system             import LieApplicationSession
+from   mdstudio             import BaseApplicationSession
 
-class ScriptRunnerWampApi(LieApplicationSession):
+class ScriptRunnerWampApi(BaseApplicationSession):
     """
     Script runner WAMP methods
     """
@@ -42,7 +42,7 @@ def make(config):
     The function will get called either during development using an 
     ApplicationRunner, or as a plugin hosted in a WAMPlet container such as
     a Crossbar.io worker.
-    The LieApplicationSession class is initiated with an instance of the
+    The BaseApplicationSession class is initiated with an instance of the
     ComponentConfig class by default but any class specific keyword arguments
     can be consument as well to populate the class session_config and
     package_config dictionaries.

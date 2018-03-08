@@ -7,213 +7,173 @@ WAMP service methods the module exposes.
 """
 
 import os
-import json
-import jsonschema
 
-from autobahn import wamp
-
-from lie_system import WAMPTaskMetaData
-from lie_structures.settings import STRUCTURES_SCHEMA
 from lie_structures.cheminfo_molhandle import (
      mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write, mol_combine_rotations)
 
-STRUCTURES_SCHEMA = json.load(open(STRUCTURES_SCHEMA))
+from mdstudio.api.endpoint import endpoint
+from mdstudio.component.session import ComponentSession
 
 
-class CheminfoMolhandleWampApi(object):
+class CheminfoMolhandleWampApi(ComponentSession):
     """
     Cheminformatics molecule handling WAMP API
     """
+    def authorize_request(self, uri, claims):
+        return True
 
-    @wamp.register(u'liestudio.structure.convert')
-    def convert_structures(self, session=None, **kwargs):
+    @staticmethod
+    def read_mol(config):
+        """Read molecular structure using `config` """
+
+        return mol_read(
+            config['mol'], mol_format=config['input_format'],
+            from_file=config['from_file'],
+            toolkit=config['toolkit'])
+
+    @endpoint('convert', 'convert_request', 'convert_response')
+    def convert_structures(self, request, claims):
         """
-        Convert input file format to a different format
+        Convert input file format to a different format. For a detailed
+        input description see the file:
+           lie_structures/schemas/endpoints/convert_request_v1.json
+        And for a detailed description of the output see:
+           lie_structures/schemas/endpoints/convert_response_v1.json
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session or {})
-
-        # Load configuration and update
-        config = self.package_config.lie_structures.dict()
-        config.update(kwargs)
-
-        # Validate against JSON schema
-        jsonschema.validate(config, STRUCTURES_SCHEMA)
-
-        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
+        molobject = self.read_mol(request)
 
         file_path = None
-        if 'workdir' in config:
-            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('output_format')))
+        if 'workdir' in request:
+            file_path = os.path.join(request['workdir'], 'structure.{0}'.format(request['output_format']))
 
-        output = mol_write(molobject, mol_format=config.get('output_format'), file_path=file_path)
+        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
 
         # Update session
-        session.status = 'completed'
+        status = 'completed'
 
-        return {'mol': output, 'session': session.dict()}
+        return {'mol': output, 'status': status}
 
-    @wamp.register(u'liestudio.structure.addh')
-    def addh_structures(self, session=None, **kwargs):
+    @endpoint('addh', 'addh_request', 'addh_response')
+    def addh_structures(self, request, claims):
         """
-        Add hydrogens to the input structure
+        Add hydrogens to the input structue. For a detailed
+        input description see the file:
+           lie_structures/schemas/endpoints/addh_request_v1.json
+        And for a detailed description of the output see:
+           lie_structures/schemaS/endpoints/addh_response_v1.json
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session or {}).dict()
-
-        # Load configuration and update
-        config = self.package_config.lie_structures.dict()
-        config.update(kwargs)
-
-        # Validate against JSON schema
-        jsonschema.validate(config, STRUCTURES_SCHEMA)
-
-        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
         molobject = mol_addh(
-            molobject,
-            polaronly=config.get('polaronly'),
-            correctForPH=config.get('correctForPH'),
-            pH=config.get('pH'))
+            self.read_mol(request),
+            polaronly=request['polaronly'],
+            correctForPH=request['correctForPH'],
+            pH=request['pH'])
 
-        file_path = None
-        if 'workdir' in config:
-            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('input_format')))
+        if 'workdir' in request:
+            file_path = os.path.join(request['workdir'], 'structure.{0}'.format(request['input_format']))
+        else:
+            file_path = None
 
-        output = mol_write(molobject, mol_format=config.get('output_format'), file_path=file_path)
-
-        # Update session
-        session['status'] = 'completed'
-
-        return {'mol': output, 'session': session}
-
-    @wamp.register(u'liestudio.structure.removeh')
-    def removeh_structures(self, session=None, **kwargs):
-        """
-        Remove hydrogens from the input structure
-        """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session or {}).dict()
-
-        # Load configuration and update
-        config = self.package_config.lie_structures.dict()
-        config.update(kwargs)
-
-        # Validate against JSON schema
-        jsonschema.validate(config, STRUCTURES_SCHEMA)
-
-        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
-        molobject = mol_removeh(molobject)
-
-        file_path = None
-        if 'workdir' in config:
-            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('input_format')))
-
-        output = mol_write(molobject, mol_format=config.get('output_format'), file_path=file_path)
+        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
 
         # Update session
-        session['status'] = 'completed'
+        status = 'completed'
 
-        return {'mol': output, 'session': session}
+        return {'mol': output, 'status': status}
 
-    @wamp.register(u'liestudio.structure.make3d')
-    def make3d_structures(self, session=None, **kwargs):
+    @endpoint('removeh', 'removeh_request', 'removeh_response')
+    def removeh_structures(self, request, claims):
         """
-        Convert 1D or 2D structure representation to 3D
+        Remove hydrogens from the input structure. For a detailed
+        input description see the file:
+           lie_structures/schemas/endpoints/removeh_request_v1.json
+        And for a detailed description of the output see:
+           lie_structures/schemas/endpoints/removeh_response_v1.json
         """
+        molobject = mol_removeh(self.read_mol(request))
 
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session or {})
+        file_path = None
+        if 'workdir' in request:
+            file_path = os.path.join(request['workdir'], 'structure.{0}'.format(request['input_format']))
 
-        # Load configuration and update
-        config = self.package_config.lie_structures.dict()
-        config.update(kwargs)
+        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
 
-        # Validate against JSON schema
-        jsonschema.validate(config, STRUCTURES_SCHEMA)
+        # Update session
+        status = 'completed'
 
-        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
+        return {'mol': output, 'status': status}
+
+    @endpoint('make3d', 'make3d_request', 'make3d_response')
+    def make3d_structures(self, request, claims):
+        """
+        Convert 1D or 2D structure representation to 3D.
+        For a detailed
+        input description see the file:
+          lie_structures/schemas/endpoints/make3d_request_v1.json
+        And for a detailed description of the output see:
+          lie_structures/schemas/endpoints/make3d_response_v1.json
+        """
         molobject = mol_make3D(
-            molobject,
-            forcefield=config.get('forcefield'),
-            localopt=config.get('localopt', True),
-            steps=config.get('steps', 50))
+            self.read_mol(request),
+            forcefield=request['forcefield'],
+            localopt=request['localopt'],
+            steps=request['steps'])
 
         file_path = None
-        if 'workdir' in config:
-            file_path = os.path.join(config.get('workdir'), 'structure.{0}'.format(config.get('input_format')))
+        if 'workdir' in request:
+            file_path = os.path.join(request['workdir'], 'structure.{0}'.format(request['input_format']))
 
-        output = mol_write(molobject, mol_format=config.get('output_format'), file_path=file_path)
+        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
 
         # Update session
-        session.status = 'completed'
+        status = 'completed'
 
-        return {'mol': output, 'session': session.dict()}
+        return {'mol': output, 'status': status}
 
-    @wamp.register(u'liestudio.structure.info')
-    def structure_attributes(self, session=None, **kwargs):
+    @endpoint('info', 'info_request', 'info_response')
+    def structure_attributes(self, request, claims):
         """
         Return common structure attributes
+        For a detailed input description see the file:
+          lie_structures/schemas/endpoints/info_request_v1.json
+
+        And for a detailed description of the output see:
+          lie_structures/schemas/endpoints/info_response_v1.json
         """
-
         # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session or {}).dict()
-
-        # Load configuration and update
-        config = self.package_config.lie_structures.dict()
-        config.update(kwargs)
-
-        # Validate against JSON schema
-        jsonschema.validate(config, STRUCTURES_SCHEMA)
-
-        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
+        molobject = self.read_mol(request)
         attributes = mol_attributes(molobject) or {}
 
         # Update session
-        session['status'] = 'completed'
-        attributes['session'] = session
+        status = 'completed'
 
-        return attributes
+        return {'status': status, 'attributes': attributes}
 
-    @wamp.register(u'liestudio.structure.rotate')
-    def rotate_structures(self, session=None, **kwargs):
+    @endpoint('rotate', 'rotate_request', 'rotate_response')
+    def rotate_structures(self, request, claims):
         """
-        Rotate the structure around an axis defined by x,y,z
+        Rotate the structure around an axis defined by x,y,z.
+        For a detailed input description see the file:
+          lie_structures/schemas/endpoints/rotate_request_v1.json
+
+        And for a detailed description of the output see:
+          lie_structures/schemas/endpoints/rotate_response_v1.json
+
         """
-
-        # Retrieve the WAMP session information
-        session = WAMPTaskMetaData(metadata=session).dict()
-
-        # Load configuration and update
-        config = self.package_config.lie_structures.dict()
-        config.update(kwargs)
-
-        # Validate against JSON schema
-        jsonschema.validate(config, STRUCTURES_SCHEMA)
-
         # Read in the molecule
-        molobject = mol_read(config['mol'], mol_format=config.get('input_format'),
-                             from_file=config.get('from_file', False), toolkit=config.get('toolkit', 'pybel'))
+        molobject = self.read_mol(request)
 
-        rotations = config.get('rotations')
+        rotations = request['rotations']
         if rotations:
-            output_file = mol_combine_rotations(molobject, rotations=rotations)
+            result = mol_combine_rotations(molobject, rotations=rotations)
 
-            if 'workdir' in config:
-                file_path = os.path.join(config.get('workdir'), 'rotations.mol2')
+            if 'workdir' in request:
+                file_path = os.path.join(request['workdir'], 'rotations.mol2')
                 with open(file_path, 'w') as otp:
-                    otp.write(output_file)
-                output_file = file_path
+                    otp.write(result)
+                output = file_path
+            status = 'completed'
+        else:
+            status = 'failed'
+            output = None
 
-            session['status'] = 'completed'
-            return {'session': session, 'mol': output_file}
-
-        session['status'] = 'failed'
-        return {'session': session}
+        return {'status': status, 'mol': output}

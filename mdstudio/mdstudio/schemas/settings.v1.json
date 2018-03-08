@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Settings",
+  "type": "object",
+  "properties": {
+    "static": {
+      "type": "object",
+      "properties": {
+        "vendor": {
+          "type": "string",
+          "format": ""
+        },
+        "component": {
+          "type": "string",
+          "format": ""
+        }
+      },
+      "required": [
+        "vendor",
+        "component"
+      ]
+    },
+    "session": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        }
+      }
+    },
+    "settings": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "static",
+    "session",
+    "settings"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "MoreRequest",
+  "type": "object",
+  "properties": {
+    "cursorId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "cursorId"
+  ],
+  "additionalProperties": false
+}

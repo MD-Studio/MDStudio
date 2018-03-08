@@ -20,6 +20,7 @@ in the graph. The nid itself can be any hasable object except None. Set auto_nid
 to True in the graph to ensure all added nodes are automatically assigned a unique
 auto incremented integer ID.
 
+
 ###Graph directionality
 A graph is undirected by default storing an two edges for every connected node,
 one in each direction.
@@ -33,12 +34,12 @@ For performance reasons, most of these will return node or edge IDs. New Graph
 object representing a node and/or edge selection can returned using one of the
 following Graph methods:
 
-* getnodes: return subgraph based on one or more nodes
-* getedges: return subgraph based on one or more edges
-* iternodes: iterate over nodes in the graph. Uses getnodes
-* iteredges: iterate over edges in the graph. Uses getedges
-* query_nodes: return subgraph based on a query over node attributes
-* query_edges: return subgraph based on a query over edge attributes
+ * getnodes: return subgraph based on one or more nodes
+ * getedges: return subgraph based on one or more edges
+ * iternodes: iterate over nodes in the graph. Uses getnodes
+ * iteredges: iterate over edges in the graph. Uses getedges
+ * query_nodes: return subgraph based on a query over node attributes
+ * query_edges: return subgraph based on a query over edge attributes
 
 The subgraphs returned by these methods are implemented as a dictionary view over
 the keys in the nodes and edges DictStorage objects.

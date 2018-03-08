@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/LIEStudio.iml" filepath="$PROJECT_DIR$/.idea/LIEStudio.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MDStudio.iml" filepath="$PROJECT_DIR$/.idea/MDStudio.iml" />
     </modules>
   </component>
 </project>
