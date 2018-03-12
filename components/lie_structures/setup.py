@@ -40,12 +40,10 @@ setup(
     platforms=['Any'],
     packages=find_packages(),
     py_modules=[distribution_name],
-    install_requires=['biopython', 'cinfony', 'openbabel',
+    install_requires=['biopython', 'cinfony', 'openbabel', 'pandas',
                       'pydpi', 'JPype1', 'Pillow', 'retrying'],
-    dependency_links=[
-        "git+https://github.com/cinfony/cinfony.git@master#egg=cinfony-1.2"
-    ],
     extras_require={'test': ['unittest2']},
+    dependency_links=["https://github.com/cinfony/cinfony/tarball/master#egg=cinfony"],
     include_package_data=True,
     zip_safe=True,
     classifiers=[

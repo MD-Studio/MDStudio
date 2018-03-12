@@ -237,11 +237,11 @@ class CinfonyPackageManager(collections.MutableMapping):
         # Try package import, report errors
         try:
             self[package] = importlib.import_module(package_name)
-        except ImportError, e:
+        except ImportError as e:
             logging.debug('Import error for package {0}: {1}'.format(package, e))
-        except SyntaxError, e:
+        except SyntaxError as e:
             logging.error('Syntax error on import of package {0}: {1}'.format(package, e))
-        except KeyError, e:
+        except KeyError as e:
             logging.error('Package {0}: not found.'.format(package))
         # except:
         #     logging.error('Unexpected error for package {0}: {1}'.format(package, sys.exc_info()[0]))
