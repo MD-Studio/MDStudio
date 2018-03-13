@@ -28,7 +28,7 @@ distribution_name = 'lie_md'
 setup(
     name=distribution_name,
     version=0.2,
-    description='LIEStudio molecular simulation module',
+    description='MDStudio molecular simulation module',
     author="""
     Marc van Dijk - VU University - Amsterdam
     Paul Visscher - Zefiros Software (www.zefiros.eu)

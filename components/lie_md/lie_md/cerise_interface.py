@@ -38,7 +38,7 @@ def create_cerise_config(input_session):
 
     return config
 
-@chainable
+
 def call_cerise_gromit(
         gromacs_config, cerise_config, cerise_db):
     """
@@ -65,9 +65,7 @@ def call_cerise_gromit(
         # srv_data = submit_new_job(
         #     srv, gromacs_config, cerise_config, cerise_db)
 
-    logger.info("BYE!!")
-    import sys
-    sys.exit()
+    return None
 
     # # is the job still running?
     # elif srv_data['job_state'] == 'Running':

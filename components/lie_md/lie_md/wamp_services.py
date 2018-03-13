@@ -20,7 +20,7 @@ class MDWampApi(ComponentSession):
     """
     def authorize_request(self, uri, claims):
         return True
- 
+
     @endpoint('liemd', 'liemd_request', 'liemd_response')
     def run_gromacs_liemd(self, request, claims):
         """
@@ -65,6 +65,6 @@ class MDWampApi(ComponentSession):
         output = call_cerise_gromit(
             gromacs_config, cerise_config, self.db)
 
-        # status = 'failed' if output is None else 'completed'
+        status = 'failed' if output is None else 'completed'
         # return {'status': status, 'output': output}
-        return {'output': {"random": 42}}
+        return {'status': status, 'output': {"random": 42}}
