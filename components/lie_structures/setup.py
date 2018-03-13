@@ -41,7 +41,7 @@ setup(
     packages=find_packages(),
     py_modules=[distribution_name],
     install_requires=['biopython', 'cinfony', 'openbabel', 'pandas',
-                      'pydpi', 'JPype1', 'Pillow', 'retrying'],
+                      'pydpi', 'JPype1', 'Pillow', 'retrying', 'scipy'],
     extras_require={'test': ['unittest2']},
     dependency_links=["https://github.com/cinfony/cinfony/tarball/master#egg=cinfony"],
     include_package_data=True,

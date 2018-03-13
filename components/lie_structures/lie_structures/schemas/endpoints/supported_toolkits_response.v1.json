@@ -11,7 +11,7 @@
 	    "enum": ["failed", "completed"]	
 	},
 	"toolkits": {
-	    "type": "object",
+	    "type": "array",
 	    "description": "Available bioinformatic package"
 	}
     },

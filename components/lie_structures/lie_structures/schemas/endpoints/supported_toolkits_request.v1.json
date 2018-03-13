@@ -3,5 +3,6 @@
     "id": "http://mdstudio/schemas/supported_toolkits_request.json",
     "title": "Supported toolkits input",
     "description": "Check what bioinformatics package are available",
-    "type": "null"
+    "type": "object",
+    "properties": {}
 }
