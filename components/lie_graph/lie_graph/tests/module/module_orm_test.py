@@ -91,16 +91,16 @@ class TestGraphORM(unittest2.TestCase):
         Test if all nodes are correctly mapped
         """
 
-        self.assertEqual(self.graph.orm.mapped_node_types.keys(), ['key'])
-        self.assertEqual(self.graph.orm.mapped_node_types.values()[0], ['nine', 'six'])
+        self.assertItemsEqual(self.graph.orm.mapped_node_types.keys(), ['key'])
+        self.assertItemsEqual(self.graph.orm.mapped_node_types.values()[0], ['nine', 'six'])
 
     def test_graph_orm_mapped_edges(self):
         """
         Test if all edges are correctly mapped
         """
 
-        self.assertEqual(self.graph.orm.mapped_edge_types.keys(), ['label'])
-        self.assertEqual(self.graph.orm.mapped_edge_types.values()[0], ['mo', 'bi'])
+        self.assertItemsEqual(self.graph.orm.mapped_edge_types.keys(), ['label'])
+        self.assertItemsEqual(self.graph.orm.mapped_edge_types.values()[0], ['mo', 'bi'])
 
     def test_graph_orm_node(self):
         """
