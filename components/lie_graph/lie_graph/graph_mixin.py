@@ -130,17 +130,6 @@ class NodeEdgeToolsBaseClass(object):
             self.set(key, value)
 
     @abc.abstractmethod
-    def nid(self):
-        """
-        Property returning the current node or edge ID.
-
-        This should return a single value as this property should only be
-        implemented on graphs having a single node or edge
-        """
-
-        return
-
-    @abc.abstractmethod
     def get(self, key=None, default=None, defaultattr=None):
         """
         Return node/edge value
@@ -169,6 +158,17 @@ class NodeEdgeToolsBaseClass(object):
         return
 
     @abc.abstractmethod
+    def nid(self):
+        """
+        Property returning the current node or edge ID.
+
+        This should return a single value as this property should only be
+        implemented on graphs having a single node or edge
+        """
+
+        return
+
+    @abc.abstractmethod
     def set(self, key, value):
         """
         Set node/edge key/value pair
@@ -181,6 +181,21 @@ class NodeEdgeToolsBaseClass(object):
         """
 
         return
+
+    def validate(self, key=None):
+        """
+        Validate the current node
+
+        Contains validation code for the data represented by the node.
+
+        :param key: key of specific key/value pair to validate
+        :type key:  :py:str
+
+        :return:    validation success
+        :rtype:     :py:bool
+        """
+
+        return True
 
 
 class NodeTools(NodeEdgeToolsBaseClass):
