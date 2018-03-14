@@ -26,7 +26,6 @@ These identifiers are usually coupled to classes in charge of data exchange
 by an object relations mapper such as the one used in the lie_graph package.
 """
 
-import collections
 import logging
 import sys
 
@@ -85,18 +84,20 @@ class RestraintsInterface(NodeTools):
         if key in target:
 
             if key == self.node_value_tag:
-                if isinstance(target[key], collections.Iterable):
+                if isinstance(target[key], (list, tuple)):
                     joined = ','.join([str(i) for i in target[key]])
                     return "'{0}'".format(joined)
 
-                logging.warning('RestraintsInterface get method expected an iterable, got {0}.'.format(type(target[key])))
-            return str(target[key])
+                if len(target[key]):
+                    logging.warning('RestraintsInterface get method expected an iterable, got {0}.'.format(type(target[key])))
+
+            return repr(target[key])
 
         return target.get(defaultattr, default)
 
     def set(self, key, value=None):
         """
-        Parse residue restraint definitions from a comma seperated string of
+        Parse residue restraint definitions from a comma separated string of
         integer values to a list
 
         :param key:     node key to set
