@@ -3,12 +3,18 @@ import uid
 from collections import OrderedDict
 
 from lie_topology.core.group import Group
+from lie_topology.core.uuid import UUIDGenerator
 
 class System(object):
 
-    def __init__(self, uid):
+    def __init__(self):
 
-        self._uid = uid
+        self._signature = uuid.uuid4()
+
+        self._atom_uuid     = UUIDGenerator()
+        self._molecule_uuid = UUIDGenerator()
+        self._group_uuid    = UUIDGenerator()
+
 
         self._groups = OrderedDict()
 
@@ -23,7 +29,7 @@ class System(object):
 
     def add_group(self):
 
-        uid = uuid.uuid4()
+        uid 
         group = Group(uid=uid)
         self._groups[uid] = group
 

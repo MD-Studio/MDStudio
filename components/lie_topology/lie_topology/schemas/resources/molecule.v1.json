@@ -13,9 +13,9 @@
             "minLength": 1,
             "maxLength": 4
         },
-        "reference": {
+        "reference_id": {
             "type": "integer",
-            "description": "reference number often used in structure formats"
+            "description": "reference id number often used in structure formats"
         },
         "atoms": {
             "type": "array",

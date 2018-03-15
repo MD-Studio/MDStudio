@@ -53,7 +53,7 @@ class TopologyComponent(ComponentSession):
         return request
 
     def on_run(self):
-        call_later(2, self.is_alive)
+        call_later(2, self.is_debug)
         print('Waiting a few seconds for things to start up')
 
     def authorize_request(self, uri, claims):
@@ -61,25 +61,14 @@ class TopologyComponent(ComponentSession):
         return True
 
     @chainable
-    def is_alive(self):
-        send_time = now()
-        response = yield self.call('mdgroup.topology.endpoint.test-response', {
-            'message': {
-                'greeting': 'Hello World!',
-                'sendTime': send_time
-            }
-        })
-        response['returnTime'] = return_time = from_utc_string(response['returnTime'])
-        receive_time = now()
-        self.report_delay('Component -> User', receive_time - return_time)
-        self.report_delay('Total', receive_time - send_time)
+    def is_debug(self):
 
-        response2 = yield self.call('mdgroup.topology.endpoint.parse-structure', {
+        response = yield self.call('mdgroup.topology.endpoint.parse-structure', {
             "format": "pdb",
             "data": ""
         })
 
-        self.log.info('debug_sytem {sys:s}', sys=str(response2["system"]))
+        self.log.info('debug_sytem {sys:s}', sys=str(response["system"]))
 
 
     def report_delay(self, direction, delay):
