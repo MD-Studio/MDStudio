@@ -10,15 +10,40 @@ A .web format defines data blocks containing key, value pairs or Array data
 as hierarchically nested blocks enclosed using braces '(' and '),' and indented
 for visual clarity.
 
-Every data item in the format is written on a new line and is either a single
-item usually combined into an array like:
+Every data item in the format is written on a new line and is either a
+traditional key, value pair as: 'key = value,' or a single that are together
+combined into an array like:
 
     key = FloatArray (
         1.0,
         2.0,
     )
 
-or a key, value pair as: 'key = value,'.
+Key, value pairs and array type data structures can be freely combined such as
+in:
+
+    c2segments = LabeledRangePairArray (
+        LabeledRangePair (
+            r = LabeledRangeArray (
+                LabeledRange (
+                    start = 1,
+                    end = 12,
+                    chain = 'A',
+                ),
+                LabeledRange (
+                    start = 1,
+                    end = 12,
+                    chain = 'B',
+                ),
+            ),
+        ),
+    ),
+
+The data inside a LabeledRange are key, value pairs but LabeledRange and also
+LabeledRangePair are array types. The latter two are stored as nodes in the
+graph and are automatically assigned a key as "itemX" where X is an incremented
+integer.
+
 The type of any piece of data is loosely defined by a type identifier in front
 of every new data block that closely reassembles a Python style class name.
 The 'FloatArray' identifier in the expression above would be an example.
@@ -112,14 +137,12 @@ class RestraintsInterface(NodeTools):
 
             if isinstance(value, (str, unicode)):
                 value = [int(n) for n in value.strip("'").split(',') if n]
-
             assert all([isinstance(n, int) for n in value])
 
         self.nodes[self.nid][key] = value
 
 
-def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_tag=None,
-             auto_parse_format=False, array_to_nodes=True):
+def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, edge_key_tag=None, auto_parse_format=False):
     """
     Import hierarchical data structures defined in the Spider .web format
 
@@ -139,8 +162,6 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
     :type edge_key_tag:       :py:str
     :param auto_parse_format: automatically detect basic format types
     :type auto_parse_format:  :py:bool
-    :param array_to_nodes:    store Array type items as nodes instead of a list
-    :type array_to_nodes:     :py:bool
 
     :return:                  Graph object
     :rtype:                   :lie_graph:Graph
@@ -156,12 +177,12 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
     if edge_key_tag:
         graph.edge_key_tag = edge_key_tag
 
-    # Buid ORM with format specific conversion classes
+    # Build .web parser ORM with format specific conversion classes
     weborm = GraphORM()
     weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'activereslist'})
     weborm.map_node(RestraintsInterface, {graph.node_key_tag: 'passivereslist'})
 
-    # Set current ORM aside and register new one.
+    # Set current ORM aside and register parser ORM.
     curr_orm = graph.orm
     graph.orm = weborm
 
@@ -173,6 +194,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
     curr_obj_nid = None
     object_open_tags = 0
     object_close_tags = 0
+    array_key_counter = 1
     array_store = []
     for i, line in enumerate(web_file.readlines()):
         line = line.strip()
@@ -183,21 +205,25 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
 
                 # Process data
                 meta_data = [n.strip() for n in line.strip('(').split('=', 1)]
-                ddict = {orm_data_tag: meta_data[-1]}
-                if len(ddict) > 1:
-                    ddict[node_key_tag] = ddict[0]
+                ddict = {orm_data_tag: meta_data[-1], 'is_array': False}
+                if len(meta_data) > 1:
+                    node_key = meta_data[0]
+                else:
+                    node_key = 'item{0}'.format(array_key_counter)
+                    ddict['is_array'] = True
+                    array_key_counter += 1
 
                 # Clear the array store
                 array_store = []
 
                 # First object defines graph root
                 if graph.empty():
-                    curr_obj_nid = graph.add_node(meta_data[0], **ddict)
+                    curr_obj_nid = graph.add_node(node_key, **ddict)
                     graph.root = curr_obj_nid
 
                 # Add new object as child of current object
                 else:
-                    child_obj_nid = graph.add_node(meta_data[0], **ddict)
+                    child_obj_nid = graph.add_node(node_key, **ddict)
                     graph.add_edge(curr_obj_nid, child_obj_nid)
                     curr_obj_nid = child_obj_nid
 
@@ -209,7 +235,11 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
                 # If there is data in the array store, add it to node
                 if len(array_store):
                     array_node = graph.getnodes(curr_obj_nid)
+                    array_node.is_array = True
                     array_node.set(graph.node_value_tag, array_store)
+
+                # Reset array key counter
+                array_key_counter = 1
 
                 # Move one level up the object three
                 curr_obj_nid = node_parent(graph, curr_obj_nid, graph.root)
@@ -219,7 +249,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
             else:
 
                 # Parse key,value pairs and add as leaf node
-                params = [n.strip() for n in line.strip(',').split('=', 1)]
+                params = [n.strip() for n in line.rstrip(',').split('=', 1)]
                 params = [n.strip("'") for n in params]
                 if auto_parse_format:
                     params = [autoformat.parse(v) for v in params]
@@ -235,14 +265,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
                 elif len(params) == 1:
 
                     # Store array items as nodes
-                    if array_to_nodes:
-                        leaf_nid = graph.add_node('array_item_{0}'.format(i))
-                        graph.add_edge(curr_obj_nid, leaf_nid)
-
-                        leaf_node = graph.getnodes(leaf_nid)
-                        leaf_node.set(graph.node_value_tag, params[0])
-                    else:
-                        array_store.extend(params)
+                    array_store.extend(params)
 
                 else:
                     logging.warning('Unknown .web data formatting on line: {0}, {1}'.format(i, line))
@@ -258,7 +281,7 @@ def read_web(web, graph=None, orm_data_tag='type', node_key_tag=None, edge_key_t
     return graph
 
 
-def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2, root_nid=None,):
+def write_web(graph, orm_data_tag='haddock_type', node_key_tag=None, indent=2, root_nid=None,):
     """
     Export a graph in Spyder .web format
 
@@ -312,10 +335,10 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2, root_nid=
     def _walk_dict(node, indent_level):
 
         # First, collect all leaf nodes and write
-        for leaf in [n for n in node.children() if n.isleaf]:
+        for leaf in [n for n in node.children(include_self=True) if n.isleaf]:
 
             # Format 'Array' types when they are list style leaf nodes
-            if 'Array' in leaf.get(orm_data_tag, ''):
+            if leaf.get('is_array', False):
                 string_buffer.write('{0}{1} = {2} (\n'.format(' ' * indent_level,
                                                              leaf.get(node_key_tag),
                                                              leaf.get(orm_data_tag)))
@@ -336,29 +359,27 @@ def write_web(graph, orm_data_tag='type', node_key_tag=None, indent=2, root_nid=
         for child in [n for n in node.children() if not n.isleaf]:
 
             # Write block header
-            string_buffer.write('{0}{1} = {2} (\n'.format(' ' * indent_level,
-                                                          child.get(node_key_tag),
-                                                          child.get(orm_data_tag)))
+            key = ''
+            if not child.get('is_array', False):
+                key = '{0} = '.format(child.get(node_key_tag))
+            string_buffer.write('{0}{1}{2} (\n'.format(' ' * indent_level, key, child.get(orm_data_tag)))
 
-            # Indent new data block one level down
+            # Indent new data block one level down and walk children
             indent_level += indent
-
-            # Format 'Array' types when items are stored as nodes
-            if 'Array' in child.get(orm_data_tag, ''):
-                for array_type in child.children():
-                    string_buffer.write('{0}{1},\n'.format(' ' * indent_level,
-                                                           array_type.get(node_value_tag)))
-            else:
-                _walk_dict(child, indent_level)
+            _walk_dict(child, indent_level)
 
             # Close data block and indent one level up
             indent_level -= indent
             string_buffer.write('{0}),\n'.format(' ' * indent_level))
 
     rootnode = graph.getnodes(root_nid)
-    string_buffer.write('{0} (\n'.format(rootnode.get(orm_data_tag)))
-    _walk_dict(rootnode, indent)
-    string_buffer.write(')\n')
+
+    if rootnode.isleaf:
+        _walk_dict(rootnode, 0)
+    else:
+        string_buffer.write('{0} (\n'.format(rootnode.get(orm_data_tag)))
+        _walk_dict(rootnode, indent)
+        string_buffer.write(')\n')
 
     # Restore original ORM and NodeTools
     graph.node_tools = curr_nt
