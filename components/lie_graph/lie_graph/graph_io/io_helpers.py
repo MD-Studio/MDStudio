@@ -218,6 +218,8 @@ class FormatDetect(object):
     Type cast string or unicode objects to float, integer or boolean.
 
     Uses localization to identify
+
+    TODO: comma separated strings fail if one comma
     """
 
     def __init__(self, set_locale='en_US.UTF-8', decimal_point=None, thousands_sep=None):
@@ -273,6 +275,10 @@ class FormatDetect(object):
         value = self.to_string(value)
         unicode_cats = [unicodedata.category(i)[0] for i in value]
 
+        # Comma seperated string
+        if value.count(self.thousands_sep) > 1:
+            return self.to_string(value)
+
         # first try to convert unicode to float
         try:
             parsed = locale.atof(value)
@@ -292,7 +298,7 @@ class FormatDetect(object):
 
         # Try convert unicode to integer
         try:
-            parsed = locale.atoi(value)
+            parsed = self.to_integer(value)
         except ValueError:
             parsed = value
 
