@@ -4,16 +4,15 @@ from collections import defaultdict
 from os.path import join
 from retrying import retry
 from time import sleep
-from mdstudio.deferred.chainable import chainable
-from twisted.logger import Logger
 import cerise_client.service as cc
 import docker
 import hashlib
 import json
+import logging
 import os
 
 # initialized twisted logger
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 def create_cerise_config(input_session):
@@ -55,8 +54,10 @@ def call_cerise_gromit(
     """
     logger.info("Searching for pending jobs in DB")
 
-    srv_data = yield retrieve_service_from_db(
+    srv_data = retrieve_service_from_db(
         cerise_config, gromacs_config, cerise_db)
+
+    print(srv_data)
 
     if srv_data['result'] is None:
         logger.info("There are no pending jobs!")
@@ -65,8 +66,11 @@ def call_cerise_gromit(
         # srv_data = submit_new_job(
         #     srv, gromacs_config, cerise_config, cerise_db)
 
-    return None
+        return srv
 
+    else:
+        return None
+    
     # # is the job still running?
     # elif srv_data['job_state'] == 'Running':
     #     restart_srv_job(srv_data)

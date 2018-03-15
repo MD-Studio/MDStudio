@@ -61,9 +61,16 @@ class MDWampApi(ComponentSession):
 
         # Load Cerise configuration
         cerise_config = create_cerise_config(request)
+
+        with open("cerise.json", "w") as f:
+            json.dump(cerise_config, f)
+
         # Run the MD and retrieve the energies
         output = call_cerise_gromit(
             gromacs_config, cerise_config, self.db)
+
+        with open("output.json", "w") as f:
+            json.dump(output, f)
 
         status = 'failed' if output is None else 'completed'
         # return {'status': status, 'output': output}

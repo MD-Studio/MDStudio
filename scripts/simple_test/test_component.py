@@ -1,8 +1,9 @@
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
 from os.path import join
-import shutil
+import json
 import os
+import shutil
 
 residues = [28, 29, 65, 73, 74]
 workdir = "/tmp/mdstudio"
