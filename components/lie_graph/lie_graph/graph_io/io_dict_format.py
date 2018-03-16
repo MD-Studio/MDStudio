@@ -123,7 +123,8 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
             target_dict[node.get(keystring)] = node.get(valuestring, default=default)
         else:
             target_dict[node.get(keystring)] = {}
-            for child in node.children():
+            for cid in node.children(return_nids=True):
+                child = node.getnodes(cid)
                 _walk_dict(child, target_dict[node.get(keystring)])
 
     # Include root node

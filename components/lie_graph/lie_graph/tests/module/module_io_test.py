@@ -37,6 +37,8 @@ class WebParserTest(unittest2.TestCase):
     """
     Unit tests for parsing Spider serialized data structures (.web format)
     """
+
+    web_file = os.path.join(FILEPATH, 'graph.web')
     tempfiles = []
 
     def tearDown(self):
@@ -54,12 +56,11 @@ class WebParserTest(unittest2.TestCase):
         Test import of format
         """
 
-        web_file = os.path.join(FILEPATH, 'graph.web')
-        graph = read_web(web_file, array_to_nodes=False)
+        graph = read_web(self.web_file)
 
         # Default graph attributes set
-        self.assertEqual(len(graph), 615)
-        self.assertEqual(len(graph.edges), 1228)
+        self.assertEqual(len(graph), 694)
+        self.assertEqual(len(graph.edges), 1386)
         self.assertEqual(graph.is_directed, False)
         self.assertEqual(graph_directionality(graph), 'undirectional')
         self.assertEqual(graph.root, 1)
@@ -80,8 +81,7 @@ class WebParserTest(unittest2.TestCase):
         Test import of format with automatic parsing of data types
         """
 
-        web_file = os.path.join(FILEPATH, 'graph.web')
-        graph = read_web(web_file, auto_parse_format=True, array_to_nodes=False)
+        graph = read_web(self.web_file, auto_parse_format=True)
 
         self.assertTrue(isinstance(graph.query_nodes({'key': 'ntrials'}).value, int))
         self.assertTrue(isinstance(graph.query_nodes({'key': 'rotate180_0'}).value, bool))
@@ -97,10 +97,9 @@ class WebParserTest(unittest2.TestCase):
         Test import of format with custom ORM classes
         """
 
-        web_file = os.path.join(FILEPATH, 'graph.web')
         web = GraphAxis()
         web.orm.map_node(FloatArray, {'type': 'FloatArray'})
-        web = read_web(web_file, graph=web, array_to_nodes=False)
+        web = read_web(self.web_file, graph=web)
 
         for node in web.query_nodes({'type': 'FloatArray'}):
             self.assertTrue(all([isinstance(n, str) for n in node.get()]))
@@ -110,8 +109,7 @@ class WebParserTest(unittest2.TestCase):
         Test export of format
         """
 
-        web_file = os.path.join(FILEPATH, 'graph.web')
-        graph = read_web(web_file, auto_parse_format=True)
+        graph = read_web(self.web_file, auto_parse_format=True)
 
         # Export graph as TGF to file
         web = write_web(graph)
