@@ -15,8 +15,7 @@ from lie_graph.graph_io.io_tgf_format import read_tgf, write_tgf
 from lie_graph.graph_io.io_json_format import read_json, write_json
 from lie_graph.graph_io.io_dict_format import read_dict, write_dict
 from lie_graph.graph_io.io_web_format import read_web, write_web
-
-from lie_graph.graph_io.io_jsonschema_format import JSONSchemaParser
+from lie_graph.graph_io.io_jsonschema_format import read_json_schema
 
 FILEPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files/'))
 
@@ -327,7 +326,6 @@ class DictParserTest(unittest2.TestCase):
         self.assertDictEqual(export, result)
 
 
-
 class JSONSchemaParserTests(unittest2.TestCase):
 
     def test_jsonschema_import(self):
@@ -336,15 +334,7 @@ class JSONSchemaParserTests(unittest2.TestCase):
         """
 
         schema = os.path.join(FILEPATH, 'jsonschema1.json',)
-        parser = JSONSchemaParser(schema)
-        #
-        # for e in parser.graph:
-        #     print(e.key, e.value, e.nid)
-        #
-        # # Setting wrong type should raise error
-        # d = parser.graph.query_nodes({'key': 'dtend'})
-        # self.assertRaises(ValueError, d.set, 'key', 3)
+        graph = read_json_schema(schema)
 
-        # import pprint
-        # pp = pprint.PrettyPrinter()
-        # pp.pprint(graph_to_dict(parser.graph, keystring='key', valuestring='value'))
+        f = graph.query_nodes(key='fstype')
+        f.set('value', 'ff')
