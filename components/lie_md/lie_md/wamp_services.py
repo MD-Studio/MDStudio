@@ -10,8 +10,8 @@ from lie_md.cerise_interface import (
 from lie_md.md_config import set_gromacs_input
 from mdstudio.api.endpoint import endpoint
 from mdstudio.component.session import ComponentSession
+from os.path import join
 import json
-import os
 
 
 class MDWampApi(ComponentSession):
@@ -62,15 +62,12 @@ class MDWampApi(ComponentSession):
         # Load Cerise configuration
         cerise_config = create_cerise_config(request)
 
-        with open("cerise.json", "w") as f:
+        with open(join(request['workdir'], "cerise.json"), "w") as f:
             json.dump(cerise_config, f)
 
         # Run the MD and retrieve the energies
         output = call_cerise_gromit(
             gromacs_config, cerise_config, self.db)
-
-        with open("output.json", "w") as f:
-            json.dump(output, f)
 
         status = 'failed' if output is None else 'completed'
         # return {'status': status, 'output': output}
