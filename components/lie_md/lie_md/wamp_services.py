@@ -67,7 +67,7 @@ class MDWampApi(ComponentSession):
 
         # Run the MD and retrieve the energies
         output = call_cerise_gromit(
-            gromacs_config, cerise_config, self.db)
+            gromacs_config, cerise_config, self.db['mdstudio'])
 
         status = 'failed' if output is None else 'completed'
         # return {'status': status, 'output': output}

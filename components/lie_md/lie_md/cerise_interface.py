@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from mdstudio.deferred.chainable import chainable
+from mdstudio.utc import now
 from os.path import join
 from retrying import retry
 from time import sleep
@@ -30,6 +31,9 @@ def create_cerise_config(input_session):
     protein_file = input_session['protein_file']
     config['cwl_workflow'] = choose_cwl_workflow(protein_file)
     config['log'] = join(input_session['workdir'], 'cerise.log')
+    config['workdir'] = input_session['workdir']
+    time = now().isoformat()
+    config['task_id'] = time
 
     return config
 
@@ -210,7 +214,7 @@ def update_srv_info_at_db(srv_data, cerise_db):
     Update the service-job data store in the `cerise_db`.
     """
     query = {'ligand_md5': srv_data['ligand_md5']}
-    cerise_db.update_one(query, {"$set": srv_data})
+    cerise_db.update_one('cerise', query, {"$set": srv_data})
 
 
 def collect_srv_data(
@@ -343,7 +347,7 @@ def cleanup(job, srv, cerise_db, remove_job_from_db=False):
 def remove_srv_job_from_db(srv, job_id, cerise_db):
     """
     Remove the service and job information from DB
-    """
+     """
     query = {'job_id': job_id}
     cerise_db.delete_one(query)
     print('Removed job: {} from database'.format(job_id))
@@ -359,7 +363,7 @@ def try_to_close_service(srv_data, cerise_db):
 
         # Search for other running jobs
         query = {'username': srv_data['username'], 'job_state': 'Running'}
-        counts = cerise_db.find(query).count()
+        counts = cerise_db.count('cerise', query)
 
         if counts == 0:
             print("Shutting down Cerise-client service")
