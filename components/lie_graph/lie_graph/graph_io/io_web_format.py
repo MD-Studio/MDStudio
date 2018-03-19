@@ -53,10 +53,11 @@ by an object relations mapper such as the one used in the lie_graph package.
 
 import logging
 import sys
+import json
 
 from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_axis.graph_axis_methods import node_parent
-from lie_graph.graph_io.io_helpers import open_anything, FormatDetect, resolve_root_node
+from lie_graph.graph_io.io_helpers import open_anything, resolve_root_node
 from lie_graph.graph_helpers import GraphException
 from lie_graph.graph_mixin import NodeTools
 from lie_graph.graph_orm import GraphORM
@@ -71,7 +72,7 @@ class WebNodeTools(NodeTools):
 
     def get(self, key=None, default=None, defaultattr=None):
         """
-        Serialize all string/unicode values as quoted strings
+        Serialize all string/unicode values as single quoted strings
         """
 
         key = key or self.node_value_tag
@@ -79,7 +80,7 @@ class WebNodeTools(NodeTools):
 
         if key in target:
             if key == self.node_value_tag and isinstance(target[key], (str, unicode)):
-                return "'{0}'".format(target[key])
+                return "'{0}'".format(json.dumps(target[key]).strip('"'))
             return target[key]
 
         return target.get(defaultattr, default)
@@ -115,8 +116,9 @@ class RestraintsInterface(NodeTools):
 
                 if len(target[key]):
                     logging.warning('RestraintsInterface get method expected an iterable, got {0}.'.format(type(target[key])))
+                return "''"
 
-            return repr(target[key])
+            return target[key]
 
         return target.get(defaultattr, default)
 
@@ -142,7 +144,37 @@ class RestraintsInterface(NodeTools):
         self.nodes[self.nid][key] = value
 
 
-def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, edge_key_tag=None, auto_parse_format=False):
+def json_decode_params(param):
+    """
+    JSON based decoding of .web parameters
+
+    :param param:  parameter to decode
+    :type param:   :py:str
+    """
+
+    # Return empty string
+    if not len(param):
+        return param
+
+    # Convert single quoted to double quoted string
+    elif param.startswith("'") and param.endswith("'"):
+        param = '"{0}"'.format(param.strip("'"))
+
+    # Convert False and True to lower case
+    elif param in ('True', 'False'):
+        param = param.lower()
+
+    # JSON decode
+    try:
+        param = json.loads(param, encoding='utf8')
+    except ValueError, e:
+        logging.error('Unable to JSON decode parameter: {0}'.format(param))
+
+    return param
+
+
+def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, edge_key_tag=None,
+             auto_parse_format=True):
     """
     Import hierarchical data structures defined in the Spider .web format
 
@@ -160,7 +192,7 @@ def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, ed
     :type node_key_tag:       :py:str
     :param edge_key_tag:      data key to use for parsed edge labels.
     :type edge_key_tag:       :py:str
-    :param auto_parse_format: automatically detect basic format types
+    :param auto_parse_format: automatically detect basic format types using JSON decoding
     :type auto_parse_format:  :py:bool
 
     :return:                  Graph object
@@ -185,11 +217,6 @@ def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, ed
     # Set current ORM aside and register parser ORM.
     curr_orm = graph.orm
     graph.orm = weborm
-
-    # Auto-convert format types
-    if auto_parse_format:
-        autoformat = FormatDetect()
-        logging.info('Init automatic format conversion')
 
     curr_obj_nid = None
     object_open_tags = 0
@@ -250,22 +277,27 @@ def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, ed
 
                 # Parse key,value pairs and add as leaf node
                 params = [n.strip() for n in line.rstrip(',').split('=', 1)]
-                params = [n.strip("'") for n in params]
-                if auto_parse_format:
-                    params = [autoformat.parse(v) for v in params]
 
                 if '=' in line and len(params) == 2:
                     leaf_nid = graph.add_node(params[0])
                     graph.add_edge(curr_obj_nid, leaf_nid)
 
+                    value = params[1]
+                    if auto_parse_format:
+                        value = json_decode_params(params[1])
+
                     leaf_node = graph.getnodes(leaf_nid)
-                    leaf_node.set(graph.node_value_tag, params[1])
+                    leaf_node.set(graph.node_value_tag, value)
 
                 # Parse single values as array data
                 elif len(params) == 1:
 
+                    value = params[0]
+                    if auto_parse_format:
+                        value = json_decode_params(params[0])
+
                     # Store array items as nodes
-                    array_store.extend(params)
+                    array_store.append(value)
 
                 else:
                     logging.warning('Unknown .web data formatting on line: {0}, {1}'.format(i, line))
@@ -334,11 +366,11 @@ def write_web(graph, orm_data_tag='haddock_type', node_key_tag=None, indent=2, r
     # Traverse node hierarchy
     def _walk_dict(node, indent_level):
 
-        # First, collect all leaf nodes and write
-        for leaf in [n for n in node.children(include_self=True) if n.isleaf]:
+        # First, collect all leaf nodes and write. Sort according to 'key'
+        for leaf in sorted([n for n in node.children(include_self=True) if n.isleaf], key=lambda obj: obj.key):
 
             # Format 'Array' types when they are list style leaf nodes
-            if leaf.get('is_array', False):
+            if leaf.get('is_array', False) or leaf.get('type') == 'array':
                 string_buffer.write('{0}{1} = {2} (\n'.format(' ' * indent_level,
                                                              leaf.get(node_key_tag),
                                                              leaf.get(orm_data_tag)))
@@ -360,7 +392,7 @@ def write_web(graph, orm_data_tag='haddock_type', node_key_tag=None, indent=2, r
 
             # Write block header
             key = ''
-            if not child.get('is_array', False):
+            if not child.get('is_array', False) or child.get('type') == 'array':
                 key = '{0} = '.format(child.get(node_key_tag))
             string_buffer.write('{0}{1}{2} (\n'.format(' ' * indent_level, key, child.get(orm_data_tag)))
 

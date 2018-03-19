@@ -16,6 +16,7 @@ from lie_graph.graph_io.io_json_format import read_json, write_json
 from lie_graph.graph_io.io_dict_format import read_dict, write_dict
 from lie_graph.graph_io.io_web_format import read_web, write_web
 from lie_graph.graph_io.io_jsonschema_format import read_json_schema
+from lie_graph.graph_io.io_jsonschema_format_drafts import GraphValidationError
 
 FILEPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../files/'))
 
@@ -55,7 +56,7 @@ class WebParserTest(unittest2.TestCase):
         Test import of format
         """
 
-        graph = read_web(self.web_file)
+        graph = read_web(self.web_file, auto_parse_format=False)
 
         # Default graph attributes set
         self.assertEqual(len(graph), 694)
@@ -77,10 +78,10 @@ class WebParserTest(unittest2.TestCase):
 
     def test_format_import_autoformatparse(self):
         """
-        Test import of format with automatic parsing of data types
+        Test import of format with automatic parsing of data types (default)
         """
 
-        graph = read_web(self.web_file, auto_parse_format=True)
+        graph = read_web(self.web_file)
 
         self.assertTrue(isinstance(graph.query_nodes({'key': 'ntrials'}).value, int))
         self.assertTrue(isinstance(graph.query_nodes({'key': 'rotate180_0'}).value, bool))
@@ -108,7 +109,7 @@ class WebParserTest(unittest2.TestCase):
         Test export of format
         """
 
-        graph = read_web(self.web_file, auto_parse_format=True)
+        graph = read_web(self.web_file)
 
         # Export graph as TGF to file
         web = write_web(graph)
@@ -120,7 +121,7 @@ class WebParserTest(unittest2.TestCase):
         self.assertTrue(os.path.isfile(outfile))
 
         # Import again and compare source graph
-        graph1 = read_web(outfile, auto_parse_format=True)
+        graph1 = read_web(outfile)
         self.assertEqual(len(graph), len(graph1))
         self.assertEqual(len(graph.edges), len(graph1.edges))
 
@@ -336,5 +337,6 @@ class JSONSchemaParserTests(unittest2.TestCase):
         schema = os.path.join(FILEPATH, 'jsonschema1.json',)
         graph = read_json_schema(schema)
 
-        f = graph.query_nodes(key='fstype')
-        f.set('value', 'ff')
+        # Test "enum" validation keyword
+        node = graph.query_nodes(key='fstype')
+        self.assertRaises(GraphValidationError, node.set, 'value', 'ff')
