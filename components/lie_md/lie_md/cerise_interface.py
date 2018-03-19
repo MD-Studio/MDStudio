@@ -49,7 +49,7 @@ def call_cerise_gromit(
     for the simulation.
     :param cerise_config: dict containing the settings to create
     and call a cerise-client process.
-    :param cerise_db: MongoDB collection to keep the information
+    :param cerise_db: MongoDB db to keep the information
     related to the Cerise services and jobs.
     :returns: Dict with the output paths.
     """
@@ -57,6 +57,8 @@ def call_cerise_gromit(
 
     srv_data = yield retrieve_service_from_db(
         cerise_config, gromacs_config, cerise_db)
+
+    print("service ", srv_data)
 
     if srv_data['result'] is None:
         print("There are no pending jobs!")
@@ -76,6 +78,8 @@ def call_cerise_gromit(
     # Simulation information including cerise data
     sim_dict = extract_simulation_info(
         srv_data, cerise_config, cerise_db)
+
+    print("results ", sim_dict)
 
     # Shutdown Service if there are no other jobs running
     try_to_close_service(srv_data, cerise_db)
