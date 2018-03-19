@@ -7,6 +7,7 @@ NodeTools and EdgeTools classes for axis based graphs (GraphAxis class)
 """
 
 from lie_graph.graph_mixin import NodeTools, EdgeTools
+from lie_graph.graph_algorithms import dijkstra_shortest_path
 
 
 class NodeAxisTools(NodeTools):
@@ -44,6 +45,27 @@ class NodeAxisTools(NodeTools):
 
         for child in self.children(return_nids=True):
             yield self.getnodes(child)
+
+    def path(self, key=None, sep="."):
+        """
+        Build a breadcrumb (path) trail from the root node to the
+        current node.
+
+        :param key: parameter key to build breadcrumb path from
+        :type key:  :py:str
+        :param sep: breadcrumb path seperator character
+        :type sep:  :py:str
+
+        :return:    breadcrumb path
+        :rtype:     :py:str
+        """
+
+        key = key or self.node_key_tag
+
+        shortest_path = dijkstra_shortest_path(self, self.root, self.nid)
+        breadcrumbs = [str(self._full_graph.nodes[nid][key]) for nid in shortest_path]
+
+        return sep.join(breadcrumbs)
 
 
 class EdgeAxisTools(EdgeTools):

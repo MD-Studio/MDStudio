@@ -12,6 +12,7 @@ import unittest2
 from lie_graph.graph_helpers import GraphException
 from lie_graph.graph_io.io_json_format import read_json
 from lie_graph.graph_axis.graph_axis_methods import *
+from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools
 
 
 class GraphAxisChildrenTests(unittest2.TestCase):
@@ -819,3 +820,27 @@ class GraphAxisRootTests(unittest2.TestCase):
         # If root not defined, raise exception
         self.graph.root = None
         self.assertRaises(GraphException, self.graph.children)
+
+
+class GraphAxisNodeToolsTests(unittest2.TestCase):
+    currpath = os.path.dirname(__file__)
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+
+    def setUp(self):
+        """
+        Graph axis test class setup
+
+        Load graph from graph_axis.json in JSON format
+        """
+
+        self.graph = read_json(self._axis_graph)
+        self.graph.node_tools = NodeAxisTools
+
+    def test_axis_node_tools_path(self):
+        """
+        Test breadcrumb path generation
+        """
+
+        node = self.graph.getnodes(21)
+
+        self.assertEqual(node.path(key='_id'), '1.11.15.20.21')
