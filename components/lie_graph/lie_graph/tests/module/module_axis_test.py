@@ -114,6 +114,20 @@ class GraphAxisChildrenTests(unittest2.TestCase):
         self.graph.remove_edge((29, 27), directed=True)
         self.assertEqual(self.graph.children(27, return_nids=True), [24, 28, 29])
 
+    def test_axis_method_one_node(self):
+        """
+        Test axis method containing only one node.
+        Should not include NodeTools
+        """
+
+        sub = self.graph.getnodes(9)
+
+        self.assertEqual(len(sub), 1)
+        self.assertItemsEqual(list(sub), [sub])
+
+        for n in sub:
+            self.assertEqual(n, sub)
+
 
 class GraphAxisParentTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)

@@ -93,7 +93,7 @@ class GraphAxis(Graph):
 
         if return_nids:
             return anc
-        return self.getnodes(anc)
+        return self.getnodes(anc, add_node_tools=False)
 
     def children(self, node=None, include_self=False, return_nids=False):
         """
@@ -122,7 +122,7 @@ class GraphAxis(Graph):
 
         if return_nids:
             return nch
-        return self.getnodes(nch)
+        return self.getnodes(nch, add_node_tools=False)
 
     def descendants(self, node=None, include_self=False, return_nids=False):
         """
@@ -148,7 +148,7 @@ class GraphAxis(Graph):
 
         if return_nids:
             return nds
-        return self.getnodes(nds)
+        return self.getnodes(nds, add_node_tools=False)
 
     def leaves(self, include_root=False, return_nids=False, include_isolated=False):
         """
@@ -178,7 +178,7 @@ class GraphAxis(Graph):
 
         if return_nids:
             return sorted(leaves)
-        return self.getnodes(leaves)
+        return self.getnodes(leaves, add_node_tools=False)
 
     def neighbors(self, node=None, return_nids=False):
         """
@@ -201,7 +201,7 @@ class GraphAxis(Graph):
 
         if return_nids:
             return sorted(nng)
-        return self.getnodes(nng)
+        return self.getnodes(nng, add_node_tools=False)
 
     def parent(self, node=None, return_nids=False):
         """
@@ -253,7 +253,7 @@ class GraphAxis(Graph):
         
         if return_nids:
             return anp
-        return self.getnodes(anp)
+        return self.getnodes(anp, add_node_tools=False)
         
     def siblings(self, node=None, return_nids=False):
         """
@@ -277,7 +277,32 @@ class GraphAxis(Graph):
 
         if return_nids:
             return sorted(nsb)
-        return self.getnodes(nsb)
+        return self.getnodes(nsb, add_node_tools=False)
+
+    def xpath(self, path, sep='.', return_nids=False):
+        """
+        XPath like navigation along graph axis
+
+        :param path:         XPath to navigate
+        :type path:          :py:str
+        :param sep:          path separator character
+        :type sep:           :py:Str
+        :param return_nids:  return a list of node ID's (nid) instead of a new
+                             graph object representing the selection
+        :type return_nids:   bool
+
+        :return:             nodes represented by XPath expression
+        :rtype:              Graph object or list
+        """
+
+        data_block = None
+        for block in path.split(sep):
+            if data_block is None:
+                data_block = self.query_nodes(key=block)
+            else:
+                data_block = data_block.descendants(include_self=True).query_nodes(key=block)
+
+        return data_block
 
     # DICTIONARY LIKE NODE ACCESS
     def items(self, keystring=None, valuestring=None, desc=True):
