@@ -26,7 +26,8 @@ def graph_join(graph1, graph2, links=None):
     :param links:  links between nodes in graph1 and graph2
     :type links:   :py:list
 
-    :return:       graph1
+    :return:       node mapping
+    :rtype:        :py:dict
     """
 
     # Check if graph 1 link nodes exist
@@ -48,11 +49,13 @@ def graph_join(graph1, graph2, links=None):
             graph1.add_edge(neweid, directed=True, **attr)
 
     # Link graph 2 nodes to graph 1
+    attach_nids = []
     if links:
         for link in links:
             graph1.add_edge(link[0], mapping[link[1]], directed=graph1.is_directed)
+            attach_nids.append(mapping[link[1]])
 
-    return graph1
+    return mapping
 
 
 def graph_add(graph1, graph2):
