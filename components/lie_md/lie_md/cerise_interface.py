@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from mdstudio.deferred.chainable import chainable
-from mdstudio.utc import now
+from mdstudio.deferred.return_value import return_value
 from os.path import join
 from retrying import retry
 from time import sleep
@@ -32,8 +32,6 @@ def create_cerise_config(input_session):
     config['cwl_workflow'] = choose_cwl_workflow(protein_file)
     config['log'] = join(input_session['workdir'], 'cerise.log')
     config['workdir'] = input_session['workdir']
-    time = now().isoformat()
-    config['task_id'] = time
 
     return config
 
@@ -54,37 +52,38 @@ def call_cerise_gromit(
     :returns: Dict with the output paths.
     """
     print("Searching for pending jobs in DB")
+    xs = cerise_db.insert_one("test", {"result": 42})
+    r = cerise_db.extract(xs, 'id')
+    return_value({"results": r})
+    # srv_data = yield retrieve_service_from_db(
+    #     cerise_config, gromacs_config, cerise_db)
 
-    srv_data = yield retrieve_service_from_db(
-        cerise_config, gromacs_config, cerise_db)
+    # if srv_data['result'] is None:
+    #     print("There are no pending jobs!")
+    #     # Create a new service if one is not already running
+    #     srv = create_service(cerise_config)
+    #     srv_data = yield submit_new_job(
+    #         srv, gromacs_config, cerise_config, cerise_db)
+    #     print("service: ", srv_data)
 
-    print("service ", srv_data)
+    # # is the job still running?
+    # elif srv_data['job_state'] == 'Running':
+    #     restart_srv_job(srv_data)
 
-    if srv_data['result'] is None:
-        print("There are no pending jobs!")
-        # Create a new service if one is not already running
-        srv = create_service(cerise_config)
-        srv_data = submit_new_job(
-            srv, gromacs_config, cerise_config, cerise_db)
+    # else:
+    #     msg = "job is already done!"
+    #     print(msg)
 
-    # is the job still running?
-    elif srv_data['job_state'] == 'Running':
-        restart_srv_job(srv_data)
+    # # Simulation information including cerise data
+    # sim_dict = yield extract_simulation_info(
+    #     srv_data, cerise_config, cerise_db)
 
-    else:
-        msg = "job is already done!"
-        print(msg)
+    # print("results ", sim_dict)
 
-    # Simulation information including cerise data
-    sim_dict = extract_simulation_info(
-        srv_data, cerise_config, cerise_db)
+    # # Shutdown Service if there are no other jobs running
+    # yield try_to_close_service(srv_data, cerise_db)
 
-    print("results ", sim_dict)
-
-    # Shutdown Service if there are no other jobs running
-    try_to_close_service(srv_data, cerise_db)
-
-    return sim_dict
+    # return_value(sim_dict)
 
 
 def retrieve_service_from_db(
@@ -125,6 +124,7 @@ def create_service(cerise_config):
     return srv
 
 
+@chainable
 def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
     """
     Create a new job using the provided `srv` and `cerise_config`.
@@ -138,7 +138,7 @@ def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
     job.set_workflow(cerise_config['cwl_workflow'])
     print("CWL worflow is: {}".format(cerise_config['cwl_workflow']))
 
-    # run the job in the remote
+    # run the job in   the remote
     msg = "Running the job in a remote machine using docker: {}".format(
         cerise_config['docker_image'])
     print(msg)
@@ -151,8 +151,17 @@ def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
         job.id, cc.service_to_dict(srv), gromacs_config,
         cerise_config['username'])
 
-    return register_srv_job(
+    # wait until the job is running
+    while job.state == 'Waiting':
+        sleep(2)
+
+    # Add srv_dict to database
+    srv_data['job_state'] = 'Running'
+    s = yield register_srv_job(
         job, srv_data, cerise_db)
+    print("register: ", s)
+    
+    return_value(srv_data)
 
 
 def restart_srv_job(srv_data):
@@ -169,6 +178,7 @@ def restart_srv_job(srv_data):
     print("Job {} already running".format(job.id))
 
 
+@chainable
 def extract_simulation_info(
         srv_data, cerise_config, cerise_db):
     """
@@ -199,7 +209,7 @@ def extract_simulation_info(
     # remove mongoDB object id
     srv_data.pop('_id', None)
 
-    return srv_data
+    return_value(srv_data)
 
 
 def wait_extract_clean(job, srv, cerise_config, cerise_db):
@@ -304,15 +314,9 @@ def register_srv_job(job, srv_data, cerise_db):
     Once the `job` is running in the queue system register
     it in the `cerise_db`.
     """
-    while job.state == 'Waiting':
-        sleep(2)
-
-    # Add srv_dict to database
-    srv_data['job_state'] = 'Running'
-    cerise_db.insert_one('cerise', srv_data)
+    xs = cerise_db.insert_one('cerise', srv_data)
     print("Added service to mongoDB")
-
-    return srv_data
+    return xs
 
 
 def wait_for_job(job, cerise_log):
@@ -357,6 +361,7 @@ def remove_srv_job_from_db(srv, job_id, cerise_db):
     print('Removed job: {} from database'.format(job_id))
 
 
+@chainable
 def try_to_close_service(srv_data, cerise_db):
     """
     Close service it There are no more jobs and
@@ -367,7 +372,7 @@ def try_to_close_service(srv_data, cerise_db):
 
         # Search for other running jobs
         query = {'username': srv_data['username'], 'job_state': 'Running'}
-        counts = cerise_db.count('cerise', query)
+        counts = yield cerise_db.count('cerise', query)
 
         if counts == 0:
             print("Shutting down Cerise-client service")

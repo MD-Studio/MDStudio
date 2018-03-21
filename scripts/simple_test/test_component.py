@@ -1,3 +1,4 @@
+from mdstudio.deferred.chainable import chainable
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
 from os.path import join
@@ -26,9 +27,10 @@ class Run_test(ComponentSession):
     def authorize_request(self, uri, claims):
         return True
 
+    @chainable
     def on_run(self):
         with self.group_context('mdgroup'):
-            self.call(
+            r = yield self.call(
                 "mdgroup.lie_md.endpoint.liemd",
                 {"cerise_file": cerise_file,
                  "ligand_file": ligand_file,
@@ -38,7 +40,7 @@ class Run_test(ComponentSession):
                  "include": include,
                  "residues": residues,
                  "workdir": workdir})
-
+            print("MD results ", r)
     # def on_run(self):
     #     with self.group_context('mdgroup'):
     #         self.call(
