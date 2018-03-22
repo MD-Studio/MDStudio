@@ -317,6 +317,8 @@ def write_web(graph, orm_data_tag='haddock_type', node_key_tag=None, indent=2, r
     """
     Export a graph in Spyder .web format
 
+    Empty data blocks or Python None values are not exported.
+
     .. note::
     Web graph export uses the Graph iternodes and iteredges methods to retrieve
     nodes and edges and 'get' the data labels. The behaviour of this process is
@@ -368,6 +370,10 @@ def write_web(graph, orm_data_tag='haddock_type', node_key_tag=None, indent=2, r
 
         # First, collect all leaf nodes and write. Sort according to 'key'
         for leaf in sorted([n for n in node.children(include_self=True) if n.isleaf], key=lambda obj: obj.key):
+
+            # Do not export nodes that have no data or None
+            if leaf.get(node_value_tag, None) is None:
+                continue
 
             # Format 'Array' types when they are list style leaf nodes
             if leaf.get('is_array', False) or leaf.get('type') == 'array':
