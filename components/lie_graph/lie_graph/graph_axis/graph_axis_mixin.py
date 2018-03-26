@@ -8,6 +8,7 @@ NodeTools and EdgeTools classes for axis based graphs (GraphAxis class)
 
 from lie_graph.graph_mixin import NodeTools, EdgeTools
 from lie_graph.graph_algorithms import dijkstra_shortest_path
+from lie_graph.graph_query.query_xpath import XpathExpressionEvaluator
 
 
 class NodeAxisTools(NodeTools):
@@ -66,6 +67,21 @@ class NodeAxisTools(NodeTools):
         breadcrumbs = [str(self._full_graph.nodes[nid][key]) for nid in shortest_path]
 
         return sep.join(breadcrumbs)
+
+    def xpath(self, expression, sep='/'):
+        """
+        Evaluate XPath expression against graph
+
+        :param expression: XPath axpression
+        :type expression:  :py:str
+        :param sep:        XPath path location seperator
+        :type sep:         :py:str
+
+        :rtype:            :lie_graph:GraphAxis
+        """
+
+        xpath = XpathExpressionEvaluator(sep=sep)
+        return xpath.resolve(expression)
 
 
 class EdgeAxisTools(EdgeTools):
