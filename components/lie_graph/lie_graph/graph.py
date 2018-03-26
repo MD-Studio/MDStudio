@@ -124,10 +124,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            GraphException(
-                "Object {0} not instance of Graph base class".format(
-                    type(other).__name__))
-            return
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         newgraph = self.copy()
         newgraph = graph_union(newgraph, other)
@@ -146,10 +143,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            logger.error(
-                "Object {0} not instance of Graph base class".format(
-                    type(other).__name__))
-            return False
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         other_nodes_keys = set(other.nodes.keys())
         self_nodes_keys = set(self.nodes.keys())
@@ -184,6 +178,9 @@ class Graph(object):
                      graph adjacency, not node or edge attributes.
         """
 
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+
         if self.adjacency.keys() != other.adjacency.keys():
             return False
 
@@ -215,6 +212,9 @@ class Graph(object):
         Evaluate greater-then or equal equality based on graph topology (edges)
         """
 
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+
         return self.edges.keys() >= other.edges.keys()
 
     def __gt__(self, other):
@@ -223,6 +223,9 @@ class Graph(object):
 
         Evaluate greater-then equality based on graph topology (edges)
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         return self.edges.keys() > other.edges.keys()
 
@@ -238,10 +241,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            GraphException(
-                "Object {0} not instance of Graph base class".format(
-                    type(other).__name__))
-            return
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         newgraph = graph_union(self, other)
 
@@ -255,6 +255,9 @@ class Graph(object):
         :return:      self with other subtracted
         :rtype:       Graph instance
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         self.remove_nodes(other.nodes.keys())
 
@@ -291,6 +294,9 @@ class Graph(object):
         Evaluate less-then or equal to equality based on graph topology (edges)
         """
 
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+
         return self.edges.keys() <= other.edges.keys()
 
     def __lt__(self, other):
@@ -299,6 +305,9 @@ class Graph(object):
 
         Evaluate less-then equality based on graph topology (edges)
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         return self.edges.keys() < other.edges.keys()
 
@@ -311,6 +320,9 @@ class Graph(object):
         .. warning:: This comparison is based on identity in node ID in the
                      graph adjacency, not node or edge attributes.
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         return not self.__eq__(other)
 
@@ -337,6 +349,9 @@ class Graph(object):
         :return:      new graph with other subtracted
         :rtype:       Graph instance
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         new_graph = self.copy()
         new_graph.remove_nodes(other.nodes.keys())
