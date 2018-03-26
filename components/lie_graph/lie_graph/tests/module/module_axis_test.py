@@ -10,23 +10,23 @@ import os
 import unittest2
 
 from lie_graph.graph_helpers import GraphException
-from lie_graph.graph_io.io_json_format import read_json
+from lie_graph.graph_io.io_jgf_format import read_jgf
 from lie_graph.graph_axis.graph_axis_methods import *
 from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools
 
 
 class GraphAxisChildrenTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -131,16 +131,16 @@ class GraphAxisChildrenTests(unittest2.TestCase):
 
 class GraphAxisParentTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -229,16 +229,16 @@ class GraphAxisParentTests(unittest2.TestCase):
 
 class GraphAxisAllParentTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -322,16 +322,16 @@ class GraphAxisAllParentTests(unittest2.TestCase):
 
 class GraphAxisNeighborsTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -409,16 +409,16 @@ class GraphAxisNeighborsTests(unittest2.TestCase):
 
 class GraphAxisLeavesTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -502,16 +502,16 @@ class GraphAxisLeavesTests(unittest2.TestCase):
 
 class GraphAxisAncestorsTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -607,16 +607,16 @@ class GraphAxisAncestorsTests(unittest2.TestCase):
 
 class GraphAxisDescendantsTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -710,16 +710,16 @@ class GraphAxisDescendantsTests(unittest2.TestCase):
 
 class GraphAxisSiblingsTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_axis_function(self):
         """
@@ -803,16 +803,16 @@ class GraphAxisSiblingsTests(unittest2.TestCase):
 
 class GraphAxisRootTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
 
     def test_graph_axis_root_definition(self):
         """
@@ -838,16 +838,16 @@ class GraphAxisRootTests(unittest2.TestCase):
 
 class GraphAxisNodeToolsTests(unittest2.TestCase):
     currpath = os.path.dirname(__file__)
-    _axis_graph = os.path.join(currpath, '../files/graph_axis.json')
+    _axis_graph = os.path.join(currpath, '../files/graph_axis.jgf')
 
     def setUp(self):
         """
         Graph axis test class setup
 
-        Load graph from graph_axis.json in JSON format
+        Load graph from graph_axis.jgf in JSON format
         """
 
-        self.graph = read_json(self._axis_graph)
+        self.graph = read_jgf(self._axis_graph)
         self.graph.node_tools = NodeAxisTools
 
     def test_axis_node_tools_path(self):

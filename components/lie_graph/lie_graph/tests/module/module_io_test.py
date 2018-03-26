@@ -12,7 +12,7 @@ import unittest2
 from lie_graph import Graph, GraphAxis
 from lie_graph.graph_helpers import graph_directionality
 from lie_graph.graph_io.io_tgf_format import read_tgf, write_tgf
-from lie_graph.graph_io.io_json_format import read_json, write_json
+from lie_graph.graph_io.io_jgf_format import read_jgf, write_jgf
 from lie_graph.graph_io.io_dict_format import read_dict, write_dict
 from lie_graph.graph_io.io_web_format import read_web, write_web
 from lie_graph.graph_io.io_jsonschema_format import read_json_schema
@@ -121,6 +121,7 @@ class WebParserTest(unittest2.TestCase):
         self.assertTrue(os.path.isfile(outfile))
 
         # Import again and compare source graph
+        # TODO: difference due to empty data blocks not being exported
         graph1 = read_web(outfile)
         self.assertEqual(len(graph), len(graph1))
         self.assertEqual(len(graph.edges), len(graph1.edges))
@@ -205,9 +206,10 @@ class TGFParserTest(unittest2.TestCase):
         self.assertTrue('eleven' in graph.nodes)
 
 
-class JSONParserTest(unittest2.TestCase):
+class JGFParserTest(unittest2.TestCase):
     """
     Unit tests for parsing graphs in lie_graph module specific JSON format
+    (.jgf file format)
     """
     tempfiles = []
 
@@ -227,8 +229,8 @@ class JSONParserTest(unittest2.TestCase):
         imported as a GraphAxis object.
         """
 
-        json_file = os.path.join(FILEPATH, 'graph_axis.json')
-        graph = read_json(json_file)
+        jgf_file = os.path.join(FILEPATH, 'graph_axis.jgf')
+        graph = read_jgf(jgf_file)
 
         # Default graph attributes set
         self.assertEqual(len(graph), 35)
@@ -247,20 +249,20 @@ class JSONParserTest(unittest2.TestCase):
         Test export of format
         """
 
-        json_file = os.path.join(FILEPATH, 'graph_axis.json')
-        graph = read_json(json_file)
+        jgf_file = os.path.join(FILEPATH, 'graph_axis.jgf')
+        graph = read_jgf(jgf_file)
 
         # Export graph as JSON to file
-        jsonout = write_json(graph)
-        outfile = os.path.join(FILEPATH, 'test_export.json')
+        jgfout = write_jgf(graph)
+        outfile = os.path.join(FILEPATH, 'test_export.jgf')
         with open(outfile, 'w') as otf:
-            otf.write(jsonout)
+            otf.write(jgfout)
             self.tempfiles.append(outfile)
 
         self.assertTrue(os.path.isfile(outfile))
 
         # Import again and compare source graph
-        graph1 = read_json(outfile)
+        graph1 = read_jgf(outfile)
         self.assertTrue(graph1 == graph)
 
 

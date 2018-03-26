@@ -3,7 +3,7 @@
 """
 file: io_json_format.py
 
-Functions for reading and writing graph files in a lie_graph JSON format.
+Functions for reading and writing graph files in the lie_graph .jgf JSON format
 
 This is a propitiatory format in which the graph meta-data, the nodes, edges
 and their data dictionaries are stored in JSON format.
@@ -19,9 +19,9 @@ from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_io.io_helpers import check_lie_graph_version, open_anything
 
 
-def read_json(json_format, graph=None):
+def read_jgf(jgf_format, graph=None):
     """
-    Read JSON graph format
+    Read JSON graph format (.jgf)
 
     This is a propitiatory format in which the graph meta-data, the nodes,
     edges and their data dictionaries are stored in JSON format.
@@ -33,8 +33,8 @@ def read_json(json_format, graph=None):
     * edges: Graph enumerated edge identifiers
     * edge_attr: Graph edge attributes
 
-    :param json_format: JSON encoded graph data to parse
-    :type json_format:  :py:str
+    :param jgf_format:  JSON encoded graph data to parse
+    :type jgf_format:   :py:str
     :param graph:       Graph object to import TGF data in
     :type graph:        :lie_graph:Graph
 
@@ -43,9 +43,9 @@ def read_json(json_format, graph=None):
     """
 
     # Try parsing the string using default Python json parser
-    json_format = open_anything(json_format)
+    jgf_format = open_anything(jgf_format)
     try:
-        parsed = json.load(json_format)
+        parsed = json.load(jgf_format)
     except IOError:
         logger.error('Unable to decode JSON string')
         return
@@ -90,7 +90,7 @@ def read_json(json_format, graph=None):
     return graph
 
 
-def write_json(graph, indent=2, encoding="utf-8", **kwargs):
+def write_jgf(graph, indent=2, encoding="utf-8", **kwargs):
     """
     Write JSON graph format
 
