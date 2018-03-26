@@ -10,8 +10,7 @@ and their data dictionaries are stored in JSON format.
 """
 
 import json
-
-import logging as logger
+import logging
 
 from .. import __version__
 from lie_graph.graph import Graph
@@ -47,7 +46,7 @@ def read_jgf(jgf_format, graph=None):
     try:
         parsed = json.load(jgf_format)
     except IOError:
-        logger.error('Unable to decode JSON string')
+        logging.error('Unable to decode JSON string')
         return
 
     # Check lie_graph version and format validity
@@ -55,7 +54,7 @@ def read_jgf(jgf_format, graph=None):
         return
     keywords = ['graph', 'nodes', 'edges', 'edge_attr']
     if not set(keywords).issubset(set(parsed.keys())):
-        logger.error('JSON format does not contain required graph data')
+        logging.error('JSON format does not contain required graph data')
         return
 
     # Determine graph class to use

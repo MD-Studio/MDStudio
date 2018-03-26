@@ -445,11 +445,14 @@ class Graph(object):
         This is the iterable version of the add_edge methods allowing
         multiple edge additions from any iterable.
 
+        TODO: This function does not work properly
+
         :param edges: Objects to be added as edges to the graph
-        :type edges: Iterable of hashable objects
-        :return: list of edge ids for the objects added in the same
-               order as th input iterable.
-        :rtype: list
+        :type edges:  Iterable of hashable objects
+
+        :return:      list of edge ids for the objects added in the same
+                      order as th input iterable.
+        :rtype:       :py:list
         """
 
         if isinstance(edges, dict):

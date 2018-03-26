@@ -59,10 +59,10 @@ def read_tgf(tgf, graph=None, node_key_tag=None, edge_key_tag=None):
     :type tgf:              File, string, stream or URL
     :param graph:           Graph object to import TGF data in
     :type graph:            :lie_graph:Graph
-    :param node_key_tag:   Data key to use for parsed node labels.
-    :type node_key_tag:    :py:str
-    :param edge_key_tag:   Data key to use for parsed edge labels.
-    :type edge_key_tag:    :py:str
+    :param node_key_tag:    Data key to use for parsed node labels.
+    :type node_key_tag:     :py:str
+    :param edge_key_tag:    Data key to use for parsed edge labels.
+    :type edge_key_tag:     :py:str
 
     :return:                Graph object
     :rtype:                 :lie_graph:Graph

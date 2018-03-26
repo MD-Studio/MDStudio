@@ -9,6 +9,7 @@ http://json-schema.org
 
 import json
 import sys
+import logging
 
 from lie_graph.graph_axis.graph_axis_class import GraphAxis
 from lie_graph.graph_io.io_helpers import open_anything
@@ -49,7 +50,14 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None):
     :rtype:                   :lie_graph:Graph
     """
 
-    json_schema = json.load(open_anything(schema))
+    # Try parsing the string using default Python json parser
+    json_schema = open_anything(schema)
+    try:
+        json_schema = json.load(json_schema)
+    except IOError:
+        logging.error('Unable to decode JSON string')
+        return
+
     if not isinstance(graph, GraphAxis):
         graph = GraphAxis()
 
