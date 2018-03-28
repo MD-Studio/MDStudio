@@ -124,10 +124,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            GraphException(
-                "Object {0} not instance of Graph base class".format(
-                    type(other).__name__))
-            return
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         newgraph = self.copy()
         newgraph = graph_union(newgraph, other)
@@ -146,10 +143,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            logger.error(
-                "Object {0} not instance of Graph base class".format(
-                    type(other).__name__))
-            return False
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         other_nodes_keys = set(other.nodes.keys())
         self_nodes_keys = set(self.nodes.keys())
@@ -184,6 +178,9 @@ class Graph(object):
                      graph adjacency, not node or edge attributes.
         """
 
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+
         if self.adjacency.keys() != other.adjacency.keys():
             return False
 
@@ -215,6 +212,9 @@ class Graph(object):
         Evaluate greater-then or equal equality based on graph topology (edges)
         """
 
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+
         return self.edges.keys() >= other.edges.keys()
 
     def __gt__(self, other):
@@ -223,6 +223,9 @@ class Graph(object):
 
         Evaluate greater-then equality based on graph topology (edges)
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         return self.edges.keys() > other.edges.keys()
 
@@ -238,10 +241,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            GraphException(
-                "Object {0} not instance of Graph base class".format(
-                    type(other).__name__))
-            return
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         newgraph = graph_union(self, other)
 
@@ -255,6 +255,9 @@ class Graph(object):
         :return:      self with other subtracted
         :rtype:       Graph instance
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         self.remove_nodes(other.nodes.keys())
 
@@ -291,6 +294,9 @@ class Graph(object):
         Evaluate less-then or equal to equality based on graph topology (edges)
         """
 
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+
         return self.edges.keys() <= other.edges.keys()
 
     def __lt__(self, other):
@@ -299,6 +305,9 @@ class Graph(object):
 
         Evaluate less-then equality based on graph topology (edges)
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         return self.edges.keys() < other.edges.keys()
 
@@ -311,6 +320,9 @@ class Graph(object):
         .. warning:: This comparison is based on identity in node ID in the
                      graph adjacency, not node or edge attributes.
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         return not self.__eq__(other)
 
@@ -337,6 +349,9 @@ class Graph(object):
         :return:      new graph with other subtracted
         :rtype:       Graph instance
         """
+
+        if not isinstance(other, Graph):
+            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
 
         new_graph = self.copy()
         new_graph.remove_nodes(other.nodes.keys())
@@ -445,11 +460,14 @@ class Graph(object):
         This is the iterable version of the add_edge methods allowing
         multiple edge additions from any iterable.
 
+        TODO: This function does not work properly
+
         :param edges: Objects to be added as edges to the graph
-        :type edges: Iterable of hashable objects
-        :return: list of edge ids for the objects added in the same
-               order as th input iterable.
-        :rtype: list
+        :type edges:  Iterable of hashable objects
+
+        :return:      list of edge ids for the objects added in the same
+                      order as th input iterable.
+        :rtype:       :py:list
         """
 
         if isinstance(edges, dict):
@@ -748,7 +766,7 @@ class Graph(object):
             return target[key]
         return target.get(defaultattr, default)
 
-    def getedges(self, edges, orm_cls=None):
+    def getedges(self, edges, orm_cls=None, add_edge_tools=True):
         """
         Get an edge as graph object
 
@@ -768,11 +786,20 @@ class Graph(object):
         orm_cls attribute. In addition, for sub graphs containing single edges,
         the EdgeTools class is added.
 
-        :param edges:   edge id
-        :type edges:    iterable of length 2 containing integers
-        :param orm_cls: custom classes to construct new edge oriented Graph
-                        class from.
-        :type orm_cls:  list
+        The addition of the EdgeTools class changes the behaviour of the Graph
+        class to a state where it provides direct access to edge attributes for
+        that particular edge. This may be undesirable in cases where one wants
+        to iterate over graphs even if they contain only one edge.
+        The `add_edge_tools` attribute prevents addition of EdgeTools for these
+        cases.
+
+        :param edges:           edge id
+        :type edges:            iterable of length 2 containing integers
+        :param orm_cls:         custom classes to construct new edge oriented
+                                Graph class from.
+        :type orm_cls:          :py:list
+        :param add_node_tools:  add edge tools to Graph instance if one edge
+        :type add_node_tools:   :py:bool
         """
 
         # Coerce to list
@@ -791,15 +818,15 @@ class Graph(object):
         else:
             edges = []
 
-        # Build custom class list. Default NodeTools need to be included in
-        # case of single nodes and not overloaded in MRO.
+        # Build custom class list. Default EdgeTools need to be included in
+        # case of single edges and not overloaded in MRO.
         custom_orm_cls = []
         if orm_cls:
             if not isinstance(orm_cls, list):
                 msg = 'Custom edge classes need to be defined as list'
                 raise GraphException(msg)
             custom_orm_cls.extend(orm_cls)
-        if len(edges) == 1:
+        if len(edges) == 1 and add_edge_tools:
             custom_orm_cls.append(self.edge_tools)
 
         base_cls = self.orm.get(
@@ -825,7 +852,7 @@ class Graph(object):
 
         return w
 
-    def getnodes(self, nodes, orm_cls=None):
+    def getnodes(self, nodes, orm_cls=None, add_node_tools=True):
         """
         Get one or multiple nodes as new sub graph object
 
@@ -847,10 +874,19 @@ class Graph(object):
         orm_cls attribute. In addition, for sub graphs containing single nodes,
         the NodeTools class is added.
 
-        :param nodes:   node id
-        :param orm_cls: custom classes to construct new node oriented Graph
-                        class from.
-        :type orm_cls:  list
+        The addition of the NodeTools class changes the behaviour of the Graph
+        class to a state where it provides direct access to node attributes for
+        that particular node. This may be undesirable in cases where one wants
+        to iterate over graphs even if they contain only one node.
+        The `add_node_tools` attribute prevents addition of NodeTools for these
+        cases.
+
+        :param nodes:           node id
+        :param orm_cls:         custom classes to construct new node oriented Graph
+                                class from.
+        :type orm_cls:          :py:list
+        :param add_node_tools:  add node tools to Graph instance if one node
+        :type add_node_tools:   :py:bool
         """
 
         # Coerce to list
@@ -872,7 +908,7 @@ class Graph(object):
             if not isinstance(orm_cls, list):
                 raise GraphException('Custom node classes need to be defined as list')
             custom_orm_cls.extend(orm_cls)
-        if len(nodes) == 1:
+        if len(nodes) == 1 and add_node_tools:
             custom_orm_cls.append(self.node_tools)
 
         base_cls = self.orm.get(self, nodes, self._get_class_object(), classes=custom_orm_cls)

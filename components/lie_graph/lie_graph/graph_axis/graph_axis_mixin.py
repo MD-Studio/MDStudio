@@ -7,6 +7,8 @@ NodeTools and EdgeTools classes for axis based graphs (GraphAxis class)
 """
 
 from lie_graph.graph_mixin import NodeTools, EdgeTools
+from lie_graph.graph_algorithms import dijkstra_shortest_path
+from lie_graph.graph_query.query_xpath import XpathExpressionEvaluator
 
 
 class NodeAxisTools(NodeTools):
@@ -44,6 +46,42 @@ class NodeAxisTools(NodeTools):
 
         for child in self.children(return_nids=True):
             yield self.getnodes(child)
+
+    def path(self, key=None, sep="."):
+        """
+        Build a breadcrumb (path) trail from the root node to the
+        current node.
+
+        :param key: parameter key to build breadcrumb path from
+        :type key:  :py:str
+        :param sep: breadcrumb path seperator character
+        :type sep:  :py:str
+
+        :return:    breadcrumb path
+        :rtype:     :py:str
+        """
+
+        key = key or self.node_key_tag
+
+        shortest_path = dijkstra_shortest_path(self, self.root, self.nid)
+        breadcrumbs = [str(self._full_graph.nodes[nid][key]) for nid in shortest_path]
+
+        return sep.join(breadcrumbs)
+
+    def xpath(self, expression, sep='/'):
+        """
+        Evaluate XPath expression against graph
+
+        :param expression: XPath axpression
+        :type expression:  :py:str
+        :param sep:        XPath path location seperator
+        :type sep:         :py:str
+
+        :rtype:            :lie_graph:GraphAxis
+        """
+
+        xpath = XpathExpressionEvaluator(sep=sep)
+        return xpath.resolve(expression)
 
 
 class EdgeAxisTools(EdgeTools):
