@@ -1,7 +1,9 @@
-"""
-Provides an interface for HADDOCK XMLRPC endpoint
+# -*- coding: utf-8 -*-
 
-Author: {0} ({1})
+"""
+Provides an interface for HADDOCK XMLRPC endpoints
+
+Author: Mikael Trellet
 """
 
 import xmlrpclib
@@ -12,7 +14,7 @@ __author__ = "Mikael Trellet"
 __email__ = "mikael.trellet@gmail.com"
 
 
-class HADDOCKInterface:
+class HADDOCKInterface(object):
 
     def __init__(self, server_url='http://milou.science.uu.nl/cgi/services/HADDOCK2.2/haddockserver-xmlrpc.cgi'):
         self.url = server_url
