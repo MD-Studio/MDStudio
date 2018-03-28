@@ -44,7 +44,8 @@ def read_json(json_file, graph=None, node_key_tag=None, edge_key_tag=None, value
                      valuestring=valuestring)
 
 
-def write_json(graph, keystring=None, valuestring=None, default=None, root_nid=None, include_root=False):
+def write_json(graph, keystring=None, valuestring=None, default=None, root_nid=None, include_root=False,
+               allow_none=True):
     """
     Export a graph to a (nested) JSON structure
 
@@ -68,10 +69,12 @@ def write_json(graph, keystring=None, valuestring=None, default=None, root_nid=N
     :type default:       mixed
     :param include_root: Include the root node in the hierarchy
     :type include_root:  :py:bool
-    :param root_nid:     Root node ID in graph hierarchy
+    :param root_nid:     root node ID in graph hierarchy
+    :param allow_none:   allow None values in the output
+    :type allow_none:    :py:bool
 
     :rtype:              :py:json
     """
 
     return json.dumps(write_dict(graph, keystring=keystring, valuestring=valuestring, default=default,
-                                 root_nid=root_nid, include_root=include_root))
+                                 root_nid=root_nid, include_root=include_root, allow_none=allow_none))
