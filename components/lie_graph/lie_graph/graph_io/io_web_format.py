@@ -310,6 +310,10 @@ def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, ed
     # Restore original ORM
     graph.orm = curr_orm
 
+    # Root is of type 'array', rename key from 'item1' to 'project'
+    root = graph.getnodes(graph.root)
+    root.key = 'project'
+
     return graph
 
 
