@@ -1,7 +1,6 @@
 # coding=utf-8
 import json
 from datetime import datetime
-from threading import RLock
 
 import os
 import pytz
@@ -18,6 +17,7 @@ from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
 from mdstudio.utc import to_utc_string
+from mdstudio.deferred.lock import Lock
 
 
 @six.add_metaclass(Singleton)
@@ -28,9 +28,9 @@ class SessionLogObserver(object):
         self.session = None
         self.sessions = []
         self.log_type = log_type
-        self.lock = RLock()
+        self.lock = Lock()
         self.logs = []
-        self.flusher_lock = RLock()
+        self.flusher_lock = Lock()
         self.flushing = False
 
         # noinspection PyUnresolvedReferences
