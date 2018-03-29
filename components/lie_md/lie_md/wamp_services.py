@@ -74,6 +74,5 @@ class MDWampApi(ComponentSession):
             gromacs_config, cerise_config, self.db)
 
         status = 'failed' if output is None else 'completed'
-        # return {'status': status, 'output': output}
-
-        return_value({'status': status, 'output': {"random": 42}})
+        return_value(
+            {'status': status, 'output': output})
