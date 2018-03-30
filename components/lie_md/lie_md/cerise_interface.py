@@ -62,19 +62,20 @@ def call_cerise_gromit(
         srv = create_service(cerise_config)
         srv_data = yield submit_new_job(
             srv, gromacs_config, cerise_config, cerise_db)
+        sim_dict = yield extract_simulation_info(
+            srv_data, cerise_config, cerise_db)
 
     # is the job still running?
     elif srv_data['job_state'] == 'Running':
-        restart_srv_job(srv_data)
+        srv_data = yield restart_srv_job(
+            srv_data, gromacs_config, cerise_config, cerise_db)
+        sim_dict = yield extract_simulation_info(
+            srv_data, cerise_config, cerise_db)
 
     else:
         msg = "job is already done!"
         print(msg)
-        return_value(srv_data)
-
-    # Simulation information including cerise data
-    sim_dict = yield extract_simulation_info(
-        srv_data, cerise_config, cerise_db)
+        sim_dict = srv_data
 
     print("results ", sim_dict)
 
@@ -161,7 +162,8 @@ def submit_new_job(srv, gromacs_config, cerise_config, cerise_db):
     return_value(srv_data)
 
 
-def restart_srv_job(srv_data):
+@chainable
+def restart_srv_job(srv_data, gromacs_config, cerise_config, cerise_db):
     """
     Use a dictionary to restart a Cerise service.
 
@@ -169,10 +171,20 @@ def restart_srv_job(srv_data):
     """
     srv = cc.service_from_dict(srv_data)
     cc.start_managed_service(srv)
+    job_id = srv_data['job_id']
 
-    job = srv.get_job_by_id(srv_data['job_id'])
-
-    print("Job {} already running".format(job.id))
+    try:
+        srv.get_job_by_id(job_id)
+        print("Job {} already running".format(job_id))
+    except cc.errors.JobNotFound:
+        print("There is not Job: {} in the cerise service: {}".format(
+            job_id, srv_data['name']))
+        remove_srv_job_from_db(srv, job_id, cerise_db)
+        print("restarting job from scratch")
+        srv_data = yield submit_new_job(
+            srv, gromacs_config, cerise_config, cerise_db)
+    finally:
+        return_value(srv_data)
 
 
 @chainable
