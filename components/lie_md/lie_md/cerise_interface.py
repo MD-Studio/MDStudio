@@ -179,19 +179,29 @@ def restart_srv_job(srv_data, gromacs_config, cerise_config, cerise_db):
 
     except cc.errors.ServiceNotFound:
         print("There is not cerise service running")
-        yield remove_srv_job_from_db(job_id, cerise_db)
-        srv_data = yield call_cerise_gromit(
-            gromacs_config, cerise_config, cerise_db)
+        start_from_scratch(job_id, gromacs_config, cerise_config, cerise_db)
 
     except cc.errors.JobNotFound:
         print("There is not Job: {} in the cerise service: {}".format(
             job_id, srv_data['name']))
-        yield remove_srv_job_from_db(job_id, cerise_db)
-        print("restarting job from scratch")
-        srv_data = yield submit_new_job(
-            srv, gromacs_config, cerise_config, cerise_db)
+        start_from_scratch(job_id, gromacs_config, cerise_config, cerise_db)
 
     return_value(srv_data)
+
+
+@chainable
+def start_from_scratch(job_id, gromacs_config, cerise_config, cerise_db):
+    """
+    If there is not possible to restart a job because it was delete or
+    the service is not avialable, then create a new job and service if
+    necessary.
+    """
+    srv = create_service(cerise_config)
+    yield remove_srv_job_from_db(job_id, cerise_db)
+    print("restarting job from scratch")
+    return_value(
+        submit_new_job(
+            srv, gromacs_config, cerise_config, cerise_db))
 
 
 @chainable
