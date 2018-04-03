@@ -80,7 +80,7 @@ class WebNodeTools(NodeTools):
 
         if key in target:
             if key == self.node_value_tag and isinstance(target[key], (str, unicode)):
-                return repr(target[key])
+                return repr(target[key]).lstrip('u')
                 #return "'{0}'".format(json.dumps(target[key]).strip('"'))
             return target[key]
 
