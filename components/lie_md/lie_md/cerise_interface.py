@@ -169,22 +169,29 @@ def restart_srv_job(srv_data, gromacs_config, cerise_config, cerise_db):
 
     :param srv_data: dict containing the cerise service information.
     """
-    srv = cc.service_from_dict(srv_data)
-    cc.start_managed_service(srv)
     job_id = srv_data['job_id']
 
     try:
+        srv = cc.service_from_dict(srv_data)
+        cc.selftart_managed_service(srv)
         srv.get_job_by_id(job_id)
         print("Job {} already running".format(job_id))
+
+    except cc.errors.ServiceNotFound:
+        print("There is not cerise service running")
+        yield remove_srv_job_from_db(job_id, cerise_db)
+        srv_data = yield call_cerise_gromit(
+            gromacs_config, cerise_config, cerise_db)
+
     except cc.errors.JobNotFound:
         print("There is not Job: {} in the cerise service: {}".format(
             job_id, srv_data['name']))
-        remove_srv_job_from_db(srv, job_id, cerise_db)
+        yield remove_srv_job_from_db(job_id, cerise_db)
         print("restarting job from scratch")
         srv_data = yield submit_new_job(
             srv, gromacs_config, cerise_config, cerise_db)
-    finally:
-        return_value(srv_data)
+
+    return_value(srv_data)
 
 
 @chainable
@@ -357,15 +364,15 @@ def cleanup(job, srv, cerise_db, remove_job_from_db=False):
 
     # Remove job from DB
     if remove_job_from_db:
-        remove_srv_job_from_db(srv, job.id, cerise_db)
+        remove_srv_job_from_db(job.id, cerise_db)
 
 
-def remove_srv_job_from_db(srv, job_id, cerise_db):
+def remove_srv_job_from_db(job_id, cerise_db):
     """
     Remove the service and job information from DB
      """
     query = {'job_id': job_id}
-    cerise_db.delete_one(query)
+    cerise_db.delete_one('cerise', query)
     print('Removed job: {} from database'.format(job_id))
 
 
