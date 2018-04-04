@@ -42,12 +42,15 @@ def read_jgf(jgf_format, graph=None):
     """
 
     # Try parsing the string using default Python json parser
-    jgf_format = open_anything(jgf_format)
-    try:
-        parsed = json.load(jgf_format)
-    except IOError:
-        logging.error('Unable to decode JSON string')
-        return
+    if isinstance(jgf_format, dict):
+        parsed = jgf_format
+    else:
+        jgf_format = open_anything(jgf_format)
+        try:
+            parsed = json.load(jgf_format)
+        except IOError:
+            logging.error('Unable to decode JSON string')
+            return
 
     # Check lie_graph version and format validity
     if not check_lie_graph_version(parsed.get('lie_graph_version')):
