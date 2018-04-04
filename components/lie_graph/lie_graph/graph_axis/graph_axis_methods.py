@@ -240,13 +240,10 @@ def node_all_parents(graph, nid, root):
     # Get all paths to the target node
     all_adjacent = []
     for path in dfs_paths(graph, root, nid):
-        all_adjacent.extend(path)
-    all_adjacent = set(all_adjacent)
+        if len(path) > 1:
+            all_adjacent.append(path[-2])
 
-    all_parents = [key for key in node_neighbors(graph, nid) if key in all_adjacent]
-        
-    return all_parents
-
+    return sorted(set(all_adjacent))
 
 def node_siblings(graph, nid, root):
     """
