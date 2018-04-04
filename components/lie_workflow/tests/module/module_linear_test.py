@@ -7,20 +7,18 @@ Unit tests for the Workflow class
 """
 
 import os
-import sys
 import unittest2
-import logging
 import time
 
-from   lie_workflow                import Workflow
-from   dummy_task_runners          import task_runner
+from lie_workflow import Workflow
+from dummy_task_runners import task_runner
 
 currpath = os.path.dirname(__file__)
 
 
 class TestLinearWorkflow(unittest2.TestCase):
     """
-    Test linear workflows
+    Test linear workflow
     """
     
     workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-spec.json'))
@@ -34,15 +32,16 @@ class TestLinearWorkflow(unittest2.TestCase):
         self.wf = Workflow()
         self.wf.task_runner = task_runner
         self.wf.load(self.workflow_spec_path)
+        self.wf.set_wamp_session(session_data={'authid': 'dadara'})
         
         # Define dummy input the dummy_task_runner knows how to handle
-        self.wf.input(dummy=1)
+        self.wf.input(self.wf.workflow.root, dummy=1)
 
     def test_workflow_simple_linear(self):
         """
         Run the workflow from start till finish.
         """
-        self.wf.set_wamp_session(session_data={'authid':'dadara'})
+
         # Run the workflow
         self.wf.run()
 
@@ -53,7 +52,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_running)
         self.assertTrue(self.wf.is_completed)
         self.assertEqual(self.wf.runtime(), 3)
-        
+
     def test_workflow_simple_linear_fail(self):
         """
         Simulate a nicely failing task.
@@ -216,4 +215,3 @@ class TestLinearWorkflow(unittest2.TestCase):
             time.sleep(1)
 
         self.assertTrue(self.wf.is_completed)
-

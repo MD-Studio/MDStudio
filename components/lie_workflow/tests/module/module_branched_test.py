@@ -7,13 +7,11 @@ Unit tests for a single branched workflow
 """
 
 import os
-import sys
 import unittest2
-import logging
 import time
 
-from   lie_workflow                import Workflow
-from   dummy_task_runners          import task_runner, calculate_accumulated_task_runtime
+from lie_workflow import Workflow
+from dummy_task_runners import task_runner, calculate_accumulated_task_runtime
 
 currpath = os.path.dirname(__file__)
     
@@ -34,9 +32,10 @@ class TestBranchedWorkflow(unittest2.TestCase):
         self.wf = Workflow()
         self.wf.task_runner = task_runner
         self.wf.load(self.workflow_spec_path)
+        self.wf.set_wamp_session(session_data={'authid': 'dadara'})
         
         # Define dummy input the dummy_task_runner knows how to handle
-        self.wf.input(dummy=1)
+        self.wf.input(self.wf.workflow.root, dummy=1)
 
     def test_workflow_single_branched(self):
         """

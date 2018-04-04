@@ -3,7 +3,7 @@
   "graph": {
     "title": "Linear workflow (finished)",
     "description": "A simple 6 node linear workflow",
-    "node_data_tag": "task_name",
+    "node_data_tag": "key",
     "create_time": 1493819360,
     "start_time": 1493819365,
     "update_time": 1493819372,
@@ -51,7 +51,7 @@
   "nodes": {
     "1": {
       "status": "completed",
-      "task_name": "start", 
+      "key": "start",
       "nid": 1, 
       "retry_count": 0, 
       "breakpoint": false, 
@@ -84,7 +84,7 @@
           "itime": 1493819367,
           "utime": 1493819368 
       },
-      "task_name": "task1", 
+      "key": "task1",
       "nid": 2, 
       "retry_count": 0, 
       "breakpoint": false, 
@@ -107,7 +107,7 @@
           "system_user": "mvdijk", 
           "task_id": "1493819368-7176"
       },
-      "task_name": "task2", 
+      "key": "task2",
       "nid": 3, 
       "retry_count": 0, 
       "breakpoint": false, 
@@ -130,7 +130,7 @@
           "itime": 1493819369,
           "utime": 1493819370
       },
-      "task_name": "task3", 
+      "key": "task3",
       "nid": 4, 
       "retry_count": 0,  
       "breakpoint": false, 
@@ -153,7 +153,7 @@
           "itime": 1493819370,
           "utime": 1493819371
       },
-      "task_name": "task4", 
+      "key": "task4",
       "nid": 5, 
       "retry_count": 0,  
       "breakpoint": false, 
@@ -166,7 +166,7 @@
       "input_data": {
         "sleep": 1
       },
-      "task_name": "task5", 
+      "key": "task5",
       "nid": 6, 
       "retry_count": 0,  
       "breakpoint": false, 

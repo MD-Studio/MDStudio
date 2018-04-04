@@ -3,9 +3,10 @@
 import os
 import time
 import threading
+import logging
 import json
 
-from twisted.logger import Logger
+#from twisted.logger import Logger
 from autobahn.wamp.exception import ApplicationError
 from lie_system import WAMPTaskMetaData
 
@@ -15,7 +16,7 @@ from .workflow_common import WorkflowError, load_task_function, concat_dict, Man
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
-logging = Logger()
+#logging = Logger()
 
 
 class _WorkflowQueryMethods(object):
@@ -152,7 +153,7 @@ class _WorkflowQueryMethods(object):
         for tid, task in self.workflow.nodes.items():
             session = task.get('session', {})
             print('{0}  {1}  {2}  {3}  {4}  {5}'.format(
-                task['task_name'],
+                task['key'],
                 tid,
                 self.workflow.adjacency[tid],
                 task['status'],
@@ -221,7 +222,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         collected_output = []
         if continue_next:
             msg = 'Task {0} ({1}): Output of {2} parent tasks available, continue'
-            logging.info(msg.format(task.nid, task.task_name, len(parent_tasks)))
+            logging.info(msg.format(task.nid, task.key, len(parent_tasks)))
             
             # Collect output of previous tasks and apply data mapper and data
             # selection if needed
@@ -235,7 +236,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         else:
             logging.info(
                 'Task {0} ({1}): Not all output available yet'.format(
-                    task.nid, task.task_name))
+                    task.nid, task.key))
             return
 
         return concat_dict(collected_output)
@@ -265,7 +266,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
 
         logging.error(
             'Task {0} ({1}) crashed with error: {2}'.format(
-                task.nid, task.task_name, failure_message))
+                task.nid, task.key, failure_message))
         self.is_running = False
         self.workflow.update_time = int(time.time())
 
@@ -282,7 +283,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
               or session object is unchanged? Set a breakpoint and let the
               user check?
         """
-        
+
         # Get the task
         task = self.workflow.getnodes(tid)
 
@@ -300,7 +301,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         else:
             logging.error(
                 'Task {0} ({1}) returned no output'.format(
-                    task.nid, task.task_name))
+                    task.nid, task.key))
             task.status = 'failed'
 
         # Update the task output data only if not already 'completed'
@@ -316,7 +317,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
 
         logging.info(
             'Task {0} ({1}), status: {2}'.format(
-                task.nid, task.task_name, task.status))
+                task.nid, task.key, task.status))
 
         # If the task is completed, go to next
         next_task_nids = []
@@ -326,7 +327,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
             next_tasks = [t for t in task.children() if t.status != 'disabled']
             logging.info(
                 '{0} new tasks to run with the output of {1} ({2})'.format(
-                    len(next_tasks), task.nid, task.task_name))
+                    len(next_tasks), task.nid, task.key))
 
             for ntask in next_tasks:
                 # Get output from all tasks connected to new task
@@ -349,13 +350,13 @@ class WorkflowRunner(_WorkflowQueryMethods):
 
             logging.warn(
                 'Task {0} ({1}) failed. Retry ({2} times left)'.format(
-                    task.nid, task.task_name, task.retry_count))
+                    task.nid, task.key, task.retry_count))
             next_task_nids.append(task.nid)
 
         # If the active failed an no retry is allowed, stop working.
         if task.status == 'failed' and task.retry_count == 0:
             logging.error('Task {0} ({1}) failed'.format(
-                task.nid, task.task_name))
+                task.nid, task.key))
             self.is_running = False
             return
 
@@ -364,7 +365,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         if task.breakpoint:
             logging.info(
                 'Task {0} ({1}) finished but breakpoint is active'.format(
-                    task.nid, task.task_name))
+                    task.nid, task.key))
             self.workflow.is_running = False
             return
 
@@ -417,14 +418,14 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Get the task object from the graph. nid is expected to be in graph.
         # Check if the task has a 'run_task' method.
         task = self.workflow.getnodes(tid)
-        err = 'Task {0} ({1}) requires "run_task" method'.format(task.nid, task.task_name)
+        err = 'Task {0} ({1}) requires "run_task" method'.format(task.nid, task.key)
         assert hasattr(task, 'run_task'), logging.error(err)
 
         # Bailout if the task is active
         if task.active:
             logging.debug(
                 'Task {0} ({1}) already active'.format(
-                    task.nid, task.task_name))
+                    task.nid, task.key))
             return
 
         # Run the task if status is 'ready'
@@ -432,6 +433,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
 
             # Update the task session
             session = WAMPTaskMetaData()
+
             if 'authid' in self.workflow.nodes[self.workflow.root]['session']:
                 session.authid = self.workflow.nodes[self.workflow.root]['session']['authid']
             self.workflow.nodes[tid]['session'] = session.dict()
@@ -473,7 +475,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
 
             logging.info(
                 'Task {0} ({1}), status: {2}'.format(
-                    task.nid, task.task_name, task.status))
+                    task.nid, task.key, task.status))
             task.run_task(
                 load_task_function(task.get('custom_func', None)) or self.task_runner,
                 callback=self._output_callback,
@@ -541,7 +543,7 @@ class WorkflowRunner(_WorkflowQueryMethods):
         # Remove the breakpoint
         task.breakpoint = False
         logging.info(
-            'Remove breakpoint on task {0} ({1})'.format(tid, task.task_name))
+            'Remove breakpoint on task {0} ({1})'.format(tid, task.key))
 
     def input(self, tid, **kwargs):
         """

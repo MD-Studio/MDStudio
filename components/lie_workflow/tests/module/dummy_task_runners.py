@@ -7,15 +7,11 @@ Dummy task runners to emulate various WAMP microservice response
 constructs
 """
 
-import os
-import json
-import logging
 import time
-import copy
 import jsonschema
 
 from lie_system import WAMPTaskMetaData
-from lie_workflow import task_schema
+
 
 dummy_task_schema_input = {
     "$schema": "http://json-schema.org/draft-04/schema#",
@@ -52,6 +48,7 @@ dummy_task_schema_input = {
     "required": ["dummy"]
 }
 
+
 dummy_task_schema_output = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "http://liestudio/schemas/dummy_task.json",
@@ -66,6 +63,7 @@ dummy_task_schema_output = {
     }
 }
 
+
 def calculate_accumulated_task_runtime(workflow):
     """
     Calculate cumultative task runtime
@@ -78,7 +76,8 @@ def calculate_accumulated_task_runtime(workflow):
             runtime += (session.get('utime',0) - session.get('itime',0))
     
     return runtime
-    
+
+
 def task_runner(session=None, **kwargs):
     """
     Run a task based on the information in the task_data.
@@ -110,10 +109,11 @@ def task_runner(session=None, **kwargs):
     if kwargs.get('crash', False):
         raise Exception("Crashed task")
     
-    # Prepaire the output
+    # Prepare the output
     session._metadata['utime'] = int(time.time())
     
     return {'session': session.dict(), 'dummy': output}
+
 
 def reduce_function(session=None, **kwargs):
     """
@@ -125,6 +125,5 @@ def reduce_function(session=None, **kwargs):
     session.status = 'completed'
     session._metadata['utime'] = int(time.time())
 
-    output = {'session': session.dict(), 'dummy': len(kwargs.get('dummy',[]))}
+    output = {'session': session.dict(), 'dummy': sum(kwargs.get('dummy',[]))}
     return output
-    

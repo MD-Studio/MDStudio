@@ -9,17 +9,18 @@ Graph node task classes
 import itertools
 import jsonschema
 import json
-import random
 import os
 import six
 import time
+import logging
 
 from twisted.internet import (reactor, threads)
-from twisted.logger import Logger
+#from twisted.logger import Logger
 
 from lie_graph.graph_orm import GraphORM
 from lie_graph.graph_algorithms import dfs_paths
 from lie_graph.graph_helpers import renumber_id
+from lie_graph.graph_mixin import NodeTools
 from lie_system import WAMPTaskMetaData
 
 from .workflow_common import _schema_to_data
@@ -28,10 +29,10 @@ from .workflow_common import _schema_to_data
 TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
 task_schema = json.load(open(TASK_SCHEMA_PATH))
 
-logging = Logger()
+#logging = Logger()
 
 
-class _TaskBase(object):
+class _TaskBase(NodeTools):
 
     @property
     def status(self):
@@ -60,7 +61,7 @@ class _TaskBase(object):
 
         logging.info(
             'Init task {0} ({1}). Update attributes'.format(
-                self.nid, self.task_name))
+                self.nid, self.key))
 
         task_data = _schema_to_data(task_schema, data=kwargs)
         jsonschema.validate(task_data, task_schema)
@@ -120,13 +121,13 @@ class _TaskBase(object):
         if not self.active:
             logging.info(
                 'Unable to cancel task {0} ({1}) not active'.format(
-                    self.nid, self.task_name))
+                    self.nid, self.key))
             return
 
         self.status = 'aborted'
         self.active = False
         logging.info(
-            'Canceled task {0} ({1})'.format(self.nid, self.task_name))
+            'Canceled task {0} ({1})'.format(self.nid, self.key))
 
 
 class Task(_TaskBase):
@@ -137,7 +138,7 @@ class Task(_TaskBase):
 
     def run_task(self, runner, callback=None, errorback=None):
 
-        logging.info('running "{0}"'.format(self.task_name))
+        logging.info('running "{0}"'.format(self.key))
 
         # Get task session
         session = WAMPTaskMetaData(
@@ -160,7 +161,7 @@ class WampTask(_TaskBase):
     def run_task(self, runner, callback, errorback=None):
         method_url = six.text_type(self.uri)
         logging.info('Task {0} ({1}) running on {2}'.format(
-            self.nid, self.task_name, method_url))
+            self.nid, self.key, method_url))
 
         # Retrieve the WAMP session information
         session = WAMPTaskMetaData(
@@ -187,7 +188,7 @@ class BlockingTask(_TaskBase):
 
     def run_task(self, runner, callback, errorback=None):
 
-        logging.info('running "{0}"'.format(self.task_name))
+        logging.info('running "{0}"'.format(self.key))
 
         # Get task session
         session = WAMPTaskMetaData(
@@ -202,7 +203,7 @@ class BlockingTask(_TaskBase):
             else:
                 logging.error(
                     'Error in running task {0} ({1})'.format(
-                        self.nid, self.task_name))
+                        self.nid, self.key))
                 logging.error(e)
                 return
 
@@ -213,7 +214,7 @@ class StartTask(_TaskBase):
     """
     Workflow start task
 
-    Responsible for handling intitial workflow input and pre-processing
+    Responsible for handling initial workflow input and pre-processing
     """
 
     def _start(self, session=None, **kwargs):
@@ -243,9 +244,6 @@ class StartTask(_TaskBase):
 
         session = WAMPTaskMetaData(
             metadata=self.nodes[self.nid].get('session', {}))
-
-        #callback(self._start(session=session, **self.get_input()), self.nid)
-        #return
 
         d = threads.deferToThread(self._start,
                                   session=session,
@@ -285,7 +283,7 @@ class Choice(_TaskBase):
             else:
                 logging.error(
                     'Error in running task {0} ({1})'.format(
-                        self.nid, self.task_name))
+                        self.nid, self.key))
                 logging.error(e)
                 return
 
@@ -331,14 +329,14 @@ class Mapper(_TaskBase):
         if map_argument not in task_input:
             errorback(
                 'Task {0} ({1}), mapper argument {2} not in input'.format(
-                    self.nid, self.task_name, map_argument), self.nid)
+                    self.nid, self.key, map_argument), self.nid)
 
         mapped = task_input[map_argument]
         if len(mapped):
 
             logging.info(
                 'Task {0} ({1}), {2} items to map'.format(
-                    self.nid, self.task_name, len(mapped)))
+                    self.nid, self.key, len(mapped)))
 
             # Get task session
             session = WAMPTaskMetaData(
@@ -370,7 +368,7 @@ class Mapper(_TaskBase):
             else:
                 errorback(
                     'Task {0} ({1}), no tasks connected to Mapper task'.format(
-                        self.nid, self.task_name), self.nid)
+                        self.nid, self.key), self.nid)
                 return
 
             first_task = maptid[0]
@@ -416,13 +414,13 @@ class Mapper(_TaskBase):
 
         else:
             errorback('Task {0} ({1}), no items to map'.format(
-                self.nid, self.task_name), self.nid)
+                self.nid, self.key), self.nid)
 
 
 WORKFLOW_ORM = GraphORM(inherit=False)
-WORKFLOW_ORM.map_node(StartTask, {'task_type': 'Start'})
-WORKFLOW_ORM.map_node(Task, {'task_type': 'Task'})
-WORKFLOW_ORM.map_node(Choice, {'task_type': 'Choice'})
-WORKFLOW_ORM.map_node(BlockingTask, {'task_type': 'BlockingTask'})
-WORKFLOW_ORM.map_node(WampTask, {'task_type': 'WampTask'})
-WORKFLOW_ORM.map_node(Mapper, {'task_type': 'Mapper'})
+WORKFLOW_ORM.map_node(StartTask, task_type='Start')
+WORKFLOW_ORM.map_node(Task, task_type='Task')
+WORKFLOW_ORM.map_node(Choice, task_type='Choice')
+WORKFLOW_ORM.map_node(BlockingTask, task_type='BlockingTask')
+WORKFLOW_ORM.map_node(WampTask, task_type='WampTask')
+WORKFLOW_ORM.map_node(Mapper, task_type='Mapper')
