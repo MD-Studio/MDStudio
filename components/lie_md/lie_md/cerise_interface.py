@@ -9,7 +9,6 @@ import cerise_client.service as cc
 import docker
 import hashlib
 import json
-import logging
 import os
 
 
@@ -173,18 +172,20 @@ def restart_srv_job(srv_data, gromacs_config, cerise_config, cerise_db):
 
     try:
         srv = cc.service_from_dict(srv_data)
-        cc.selftart_managed_service(srv)
+        cc.start_managed_service(srv)
         srv.get_job_by_id(job_id)
         print("Job {} already running".format(job_id))
 
     except cc.errors.ServiceNotFound:
         print("There is not cerise service running")
-        start_from_scratch(job_id, gromacs_config, cerise_config, cerise_db)
+        srv_data = yield start_from_scratch(
+            job_id, gromacs_config, cerise_config, cerise_db)
 
     except cc.errors.JobNotFound:
         print("There is not Job: {} in the cerise service: {}".format(
             job_id, srv_data['name']))
-        start_from_scratch(job_id, gromacs_config, cerise_config, cerise_db)
+        srv_data = yield start_from_scratch(
+            job_id, gromacs_config, cerise_config, cerise_db)
 
     return_value(srv_data)
 
@@ -199,9 +200,9 @@ def start_from_scratch(job_id, gromacs_config, cerise_config, cerise_db):
     srv = create_service(cerise_config)
     yield remove_srv_job_from_db(job_id, cerise_db)
     print("restarting job from scratch")
-    return_value(
-        submit_new_job(
-            srv, gromacs_config, cerise_config, cerise_db))
+    job = yield submit_new_job(
+        srv, gromacs_config, cerise_config, cerise_db)
+    return_value(job)
 
 
 @chainable
@@ -241,18 +242,26 @@ def extract_simulation_info(
 def wait_extract_clean(job, srv, cerise_config, cerise_db):
     """
     Wait for the `job` to finish, extract the output and cleanup.
+    If the job fails returns None.
     """
-    job = wait_for_job(job, cerise_config['log'])
-    output = get_output(job, cerise_config)
-    cleanup(job, srv, cerise_db)
+    wait_for_job(job, cerise_config['log'])
+    if job.state == "Success":
+        output = get_output(job, cerise_config)
+        cleanup(job, srv, cerise_db)
+    else:
+        output = None
 
     return output
 
 
 def update_srv_info_at_db(srv_data, cerise_db):
     """
-    Update the service-job data store in the `cerise_db`.
+    Update the service-job data store in the `cerise_db`,
+    using the new `srv_data` information.
     """
+    # Do not try to update id in the db
+    if "_id" in srv_data:
+        srv_data.pop("_id")
     query = {'ligand_md5': srv_data['ligand_md5']}
     cerise_db.update_one('cerise', query, {"$set": srv_data})
 
@@ -362,8 +371,6 @@ def wait_for_job(job, cerise_log):
     with open(cerise_log, 'w') as f:
         json.dump(job.log, f, indent=2)
 
-    return job
-
 
 def cleanup(job, srv, cerise_db, remove_job_from_db=False):
     """
@@ -398,8 +405,7 @@ def try_to_close_service(srv_data, cerise_db):
         # Search for other running jobs
         query = {'username': srv_data['username'], 'job_state': 'Running'}
         counts = yield cerise_db.count('cerise', query)
-
-        if counts == 0:
+        if counts['total'] == 0:
             print("Shutting down Cerise-client service")
             cc.stop_managed_service(srv)
             cc.destroy_managed_service(srv)
