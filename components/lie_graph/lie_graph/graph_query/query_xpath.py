@@ -9,7 +9,8 @@ XPath based query of Axis based graphs
 import json
 import re
 
-from lie_graph import GraphAxis
+from lie_graph.graph import Graph
+from lie_graph.graph_axis.graph_axis_methods import node_children
 
 # Regular expressions
 split_filter_chars = re.compile('([\[\]])')
@@ -102,8 +103,8 @@ def get_self(graph, loc=None, exp=None, attr=None):
 def search_child(graph, loc=None, exp=None, attr=None):
 
     nids = []
-    for node in graph:
-        nids.extend(node.children().nodes.keys())
+    for nid in graph.nodes.keys():
+        nids.extend(node_children(graph, nid, graph.root))
 
     children = graph.getnodes(nids)
     if exp not in (None, '*'):
@@ -207,7 +208,7 @@ class XpathExpressionEvaluator(object):
                 continue
 
             # Stop if previous evaluation failed (empty graph, attribute)
-            if not isinstance(target, GraphAxis) or target.empty():
+            if not isinstance(target, Graph) or target.empty():
                 return target
 
             target = self.path_func_dict.get(evald['loc'])(target, **evald)

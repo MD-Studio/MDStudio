@@ -460,8 +460,6 @@ class Graph(object):
         This is the iterable version of the add_edge methods allowing
         multiple edge additions from any iterable.
 
-        TODO: This function does not work properly
-
         :param edges: Objects to be added as edges to the graph
         :type edges:  Iterable of hashable objects
 
@@ -475,12 +473,10 @@ class Graph(object):
 
         edges_added = []
         for e in edges:
-            pred = len(e) in (2, 3)
-            msg = 'Edge needs to contain two nodes and optional arguments, got: {0}'
-            err = logger.error(msg.format(e))
-
-            assert pred, err
-            edges_added.append(self.add_edge(*e, **kwargs))
+            if len(e) not in (2, 3):
+                logger.error('Edge needs to contain two nodes and optional arguments, got: {0}'.format(len(e)))
+            else:
+                edges_added.append(self.add_edge(*e, **kwargs))
 
         return edges_added
 

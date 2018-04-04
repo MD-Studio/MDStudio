@@ -80,7 +80,8 @@ class WebNodeTools(NodeTools):
 
         if key in target:
             if key == self.node_value_tag and isinstance(target[key], (str, unicode)):
-                return "'{0}'".format(json.dumps(target[key]).strip('"'))
+                return repr(target[key]).lstrip('u')
+                #return "'{0}'".format(json.dumps(target[key]).strip('"'))
             return target[key]
 
         return target.get(defaultattr, default)
@@ -164,11 +165,14 @@ def json_decode_params(param):
     elif param in ('True', 'False'):
         param = param.lower()
 
-    # JSON decode
+    # Try JSON decode
     try:
         param = json.loads(param, encoding='utf8')
     except ValueError, e:
-        logging.error('Unable to JSON decode parameter: {0}'.format(param))
+
+        # Last resort to parse nasty Spyder multi-lines in single string
+        s = param.strip('"')
+        param = '\n'.join(s.split('\\n'))
 
     return param
 
@@ -309,6 +313,10 @@ def read_web(web, graph=None, orm_data_tag='haddock_type', node_key_tag=None, ed
 
     # Restore original ORM
     graph.orm = curr_orm
+
+    # Root is of type 'array', rename key from 'item1' to 'project'
+    root = graph.getnodes(graph.root)
+    root.key = 'project'
 
     return graph
 

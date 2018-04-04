@@ -9,6 +9,7 @@ node.
 
 from lie_graph.graph import Graph
 from lie_graph.graph_helpers import GraphException
+from lie_graph.graph_query.query_xpath import XpathExpressionEvaluator
 from lie_graph.graph_axis.graph_axis_methods import (node_ancestors, node_children, node_descendants, node_neighbors,
     node_parent, node_all_parents, node_siblings, node_leaves)
 
@@ -279,30 +280,20 @@ class GraphAxis(Graph):
             return sorted(nsb)
         return self.getnodes(nsb, add_node_tools=False)
 
-    def xpath(self, path, sep='.', return_nids=False):
+    def xpath(self, expression, sep='/'):
         """
-        XPath like navigation along graph axis
+        Evaluate XPath expression against graph
 
-        :param path:         XPath to navigate
-        :type path:          :py:str
-        :param sep:          path separator character
-        :type sep:           :py:Str
-        :param return_nids:  return a list of node ID's (nid) instead of a new
-                             graph object representing the selection
-        :type return_nids:   bool
+        :param expression: XPath axpression
+        :type expression:  :py:str
+        :param sep:        XPath path location seperator
+        :type sep:         :py:str
 
-        :return:             nodes represented by XPath expression
-        :rtype:              Graph object or list
+        :rtype:            :lie_graph:GraphAxis
         """
 
-        data_block = None
-        for block in path.split(sep):
-            if data_block is None:
-                data_block = self.query_nodes(key=block)
-            else:
-                data_block = data_block.descendants(include_self=True).query_nodes(key=block)
-
-        return data_block
+        xpath = XpathExpressionEvaluator(sep=sep)
+        return xpath.resolve(expression, self)
 
     # DICTIONARY LIKE NODE ACCESS
     def items(self, keystring=None, valuestring=None, desc=True):

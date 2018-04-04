@@ -226,8 +226,10 @@ class NodeTools(NodeEdgeToolsBaseClass):
         :rtype: :py:str
         """
 
-        msg = '<{0} "{1}" object {2} (id: {3}): {4} edges>'
+        if not len(self.nodes):
+            return '<{0} object {1}: empty object)>'.format(type(self).__name__, id(self))
 
+        msg = '<{0} "{1}" object {2} (id: {3}): {4} edges>'
         return msg.format(
             type(self).__name__, self.nodes[self.nid].get(self.node_key_tag, ''), id(self),
             self.nodes[self.nid].get('_id', ''), len(self.adjacency[self.nid]))

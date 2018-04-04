@@ -4,55 +4,13 @@
 file: module_xpath_test.py
 
 Unit tests for XPath query language support in GraphAxis graphs
-{2:
-  {3:
-    {4: 608,
-     5: 609,
-     6: 610,
-     7: 611,
-     8: 612,
-     9: 613
-    },
-   10:
-    {11: 614,
-     12: 615,
-     13: 616,
-     14: 617,
-     15: 618,
-     16: 619,
-     17: 620,
-     18: 621,
-     19: 622
-     }
-   },
-  20:
-   {
-    21:
-     {22: 623,
-      23: 624,
-      24: 625,
-      25: 626,
-      26: 627,
-      27: 628
-     },
-    28:
-     {29: 629,
-      30: 630,
-      31: 631,
-      32: 632,
-      33: 633,
-      34: 634,
-      35: 635,
-      36: 636,
-      37: 637
-      }
-    }
-  }
 """
 
+import os
 import unittest2
 
-from lie_graph import GraphAxis
+from lie_graph.graph_io.io_jgf_format import read_jgf
+from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools
 from lie_graph.graph_query.query_xpath import XpathExpressionEvaluator
 
 
@@ -64,32 +22,11 @@ class TestXPathQuery(unittest2.TestCase):
         Create a graph to query
         """
 
-        ala = {'r': 'ALA', 'a':['N', 'CA', 'C', 'O', 'CB', 'H']}
-        leu = {'r': 'LEU', 'a':['N', 'CA', 'C', 'O', 'CB', 'CG', 'CD1', 'CD2', 'H']}
+        currpath = os.path.dirname(__file__)
+        xpath_example = os.path.join(currpath, '../files/graph_xpath.jgf')
 
-        cls.graph = GraphAxis()
-        rid = cls.graph.add_node('system')
-        cls.graph.root = rid
-        start = 1
-        atom = 608
-        for segid in ('A', 'B'):
-            sid = cls.graph.add_node('segid', value=segid)
-            cls.graph.add_edge(rid, sid)
-
-            for i, res in enumerate([ala, leu], start=start):
-
-                if start == 1:
-                    nid = cls.graph.add_node('residue', value=i, name=res['r'])
-                else:
-                    nid = cls.graph.add_node('residue', value=i, name=res['r'], extra=True)
-                cls.graph.add_edge(sid, nid)
-
-                for atm in res['a']:
-                    aid = cls.graph.add_node('atom', value=atom, name=atm, elem=atm[0])
-                    cls.graph.add_edge(nid, aid)
-                    atom += 1
-
-            start += 1
+        cls.graph = read_jgf(xpath_example)
+        cls.graph.node_tools = NodeAxisTools
 
     def test_query_selfdesc(self):
         """

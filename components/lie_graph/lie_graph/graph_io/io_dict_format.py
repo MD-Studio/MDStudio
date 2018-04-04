@@ -66,7 +66,7 @@ def read_dict(dictionary, graph=None, node_key_tag=None, edge_key_tag=None, valu
 
 
 def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', default=None, root_nid=None,
-               include_root=False):
+               include_root=False, allow_none=True):
     """
     Export a graph to a (nested) dictionary
 
@@ -96,7 +96,9 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     :type default:       mixed
     :param include_root: Include the root node in the hierarchy
     :type include_root:  :py:bool
-    :param root_nid:     Root node ID in graph hierarchy
+    :param root_nid:     root node ID in graph hierarchy
+    :param allow_none:   allow None values in the output
+    :type allow_none:    :py:bool
 
     :rtype:              :py:dict
     """
@@ -120,7 +122,12 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     def _walk_dict(node, target_dict):
 
         if node.isleaf:
-            target_dict[node.get(keystring)] = node.get(valuestring, default=default)
+
+            # Include None values or not
+            value = node.get(valuestring, default=default)
+            if not allow_none and value is None:
+                return
+            target_dict[node.get(keystring)] = value
         else:
             target_dict[node.get(keystring)] = {}
             for cid in node.children(return_nids=True):
