@@ -492,8 +492,8 @@ class GraphAxisLeavesTests(unittest2.TestCase):
         self.assertEqual(sub.leaves(return_nids=True), [16, 17, 18, 19, 21, 22])
 
         # Removing parent-leaf edge isolates them
-        sub.remove_edge(15, 16, directed=True)
-        sub.remove_edge(15, 17, directed=True)
+        sub.remove_edge(15, 16)
+        sub.remove_edge(15, 17)
         self.assertEqual(sub.leaves(return_nids=True), [18, 19, 21, 22])
 
         # Unless include_isolated equals True
