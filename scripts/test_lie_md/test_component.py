@@ -2,7 +2,6 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
 from os.path import join
-import json
 import os
 import shutil
 
@@ -17,12 +16,11 @@ protein_file = None
 protein_top = join(workdir, "protein.top")
 topology_file = join(workdir, "input_GMX.itp")
 include = [join(workdir, "attype.itp"), join(workdir, "ref_conf_1-posre.itp")]
-amber_input = "input.mol2"
 
 shutil.copytree('.', workdir)
 
 
-class Run_test(ComponentSession):
+class Run_md(ComponentSession):
 
     def authorize_request(self, uri, claims):
         return True
@@ -41,13 +39,7 @@ class Run_test(ComponentSession):
                  "residues": residues,
                  "workdir": workdir})
             print("MD results ", r)
-    # def on_run(self):
-    #     with self.group_context('mdgroup'):
-    #         self.call(
-    #             "mdgroup.lie_amber.endpoint.acpype",
-    #             {"structure": amber_input,
-    #              "workdir": workdir})
 
 
 if __name__ == "__main__":
-    main(Run_test)
+    main(Run_md)

@@ -61,15 +61,15 @@ def amber_acpype(mol, options, workdir):
     workdir_name = os.path.splitext(mol)[0]
     cmd = [acepype_exe, '-i', mol] + flags
 
-    logger.info(
+    print(
         "ACPYPE command: {0}".format(' '.join(cmd)))
 
     # Run the command
     p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True, cwd=workdir)
     cmd_out, cmd_err = p.communicate()
-    logger.info("OUTPUT ACPYPE:\n{}".format(cmd_out))
+    print("OUTPUT ACPYPE:\n{}".format(cmd_out))
     if cmd_err:
-        logger.error("Error ACPYPE:\n{}".format(cmd_err))
+        print("Error ACPYPE:\n{}".format(cmd_err))
 
     output_path = os.path.join(workdir, '{0}.acpype'.format(workdir_name))
     if os.path.isdir(output_path):
@@ -133,7 +133,7 @@ def amber_reduce(mol, options, workdir, output=None):
         ['-{0}{1}'.format(option, flag) for option, flag in
          options.items() if type(flag) not in (bool, type(None))])
 
-    logger.info("Running Amber 'reduce' with command line arguments: {0}".format(','.join(flags)))
+    print("Running Amber 'reduce' with command line arguments: {0}".format(','.join(flags)))
 
     # Command
     cmd = [reduce_exe_path] + flags
@@ -142,9 +142,9 @@ def amber_reduce(mol, options, workdir, output=None):
     # Run the command
     p = Popen(' '.join(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     cmd_out, cmd_err = p.communicate()
-    logger.debug("OUTPUT AMBER REDUCE:\n{}".format(cmd_out))
+    print("OUTPUT AMBER REDUCE:\n{}".format(cmd_out))
     if cmd_err:
-        logger.error("Error AMBER REDUCE:\n{}".format(cmd_err))
+        print("Error AMBER REDUCE:\n{}".format(cmd_err))
 
     # Return output file
     if os.path.exists(output):
