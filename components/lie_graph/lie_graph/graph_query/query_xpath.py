@@ -3,7 +3,7 @@
 """
 file: query_xpath.py
 
-XPath based query of Axis based graphs
+XPath based query of Axis based graphs.
 """
 
 import json
@@ -15,10 +15,17 @@ from lie_graph.graph_axis.graph_axis_methods import node_children
 # Regular expressions
 split_filter_chars = re.compile('([\[\]])')
 split_path_seperators = re.compile(r'(\.+|/+)')
-split_operators = re.compile('([><=*])')
+split_operators = re.compile('(>=|<=|!=|=|<|>|\*)')
 
 
 def get_attributes(attr, graph=None):
+    """
+    Graph node attribute query evaluation
+
+    :param attr:
+    :param graph:
+    :return:
+    """
 
     # Is the attr a single integer, then use as list item selection
     # Use W3C recommendations, first item index equals 1.
@@ -57,6 +64,17 @@ def get_attributes(attr, graph=None):
 def get_root(graph, loc=None, exp=None, attr=None):
     """
     Get graph root and query
+
+    :param graph: (sub)graph instance to search
+    :param loc:   path location identifier
+    :type loc:    :py:str
+    :param exp:   expression to query for in root
+    :type exp:    :py:str
+    :param attr:  attributes to evaluate for matched expressions
+    :type attr:   :py:list
+
+    :return:      query result graph
+    :rtype:       :lie_graph:GraphAxis
     """
 
     root = graph.getnodes(graph.root)
@@ -69,9 +87,16 @@ def get_parent(graph, loc=None, exp=None, attr=None):
 
     Selects the parent of the current node
 
-    :param graph:   (sub)graph to search in
-    :param target:  target search predicate
-    :return:
+    :param graph: (sub)graph instance to search
+    :param loc:   path location identifier
+    :type loc:    :py:str
+    :param exp:   expression to query for in parent
+    :type exp:    :py:str
+    :param attr:  attributes to evaluate for matched expressions
+    :type attr:   :py:list
+
+    :return:      query result graph
+    :rtype:       :lie_graph:GraphAxis
     """
 
     self = get_self(graph, loc=loc, exp=exp, attr=attr)
@@ -86,9 +111,16 @@ def get_self(graph, loc=None, exp=None, attr=None):
     """
     Defines self and searches in self and children for target
 
-    :param graph:   (sub)graph to search in
-    :param target:  target search predicate
-    :return:
+    :param graph: (sub)graph instance to search
+    :param loc:   path location identifier
+    :type loc:    :py:str
+    :param exp:   expression to query for in self and children
+    :type exp:    :py:str
+    :param attr:  attributes to evaluate for matched expressions
+    :type attr:   :py:list
+
+    :return:      query result graph
+    :rtype:       :lie_graph:GraphAxis
     """
 
     if exp not in (None, '*'):
@@ -101,6 +133,20 @@ def get_self(graph, loc=None, exp=None, attr=None):
 
 
 def search_child(graph, loc=None, exp=None, attr=None):
+    """
+    Search graph children linage including self.
+
+    :param graph: (sub)graph instance to search
+    :param loc:   path location identifier
+    :type loc:    :py:str
+    :param exp:   expression to query for in children
+    :type exp:    :py:str
+    :param attr:  attributes to evaluate for matched expressions
+    :type attr:   :py:list
+
+    :return:      query result graph
+    :rtype:       :lie_graph:GraphAxis
+    """
 
     nids = []
     for nid in graph.nodes.keys():
@@ -117,6 +163,20 @@ def search_child(graph, loc=None, exp=None, attr=None):
 
 
 def search_descendants(graph, loc=None, exp=None, attr=None):
+    """
+    Search graph descendant linage including self.
+
+    :param graph: (sub)graph instance to search
+    :param loc:   path location identifier
+    :type loc:    :py:str
+    :param exp:   expression to query for in descendants
+    :type exp:    :py:str
+    :param attr:  attributes to evaluate for matched expressions
+    :type attr:   :py:list
+
+    :return:      query result graph
+    :rtype:       :lie_graph:GraphAxis
+    """
 
     descendants = graph.descendants(include_self=True)
     if exp not in (None, '*'):
@@ -131,6 +191,44 @@ def search_descendants(graph, loc=None, exp=None, attr=None):
 class XpathExpressionEvaluator(object):
 
     def __init__(self, sep='/'):
+        """
+        XpathExpressionEvaluator class
+
+        XPath expression evaluator for GraphAxis queries supporting a common
+        subset of XPath functionality in XPath version 3.0 as defined by W3C
+        in the specification; https://www.w3.org/TR/xpath-30/
+
+        **Important differences**
+        In contrast to the W3C XPath specification, this class always returns
+        a GraphAxis object representing the query results even if specific
+        attribute values are requested. This is to ensure that all the graph
+        and/or node functions become available to the user.
+        An empty GraphAxis object means that the XPath query evaluation did not
+        yield any result. If it is not empty it guaranties to represent the
+        XPath expression even if specific attributes are queried for. In the
+        later case the user will have to get the value(s) of the attribute(s)
+        from the results.
+
+        **What is supported**
+
+        * XPath location path expressions e.a. '/' and '//'
+        * XPath attribute lookup: '@'
+        * XPath wildcard usage: *
+
+        **What is not supported**
+
+        * XPath functions expressed as: fn:function-name(XPath expression).
+          Functions should be handled in Python using the expression results
+          afterwards.
+
+        The evaluator supports different path location separator characters.
+        This is the '/' character by default as defined by the W3C XPath
+        standard. Changing it to '.' separator allows for emulating Python
+        chained attribute lookup.
+
+        :param sep: path separator character
+        :type sep:  :py:str
+        """
 
         self.sep = sep
 
@@ -138,12 +236,15 @@ class XpathExpressionEvaluator(object):
         self.path_func_dict = {'..': get_parent, '.': get_self, sep: search_child, sep*2: search_descendants}
 
     def parse_attr(self, attr):
+        """
+        Parse XPath attribute definitions
+        """
 
         attr_parse = []
         for a in [n for n in split_operators.split(attr.strip('@')) if len(n)]:
             try:
                 attr_parse.append(json.loads(a))
-            except:
+            except ValueError:
                 attr_parse.append(a)
 
         return attr_parse
@@ -187,6 +288,9 @@ class XpathExpressionEvaluator(object):
     def resolve(self, expression, graph):
         """
         Resolve XPath expression
+
+        Always returns a graph that can be empty if the XPath evaluation
+        failed.
 
         :param expression:  XPath expression to evaluate
         :type expression:   :py:str
