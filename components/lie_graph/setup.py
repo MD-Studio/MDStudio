@@ -28,7 +28,7 @@ test_requirements = ['unittest2']
 
 setup(
     name=distribution_name,
-    version=0.1,
+    version=1.0,
     description='Graph based data handling for the LIEStudio application',
     author='Marc van Dijk, VU University, Amsterdam, The Netherlands',
     author_email='m4.van.dijk@vu.nl',
