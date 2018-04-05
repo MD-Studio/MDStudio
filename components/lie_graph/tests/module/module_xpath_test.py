@@ -130,6 +130,19 @@ class TestXPathQuery(unittest2.TestCase):
         self.assertItemsEqual(xpath.resolve('//*[@*]', sel).nodes.keys(), [10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
         self.assertItemsEqual(xpath.resolve('//atom[@*]', sel).nodes.keys(), [11, 12, 13, 14, 15, 16, 17, 18, 19])
 
+    def test_query_axis_filter(self):
+        """
+        Test XPath axis based selection syntax
+        """
+
+        xpath = XpathExpressionEvaluator()
+
+        self.assertItemsEqual(xpath.resolve('//segid/child::residue', self.graph).nodes.keys(), [3, 10, 21, 28])
+        self.assertItemsEqual(xpath.resolve('child::segid', self.graph).nodes.keys(), [2, 20])
+        self.assertItemsEqual(xpath.resolve('//residue[3]/following-sibling::residue', self.graph).nodes.keys(), [21])
+        self.assertItemsEqual(xpath.resolve('//atom/ancestor::segid', self.graph).nodes.keys(), [2, 20])
+        self.assertItemsEqual(xpath.resolve('//residue/parent::*', self.graph).nodes.keys(), [2, 20])
+
     def test_query_different_sepchar(self):
         """
         Test XpathExpressionEvaluator use with different sep char (.)

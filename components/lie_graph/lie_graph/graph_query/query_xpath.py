@@ -8,9 +8,10 @@ XPath based query of Axis based graphs.
 
 import json
 import re
+import logging
 
 from lie_graph.graph import Graph
-from lie_graph.graph_axis.graph_axis_methods import node_children
+from lie_graph.graph_axis.graph_axis_methods import node_children, node_ancestors, node_parent
 
 # Regular expressions
 split_filter_chars = re.compile('([\[\]])')
@@ -101,10 +102,14 @@ def get_parent(graph, loc=None, exp=None, attr=None):
 
     self = get_self(graph, loc=loc, exp=exp, attr=attr)
 
-    if self.nid == graph.root:
-        return graph
+    nids = []
+    for nid in self.nodes.keys():
+        if nid == graph.root:
+            nids.append(nid)
+        else:
+            nids.append(node_parent(self, nid, graph.root))
 
-    return self.parent()
+    return graph.getnodes(nids)
 
 
 def get_self(graph, loc=None, exp=None, attr=None):
@@ -188,6 +193,62 @@ def search_descendants(graph, loc=None, exp=None, attr=None):
     return descendants
 
 
+def search_siblings(graph, loc=None, exp=None, attr=None):
+    """
+    Search graph siblings linage.
+
+    :param graph: (sub)graph instance to search
+    :param loc:   path location identifier
+    :type loc:    :py:str
+    :param exp:   expression to query for in siblings
+    :type exp:    :py:str
+    :param attr:  attributes to evaluate for matched expressions
+    :type attr:   :py:list
+
+    :return:      query result graph
+    :rtype:       :lie_graph:GraphAxis
+    """
+
+    siblings = graph.siblings()
+    if exp not in (None, '*'):
+        siblings = siblings.query_nodes({graph.node_key_tag: exp})
+
+    for a in attr:
+        siblings = get_attributes(a, graph=siblings)
+
+    return siblings
+
+
+def search_ancestors(graph, loc=None, exp=None, attr=None):
+    """
+    Search graph ancestors linage.
+
+    :param graph: (sub)graph instance to search
+    :param loc:   path location identifier
+    :type loc:    :py:str
+    :param exp:   expression to query for in ancestors
+    :type exp:    :py:str
+    :param attr:  attributes to evaluate for matched expressions
+    :type attr:   :py:list
+
+    :return:      query result graph
+    :rtype:       :lie_graph:GraphAxis
+    """
+
+    nids = []
+    for nid in graph.nodes.keys():
+        nids.extend(node_ancestors(graph, nid, graph.root))
+
+    ancestors = graph._full_graph.getnodes(list(set(nids)))
+    if exp not in (None, '*'):
+        ancestors = ancestors.query_nodes({graph.node_key_tag: exp})
+
+    for a in attr:
+        ancestors = get_attributes(a, graph=ancestors)
+
+    return ancestors
+
+
 class XpathExpressionEvaluator(object):
 
     def __init__(self, sep='/'):
@@ -211,9 +272,15 @@ class XpathExpressionEvaluator(object):
 
         **What is supported**
 
-        * XPath location path expressions e.a. '/' and '//'
-        * XPath attribute lookup: '@'
-        * XPath wildcard usage: *
+        * XPath location path expressions: '/' = from document root, '//'
+          = everywhere in document, '.' = self, '..' = parent.
+        * XPath attribute lookup: '@attr' = select node if it has 'attr'
+          attribute, '@attr = "one"' select if attr value equals 'one'.
+        * XPath wildcard usage: '*' = select everything
+        * XPath index selection: '[2]' = select item with index 2 in the list
+          of matching items.
+        * XPath axis selectors: 'child', 'descendant', 'self', 'ancestor',
+          'ancestor-or-self', 'following-sibling', 'parent'
 
         **What is not supported**
 
@@ -234,6 +301,13 @@ class XpathExpressionEvaluator(object):
 
         self.path_root_dict = {sep: get_root, sep * 2: search_descendants, '..': get_parent, '.': get_self}
         self.path_func_dict = {'..': get_parent, '.': get_self, sep: search_child, sep*2: search_descendants}
+        self.path_axis_dict = {'child': search_child, 'descendant': search_descendants, 'self': get_self,
+                               'following': None, 'following-sibling': search_siblings, 'descendant-or-self': None,
+                               'parent': get_parent, 'ancestor': search_ancestors, 'preceding-sibling': None,
+                               'preceding': None, 'ancestor-or-self': search_ancestors}
+
+        self.path_root_dict.update(self.path_axis_dict)
+        self.path_func_dict.update(self.path_axis_dict)
 
     def parse_attr(self, attr):
         """
@@ -274,6 +348,11 @@ class XpathExpressionEvaluator(object):
                     if len(group) == 1:
                         group.append('')
                     path_counter += 1
+
+                    # Parse XPath axis
+                    if '::' in group[1]:
+                        group = group[1].split('::')
+
                     if group[1].startswith('@'):
                         groups[path_counter] = {'loc': group[0], 'attr': [self.parse_attr(group[1])], 'exp': None}
                     else:
@@ -315,6 +394,11 @@ class XpathExpressionEvaluator(object):
             if not isinstance(target, Graph) or target.empty():
                 return target
 
-            target = self.path_func_dict.get(evald['loc'])(target, **evald)
+            # Parse path segment using appropriate path function
+            if evald['loc'] in self.path_func_dict:
+                target = self.path_func_dict.get(evald['loc'])(target, **evald)
+            else:
+                logging.warning('XPath syntax error: "{0}" no valid expression in {1}'.format(evald['loc'], expression))
+                target = graph.getnodes(None)
 
         return target
