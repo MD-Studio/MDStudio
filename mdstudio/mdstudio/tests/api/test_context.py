@@ -4,10 +4,10 @@ import random
 import mock
 from twisted.trial.unittest import TestCase
 
-from lie_auth.user_repository import random_uuid
 from mdstudio.api.context import ContextManager
 from mdstudio.deferred.chainable import test_chainable as chainable
 from mdstudio.deferred.sleep import sleep
+from mdstudio.util.uuid import random_uuid
 
 
 class ContextTests(TestCase):

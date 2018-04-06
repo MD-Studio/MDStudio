@@ -1,25 +1,18 @@
-import random
-from enum import Enum
-from pprint import pprint
-from uuid import uuid4
-
-import dictdiffer
 import itertools
 
 import os
 import pytz
 from copy import deepcopy
+from enum import Enum
 
 from mdstudio.collection import dict_property, dict_array_property
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.fields import timestamp_properties, Fields
-from mdstudio.service.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
+from mdstudio.service.model import Model
 from mdstudio.utc import now
-
-def random_uuid():
-    return str(uuid4())
+from mdstudio.util.uuid import random_uuid
 
 
 class ModelInstance(dict):
