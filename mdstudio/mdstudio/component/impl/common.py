@@ -275,7 +275,6 @@ class CommonSession(ApplicationSession):
 
         for var in env_vars:
             env_var = extract(var)
-
             if env_var:
                 if converter:
                     self.component_config[attribute][session_var] = converter(env_var)
@@ -287,6 +286,8 @@ class CommonSession(ApplicationSession):
             self.component_config[attribute][session_var] = default
 
     def load_environment(self, mapping, attribute=None):
+        if not attribute:
+            attribute = 'settings'
         for session_var, env_vars in mapping.items():
             converter = env_vars[2] if len(env_vars) == 3 else None
             self.add_env_var_from_config(session_var, env_vars[0], attribute, default=env_vars[1], converter=converter)
