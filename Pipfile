@@ -8,12 +8,12 @@ verify_ssl = true
 [packages]
 
 crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "da6c3d220ba6d8b3fc8c1b9ec00eda48b3a8d57b"}
-mdstudio = {path = "mdstudio/", editable = false}
-lie-auth = {path = "components/lie_auth/", editable = false}
-lie-cache = {path = "components/lie_cache/", editable = false}
-lie-db = {path = "components/lie_db/", editable = false}
-lie-schema = {path = "components/lie_schema/", editable = false}
-lie-logger = {path = "components/lie_logger/", editable = false}
+mdstudio = {path = "mdstudio/", editable = true}
+lie-auth = {path = "components/lie_auth/", editable = true}
+lie-cache = {path = "components/lie_cache/", editable = true}
+lie-db = {path = "components/lie_db/", editable = true}
+lie-schema = {path = "components/lie_schema/", editable = true}
+lie-logger = {path = "components/lie_logger/", editable = true}
 twisted = "*"
 cryptography = "*"
 
