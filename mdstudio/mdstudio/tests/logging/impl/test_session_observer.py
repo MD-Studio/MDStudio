@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import timedelta
 
 import os
@@ -13,6 +14,12 @@ from mdstudio.logging.log_type import LogType
 from mdstudio.unittest.db import DBTestCase
 from mdstudio.utc import from_utc_string, now
 
+# Python 2 compatibility.
+try:
+    TimeoutError
+except NameError:
+    import socket
+    TimeoutError = socket.timeout
 
 class SessionObserverTests(DBTestCase):
 
@@ -49,7 +56,7 @@ class SessionObserverTests(DBTestCase):
             'log_format': 'hello {str}',
             'log_namespace': 'test namespace',
             'log_level': LogType.Group,
-            'log_time': t.timestamp(),
+            'log_time': time.mktime(t.timetuple()),
             'str': 'test'
         })
 
@@ -67,7 +74,7 @@ class SessionObserverTests(DBTestCase):
             'message': 'hello test',
             'log_namespace': 'test namespace',
             'log_level': LogType.Group,
-            'log_time': t.timestamp()
+            'log_time': time.mktime(t.timetuple()),
         })
 
         self.assertLessEqual(t - from_utc_string(self.observer.logs[1]['time']), timedelta(seconds=1))
@@ -83,7 +90,7 @@ class SessionObserverTests(DBTestCase):
             'message': '',
             'log_namespace': 'test namespace',
             'log_level': LogType.Group,
-            'log_time': now().timestamp()
+            'log_time': time.mktime(now().timetuple()),
         })
 
         self.assertEqual(len(self.observer.logs), 1)

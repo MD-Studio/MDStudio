@@ -12,7 +12,7 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.service.model import Model
 from mdstudio.utc import now
-from mdstudio.util.uuid import random_uuid
+from mdstudio.util.random import random_uuid
 
 
 class ModelInstance(dict):

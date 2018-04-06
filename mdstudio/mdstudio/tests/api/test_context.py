@@ -7,7 +7,7 @@ from twisted.trial.unittest import TestCase
 from mdstudio.api.context import ContextManager
 from mdstudio.deferred.chainable import test_chainable as chainable
 from mdstudio.deferred.sleep import sleep
-from mdstudio.util.uuid import random_uuid
+from mdstudio.util.random import random_uuid
 
 
 class ContextTests(TestCase):
