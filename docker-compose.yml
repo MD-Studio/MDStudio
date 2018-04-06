@@ -58,7 +58,7 @@ services:
         build:
             context: docker/redis-cluster
             args:
-                redis_version: 3.0.7
+                redis_version: 4.0.8
         ports:
             - "7000:7000"
             - "7001:7001"

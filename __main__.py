@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
         ring0_config = [{
             "type": "class",
-            "classname": "lie_{role}.application.{component}Component".format(role=role, component=component),
+            "classname": "{role}.application.{component}Component".format(role=role, component=component),
             "realm": "mdstudio",
             "role": role
         } for role, component in OrderedDict([
