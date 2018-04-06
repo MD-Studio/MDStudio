@@ -11,6 +11,11 @@ from mdstudio.api.singleton import Singleton
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
+# python 2 compat
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 class ISchema(object):
     def __init__(self):
