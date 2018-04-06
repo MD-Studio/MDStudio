@@ -8,9 +8,12 @@ python:
 
 services:
   docker
-  
-script:
+install:
+  - pip install codecov
   - pip install pipenv
-  # Run the unitary tests excluding the expensive computations
   - pipenv install --dev --skip-lock
-  - cd mdstudio && python -m unittest discover
+script:
+  # Run the unitary tests excluding the expensive computations
+  - cd mdstudio && python -m unittest discover -vvv
+after_success:
+  - codecov
