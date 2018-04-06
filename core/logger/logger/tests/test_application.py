@@ -40,7 +40,6 @@ class TestLoggerComponent(DBTestCase, APITestCase):
     @mock.patch("mdstudio.component.impl.core.CoreComponentSession.on_run")
     @test_chainable
     def test_on_run(self, m):
-
         self.service.call = mock.MagicMock()
         yield self.service.on_run()
         self.service.call.assert_has_calls([
@@ -50,7 +49,6 @@ class TestLoggerComponent(DBTestCase, APITestCase):
 
     @test_chainable
     def test_push_logs(self):
-
         self.service.logs.insert = mock.MagicMock(wraps=lambda c, r: r)
         dic1 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
         dic2 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
@@ -61,7 +59,7 @@ class TestLoggerComponent(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'push_logs', {
             'logs': [dic1, dic2]
         }, self.claims)
-        self.assertEqual(output, 2)
+        self.assertEqual(output, {'inserted': 2})
         self.service.logs.insert.assert_has_calls([
             call(self.claims, [dic1, dic2])
         ])
@@ -86,13 +84,12 @@ class TestLoggerComponent(DBTestCase, APITestCase):
 
     @test_chainable
     def test_push_event(self):
-
         self.service.logs.insert = mock.MagicMock(wraps=lambda c, r, tags: r)
         dic1 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
 
         dic1['level'] = 'info'
         tags = self.faker.pylist(10, True, 'str')
-        dic1['tags'] =tags
+        dic1['tags'] = tags
 
         output = yield self.assertApi(self.service, 'push_event', {
             'event': dic1
