@@ -12,8 +12,7 @@
 	},
         "exec_path": {
             "type": "string",
-            "description": "Path to PLANTS executable",
-            "default": "{system.app_path}/bin/plants_{system.platform}"
+            "description": "Path to PLANTS executable"
         },
         "scoring_function": {
             "type": "string",
@@ -286,5 +285,5 @@
         }
 
     },
-    "required": ["bindingsite_center", "ligand_file", "protein_file"]
+    "required": ["bindingsite_center", "ligand_file", "protein_file", "exec_path"]
 }

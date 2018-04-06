@@ -52,14 +52,13 @@ class DockingBase(object):
         """
         Delete the working directory
         """
-
-        if os.path.isdir(self._workdir):
+        if os.path.isdir(self.workdir):
             try:
-                shutil.rmtree(self._workdir)
+                shutil.rmtree(self.workdir)
             except Exception as e:
-                self.logging.warn('Unable to remove working directory: {0}, with error: {1}'.format(self._workdir, e), **self.user_meta)
+                self.logging.warn('Unable to remove working directory: {0}, with error: {1}'.format(self.workdir, e), **self.user_meta)
         else:
-            self.logging.warn('working directory {0} does not exist'.format(self._workdir), **self.user_meta)
+            self.logging.warn('working directory {0} does not exist'.format(self.workdir), **self.user_meta)
 
     def clean(self, exclude=[]):
         """
@@ -69,11 +68,11 @@ class DockingBase(object):
         :type exlude:   :py:list
         """
 
-        folder_content = [f for f in os.listdir(self._workdir) if f not in exclude]
-        self.logging.debug('Clean {0} files in directory: {1}'.format(len(folder_content), self._workdir), **self.user_meta)
+        folder_content = [f for f in os.listdir(self.workdir) if f not in exclude]
+        self.logging.debug('Clean {0} files in directory: {1}'.format(len(folder_content), self.workdir), **self.user_meta)
 
         for file_to_remove in folder_content:
-            file_to_remove = os.path.join(self._workdir, file_to_remove)
+            file_to_remove = os.path.join(self.workdir, file_to_remove)
             try:
                 if os.path.isfile(file_to_remove):
                     os.remove(file_to_remove)

@@ -12,7 +12,7 @@ settings:
           - lie_amber
           - lie_haddock
           - lie_md
-          - lie_plants_dockings
+          - lie_plants_docking
           - lie_propka
           - lie_pylie
           - lie_structures

@@ -19,7 +19,7 @@ class DockingWampApi(ComponentSession):
         schemas/endpoints/docking-request.v1.json
         """
         task_id = self.component_config.session.session_id
-        self.log.info("Plants Docking ID: ", task_id)
+        self.log.info("Plants Docking ID: {}".format(task_id))
 
         # Docking options are equal to the request
         plants_config = request.copy()
