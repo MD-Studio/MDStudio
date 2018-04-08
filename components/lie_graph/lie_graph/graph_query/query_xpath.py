@@ -14,9 +14,9 @@ from lie_graph.graph import Graph
 from lie_graph.graph_axis.graph_axis_methods import node_children, node_ancestors, node_parent
 
 # Regular expressions
-split_filter_chars = re.compile('([\[\]])')
+split_filter_chars = re.compile(r'([\[\]])')
 split_path_seperators = re.compile(r'(\.+|/+)')
-split_operators = re.compile('(>=|<=|!=|=|<|>|\*)')
+split_operators = re.compile(r'(>=|<=|!=|=|<|>|\*)')
 
 
 def get_attributes(attr, graph=None):
@@ -64,7 +64,9 @@ def get_attributes(attr, graph=None):
 
 def get_root(graph, loc=None, exp=None, attr=None):
     """
-    Get graph root and query
+    Get graph root and query.
+
+    This is the absolute root of the graph.
 
     :param graph: (sub)graph instance to search
     :param loc:   path location identifier
@@ -78,7 +80,7 @@ def get_root(graph, loc=None, exp=None, attr=None):
     :rtype:       :lie_graph:GraphAxis
     """
 
-    root = graph.getnodes(graph.root)
+    root = graph._full_graph.getnodes(graph.root)
     return root.query_nodes({graph.node_key_tag: exp})
 
 
@@ -273,10 +275,10 @@ class XpathExpressionEvaluator(object):
         **What is supported**
 
         * XPath location path expressions: '/' = from document root, '//'
-          = everywhere in document, '.' = self, '..' = parent.
+          = everywhere in the document, '.' = self, '..' = parent.
         * XPath attribute lookup: '@attr' = select node if it has 'attr'
           attribute, '@attr = "one"' select if attr value equals 'one'.
-        * XPath wildcard usage: '*' = select everything
+        * XPath wildcard usage: '*' = select every node or '@*' every attribute
         * XPath index selection: '[2]' = select item with index 2 in the list
           of matching items.
         * XPath axis selectors: 'child', 'descendant', 'self', 'ancestor',
@@ -344,7 +346,7 @@ class XpathExpressionEvaluator(object):
                 element = [n for n in split_path_seperators.split(element) if len(n)]
                 for group in [element[i:i + 2] for i in range(0, len(element), 2)]:
 
-                    # If only path locator, add empty search wich evaluates to empty graph
+                    # If only path locator, add empty search which evaluates to empty graph
                     if len(group) == 1:
                         group.append('')
                     path_counter += 1
