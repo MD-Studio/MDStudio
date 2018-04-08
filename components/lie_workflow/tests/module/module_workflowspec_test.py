@@ -100,7 +100,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         # Set some metadata
         spec.workflow.title = 'Test project'
 
-        path = os.path.abspath(os.path.join(currpath, '../files/test_workflow_save.json'))
+        path = os.path.abspath(os.path.join(currpath, '../files/test_workflow_save.jgf'))
         self.tempfiles.append(path)
         spec.save(path=path)
         
@@ -121,7 +121,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         """
         
         spec = WorkflowSpec()
-        spec.load(os.path.join(currpath, '../files/linear-workflow-finished.json'))
+        spec.load(os.path.join(currpath, '../files/linear-workflow-finished.jgf'))
         
         # Query local metadata
         task2 = spec.get_task(2)

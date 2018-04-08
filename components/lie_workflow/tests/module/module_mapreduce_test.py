@@ -68,7 +68,7 @@ class TestMapReduceWorkflow(unittest2.TestCase):
     Reduce task type.
     """
     
-    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/mapreduce-workflow-spec.json'))
+    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/mapreduce-workflow-spec.jgf'))
 
     def setUp(self):
         """

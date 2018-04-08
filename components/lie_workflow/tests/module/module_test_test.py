@@ -21,7 +21,7 @@ class TestBranchedWorkflow(unittest2.TestCase):
     Test simple branched workflow
     """
     
-    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/test-workflow-spec.json'))
+    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/test-workflow-spec.jgf'))
     
     def setUp(self):
         """

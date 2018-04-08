@@ -21,7 +21,7 @@ class TestLinearWorkflow(unittest2.TestCase):
     Test linear workflow
     """
     
-    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-spec.json'))
+    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-spec.jgf'))
     
     def setUp(self):
         """
@@ -171,14 +171,14 @@ class TestLinearWorkflow(unittest2.TestCase):
         self.assertFalse(self.wf.is_completed)
         self.assertEqual(self.wf.workflow.nodes[3]['status'],'aborted')
 
-    def test_json_import_finished(self):
+    def test_jgf_import_finished(self):
         """
         Read a simple finished linear workflow from file and try to run it
         again. Should check all tasks, conclude that they are 'completed' and
         finish without doing anything.
         """
 
-        workflow = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-finished.json'))
+        workflow = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-finished.jgf'))
         self.wf.load(workflow)
 
         self.assertTrue(self.wf.is_completed)
@@ -196,7 +196,7 @@ class TestLinearWorkflow(unittest2.TestCase):
         and restart it until its finished
         """
 
-        workflow = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-unfinished.json'))
+        workflow = os.path.abspath(os.path.join(currpath, '../files/linear-workflow-unfinished.jgf'))
         self.wf.load(workflow)
 
         # Workflow is still running, active task is 4
