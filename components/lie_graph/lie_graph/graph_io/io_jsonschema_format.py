@@ -33,7 +33,7 @@ def parse_schema_meta_data(metadata):
                     break
 
 
-def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None):
+def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, exclude_args=[]):
     """
     Import hierarchical data structures defined in a JSON schema format
 
@@ -45,6 +45,8 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None):
     :type node_key_tag:       :py:str
     :param edge_key_tag:      data key to use for parsed edge labels.
     :type edge_key_tag:       :py:str
+    :param exclude_args:      JSON schema arguments to exclude from import
+    :type exclude_args:       :py:list
 
     :return:                  Graph object
     :rtype:                   :lie_graph:Graph
@@ -78,7 +80,8 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None):
     def walk_schema(schema_block, parent=None):
 
         # Get all JSON schema definitions for this data instance
-        attributes = dict([(k, v) for k, v in schema_block.items() if not isinstance(v, dict)])
+        attributes = dict([(k, v) for k, v in schema_block.items() if not isinstance(v, dict)
+                           and k not in exclude_args])
         graph.nodes[parent].update(attributes)
         node = graph.getnodes(parent)
 
