@@ -65,6 +65,13 @@ class GraphAxis(Graph):
         except AttributeError:
             return self.root
 
+    def get_root(self):
+        """
+        Convenience method for returning the root node of a graph
+        """
+
+        return self._full_graph.getnodes(self.root)
+
     def ancestors(self, node=None, include_self=False, return_nids=False):
         """
         Return the ancestors of the source node
