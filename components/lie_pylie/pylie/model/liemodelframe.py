@@ -617,8 +617,8 @@ class LIEModelBuilder(LIEDataFrameBase):
         gmm_clusters = best_gmm.predict(x)
 
         # Report GMM results
-        print bic
-        print set(gmm_clusters)
+        print(bic)
+        print(set(gmm_clusters))
 
         # Regress on new clusters
         opt_model['gmm'] = gmm_clusters

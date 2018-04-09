@@ -202,7 +202,7 @@ class MOL2Parser(object):
                     self.mol_dict['resnum'].append(int(l[6]))
                     self.mol_dict['resname'].append(re.sub('{0}$'.format(l[6]), '', l[7]))
                     self.mol_dict['charge'].append(float(l[8]))
-                except ValueError, e:
+                except ValueError as e:
                     raise IOError('FormatError in mol2. Line: {0}, error {1}'.format(line, e))
 
         return self.mol_dict

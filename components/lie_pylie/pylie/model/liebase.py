@@ -5,8 +5,8 @@ import re
 
 from pandas import DataFrame, Series
 
-from .. import plotting
-from .. import pylie_config
+from pylie import plotting
+from pylie import pylie_config
 
 logger = logging.getLogger('pylie')
 

@@ -13,6 +13,9 @@ import matplotlib
 
 from .config import MetaConfigHandler
 from .settings import PYLIE_MASTER_CONFIG
+# Initiate an instance of the py-lie master configuration file
+pylie_config = MetaConfigHandler(PYLIE_MASTER_CONFIG)
+
 from .info import info
 from .model.liemdframe import LIEMDFrame
 from .model.liedataframe import LIEDataFrame
@@ -31,11 +34,7 @@ modulepath = os.path.dirname(__file__)
 if modulepath not in sys.path:
     sys.path.insert(0, modulepath)
 
-# Initiate an instance of the py-lie master configuration file
-
-pylie_config = MetaConfigHandler(PYLIE_MASTER_CONFIG)
-
-__all__ = ['LIEDataFrame', 'LIESeries', 'LIEModelBuilder', 'LIEScanDataFrame', 'LIEMDFrame', 'LIEContactFrame']
+__all__ = ['LIEDataFrame', 'LIESeries', 'LIEModelBuilder', 'LIEScanDataFrame', 'LIEMDFrame', 'LIEContactFrame', 'pylie_config']
 __doc__ = info.format(version=__version__, author=__author__)
 
 # Configure logger
