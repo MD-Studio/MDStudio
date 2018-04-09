@@ -14,8 +14,8 @@ settings:
           - lie_md
           - lie_plants_docking
           - lie_propka
+          - lie_pylie          
           - lie_structures
-          - pylie          
     clients:
       - username: mdadmin
         clientId: Ek@la7\xOhex;5;I$)G'+W<}DL|8h<
