@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-   "id": "http://mdstudio/schemas/ada_dene_yrange_response.json",
-    "title": "Adan dene yrange output",
-    "description": "eTOX ALLIES deltaG range applicability domain test",
+   "id": "http://mdstudio/schemas/ada_dene_response.json",
+    "title": "Adan dene output",
+    "description": "",
     "type": "object",
     "properties": {
 	"status": {
@@ -12,7 +12,7 @@
 	},
 	"decomp": {
 	    "type":["null", "object"],
-	    "description": "Adan Decomposition result"
+	    "description": "Adan Dene result"
 	}
     },
     "required": ["status", "decomp"]

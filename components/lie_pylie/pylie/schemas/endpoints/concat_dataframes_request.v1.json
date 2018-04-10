@@ -14,7 +14,7 @@
 	    "default": "true"
 	},
 	"index": {
-	    "type": "numeral",
+	    "type": "number",
 	    "default": 0
 	},
 	"join": {

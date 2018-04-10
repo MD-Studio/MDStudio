@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "http://liestudio/schemas/lie_average_output.json",
-    "title"::"Calculated lie average",
+    "title": "Calculated lie average",
     "description":"Calculated lie average ouput",
     "type": "object",
     "properties": {
