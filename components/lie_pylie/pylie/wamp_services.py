@@ -120,7 +120,7 @@ class PylieWampApi(ComponentSession):
 
             return {'status': status, 'liedeltag_file': filepath, 'liedeltag': results}
 
-    @wamp.register(u'liestudio.pylie.concat_dataframes')
+    @endpoint('concat_dataframes', 'concat_dataframes_request', 'concat_dataframes_response')
     def concat_dataframes(self, request, claims):
         """
         Combine multiple tabular DataFrames into one new DataFrame using
