@@ -11,7 +11,7 @@
 	},
 	"ignore_index": {
 	    "type": "boolean",
-	    "default": "true"
+	    "default": true
 	},
 	"index": {
 	    "type": "number",

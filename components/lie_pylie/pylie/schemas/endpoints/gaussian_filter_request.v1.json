@@ -15,7 +15,7 @@
 	},
 	"plot": {
 	    "type": "boolean",
-	    "default": "true"
+	    "default": true
 	},
 	"fileformat": {
 	    "type": "string",

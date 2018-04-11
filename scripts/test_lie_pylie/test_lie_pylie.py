@@ -6,11 +6,14 @@ import numpy as np
 import os
 import pandas as pd
 
+file_path = os.path.realpath(__file__)
+root = os.path.split(file_path)[0]
+
 
 def create_workdir(name, path="/tmp/pylie"):
     """Create temporal workdir dir"""
     workdir = join(path, name)
-    os.makedirs(path, exists_ok=True)
+    os.makedirs(workdir, exist_ok=True)
     return workdir
 
 
@@ -19,21 +22,20 @@ def compare_csv_files(file1, file2):
     x = pd.read_csv(file1)
     y = pd.read_csv(file1)
 
-    return x == y
+    return x.equals(y)
 
 
 dict_trajectory = {
-    "unbound_trajectory": [join("files/trajectory/unbound_trajectory.ene")],
-    "bound_trajectory": [join("files/trajectory/bound_trajectory.ene")],
+    "unbound_trajectory": [join(root, "files/trajectory/unbound_trajectory.ene")],
+    "bound_trajectory": [join(root, "files/trajectory/bound_trajectory.ene")],
     "lie_vdw_header": "Ligand-Ligenv-vdw",
     "lie_ele_header": "Ligand-Ligenv-ele",
-    "decomp_files": [join("files/trajectory/bound_trajectory.ene")],
     "workdir": create_workdir("trajectory")}
 
-dict_stable = {"mdframe": join("files/stable/mdframe.csv"),
+dict_stable = {"mdframe": join(root, "files/stable/mdframe.csv"),
                "workdir": create_workdir("stable")}
 
-dict_average = {"mdframe": join("files/stable/mdframe_splinefiltered.csv"),
+dict_average = {"mdframe": join(root, "files/stable/mdframe_splinefiltered.csv"),
                 "workdir": create_workdir("average")}
 
 dict_deltag = {
@@ -51,7 +53,7 @@ dict_similarity = {
         "O1[C@@H](CCC1=O)CCC"],
     "reference_set": [
         "c1(c(cccc1Nc1c(cccc1)C(=O)O)C)C",
-        "c12ccccc1nc1c(c2N)CCCC1",
+        "C12ccccc1nc1c(c2N)CCCC1",
         "c1ccc(c(c1)[N+](=O)[O-])[C@H]1C(=C(NC(=C1C(=O)OC)C)C)C(=O)OC",
         "c1cc(ccc1OCC)NC(=O)C",
         "c12c3c(ccc1c(=O)cc(o2)c1ccccc1)cccc3",
@@ -90,12 +92,12 @@ dict_adan_residue = {
     "workdir": create_workdir("adan_residue_deco"),
     "bound_trajectory": dict_trajectory["bound_trajectory"],
     "unbound_trajectory": dict_trajectory["unbound_trajectory"],
-    "decomp_files": dict_trajectory["decomp_files"],
-    "model_pkl": "files/adan_residue_deco/params.pkl"}
+    "decomp_files": join(root, "files/adan_residue_deco/decompose_dataframe.ene"),
+    "model_pkl": join(root, "files/adan_residue_deco/params.pkl")}
 
 dict_adan_yrange = {
     "workdir": create_workdir("adan_dene_yrange"),
-    "dataframe": "files/adan_dene_yrange/liedeltag.csv",
+    "dataframe": join(root, "files/adan_dene_yrange/liedeltag.csv"),
     "ymin": -42.59,
     "ymax": -10.79,
     "liedeltag": {
@@ -152,31 +154,33 @@ class Run_pylie(ComponentSession):
     @chainable
     def on_run(self):
         with self.group_context('mdgroup'):
-            result_collect = self.call(
+            result_collect = yield self.call(
                 "mdgroup.lie_pylie.endpoint.collect_energy_trajectories",
                 dict_trajectory)
             assert compare_csv_files(result_collect["mdframe"], dict_stable["mdframe"])
+            print("collect_energy_trajectories method succeeded")
 
-            # result_stable = self.call(
-            #     "mdgroup.lie_pylie.endpoint.filter_stable_trajectory",
-            #     dict_stable)
+            result_stable = yield self.call(
+                "mdgroup.lie_pylie.endpoint.filter_stable_trajectory",
+                dict_stable)
+            assert compare_csv_files(result_stable["filtered_mdframe"], dict_average["mdframe"])
 
-            # result_average = self.call(
+            # result_average = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.calculate_lie_average", dict_average)
 
-            # result_liedeltag = self.call(
+            # result_liedeltag = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.liedeltag", dict_deltag)
 
-            # result_similarity = self.call(
+            # result_similarity = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.chemical_similarity", dict_similarity)
 
-            # result_adan_residues = self.call(
+            # result_adan_residues = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.adan_residue_decomp", dict_adan_residue)
 
-            # result_adan_yrange = self.call(
+            # result_adan_yrange = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.adan_dene_yrange", dict_adan_yrange)
 
-            # result_adan_dene = self.call(
+            # result_adan_dene = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.adan_dene", dict_adan_dene)
 
 

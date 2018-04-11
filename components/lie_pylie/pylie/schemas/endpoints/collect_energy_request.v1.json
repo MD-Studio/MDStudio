@@ -41,5 +41,5 @@
 	    "default": "."
 	}
     },
-    "required": ["bound_trajectories", "unbound_trajectories"]
+    "required": ["bound_trajectory", "unbound_trajectory"]
 }

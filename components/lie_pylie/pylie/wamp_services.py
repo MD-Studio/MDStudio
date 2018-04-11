@@ -11,7 +11,6 @@ import tempfile
 import pickle
 
 from pandas import (read_csv, read_json, read_excel, read_table, concat, DataFrame)
-from autobahn import wamp
 
 from pylie import (LIEMDFrame, LIEDataFrame, pylie_config)
 from pylie.filters.filtersplines import FilterSplines
@@ -176,7 +175,7 @@ class PylieWampApi(ComponentSession):
         mdframe = request['mdframe']
 
         if not os.path.isfile(mdframe):
-            self.logger.error('MDFrame csv file does not exist: {0}'.format(mdframe))
+            self.log.error('MDFrame csv file does not exist: {0}'.format(mdframe))
             status = 'failed'
             return {'status': status, 'averaged': None}
 
@@ -246,20 +245,21 @@ class PylieWampApi(ComponentSession):
         For a detailed output description see:
           pydlie/schemas/endpoints/filter_stable_response.v1.json
         """
+        print("request: ", request)
         mdframe = request['mdframe']
         if not os.path.isfile(mdframe):
-            self.logger.error('MDFrame csv file does not exist: {0}'.format(mdframe))
+            self.log.error('MDFrame csv file does not exist: {0}'.format(mdframe))
             return {'status': 'failed', 'output': None}
 
         # Create workdir to save file
-        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
+        workdir = request['workdir']
         self.create_workdir(workdir)
         # Import CSV file and run spline fitting filter
         liemdframe = LIEMDFrame(read_csv(mdframe))
         if 'Unnamed: 0' in liemdframe.columns:
             del liemdframe['Unnamed: 0']
 
-        splines = FilterSplines(liemdframe, request['FilterSplines'])
+        splines = FilterSplines(liemdframe, **request['FilterSplines'])
         liemdframe = splines.filter()
 
         output = {}
@@ -303,7 +303,7 @@ class PylieWampApi(ComponentSession):
           pydlie/schemas/endpoints/collect_energy_response.v1.json
         """
         # Create workdir to save file
-        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
+        workdir = request["workdir"]
         self.create_workdir(workdir)
         # Collect trajectories
         mdframe = LIEMDFrame()
@@ -319,9 +319,9 @@ class PylieWampApi(ComponentSession):
                 filetype=request['filetype'])
             self.log.debug('Import file: {0}, pose: {1}'.format(trj, pose))
 
-        for trj in ['unbound_trajectory']:
+        for trj in request['unbound_trajectory']:
             if not os.path.exists(trj):
-                self.logger.error('File does not exists: {0}'.format(trj))
+                self.log.error('File does not exists: {0}'.format(trj))
                 continue
             mdframe.from_file(
                 trj, {vdw_header: 'vdw_unbound', ele_header: 'coul_unbound'},
