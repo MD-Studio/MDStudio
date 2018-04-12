@@ -40,7 +40,7 @@ setup(
     py_modules=[distribution_name],
     test_suite="tests",
     test_requirements=test_requirements,
-    install_requires=['asq'] + test_requirements,
+    install_requires=['uritools', 'pytz'] + test_requirements,
     include_package_data=True,
     zip_safe=True,
     classifiers=[
