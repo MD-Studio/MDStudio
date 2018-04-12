@@ -19,10 +19,18 @@ def create_workdir(name, path="/tmp/pylie"):
 
 def compare_csv_files(file1, file2):
     """check if two csv files are the same"""
-    x = pd.read_csv(file1)
-    y = pd.read_csv(file1)
+    df1 = pd.read_csv(file1).sort_index(axis=1)
+    df2 = pd.read_csv(file2).sort_index(axis=1)
 
-    return x.equals(y)
+    return df1.equals(df2)
+
+
+def compare_dictionaries(d1, d2):
+    """Compare two dictionaries with nested numerical results """
+    df1 = pd.DataFrame(d1)
+    df2 = pd.DataFrame(d2)
+
+    return df1.equals(df2)
 
 
 dict_trajectory = {
@@ -33,66 +41,20 @@ dict_trajectory = {
     "workdir": create_workdir("trajectory")}
 
 dict_stable = {"mdframe": join(root, "files/stable/mdframe.csv"),
-               "workdir": create_workdir("stable")}
+               "workdir": create_workdir("stable"),
+               "minlength": 45}
 
 dict_average = {"mdframe": join(root, "files/average/mdframe_splinefiltered.csv"),
                 "workdir": create_workdir("average")}
 
 dict_deltag = {
-    "alpha": 0.5937400744224419,
-    "beta": 0.31489794216038647,
+    "alpha_beta_gamma": [0.5937400744224419,  0.31489794216038647, 0.0],
     "workdir": create_workdir("deltag"),
-    "dataframe": "averaged.csv",
-    "gamma": 0.0}
-
-dict_similarity = {
-    "mol_format": "smi",
-    "ci_cutoff": 0.3617021276595745,
-    "workdir": create_workdir("similarity"),
-    "test_set": [
-        "O1[C@@H](CCC1=O)CCC"],
-    "reference_set": [
-        "c1(c(cccc1Nc1c(cccc1)C(=O)O)C)C",
-        "C12ccccc1nc1c(c2N)CCCC1",
-        "c1ccc(c(c1)[N+](=O)[O-])[C@H]1C(=C(NC(=C1C(=O)OC)C)C)C(=O)OC",
-        "c1cc(ccc1OCC)NC(=O)C",
-        "c12c3c(ccc1c(=O)cc(o2)c1ccccc1)cccc3",
-        "c1cc(cc(c1N/C=N/O)C)CCCC",
-        "c1(cccnc1Nc1cc(ccc1)C(F)(F)F)C(=O)O",
-        "c1ccc(c(c1C)OC[C@H](C)N)C",
-        "c1(OC[C@H](CNC(C)C)O)c2c(ccc1)cccc2",
-        "c12ccccc1cccc2",
-        "c12ccccc1cccc2C",
-        "c12ccccc1ccc(c2)C",
-        "c12ccccc1ccc(c2)F",
-        "c12ccccc1cc(cc2C)C",
-        "c12ccccc1c(ccc2C)C",
-        "c12cccc(c1cccc2Cl)Cl",
-        "c12cc(ccc1cc(cc2)C)C",
-        "C1CCC(=O)OCC1",
-        "O1[C@@H](CCC1=O)C",
-        "O1[C@@H](CCC1=O)CC",
-        "O1[C@@H](CCC1=O)CCC",
-        "O1[C@@H](CCC1=O)CCCCC",
-        "O1[C@@H](CCC1=O)CCCCCC",
-        "O1[C@@H](CCC1=O)CCCCCCC",
-        "C1C[C@@H](OC(=O)C1)CCCCC",
-        "c1c2c(ccc1)OC(=O)C2",
-        "c1c2c(ccc1)CC(=O)C2",
-        "c1c2c(ccc1)OCC2",
-        "c1c2c(ccc1)oc(=O)[nH]2",
-        "c1(ccccc1)c1ccccc1",
-        "c1c(cccc1)c1ccc(cc1)Cl",
-        "C1CCCC(C1)CCCC",
-        "[C@@H]1(OC(=O)CC1)c1ccccc1",
-        "c1(cc(oc(=O)c1)C)C",
-        "C1CC(=O)N([C@H]1c1cccnc1)C"]}
+    "dataframe": join(root, "files/deltag/averaged.csv")}
 
 dict_adan_residue = {
     "workdir": create_workdir("adan_residue_deco"),
-    "bound_trajectory": dict_trajectory["bound_trajectory"],
-    "unbound_trajectory": dict_trajectory["unbound_trajectory"],
-    "decomp_files": join(root, "files/adan_residue_deco/decompose_dataframe.ene"),
+    "decompose_files": [join(root, "files/adan_residue_deco/decompose_dataframe.ene")],
     "model_pkl": join(root, "files/adan_residue_deco/params.pkl")}
 
 dict_adan_yrange = {
@@ -137,6 +99,12 @@ dict_adan_yrange = {
         }
 }
 
+expected_adan_yrange_results = {
+    'alpha': {0: 0.5937400744224419}, 'beta': {0: 0.3148979421603865}, 'case': {0: 1.0},
+    'dg_calc': {0: -24.76012625865582}, 'gamma': {0: 0.0}, 'prob-1': {0: 1.0},
+    'w_coul': {0: 8.451392745098037}, 'w_d1': {0: 1.0}, 'w_vdw': {0: -46.18427090196078},
+    'ref_affinity': {0: np.NaN}, 'error': {0: np.NaN}, 'CI': {0: 1}}
+
 dict_adan_dene = {
     "ci_cutoff": 13.690708685318436,
     "workdir": create_workdir("dict_adan_dene"),
@@ -160,32 +128,36 @@ class Run_pylie(ComponentSession):
             assert compare_csv_files(result_collect["mdframe"], dict_stable["mdframe"])
             print("method collect_energy_trajectories succeeded")
 
-            result_stable = yield self.call(
-                "mdgroup.lie_pylie.endpoint.filter_stable_trajectory",
-                dict_stable)
-
-            assert compare_csv_files(result_stable["output"]["filtered_mdframe"], dict_average["mdframe"])
-            print("method filter_stable_trajectory succeeded!")
-
             result_average = yield self.call(
                 "mdgroup.lie_pylie.endpoint.calculate_lie_average", dict_average)
             assert compare_csv_files(result_average["averaged"], dict_deltag["dataframe"])
             print("method calculate_lie_average succeeded!")
 
-            # result_liedeltag = yield self.call(
-            #     "mdgroup.lie_pylie.endpoint.liedeltag", dict_deltag)
+            result_liedeltag = yield self.call(
+                "mdgroup.lie_pylie.endpoint.liedeltag", dict_deltag)
+            assert compare_csv_files(result_liedeltag["liedeltag_file"], dict_adan_yrange["dataframe"])
+            print("method liedeltag succeeded!")
 
-            # result_similarity = yield self.call(
-            #     "mdgroup.lie_pylie.endpoint.chemical_similarity", dict_similarity)
+            result_adan_yrange = yield self.call(
+                "mdgroup.lie_pylie.endpoint.adan_dene_yrange", dict_adan_yrange)
+            assert compare_dictionaries(result_adan_yrange["decomp"], expected_adan_yrange_results)
+            print("method adan_dene_yrange succeeded!")
 
-            # result_adan_residues = yield self.call(
-            #     "mdgroup.lie_pylie.endpoint.adan_residue_decomp", dict_adan_residue)
-
-            # result_adan_yrange = yield self.call(
-            #     "mdgroup.lie_pylie.endpoint.adan_dene_yrange", dict_adan_yrange)
+            result_stable = yield self.call(
+                "mdgroup.lie_pylie.endpoint.filter_stable_trajectory",
+                dict_stable)
+            print(result_stable)
+            assert compare_csv_files(
+                result_stable["output"]["filtered_mdframe"], dict_average["mdframe"])
+            print("method filter_stable_trajectory succeeded!")
 
             # result_adan_dene = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.adan_dene", dict_adan_dene)
+            # print(result_adan_dene)
+
+            # result_adan_residues = yield self.call(
+            #     "mdgroup.lie_pylie.endpoint.adan_residue_decomp", dict_adan_residue)
+            # print(result_adan_residues)
 
 
 if __name__ == "__main__":

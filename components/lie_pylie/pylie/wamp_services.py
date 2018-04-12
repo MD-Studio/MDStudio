@@ -103,11 +103,11 @@ class PylieWampApi(ComponentSession):
         dg_calc = dfobject.liedeltag(params=alpha_beta_gamma, kBt=request['kBt'])
 
         # Create workdir to save file
-        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
+        workdir = request['workdir']
         self.create_workdir(workdir)
 
         # Save dataframe
-        file_format = request['file_format']
+        file_format = request['fileformat']
         filepath = os.path.join(workdir, 'liedeltag.{0}'.format(file_format))
         if self._export_dataframe(dg_calc, filepath, file_format=file_format):
             status = 'completed'
@@ -117,7 +117,7 @@ class PylieWampApi(ComponentSession):
             filepath = None
             results = None
 
-            return {'status': status, 'liedeltag_file': filepath, 'liedeltag': results}
+        return {'status': status, 'liedeltag_file': filepath, 'liedeltag': results}
 
     @endpoint('concat_dataframes', 'concat_dataframes_request', 'concat_dataframes_response')
     def concat_dataframes(self, request, claims):
@@ -147,7 +147,7 @@ class PylieWampApi(ComponentSession):
             status = 'completed'
 
             # Create workdir to save file
-            workdir = os.path.join(request['workdir'], tempfile.gettempdir())
+            workdir = request['workdir']
             self.create_workdir(workdir)
 
             file_format = request['file_format']
@@ -180,7 +180,7 @@ class PylieWampApi(ComponentSession):
             return {'status': status, 'averaged': None}
 
         # Create workdir to save file
-        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
+        workdir = request['workdir']
         self.create_workdir(workdir)
         # Import CSV file and run spline fitting filter
         liemdframe = LIEMDFrame(read_csv(mdframe))
@@ -214,7 +214,7 @@ class PylieWampApi(ComponentSession):
         self.log.info("Filter detected {0} outliers.".format(len(filtered.outliers.cases)))
 
         # Create workdir to save file
-        workdir = os.path.join(request['workdir'], tempfile.gettempdir())
+        workdir = request['workdir']
         self.create_workdir(workdir)
         # Plot results
         if request['plot']:

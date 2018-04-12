@@ -5,7 +5,7 @@
     "description": "Adan residues decomposition",
     "type": "object",
     "properties": {
-	"decomp_files":{
+	"decompose_files":{
 	    "type": "array",
 	    "default": "Files path to the energy decomposition"
 	},
@@ -14,13 +14,13 @@
 	    "description": "Pickle file containing the model"
 	},
 	"cases": {
-	    "type": ["null", "array"],
-	    "default": "null"
+	    "type": "array",
+	    "default": []
 	},
 	"workdir": {
 	    "type": "string",
 	    "default": "."
 	}
     },
-    "required": ["decompose_files", "model_pka"]
+    "required": ["decompose_files", "model_pkl"]
 }

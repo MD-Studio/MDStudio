@@ -12,14 +12,12 @@
 	},
 	"liedeltag_file": {
 	    "type": "string",
-	    "description": "Path to the deltadag file",
-	    "default": ""
+	    "description": "Path to the deltadag file"
 	},
 	"liedeltag": {
-	    "type": ["object", "null"],
-	    "description": "",
-	    "default": ""
+	    "type": "object",
+	    "description": ""
 	} 
    },
-    "required": ["status", "liedeltadag_file", "liedeltag"]
+    "required": ["status", "liedeltag_file", "liedeltag"]
 }

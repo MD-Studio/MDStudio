@@ -14,17 +14,17 @@
 	    "description": "Pickle file containing the model"
 	},
 	"center": {
-	    "type": ["null", "array"],
-	    "default": "null"
+	    "type": "array",
+	    "default": []
 	},
 	"ci_cutoff": {
 	    "type": ["number", "null"],
-	    "default": "null"
+	    "default": null
 	},
 	"workdir": {
 	    "type": "string",
 	    "default": "."
 	}
     },
-    "required": ["dataframe", "model_pka"]
+    "required": ["dataframe", "model_pkl"]
 }
