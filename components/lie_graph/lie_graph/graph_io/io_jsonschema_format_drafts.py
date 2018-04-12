@@ -11,6 +11,9 @@ import re
 
 from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools
 from lie_graph.graph_orm import GraphORM
+from lie_graph.graph_model_classes.model_email import Email
+from lie_graph.graph_model_classes.model_datetime import DateTime, Date, Time
+from lie_graph.graph_model_classes.model_networking import IP4Address, IP6Address, Hostname, URI
 
 
 class GraphValidationError(Exception):
@@ -66,6 +69,7 @@ class StringType(JSONSchemaValidatorDraft07):
             raise GraphValidationError('Length of string {0} ({1}) smaller then minimum {2}'.format(value, length,
                                                                                          self.get('minLength')),
                                                                                          self)
+        # Regular expression pattern matching
         if self.get('pattern'):
             pattern = re.compile(self.get('pattern'))
             if not pattern.match(value):
@@ -171,8 +175,18 @@ class ArrayType(JSONSchemaValidatorDraft07):
 
 
 JSONSchemaORMDraft07 = GraphORM()
-JSONSchemaORMDraft07.map_node(StringType, {'type': 'string'})
-JSONSchemaORMDraft07.map_node(IntegerType, {'type': 'integer'})
-JSONSchemaORMDraft07.map_node(NumberType, {'type': 'number'})
-JSONSchemaORMDraft07.map_node(BooleanType, {'type': 'boolean'})
-JSONSchemaORMDraft07.map_node(ArrayType, {'type': 'array'})
+JSONSchemaORMDraft07.map_node(StringType, type='string')
+JSONSchemaORMDraft07.map_node(IntegerType, type='integer')
+JSONSchemaORMDraft07.map_node(NumberType, type='number')
+JSONSchemaORMDraft07.map_node(BooleanType, type='boolean')
+JSONSchemaORMDraft07.map_node(ArrayType, type='array')
+JSONSchemaORMDraft07.map_node(Email, type='email')
+JSONSchemaORMDraft07.map_node(Email, type='idn-email')
+JSONSchemaORMDraft07.map_node(DateTime, type='date-time')
+JSONSchemaORMDraft07.map_node(Date, type='date')
+JSONSchemaORMDraft07.map_node(Time, type='time')
+JSONSchemaORMDraft07.map_node(IP4Address, type='ipv4')
+JSONSchemaORMDraft07.map_node(IP6Address, type='ipv6')
+JSONSchemaORMDraft07.map_node(Hostname, type='hostname')
+JSONSchemaORMDraft07.map_node(Hostname, type='idn-hostname')
+JSONSchemaORMDraft07.map_node(URI, type='uri')
