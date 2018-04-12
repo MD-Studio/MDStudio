@@ -221,6 +221,7 @@ class LIEMDFrame(LIEDataFrameBase):
         """
 
         filter_cols = self.get_columns('filter_*_*_{0}'.format(pose))
+
         if not filter_cols:
             logger.warn('No filter column found for pose {0}'.format(pose))
 
@@ -228,7 +229,7 @@ class LIEMDFrame(LIEDataFrameBase):
         for fc in filter_cols:
             stripped = fc.strip('_{0}'.format(pose))
             sel = self.loc[self[fc] == 0, 'frame'].values
-            if sel is not None:
+            if sel:
                 data[stripped.strip('filter_')] = (
                     len(sel), self.loc[min(sel), 'frame'].astype(int),
                     self.loc[max(sel), 'frame'].astype(int))

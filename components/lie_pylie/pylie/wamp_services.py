@@ -233,7 +233,7 @@ class PylieWampApi(ComponentSession):
 
         return {'status': status, 'gauss_filter': filepath}
 
-    @endpoint('filter_stable_trajectory', 'filter_stable_request', 'filter_stable_request')
+    @endpoint('filter_stable_trajectory', 'filter_stable_request', 'filter_stable_response')
     def filter_stable_trajectory(self, request, claims):
         """
         Use FFT and spline-based filtering to detect and extract stable regions
@@ -245,7 +245,6 @@ class PylieWampApi(ComponentSession):
         For a detailed output description see:
           pydlie/schemas/endpoints/filter_stable_response.v1.json
         """
-        print("request: ", request)
         mdframe = request['mdframe']
         if not os.path.isfile(mdframe):
             self.log.error('MDFrame csv file does not exist: {0}'.format(mdframe))
@@ -265,6 +264,7 @@ class PylieWampApi(ComponentSession):
         output = {}
         # Report the selected stable regions
         filtered = liemdframe.inliers()
+
         for pose in filtered.poses:
             stable = filtered.get_stable(pose)
             if stable:

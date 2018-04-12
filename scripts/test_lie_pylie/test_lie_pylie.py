@@ -35,7 +35,7 @@ dict_trajectory = {
 dict_stable = {"mdframe": join(root, "files/stable/mdframe.csv"),
                "workdir": create_workdir("stable")}
 
-dict_average = {"mdframe": join(root, "files/stable/mdframe_splinefiltered.csv"),
+dict_average = {"mdframe": join(root, "files/average/mdframe_splinefiltered.csv"),
                 "workdir": create_workdir("average")}
 
 dict_deltag = {
@@ -158,15 +158,19 @@ class Run_pylie(ComponentSession):
                 "mdgroup.lie_pylie.endpoint.collect_energy_trajectories",
                 dict_trajectory)
             assert compare_csv_files(result_collect["mdframe"], dict_stable["mdframe"])
-            print("collect_energy_trajectories method succeeded")
+            print("method collect_energy_trajectories succeeded")
 
             result_stable = yield self.call(
                 "mdgroup.lie_pylie.endpoint.filter_stable_trajectory",
                 dict_stable)
-            assert compare_csv_files(result_stable["filtered_mdframe"], dict_average["mdframe"])
 
-            # result_average = yield self.call(
-            #     "mdgroup.lie_pylie.endpoint.calculate_lie_average", dict_average)
+            assert compare_csv_files(result_stable["output"]["filtered_mdframe"], dict_average["mdframe"])
+            print("method filter_stable_trajectory succeeded!")
+
+            result_average = yield self.call(
+                "mdgroup.lie_pylie.endpoint.calculate_lie_average", dict_average)
+            assert compare_csv_files(result_average["averaged"], dict_deltag["dataframe"])
+            print("method calculate_lie_average succeeded!")
 
             # result_liedeltag = yield self.call(
             #     "mdgroup.lie_pylie.endpoint.liedeltag", dict_deltag)
