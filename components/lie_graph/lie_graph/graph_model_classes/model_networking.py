@@ -143,6 +143,7 @@ class URI(NodeEdgeToolsBaseClass):
             parsed = uritools.urisplit(value)
             if parsed.scheme and parsed.authority and parsed.path:
                 self.nodes[self.nid][key] = value
+                return
 
         logging.error('No valid URI: {0}'.format(value))
 
