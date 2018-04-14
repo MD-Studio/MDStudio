@@ -197,6 +197,20 @@ class NodeEdgeToolsBaseClass(object):
 
         return True
 
+    def update(self, data):
+        """
+        Python dict-like update method for node or edge data
+
+        :param data: source dictionary
+        :type data:  :py:dict
+        """
+        
+        assert isinstance(data, dict), 'Dictionary required'
+
+        for key, value in data.items():
+            if key in self:
+                self.set(key, value)
+
 
 class NodeTools(NodeEdgeToolsBaseClass):
     """
