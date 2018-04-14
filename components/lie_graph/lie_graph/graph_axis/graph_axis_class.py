@@ -8,6 +8,7 @@ node.
 """
 
 from lie_graph.graph import Graph
+from lie_graph.graph_math_operations import graph_axis_update
 from lie_graph.graph_helpers import GraphException
 from lie_graph.graph_query.query_xpath import XpathExpressionEvaluator
 from lie_graph.graph_axis.graph_axis_methods import (node_ancestors, node_children, node_descendants, node_neighbors,
@@ -371,4 +372,14 @@ class GraphAxis(Graph):
         if desc:
             return [n.get(valuestring) if n.isleaf else n for n in self.iternodes()]
         return [n.get(valuestring) for n in self.iternodes()]
+
+    def update(self, data):
+        """
+        Python dict-like update method for recursive update graph nodes from
+        dictionary or other graph.
+
+        :param data: dictionary or graph to update from
+        """
+
+        graph_axis_update(self, data)
 
