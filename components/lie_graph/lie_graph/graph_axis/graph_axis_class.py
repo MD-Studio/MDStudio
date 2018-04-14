@@ -330,6 +330,27 @@ class GraphAxis(Graph):
                     for n in self.iternodes()]
         return [(n.get(keystring), n.get(valuestring)) for n in self.iternodes()]
 
+    def keys(self, keystring=None, desc=True):
+        """
+        Python dict-like function to return node keys in the (sub)graph.
+
+        Keystring defines the key lookup in the node data dict.
+
+        :param keystring:  Data key to use for dictionary keys.
+        :type keystring:   :py:str
+        :param desc:       return nested values as new GraphAxis objects
+        :type desc:        :py:bool
+
+        :return:           List of keys
+        :rtype:            :py:list
+        """
+
+        keystring = keystring or self.node_key_tag
+
+        if desc:
+            return [n.get(keystring) if n.isleaf else n for n in self.iternodes()]
+        return [n.get(keystring) for n in self.iternodes()]
+
     def values(self, valuestring=None, desc=True):
         """
         Python dict-like function to return node values in the (sub)graph.
@@ -340,7 +361,6 @@ class GraphAxis(Graph):
         :type valuestring:  :py:str
         :param desc:        return nested values as new GraphAxis objects
         :type desc:         :py:bool
-
 
         :return:            List of values
         :rtype:             :py:list
