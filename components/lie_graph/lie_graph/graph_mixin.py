@@ -204,12 +204,11 @@ class NodeEdgeToolsBaseClass(object):
         :param data: source dictionary
         :type data:  :py:dict
         """
-        
+
         assert isinstance(data, dict), 'Dictionary required'
 
         for key, value in data.items():
-            if key in self:
-                self.set(key, value)
+            self.set(key, value)
 
 
 class NodeTools(NodeEdgeToolsBaseClass):
