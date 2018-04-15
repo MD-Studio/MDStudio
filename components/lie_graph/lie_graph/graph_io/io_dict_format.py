@@ -120,7 +120,7 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
 
     # Construct the dictionary traversing the graph hierarchy
     def _walk_dict(node, target_dict):
-
+        
         if node.isleaf:
 
             # Include None values or not
@@ -136,14 +136,14 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
 
     # Include root node
     graph_dict = {}
-    root = graph.getnodes(root_nid)
+    root = graph.get_root()
     rootkey = root.get(keystring, default='root')
     if include_root:
         graph_dict[rootkey] = {}
 
     # In case root is a leaf node
-    if root.isleaf:
-        graph_dict[root.get(keystring)] = root.get(valuestring, default=default)
+    if not len(root.neighbors(return_nids=True)):
+        graph_dict[rootkey] = root.get(valuestring, default=default)
 
     # Traverse root descendants
     for child_node in root.children():
