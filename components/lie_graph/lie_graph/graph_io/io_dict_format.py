@@ -145,9 +145,10 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     if not len(root.neighbors(return_nids=True)):
         graph_dict[rootkey] = root.get(valuestring, default=default)
 
-    # Traverse root descendants
-    for child_node in root:
-        _walk_dict(child_node, graph_dict.get(rootkey, graph_dict))
+    # Traverse root descendants. NodeAxisTools might not be used so we do not
+    # rely on __iter__ to iterate over children
+    for child_node in root.children(return_nids=True):
+        _walk_dict(graph.getnodes(child_node), graph_dict.get(rootkey, graph_dict))
 
     # Flatten the dictionary if needed
     if not nested:

@@ -55,12 +55,10 @@ class StringType(JSONSchemaValidatorDraft07):
             length = len(value)
             if length > self.get('maxLength', length):
                 raise GraphValidationError('Length of string {0} ({1}) larger then maximum {2}'.format(value, length,
-                                                                                             self.get('maxLength')),
-                                                                                             self)
+                                                                                           self.get('maxLength')), self)
             if length < self.get('minLength', length):
                 raise GraphValidationError('Length of string {0} ({1}) smaller then minimum {2}'.format(value, length,
-                                                                                             self.get('minLength')),
-                                                                                             self)
+                                                                                           self.get('minLength')), self)
             # Regular expression pattern matching
             if self.get('pattern'):
                 pattern = re.compile(self.get('pattern'))

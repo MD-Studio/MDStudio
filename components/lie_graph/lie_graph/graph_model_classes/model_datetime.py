@@ -13,6 +13,7 @@ from datetime import datetime, date, time
 from dateutil.parser import parse
 
 from lie_graph.graph_mixin import NodeEdgeToolsBaseClass
+from lie_graph.graph_helpers import GraphValidationError
 
 
 def to_datetime(value, instance):
@@ -79,8 +80,7 @@ class DateTime(NodeEdgeToolsBaseClass):
             if dt:
                 value = dt.astimezone(pytz.utc).isoformat()
             else:
-                logging.error('Unsupported format for date-time {0}'.format(type(value)))
-                return
+                raise GraphValidationError('Unsupported format for date-time: {0}'.format(type(value)), self)
 
         self.nodes[self.nid][key] = value
 
