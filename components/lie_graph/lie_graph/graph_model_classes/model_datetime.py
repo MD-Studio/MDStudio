@@ -74,11 +74,15 @@ class DateTime(NodeEdgeToolsBaseClass):
         in accordance to RFC 3339
         """
 
-        dt = to_datetime(value, datetime)
-        if dt:
-            self.nodes[self.nid][key] = dt.astimezone(pytz.utc).isoformat()
-        else:
-            logging.error('Unsupported format for date-time {0}'.format(type(value)))
+        if key == self.node_value_tag:
+            dt = to_datetime(value, datetime)
+            if dt:
+                value = dt.astimezone(pytz.utc).isoformat()
+            else:
+                logging.error('Unsupported format for date-time {0}'.format(type(value)))
+                return
+
+        self.nodes[self.nid][key] = value
 
 
 class Date(NodeEdgeToolsBaseClass):
@@ -107,11 +111,15 @@ class Date(NodeEdgeToolsBaseClass):
         in accordance to RFC 3339
         """
 
-        dt = to_datetime(value, date)
-        if dt:
-            self.nodes[self.nid][key] = dt.isoformat()
-        else:
-            logging.error('Unsupported format for date-time {0}'.format(type(value)))
+        if key == self.node_value_tag:
+            dt = to_datetime(value, date)
+            if dt:
+                value = dt.isoformat()
+            else:
+                logging.error('Unsupported format for date-time {0}'.format(type(value)))
+                return
+
+        self.nodes[self.nid][key] = value
 
 
 class Time(NodeEdgeToolsBaseClass):
@@ -141,8 +149,12 @@ class Time(NodeEdgeToolsBaseClass):
         in accordance to RFC 3339
         """
 
-        dt = to_datetime(value, time)
-        if dt:
-            self.nodes[self.nid][key] = dt.isoformat()
-        else:
-            logging.error('Unsupported format for date-time {0}'.format(type(value)))
+        if key == self.node_value_tag:
+            dt = to_datetime(value, time)
+            if dt:
+                value = dt.isoformat()
+            else:
+                logging.error('Unsupported format for date-time {0}'.format(type(value)))
+                return
+
+        self.nodes[self.nid][key] = value

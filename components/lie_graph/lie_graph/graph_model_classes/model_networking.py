@@ -29,14 +29,15 @@ class IP4Address(NodeEdgeToolsBaseClass):
         syntax as defined in RFC 2673
         """
 
-        try:
-            ip = ipaddress.ip_address(unicode(value))
-            if ip.version == 4:
-                self.nodes[self.nid][key] = value
-            else:
-                logging.error('{0} is of IP protocol {1} not 4'.format(value, ip.version))
-        except ipaddress.AddressValueError:
-            logging.error('{0} not a valid IP4 address'.format(value))
+        if key == self.node_key_tag:
+            try:
+                ip = ipaddress.ip_address(unicode(value))
+                if ip.version != 4:
+                    logging.error('{0} is of IP protocol {1} not 4'.format(value, ip.version))
+            except ipaddress.AddressValueError:
+                logging.error('{0} not a valid IP4 address'.format(value))
+
+        self.nodes[self.nid][key] = value
 
 
 class IP6Address(NodeEdgeToolsBaseClass):
@@ -46,14 +47,15 @@ class IP6Address(NodeEdgeToolsBaseClass):
         Validate and set IP6 address according to RFC 4291
         """
 
-        try:
-            ip = ipaddress.ip_address(unicode(value))
-            if ip.version == 6:
-                self.nodes[self.nid][key] = value
-            else:
-                logging.error('{0} is of IP protocol {1} not 6'.format(value, ip.version))
-        except ipaddress.AddressValueError:
-            logging.error('{0} not a valid IP6 address'.format(value))
+        if key == self.node_key_tag:
+            try:
+                ip = ipaddress.ip_address(unicode(value))
+                if ip.version != 6:
+                    logging.error('{0} is of IP protocol {1} not 6'.format(value, ip.version))
+            except ipaddress.AddressValueError:
+                logging.error('{0} not a valid IP6 address'.format(value))
+
+        self.nodes[self.nid][key] = value
 
 
 class Hostname(NodeEdgeToolsBaseClass):
@@ -68,10 +70,12 @@ class Hostname(NodeEdgeToolsBaseClass):
         * Validate against hostname regex
         """
 
-        if not isinstance(value, (str, unicode)) or len(value) > 253 or not HOSTNAME_REGEX.match(value):
-            logging.error('Not a valid hostname: {0}'.format(value))
-        else:
-            self.nodes[self.nid][key] = value
+        if key == self.node_key_tag:
+            if not isinstance(value, (str, unicode)) or len(value) > 253 or not HOSTNAME_REGEX.match(value):
+                logging.error('Not a valid hostname: {0}'.format(value))
+                return
+
+        self.nodes[self.nid][key] = value
 
 
 class URI(NodeEdgeToolsBaseClass):
@@ -138,13 +142,12 @@ class URI(NodeEdgeToolsBaseClass):
         Validate and set RFC 3986 compliant, Unicode-aware, scheme-agnostic URIs
         """
 
-        if isinstance(value, (str, unicode)):
+        if key == self.node_value_tag:
+            if isinstance(value, (str, unicode)):
 
-            parsed = uritools.urisplit(value)
-            if parsed.scheme and parsed.authority and parsed.path:
-                self.nodes[self.nid][key] = value
-                return
+                parsed = uritools.urisplit(value)
+                if parsed.scheme and parsed.authority and parsed.path:
+                    logging.error('No valid URI: {0}'.format(value))
+                    return
 
-        logging.error('No valid URI: {0}'.format(value))
-
-
+        self.nodes[self.nid][key] = value
