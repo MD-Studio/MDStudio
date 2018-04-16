@@ -174,3 +174,14 @@ class GraphException(Exception):
     def __init___(self, message='', *args, **kwargs):
         logger.critical(message)
         Exception.__init__(self, *args, **kwargs)
+
+
+class GraphValidationError(Exception):
+
+    def __init__(self, message, graph):
+
+        # Construct message
+        report = "ValidationError on instance {0}: {1}".format(graph.path(), message)
+        logger.error(report)
+
+        super(GraphValidationError, self).__init__(report)

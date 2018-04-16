@@ -11,20 +11,10 @@ import re
 
 from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools
 from lie_graph.graph_orm import GraphORM
+from lie_graph.graph_helpers import GraphValidationError
 from lie_graph.graph_model_classes.model_email import Email
 from lie_graph.graph_model_classes.model_datetime import DateTime, Date, Time
 from lie_graph.graph_model_classes.model_networking import IP4Address, IP6Address, Hostname, URI
-
-
-class GraphValidationError(Exception):
-
-    def __init__(self, message, graph):
-
-        # Construct message
-        report = "ValidationError on instance: {0}\n".format(graph.path())
-        report += message
-
-        super(GraphValidationError, self).__init__(report)
 
 
 class JSONSchemaValidatorDraft07(NodeAxisTools):
