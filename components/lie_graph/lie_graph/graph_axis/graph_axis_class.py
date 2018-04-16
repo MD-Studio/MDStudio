@@ -38,7 +38,7 @@ class GraphAxis(Graph):
     True, is that it is non-destructive to the data and can be easily lifted
     again.
 
-    The behaviour of axis methods is furthermore affected by the directivity
+    The behaviour of axis methods is furthermore affected by the directivety
     of the graph. The default non-directive graphs can be fully traversed
     forwards and backwards. Directed graphs or mixed graphs block traversal
     to parts of the graph by lack of an edge to traverse over.

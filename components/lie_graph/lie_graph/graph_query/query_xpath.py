@@ -260,6 +260,8 @@ class XpathExpressionEvaluator(object):
         XPath expression evaluator for GraphAxis queries supporting a common
         subset of XPath functionality in XPath version 3.0 as defined by W3C
         in the specification; https://www.w3.org/TR/xpath-30/
+        JSON Pointers (RFC 6901) is subset of XPath and thus is also supported
+        by this implementation.
 
         **Important differences**
         In contrast to the W3C XPath specification, this class always returns
