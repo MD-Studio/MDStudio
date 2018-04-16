@@ -255,7 +255,7 @@ class NodeTools(NodeEdgeToolsBaseClass):
         :rtype: bool
         """
 
-        return len(self.adjacency[self.nid]) == 1
+        return len(self.adjacency.get(self.nid, [])) <= 1
 
     @property
     def nid(self):
