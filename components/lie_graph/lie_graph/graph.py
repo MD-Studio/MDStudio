@@ -891,7 +891,7 @@ class Graph(object):
 
         # Nodes need to be in graph
         if nodes:
-            nodes_not_present = [n for n in nodes if n not in self.adjacency]
+            nodes_not_present = [n for n in nodes if n not in self._full_graph.nodes.keys()]
             if nodes_not_present:
                 raise GraphException('Following nodes are not in graph {0}'.format(nodes_not_present))
         else:
