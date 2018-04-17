@@ -926,8 +926,8 @@ class Graph(object):
 
         # copy class attributes
         for key in self.__slots__:
-            if not key in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
-                setattr(w, key, getattr(self, key))
+           if not key in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
+               setattr(w, key, getattr(self, key))
         w._set_full_graph(self)
 
         # If root node set and is_masked, reset root to node in new sub(graph)

@@ -81,6 +81,9 @@ def renumber_id(graph, start):
     accordingly. Useful when duplicating a graph substructure.
     If the graph uses auto_nid, the node nid is also changed.
 
+    #TODO: this one failes if run on a subgraph. Probably need to make changes
+    #to nids in place instead of registering new DictStorage
+
     :param graph:   Graph object to renumber
     :type graph:    Graph object
     :param start:   New start number to renumber from
