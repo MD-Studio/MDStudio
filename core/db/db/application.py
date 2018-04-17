@@ -394,7 +394,7 @@ class DBComponent(CoreComponentSession):
         return False
 
     def _set_secret(self):
-        secret = str.encode(self.component_config.settings['secret'])
+        secret = self.component_config.settings['secret'].encode()
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,

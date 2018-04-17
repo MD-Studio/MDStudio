@@ -1,4 +1,5 @@
 from faker import Faker
+from mdstudio.unittest.settings import load_settings
 from mock import mock
 
 from db.application import DBComponent
@@ -12,7 +13,14 @@ class TesDBComponentAuthorize(DBTestCase, APITestCase):
     fake = Faker()
 
     def setUp(self):
-        self.service = DBComponent()
+        with load_settings(DBComponent, {
+                'settings': {
+                    'port': 27017,
+                    'host': 'localhost',
+                    'secret': self.fake.pystr(20)
+                }
+            }):
+            self.service = DBComponent()
         self.service._client.get_database = mock.MagicMock(wraps=lambda x: x)
 
     @test_chainable
