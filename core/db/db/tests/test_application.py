@@ -12,13 +12,22 @@ from mdstudio.deferred.chainable import test_chainable
 from mdstudio.deferred.lock import Lock
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
+from mdstudio.unittest.settings import SettingsTestCase
 
 
-class TestDBComponent(DBTestCase, APITestCase):
+class TestDBComponent(DBTestCase, APITestCase, SettingsTestCase):
     fake = Faker()
 
     def setUp(self):
-        self.service = DBComponent()
+        with self.load_settings(DBComponent, {
+                'settings': {
+                    'port': 27017,
+                    'host': 'localhost',
+                    'secret': 'l * 81 & AhDZ2VwrJDKnixE'
+                }
+            }):
+            self.service = DBComponent()
+
         self.db = self.service._client.get_database('users~userNameDatabase')
         self.claims = {
             'connectionType': 'user',
@@ -28,7 +37,6 @@ class TestDBComponent(DBTestCase, APITestCase):
 
         if not reactor.getThreadPool().started:
             reactor.getThreadPool().start()
-
 
     @mock.patch.dict(os.environ, {'MD_MONGO_HOST': 'localhost2', 'MD_MONGO_PORT': '31312'})
     @mock.patch("mdstudio.component.impl.core.CoreComponentSession.pre_init")
