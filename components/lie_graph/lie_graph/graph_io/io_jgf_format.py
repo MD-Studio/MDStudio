@@ -134,7 +134,8 @@ def write_jgf(graph, indent=2, encoding="utf-8", **kwargs):
             json_format[key] = value
 
     # Store graph meta data
-    for key, value in graph.__dict__.items():
+    for key in graph.__slots__:
+        value = getattr(graph, key)
         if not key.startswith('_') and isinstance(value, (int, float, bool, long, str, unicode)):
             json_format['graph'][key] = value
 

@@ -43,6 +43,10 @@ class Graph(object):
       ambiguous and will be set to the node with the lowest nid.
     """
 
+    __slots__ = ('orm', 'nodes', 'edges', 'adjacency', 'is_directed', 'is_masked', 'auto_nid', 'root',
+                 'edge_key_tag', 'node_key_tag', 'node_value_tag', 'node_tools', 'edge_tools', '_nodeid',
+                 '_full_graph', '__weakref__')
+
     def __init__(self, adjacency=None, nodes=None, edges=None, orm=None, root=None, is_directed=False,
                  auto_nid=True, edge_key_tag='label', node_key_tag='key', node_value_tag='value'):
         """
@@ -112,7 +116,6 @@ class Graph(object):
         self._nodeid = 1
         self._set_auto_nid()
         self._full_graph = self
-        self._initialised = True
 
     def __add__(self, other):
         """
@@ -700,10 +703,9 @@ class Graph(object):
 
         # Copy all class attributes except 'adjacency','nodes', 'edges',
         # '_full_graph and orm
-        notcopy = ('adjacency', 'edges', 'nodes', '_full_graph', 'orm')
-        for k, v in self.__dict__.items():
-            if k not in notcopy:
-                class_copy.__dict__[k] = copy.deepcopy(v)
+        for key in self.__slots__:
+            if not key in ('adjacency', 'edges', 'nodes', '_full_graph', 'orm', '__weakref__'):
+                setattr(class_copy, key, copy.deepcopy(getattr(self, key)))
 
         # Reset the graph root if needed
         if class_copy.root and class_copy.root not in class_copy.nodes:
@@ -841,9 +843,9 @@ class Graph(object):
             w.adjacency = DictStorage(adjacency)
 
         # copy class attributes
-        for key, value in self.__dict__.items():
-            if key not in ('nodes', 'edges', 'orm', 'adjacency'):
-                w.__dict__[key] = value
+        for key in self.__slots__:
+            if not key in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
+                setattr(w, key, getattr(self, key))
         w._set_full_graph(self)
 
         return w
@@ -923,9 +925,9 @@ class Graph(object):
                 w.adjacency = DictStorage(dict([(n, []) for n in nodes]))
 
         # copy class attributes
-        for key, value in self.__dict__.items():
-            if key not in ('nodes', 'edges', 'orm', 'adjacency'):
-                w.__dict__[key] = value
+        for key in self.__slots__:
+            if not key in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
+                setattr(w, key, getattr(self, key))
         w._set_full_graph(self)
 
         # If root node set and is_masked, reset root to node in new sub(graph)
