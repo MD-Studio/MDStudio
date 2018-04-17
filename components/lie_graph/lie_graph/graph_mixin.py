@@ -20,6 +20,15 @@ class NodeEdgeToolsBaseClass(object):
     __metaclass__ = abc.ABCMeta
     __isnetbc__ = True
 
+    def __call__(self):
+        """
+        Implement class __call__
+
+        :return: default value using node_value_tag
+        """
+
+        return self.get()
+
     @abc.abstractmethod
     def __contains__(self, key):
         """
