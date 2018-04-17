@@ -10,6 +10,7 @@ import re
 import logging
 import ipaddress
 import uritools
+import socket
 
 from lie_graph.graph_mixin import NodeEdgeToolsBaseClass
 
@@ -59,6 +60,13 @@ class IP6Address(NodeEdgeToolsBaseClass):
 
 
 class Hostname(NodeEdgeToolsBaseClass):
+
+    def hostname(self):
+        """
+        Get hostname of current machine
+        """
+
+        return socket.gethostname()
 
     def set(self, key, value=None):
         """
