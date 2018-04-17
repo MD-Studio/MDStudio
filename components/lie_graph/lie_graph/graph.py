@@ -704,7 +704,7 @@ class Graph(object):
         # Copy all class attributes except 'adjacency','nodes', 'edges',
         # '_full_graph and orm
         for key in self.__slots__:
-            if not key in ('adjacency', 'edges', 'nodes', '_full_graph', 'orm', '__weakref__'):
+            if key not in ('adjacency', 'edges', 'nodes', '_full_graph', 'orm', '__weakref__'):
                 setattr(class_copy, key, copy.deepcopy(getattr(self, key)))
 
         # Reset the graph root if needed
@@ -796,8 +796,8 @@ class Graph(object):
         :param orm_cls:         custom classes to construct new edge oriented
                                 Graph class from.
         :type orm_cls:          :py:list
-        :param add_node_tools:  add edge tools to Graph instance if one edge
-        :type add_node_tools:   :py:bool
+        :param add_edge_tools:  add edge tools to Graph instance if one edge
+        :type add_edge_tools:   :py:bool
         """
 
         # Coerce to list
@@ -844,7 +844,7 @@ class Graph(object):
 
         # copy class attributes
         for key in self.__slots__:
-            if not key in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
+            if key not in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
                 setattr(w, key, getattr(self, key))
         w._set_full_graph(self)
 
@@ -926,8 +926,8 @@ class Graph(object):
 
         # copy class attributes
         for key in self.__slots__:
-           if not key in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
-               setattr(w, key, getattr(self, key))
+            if key not in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
+                setattr(w, key, getattr(self, key))
         w._set_full_graph(self)
 
         # If root node set and is_masked, reset root to node in new sub(graph)

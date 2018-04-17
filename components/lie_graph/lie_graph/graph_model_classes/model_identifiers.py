@@ -8,7 +8,6 @@ Graph model classes for working (unique) identifiers
 
 import re
 import uuid
-import logging
 
 from lie_graph.graph_mixin import NodeEdgeToolsBaseClass
 from lie_graph.graph_helpers import GraphValidationError
