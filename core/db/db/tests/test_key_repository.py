@@ -7,6 +7,7 @@ from mdstudio.db.exception import DatabaseException
 from mdstudio.db.impl.mongo_client_wrapper import MongoClientWrapper
 from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
+from mdstudio.unittest.settings import load_settings
 
 
 # noinspection PyCompatibility
@@ -14,7 +15,14 @@ class TestKeyRepository(DBTestCase):
     fake = Faker()
 
     def setUp(self):
-        self.service = DBComponent()
+        with load_settings(DBComponent, {
+                'settings': {
+                    'port': 27017,
+                    'host': 'localhost',
+                    'secret': self.fake.pystr(20)
+                }
+            }):
+            self.service = DBComponent()
         self.service.component_config.settings['secret'] = "secret password"
         self.service._set_secret()
         self.db = MongoClientWrapper("localhost", 27127).get_database('users~db')

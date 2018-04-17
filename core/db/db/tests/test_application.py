@@ -23,7 +23,7 @@ class TestDBComponent(DBTestCase, APITestCase):
                 'settings': {
                     'port': 27017,
                     'host': 'localhost',
-                    'secret': 'l * 81 & AhDZ2VwrJDKnixE'
+                    'secret': self.fake.pystr(20)
                 }
             }):
             self.service = DBComponent()
