@@ -27,9 +27,9 @@ class DBComponent(CoreComponentSession):
     def pre_init(self):
 
         self.load_environment(OrderedDict([
-            ('host', (['MD_MONGO_HOST'], 'localhost')),
-            ('port', (['MD_MONGO_PORT'], 217127, int)),
-            ('secret', (['MD_MONGO_SECRET'], ''))
+            ('host', (['MD_MONGO_HOST'], None)),
+            ('port', (['MD_MONGO_PORT'], None, int)),
+            ('secret', (['MD_MONGO_SECRET'], None))
         ]))
 
         self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
