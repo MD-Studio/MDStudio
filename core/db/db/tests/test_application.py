@@ -12,14 +12,14 @@ from mdstudio.deferred.chainable import test_chainable
 from mdstudio.deferred.lock import Lock
 from mdstudio.unittest.api import APITestCase
 from mdstudio.unittest.db import DBTestCase
-from mdstudio.unittest.settings import SettingsTestCase
+from mdstudio.unittest.settings import load_settings
 
 
-class TestDBComponent(DBTestCase, APITestCase, SettingsTestCase):
+class TestDBComponent(DBTestCase, APITestCase):
     fake = Faker()
 
     def setUp(self):
-        with self.load_settings(DBComponent, {
+        with load_settings(DBComponent, {
                 'settings': {
                     'port': 27017,
                     'host': 'localhost',

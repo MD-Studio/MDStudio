@@ -293,12 +293,9 @@ class CommonSession(ApplicationSession):
             self.add_env_var_from_config(session_var, env_vars[0], attribute, default=env_vars[1], converter=converter)
 
     def load_settings(self):
-        for file in self.settings_files():
-            settings_file = os.path.join(self.component_root_path(), file)
+        loaded_settings = self._retrieve_stored_settings()
 
-            if os.path.isfile(settings_file):
-                with open(settings_file, 'r') as f:
-                    merge_dicts(self.component_config.to_dict(), yaml.safe_load(f))
+        merge_dicts(self.component_config.to_dict(), loaded_settings)
 
     def validate_settings(self):
         for path in self.settings_schemas():
@@ -457,3 +454,14 @@ class CommonSession(ApplicationSession):
     def settings_schemas(cls):
         return [os.path.join(cls.component_schemas_path(), 'settings.json'),
                 os.path.join(cls.mdstudio_schemas_path(), 'settings.json')]
+
+
+    def _retrieve_stored_settings(self):
+        loaded_settings = {}
+        for file in self.settings_files():
+            settings_file = os.path.join(self.component_root_path(), file)
+
+            if os.path.isfile(settings_file):
+                with open(settings_file, 'r') as f:
+                    merge_dicts(loaded_settings, yaml.safe_load(f))
+        return loaded_settings
