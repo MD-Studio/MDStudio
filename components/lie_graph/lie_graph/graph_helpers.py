@@ -109,6 +109,10 @@ def renumber_id(graph, start):
         newnodes = {v: graph.nodes[k] for k, v in mapper.items()}
         graph.nodes = DictStorage(newnodes)
 
+    # Update root
+    if graph.root:
+        graph.root = mapper[graph.root]
+
     # Update edges.
     newedges = {}
     for eid, edge in graph.edges.items():
