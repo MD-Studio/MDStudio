@@ -282,7 +282,7 @@ class CommonSession(ApplicationSession):
                     self.component_config[attribute][session_var] = env_var
                 return
 
-        if default:
+        if default is not None:
             self.component_config[attribute][session_var] = default
 
     def load_environment(self, mapping, attribute=None):
