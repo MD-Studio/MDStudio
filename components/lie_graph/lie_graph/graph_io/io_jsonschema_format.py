@@ -24,7 +24,7 @@ else:
     from urllib import parse as urlparse
 
 
-def resolve_json_ref(graph):
+def resolve_json_ref(graph, **kwargs):
     """
     Resolve JSON Schema $ref pointers
 
@@ -48,7 +48,7 @@ def resolve_json_ref(graph):
 
         # Include ref from another JSON Schema
         elif len(parsed.path) and os.path.isfile(os.path.abspath(os.path.join(os.path.dirname(path), parsed.path))):
-            external = read_json_schema(os.path.abspath(os.path.join(os.path.dirname(path), parsed.path)))
+            external = read_json_schema(os.path.abspath(os.path.join(os.path.dirname(path), parsed.path)), **kwargs)
             fragment = parsed.fragment or 'root'
             result = external.xpath('{0}'.format(fragment.replace('/definitions', '/')))
             if not result.empty():
@@ -58,13 +58,18 @@ def resolve_json_ref(graph):
         if def_graph:
             def_root = def_graph.get_root()
             def_target = graph.getnodes(nid)
-            for k, v in def_root.nodes[def_root.nid].items():
-                if not k in def_target:
-                    def_target.set(k, v)
+
+            # If def_root is not the JSON Schema document root then
+            # update target node dictionary
+            if not def_root.get('document_path'):
+                for k, v in def_root.nodes[def_root.nid].items():
+                    if not k in def_target:
+                        def_target.set(k, v)
 
             if len(def_graph) > 1:
                 links = [(nid, child) for child in def_root.children(return_nids=True)]
                 def_graph.remove_node(def_root.nid)
+
                 graph_join(graph, def_graph, links=links)
 
     # Remove 'definitions' from graph
@@ -170,6 +175,6 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
 
     # Resolve JSON Schema $ref
     if resolve_ref:
-        resolve_json_ref(graph)
+        resolve_json_ref(graph, node_key_tag=node_key_tag, edge_key_tag=edge_key_tag, exclude_args=exclude_args)
 
     return graph
