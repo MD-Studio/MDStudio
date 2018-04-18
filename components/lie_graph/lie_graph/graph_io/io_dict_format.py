@@ -150,14 +150,17 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
 
     # Include root node
     graph_dict = {}
-    root = graph.get_root()
+    root = graph.getnodes(root_nid)
     rootkey = root.get(keystring, default='root')
     if include_root:
         graph_dict[rootkey] = {}
 
     # In case root is a leaf node
-    if not len(root.neighbors(return_nids=True)):
-        graph_dict[rootkey] = root.get(valuestring, default=default)
+    if len(root.neighbors(return_nids=True)) <= 1:
+        if export_all:
+            graph_dict[rootkey] = root.nodes[root.nid]
+        else:
+            graph_dict[rootkey] = root.get(valuestring, default=default)
 
     # Traverse root descendants. NodeAxisTools might not be used so we do not
     # rely on __iter__ to iterate over children
