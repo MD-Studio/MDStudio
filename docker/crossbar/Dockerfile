@@ -1,7 +1,7 @@
 FROM python:3.6
 
 RUN pip install --upgrade pip
-RUN pip install --upgrade pipenv
+RUN pip install "pipenv==11.9"
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
