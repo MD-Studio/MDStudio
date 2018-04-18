@@ -66,7 +66,7 @@ def read_dict(dictionary, graph=None, node_key_tag=None, edge_key_tag=None, valu
 
 
 def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', default=None, root_nid=None,
-               include_root=False, allow_none=True):
+               include_root=False, allow_none=True, export_all=False):
     """
     Export a graph to a (nested) dictionary
 
@@ -78,6 +78,9 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     Dictionary keys and values are obtained from the node attributes using
     `keystring` and `valuestring`.  The keystring is set to graph node_key_tag
     by default.
+
+    Exporting only primary keystring/valuestring pairs is default behaviour.
+    Use the 'export_all' argument to export the full node dictionary.
 
     :param graph:        Graph object to export
     :type graph:         :lie_graph:GraphAxis
@@ -99,6 +102,8 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     :param root_nid:     root node ID in graph hierarchy
     :param allow_none:   allow None values in the output
     :type allow_none:    :py:bool
+    :param export_all:   Export the full node storage dictionary.
+    :type export_all:    :py:bool
 
     :rtype:              :py:dict
     """
@@ -118,6 +123,10 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
     keystring = keystring or graph.node_key_tag
     valuestring = valuestring or graph.node_value_tag
 
+    # If we export the full node dictionary, also export None key/value pairs
+    if export_all:
+        allow_none = True
+
     # Construct the dictionary traversing the graph hierarchy
     def _walk_dict(node, target_dict):
 
@@ -127,7 +136,12 @@ def write_dict(graph, keystring=None, valuestring=None, nested=True, sep='.', de
             value = node.get(valuestring, default=default)
             if not allow_none and value is None:
                 return
-            target_dict[node.get(keystring)] = value
+
+            # Export full node dictionary or only keystring/valuestring pair
+            if export_all:
+                target_dict[node.get(keystring)] = node.nodes[node.nid]
+            else:
+                target_dict[node.get(keystring)] = value
         else:
             target_dict[node.get(keystring)] = {}
             for cid in node.children(return_nids=True):
