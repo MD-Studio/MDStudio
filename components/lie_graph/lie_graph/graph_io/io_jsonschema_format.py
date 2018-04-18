@@ -31,6 +31,9 @@ def resolve_json_ref(graph):
     :param graph:   Graph to resolve $ref for
     """
 
+    # Get path to current document for resolving relative document $ref
+    path = graph.get_root().document_path
+
     for nid, ref in [(k, v['$ref']) for k, v in graph.nodes.items() if '$ref' in v]:
 
         # Parse JSON $ref
@@ -160,7 +163,9 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
     walk_schema(json_schema, graph.root)
 
     # Parse schema meta data
-    parse_schema_meta_data(graph.getnodes(graph.root))
+    root = graph.get_root()
+    root.set('document_path', os.path.abspath(schema))
+    parse_schema_meta_data(root)
 
     # Resolve JSON Schema $ref
     if resolve_ref:
