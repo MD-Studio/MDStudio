@@ -110,8 +110,8 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
     json_schema = open_anything(schema)
     try:
         json_schema = json.load(json_schema)
-    except IOError:
-        logging.error('Unable to decode JSON string')
+    except (IOError, ValueError), e:
+        logging.error('Unable to decode JSON string: {0}'.format(e))
         return
 
     if not isinstance(graph, GraphAxis):
