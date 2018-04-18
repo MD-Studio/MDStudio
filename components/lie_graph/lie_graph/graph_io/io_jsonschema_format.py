@@ -47,9 +47,10 @@ def resolve_json_ref(graph):
                 def_graph = result.descendants(include_self=True).copy()
 
         # Include ref from another JSON Schema
-        elif len(parsed.path) and os.path.isfile(parsed.path):
-            external = read_json_schema(parsed.path)
-            result = external.xpath('/root/{0}'.format(parsed.fragment.replace('/definitions', '')))
+        elif len(parsed.path) and os.path.isfile(os.path.abspath(os.path.join(os.path.dirname(path), parsed.path))):
+            external = read_json_schema(os.path.abspath(os.path.join(os.path.dirname(path), parsed.path)))
+            fragment = parsed.fragment or 'root'
+            result = external.xpath('{0}'.format(fragment.replace('/definitions', '/')))
             if not result.empty():
                 def_graph = result.descendants(include_self=True).copy()
 
