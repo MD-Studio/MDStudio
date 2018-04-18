@@ -12,6 +12,11 @@ from mdstudio.api.schema import ISchema, ResourceSchema, EndpointSchema, HttpsSc
 from mdstudio.deferred.chainable import test_chainable
 from mdstudio.unittest.db import DBTestCase
 
+# python 2 compat
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 class ISchemaTests(DBTestCase):
     faker = Faker()

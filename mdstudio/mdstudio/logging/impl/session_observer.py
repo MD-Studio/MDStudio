@@ -19,6 +19,13 @@ from mdstudio.logging.logger import Logger
 from mdstudio.utc import to_utc_string
 from mdstudio.deferred.lock import Lock
 
+# Python 2 compatibility.
+try:
+    TimeoutError
+except NameError:
+    import socket
+    TimeoutError = socket.timeout
+
 
 @six.add_metaclass(Singleton)
 class SessionLogObserver(object):
