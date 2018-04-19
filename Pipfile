@@ -9,11 +9,11 @@ verify_ssl = true
 
 crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "da6c3d220ba6d8b3fc8c1b9ec00eda48b3a8d57b"}
 mdstudio = {path = "mdstudio/", editable = true}
-lie-auth = {path = "core/auth/", editable = true}
-lie-cache = {path = "core/cache/", editable = true}
-lie-db = {path = "core/db/", editable = true}
-lie-schema = {path = "core/schema/", editable = true}
-lie-logger = {path = "core/logger/", editable = true}
+auth = {path = "core/auth/", editable = true}
+cache = {path = "core/cache/", editable = true}
+db = {path = "core/db/", editable = true}
+schema = {path = "core/schema/", editable = true}
+logger = {path = "core/logger/", editable = true}
 twisted = "*"
 cryptography = "*"
 
