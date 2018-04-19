@@ -13,10 +13,10 @@ import time
 import jsonschema
 import logging
 
-from twisted.logger import Logger
+#from twisted.logger import Logger
 
-from lie_graph.graph_io.io_json_format import read_dict, write_json
-from lie_graph.graph_io.io_helpers import _open_anything
+from lie_graph.graph_io.io_jgf_format import read_jgf, write_jgf
+from lie_graph.graph_io.io_helpers import open_anything
 
 from .workflow_common import WorkflowError, _schema_to_data
 from .workflow_task_specs import WORKFLOW_ORM
@@ -25,7 +25,7 @@ from .workflow_task_specs import WORKFLOW_ORM
 WORKFLOW_SCHEMA_PATH = os.path.join(
     os.path.dirname(__file__), 'workflow_schema.json')
 
-logging = Logger()
+#logging = Logger()
 
 
 class WorkflowSpec(object):
@@ -72,7 +72,7 @@ class WorkflowSpec(object):
         Parse a workflow JSON schema from various input sources
 
         Supports already parsed schemas as Python dictionaries and all formats
-        supported by the `_open_anything` function that includes: strings,
+        supported by the `open_anything` function that includes: strings,
         files, file objects and URL sources.
 
         :param schema: JSON workflow schema to parse
@@ -86,8 +86,8 @@ class WorkflowSpec(object):
         if isinstance(schema, dict):
             return schema
 
-        # Try parsing using _open_anything
-        schema_file_object = _open_anything(schema)
+        # Try parsing using open_anything
+        schema_file_object = open_anything(schema)
         if schema_file_object:
             return json.load(schema_file_object)
         else:
@@ -115,12 +115,12 @@ class WorkflowSpec(object):
         jsonschema.validate(workflow_template, schema_dict)
 
         # (empty) nodes and edges are usually not available
-        for d in ('nodes', 'edges'):
+        for d in ('nodes', 'edges', 'edge_attr'):
             if d not in workflow_template:
                 workflow_template[d] = {}
 
         # Construct a lie_graph GraphAxis object
-        self.workflow = read_dict(workflow_template)
+        self.workflow = read_jgf(workflow_template)
         self.workflow.orm = WORKFLOW_ORM
 
         # Add start node and make root
@@ -150,7 +150,7 @@ class WorkflowSpec(object):
         jsonschema.validate(workflow, schema_dict)
 
         # Construct a lie_graph GraphAxis object
-        self.workflow = read_dict(workflow)
+        self.workflow = read_jgf(workflow)
         self.workflow.orm = WORKFLOW_ORM
 
         if self.workflow.root is None:
@@ -178,7 +178,7 @@ class WorkflowSpec(object):
         :rtype:  JSON string
         """
 
-        json_string = write_json(self.workflow)
+        json_string = write_jgf(self.workflow)
         if path:
             pred = os.path.exists(os.path.dirname(path))
             msg = 'Directory does not exist: {0}'.format(os.path.dirname(path))

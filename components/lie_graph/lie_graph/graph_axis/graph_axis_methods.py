@@ -163,9 +163,9 @@ def node_leaves(graph, include_isolated=False):
     Selects all nodes in the graph that are connected to one other node
     using a directed or undirected edge.
     The first selection may also include isolated nodes being nodes without any
-    edge to other nodes or one edge in opposite direction. These are
-    subsequently removed because they are technically no 'leaves' of a parent
-    node. However, is 'include_isolated' is True, they are returned
+    edge to other nodes. These are subsequently removed because they are no
+    'leaves' of a parent node. However, is 'include_isolated' is True, they are
+    returned
 
     Graph root nodes do not affect the character of a node being a leaf,
     directed graphs will if the edge goes from leaf to parent only as this
@@ -180,14 +180,23 @@ def node_leaves(graph, include_isolated=False):
     :rtype:                  :py:list
     """
 
-    # Select all true leaves
-    if not include_isolated:
-        leaves = [node for node in graph.nodes() if len(graph.adjacency.get(node, [])) == 1]
-        leaves = [leaf for leaf in leaves if (graph.adjacency[leaf][0], leaf) in graph.edges]
+    leaves = []
+    for node in graph.nodes:
 
-    # Or include isolated ones
-    else:
-        leaves = [node for node in graph.nodes() if len(graph.adjacency.get(node, [])) <= 1]
+        adjacency = graph.adjacency.get(node, [])
+        edges = []
+        for e in graph.edges:
+            if node in e:
+                edges.extend(list(e))
+        edges = set(edges)
+
+        # Either isolated or with directed edge
+        if not len(adjacency) and (len(edges) or include_isolated):
+            leaves.append(node)
+
+        # One edge equals leave
+        if len(edges) == 2:
+            leaves.append(node)
 
     return leaves
 
@@ -240,13 +249,10 @@ def node_all_parents(graph, nid, root):
     # Get all paths to the target node
     all_adjacent = []
     for path in dfs_paths(graph, root, nid):
-        all_adjacent.extend(path)
-    all_adjacent = set(all_adjacent)
+        if len(path) > 1:
+            all_adjacent.append(path[-2])
 
-    all_parents = [key for key in node_neighbors(graph, nid) if key in all_adjacent]
-        
-    return all_parents
-
+    return sorted(set(all_adjacent))
 
 def node_siblings(graph, nid, root):
     """

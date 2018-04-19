@@ -31,8 +31,6 @@ class ORMtestBi(object):
 
 class ORMtestTgf6(object):
 
-    add = 6
-
     def get_label(self):
 
         return "tgf6 class {0}".format(self.add)
@@ -66,6 +64,7 @@ class TestGraphORM(unittest2.TestCase):
         self.orm.map_node(ORMtestTgf9, {'key': 'nine'})
 
         self.graph.orm = self.orm
+        self.graph.nodes[6]['add'] = 6
 
     def test_graph_orm_exceptions(self):
         """
@@ -137,22 +136,17 @@ class TestGraphORM(unittest2.TestCase):
 
         # Get node 6 from the full graph and then children of 6 from node 6 object
         self.graph.root = 1
-        node6 = self.graph.getnodes([6])
+        node6 = self.graph.getnodes(6)
         children = node6.getnodes(9)
 
         # Node 6 should have node6 specific get_label method
         self.assertEqual(node6.get_label(), 'tgf6 class 6')
 
-        # Children should get node9 specific get_label method but with node6
-        # attribute
-        self.assertEqual(children.get_label(), 'tgf9 class 6')
-
         # Changing the custom class 'add' attribute only affects the
         # particular node
         node6.add += 1
-        self.assertEqual(children.add, 6)
         self.assertEqual(node6.add, 7)
-        self.assertEqual(children.get_label(), 'tgf9 class 6')
+        self.assertRaises(AttributeError, children.get_label)
 
     def test_graph_orm_inherit(self):
         """
@@ -163,8 +157,8 @@ class TestGraphORM(unittest2.TestCase):
         self.graph.orm._inherit = False
 
         # First call to ORM from base, node 6 should still have 'add' attribute
-        node6 = self.graph.getnodes([6])
-        self.assertTrue(hasattr(node6, 'add'))
+        node6 = self.graph.getnodes(6)
+        self.assertTrue('add' in node6)
 
         # Second call to ORM from node 6, node 9 should not have 'add'
         node9 = node6.getnodes(9)

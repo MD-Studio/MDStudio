@@ -42,7 +42,7 @@
       "project_title": "Test project",
       "nid": 1, 
       "retry_count": 0,
-      "task_name": "start",
+      "key": "start",
       "breakpoint": false, 
       "active": false, 
       "_id": 1
@@ -57,7 +57,7 @@
         "sleep": 0,
         "add_number": 1
       }, 
-      "task_name": "task1",
+      "key": "task1",
       "breakpoint": false, 
       "active": false, 
       "_id": 2
@@ -71,7 +71,7 @@
         "sleep": 0,
         "add_number": 2
       }, 
-      "task_name": "task2",
+      "key": "task2",
       "breakpoint": false, 
       "active": false, 
       "_id": 3
@@ -85,7 +85,7 @@
         "sleep": 3,
         "add_number": 1
       }, 
-      "task_name": "task3",
+      "key": "task3",
       "breakpoint": false, 
       "active": false, 
       "_id": 4
@@ -98,7 +98,7 @@
       "input_data": {
         "sleep": 0
       }, 
-      "task_name": "task4",
+      "key": "task4",
       "breakpoint": false, 
       "active": false, 
       "_id": 5
@@ -112,7 +112,7 @@
         "sleep": 0,
         "add_number": 2
       }, 
-      "task_name": "task5",
+      "key": "task5",
       "breakpoint": false, 
       "active": false, 
       "_id": 6

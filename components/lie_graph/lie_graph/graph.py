@@ -43,6 +43,10 @@ class Graph(object):
       ambiguous and will be set to the node with the lowest nid.
     """
 
+    __slots__ = ('orm', 'nodes', 'edges', 'adjacency', 'is_directed', 'is_masked', 'auto_nid', 'root',
+                 'edge_key_tag', 'node_key_tag', 'node_value_tag', 'node_tools', 'edge_tools', '_nodeid',
+                 '_full_graph', '__weakref__')
+
     def __init__(self, adjacency=None, nodes=None, edges=None, orm=None, root=None, is_directed=False,
                  auto_nid=True, edge_key_tag='label', node_key_tag='key', node_value_tag='value'):
         """
@@ -112,7 +116,6 @@ class Graph(object):
         self._nodeid = 1
         self._set_auto_nid()
         self._full_graph = self
-        self._initialised = True
 
     def __add__(self, other):
         """
@@ -179,7 +182,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+            return False
 
         if self.adjacency.keys() != other.adjacency.keys():
             return False
@@ -322,7 +325,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+            return False
 
         return not self.__eq__(other)
 
@@ -401,6 +404,11 @@ class Graph(object):
         Edge metadata defined as a dictionary allows it to be queried
         by the various graph query functions.
 
+        After de new edge is created the edge class 'new' method is called once
+        to allow any custom edge initiation to be performed. This feature is
+        enabled by overload of the 'new' method in the NodeEdgeToolsBaseClass
+        abstract base class.
+
         :param nd1:            edge defined by two node ID's. nd1 may also be
                                an edge tuple/list ignoring nd2
         :type nd1:             int or tuple/list
@@ -450,6 +458,9 @@ class Graph(object):
                 self.adjacency[edge[0]].append(edge[1])
 
             logger.debug('Add edge between node {0}-{1}'.format(*edge))
+
+        # Call 'new' method of new edges once to allow for custom initiation
+        self.getedges(edges_to_add[0]).new()
 
         return edges_to_add[0]
 
@@ -508,6 +519,11 @@ class Graph(object):
         dictionary style set and get methods of the graph, node and edge
         classes.
 
+        After de new node is created the node class 'new' method is called once
+        to allow any custom node initiation to be performed. This feature is
+        enabled by overload of the 'new' method in the NodeEdgeToolsBaseClass
+        abstract base class.
+
         .. note:: 'add_node' checks if there is a node with nid in the graph
                   already. If found, a warning is logged and the attributes
                   of the existing node are updated.
@@ -548,14 +564,15 @@ class Graph(object):
             node_data[self.node_key_tag] = node
         node_data.update(copy.deepcopy(kwargs))
 
-        # Always set a unique ID to the node
-        node_data['_id'] = self._nodeid
-
         self.adjacency[nid] = []
         self.nodes[nid] = node_data
 
-        # Always increment internal node ID by 1
+        # Always set a unique ID to the node
+        node_data['_id'] = self._nodeid
         self._nodeid += 1
+
+        # Call 'new' method of the new node once to allow for custom initiation
+        self.getnodes(nid).new()
 
         return nid
 
@@ -700,10 +717,9 @@ class Graph(object):
 
         # Copy all class attributes except 'adjacency','nodes', 'edges',
         # '_full_graph and orm
-        notcopy = ('adjacency', 'edges', 'nodes', '_full_graph', 'orm')
-        for k, v in self.__dict__.items():
-            if k not in notcopy:
-                class_copy.__dict__[k] = copy.deepcopy(v)
+        for key in self.__slots__:
+            if key not in ('adjacency', 'edges', 'nodes', '_full_graph', 'orm', '__weakref__'):
+                setattr(class_copy, key, copy.deepcopy(getattr(self, key)))
 
         # Reset the graph root if needed
         if class_copy.root and class_copy.root not in class_copy.nodes:
@@ -794,8 +810,8 @@ class Graph(object):
         :param orm_cls:         custom classes to construct new edge oriented
                                 Graph class from.
         :type orm_cls:          :py:list
-        :param add_node_tools:  add edge tools to Graph instance if one edge
-        :type add_node_tools:   :py:bool
+        :param add_edge_tools:  add edge tools to Graph instance if one edge
+        :type add_edge_tools:   :py:bool
         """
 
         # Coerce to list
@@ -808,9 +824,7 @@ class Graph(object):
         if edges:
             edges_not_present = [e for e in edges if e not in self.edges]
             if edges_not_present:
-                raise GraphException(
-                    'Following edges are not in graph {0}'.format(
-                        edges_not_present))
+                raise GraphException('Edges not in graph {0}'.format(edges_not_present))
         else:
             edges = []
 
@@ -819,18 +833,13 @@ class Graph(object):
         custom_orm_cls = []
         if orm_cls:
             if not isinstance(orm_cls, list):
-                msg = 'Custom edge classes need to be defined as list'
-                raise GraphException(msg)
+                raise GraphException('Custom edge classes need to be defined as list')
             custom_orm_cls.extend(orm_cls)
         if len(edges) == 1 and add_edge_tools:
             custom_orm_cls.append(self.edge_tools)
 
-        base_cls = self.orm.get(
-            self, edges, self._get_class_object(), classes=custom_orm_cls)
-        w = base_cls(
-            adjacency=self.adjacency, nodes=self.nodes, edges=self.edges,
-            orm=self.orm)
-
+        base_cls = self.orm.get(self, edges, self._get_class_object(), classes=custom_orm_cls)
+        w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
         w.edges.set_view(edges)
 
         # Get nodes and adjacency for the edge selection if it represents
@@ -841,9 +850,9 @@ class Graph(object):
             w.adjacency = DictStorage(adjacency)
 
         # copy class attributes
-        for key, value in self.__dict__.items():
-            if key not in ('nodes', 'edges', 'orm', 'adjacency'):
-                w.__dict__[key] = value
+        for key in self.__slots__:
+            if key not in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
+                setattr(w, key, getattr(self, key))
         w._set_full_graph(self)
 
         return w
@@ -891,7 +900,7 @@ class Graph(object):
 
         # Nodes need to be in graph
         if nodes:
-            nodes_not_present = [n for n in nodes if n not in self.adjacency]
+            nodes_not_present = [n for n in nodes if n not in self._full_graph.nodes.keys()]
             if nodes_not_present:
                 raise GraphException('Following nodes are not in graph {0}'.format(nodes_not_present))
         else:
@@ -923,9 +932,9 @@ class Graph(object):
                 w.adjacency = DictStorage(dict([(n, []) for n in nodes]))
 
         # copy class attributes
-        for key, value in self.__dict__.items():
-            if key not in ('nodes', 'edges', 'orm', 'adjacency'):
-                w.__dict__[key] = value
+        for key in self.__slots__:
+            if key not in ('nodes', 'edges', 'orm', 'adjacency', '__weakref__'):
+                setattr(w, key, getattr(self, key))
         w._set_full_graph(self)
 
         # If root node set and is_masked, reset root to node in new sub(graph)
@@ -1006,6 +1015,7 @@ class Graph(object):
             if all([q in attr.items() for q in query_set]):
                 edges.append(edge)
 
+        edges = list(set(edges))
         return self.getedges(edges, orm_cls=orm_cls)
 
     def query_nodes(self, query=None, orm_cls=None, **kwargs):

@@ -1,14 +1,11 @@
 {
   "edge_attr": {}, 
   "graph": {
-    "title": "Linear workflow (finished)",
+    "title": "Linear workflow (unfinished)",
     "description": "A simple 6 node linear workflow",
-    "node_data_tag": "task_name",
-    "create_time": 1493819360,
-    "start_time": 1493819365,
-    "update_time": 1493819372,
+    "node_data_tag": "key",
     "is_directed": true,
-    "is_running": true,
+    "is_running": false,
     "edge_data_tag": "label", 
     "is_masked": false, 
     "root": 1, 
@@ -20,44 +17,32 @@
       2
     ], 
     "1": [
-      1, 
-      3
-    ], 
-    "2": [
-      1, 
+      3, 
       4
     ], 
-    "3": [
-      1, 
-      5
-    ], 
-    "4": [
-      2, 
-      6
-    ],
-    "5": [
-      3, 
-      6
-    ],
-    "6": [
-      4, 
-      6
-    ],
-    "7": [
+    "2": [
       5, 
       6
+    ], 
+    "3": [
+      2, 
+      3
+    ], 
+    "4": [
+      4, 
+      5
     ]
-  },
+  }, 
   "nodes": {
     "1": {
       "status": "completed",
-      "task_name": "start", 
+      "key": "start",
       "nid": 1, 
       "retry_count": 0, 
       "breakpoint": false, 
       "active": false, 
       "output_data": {
-        "file": "input"
+        "dummy": 1
       },
       "session": {
           "status": "completed", 
@@ -72,10 +57,11 @@
     "2": {
       "status": "completed",
       "input_data": {
+        "dummy": 1,
         "sleep": 1
       },  
       "output_data": {
-        "file": "task1"
+        "dummy": 1
       },
       "session": {
           "status": "completed", 
@@ -84,7 +70,7 @@
           "itime": 1493819367,
           "utime": 1493819368 
       },
-      "task_name": "task1", 
+      "key": "task1",
       "nid": 2, 
       "retry_count": 0, 
       "breakpoint": false, 
@@ -95,10 +81,11 @@
     "3": {
       "status": "completed",
       "input_data": {
+        "dummy": 1,
         "sleep": 1
       },
       "output_data": {
-        "file": "task2"
+        "dummy": 1
       },
       "session": {
           "status": "completed",
@@ -107,7 +94,7 @@
           "system_user": "mvdijk", 
           "task_id": "1493819368-7176"
       },
-      "task_name": "task2", 
+      "key": "task2",
       "nid": 3, 
       "retry_count": 0, 
       "breakpoint": false, 
@@ -118,10 +105,11 @@
     "4": {
       "status": "completed",
       "input_data": {
+        "dummy": 1,
         "sleep": 1
       },
       "output_data": {
-        "file": "task3"
+        "dummy": 1
       },
       "session": {
           "status": "completed",
@@ -130,30 +118,20 @@
           "itime": 1493819369,
           "utime": 1493819370
       },
-      "task_name": "task3", 
+      "key": "task3",
       "nid": 4, 
       "retry_count": 0,  
       "breakpoint": false, 
-      "active": false, 
+      "active": true, 
       "_id": 4, 
       "task_type": "Task"
     }, 
     "5": {
-      "status": "completed",
+      "status": "ready",
       "input_data": {
         "sleep": 1
       },
-      "output_data": {
-        "file": "task4"
-      },
-      "session": {
-          "status": "completed",
-          "system_user": "mvdijk", 
-          "task_id": "1493819370-5050",
-          "itime": 1493819370,
-          "utime": 1493819371
-      },
-      "task_name": "task4", 
+      "key": "task4",
       "nid": 5, 
       "retry_count": 0,  
       "breakpoint": false, 
@@ -162,11 +140,11 @@
       "task_type": "Task"
     }, 
     "6": {
-      "status": "running",
+      "status": "ready",
       "input_data": {
         "sleep": 1
       },
-      "task_name": "task5", 
+      "key": "task5",
       "nid": 6, 
       "retry_count": 0,  
       "breakpoint": false, 

@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
+"""
+file: graph_orm.py
+
+Defines the Graph Object Relation Mapper (ORM)
+"""
+
 import inspect
-import logging as logger
+import logging
 
 
 class GraphORM(object):
@@ -143,6 +149,39 @@ class GraphORM(object):
 
         self._edge_orm_mapping[cls] = set(matching_rules)
 
+    def update(self, orm):
+        """
+        Update the current node and edge orm mapping with those defined by
+        another orm instance
+
+        :param orm: Source orm class to update from
+        :type orm:  GraphORM
+        """
+
+        assert isinstance(orm, GraphORM), 'Requires GraphORM class to update from'
+
+        # Update node mapping
+        for node_cls, node_map in orm._node_orm_mapping.items():
+            if not node_cls in self._node_orm_mapping:
+                self._node_orm_mapping[node_cls] = node_map
+            else:
+                mapping = list(self._node_orm_mapping[node_cls])
+                if node_map in mapping:
+                    logging.warning('Reassign node mapping {0}'.format(node_map))
+                mapping.append(node_map)
+                self._node_orm_mapping[node_cls] = set(mapping)
+
+        # Update edge mapping
+        for edge_cls, edge_map in orm._edge_orm_mapping.items():
+            if not edge_cls in self._edge_orm_mapping:
+                self._edge_orm_mapping[edge_cls] = edge_map
+            else:
+                mapping = list(self._edge_orm_mapping[edge_cls])
+                if edge_map in mapping:
+                    logging.warning('Reassign edge mapping {0}'.format(edge_map))
+                mapping.append(edge_map)
+                self._edge_orm_mapping[edge_cls] = set(mapping)
+
     def get(self, graph, objects, base_cls, classes=None):
         """
         Map a custom class to a node or edge based on their attributes.
@@ -188,7 +227,7 @@ class GraphORM(object):
         try:
             query = set(query)
         except TypeError:
-            logger.error('Unable to build query')
+            logging.error('Unable to build query')
             query = set([])
 
         # Use node or edge mapping dictionary

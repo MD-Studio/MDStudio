@@ -15,7 +15,7 @@ import logging
 logging.basicConfig(level=logging.WARN)
 
 # Add modules in package to path so we can import them
-modulepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+modulepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 sys.path.insert(0, modulepath)
 
 

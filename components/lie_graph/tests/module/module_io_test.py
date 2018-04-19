@@ -293,7 +293,7 @@ class DictParserTest(unittest2.TestCase):
         self.assertTrue(8 in graph.nodes)
 
         # Test hierarchy
-        self.assertEqual(graph.children().keys(), [4, 'one', 'three', 'two'])
+        self.assertEqual(graph.children().keys(desc=False), [4, 'one', 'three', 'two'])
         self.assertEqual(graph.leaves().values(), [[2.22, 4.67], 5, 'four', 1, False, 3, True, 2])
         self.assertEqual(graph.getnodes(4).values(), [[2.22, 4.67]])
 

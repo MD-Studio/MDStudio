@@ -7,13 +7,11 @@ Unit tests for a Map-Reduce style workflow
 """
 
 import os
-import sys
 import unittest2
-import logging
 import time
 
-from   lie_workflow                import Workflow
-from   dummy_task_runners          import task_runner, calculate_accumulated_task_runtime
+from lie_workflow import Workflow
+from dummy_task_runners import task_runner, calculate_accumulated_task_runtime
 
 currpath = os.path.dirname(__file__)
 
@@ -33,11 +31,12 @@ class TestArrayMapper(unittest2.TestCase):
         # Construct the workflow specification
         self.wf = Workflow()
         self.wf.task_runner = task_runner
+        self.wf.set_wamp_session(session_data={'authid': 'dadara'})
 
     def test_array_mapper(self):
         
         # Set some workflow metadata in the start node
-        self.wf.input(mapper=[{'dummy':1}, {'dummy':2}, {'dummy': 3}])
+        self.wf.input(self.wf.workflow.root, mapper=[{'dummy':1}, {'dummy':2}, {'dummy': 3}])
 
         # Connect mapper to start
         t1 = self.wf.add_task('Map input', task_type='Mapper')
@@ -49,7 +48,7 @@ class TestArrayMapper(unittest2.TestCase):
         self.wf.connect_task(t1,t2)
 
         # Connect a collector
-        t3 = self.wf.add_task('Collect', task_type='Collect', to_mapper=t1, custom_func='dummy_task_runners.reduce_function')
+        t3 = self.wf.add_task('Collect', to_mapper=t1, custom_func='dummy_task_runners.reduce_function')
         self.wf.connect_task(t2,t3)
 
         # Run the workflow
@@ -69,20 +68,21 @@ class TestMapReduceWorkflow(unittest2.TestCase):
     Reduce task type.
     """
     
-    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/mapreduce-workflow-spec.json'))
+    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/mapreduce-workflow-spec.jgf'))
 
     def setUp(self):
         """
         Load a simple map-reduce workflow from a JSON specification
         """
-        
+
         # Construct the workflow specification
         self.wf = Workflow()
         self.wf.task_runner = task_runner
         self.wf.load(self.workflow_spec_path)
-        
+        self.wf.set_wamp_session(session_data={'authid': 'dadara'})
+
         # Define dummy input the dummy_task_runner knows how to handle
-        self.wf.input(dummy=1)
+        self.wf.input(self.wf.workflow.root, dummy=1)
     
     def test_workflow_mapreduce(self):
         """

@@ -8,6 +8,8 @@ Functions for performing 'set' like math operations on graphs.
 # TODO: add graph_intersection, graph_difference and graph_symmetric_difference methods
 """
 
+import logging
+
 from lie_graph.graph_helpers import edge_list_to_adjacency, GraphException
 
 
@@ -157,3 +159,47 @@ def graph_update(graph1, graph2, update_edges=True, update_nodes=True):
                 graph1.nodes[node].update(value)
 
     return graph1
+
+
+def graph_axis_update(graph, data):
+    """
+    Recursive update graph nodes from dictionary or other graph
+
+    :param graph: graph to update
+    :type graph:  GraphAxis
+    :param data:  dictionary or graph to update from
+    """
+
+    # TODO: restructure module organisation to avoid circular import
+    from lie_graph.graph_axis.graph_axis_class import GraphAxis
+    from lie_graph.graph_io.io_dict_format import write_dict
+
+    # Get data as dictionary
+    if isinstance(data, GraphAxis):
+        data = write_dict(data)
+    assert isinstance(data, dict), logging.error('Dictionary required')
+
+    # (Recursive) update data
+    node_value_tag = graph.node_value_tag
+
+    def recursive_update(block, params):
+
+        for key, value in params.items():
+            data_node = block.query_nodes(key=key)
+
+            # Key does not exist
+            if data_node.empty():
+                logging.error('No parameter named "{0}" in data block "{1}"'.format(key, repr(graph)))
+                continue
+
+            # Value is dictionary, nested update
+            if isinstance(value, dict):
+                recursive_update(data_node.descendants(include_self=True), value)
+                continue
+
+            # Set single value
+            if len(data_node) == 1:
+                data_node.set(node_value_tag, value)
+                logging.info('Update parameter "{0}" on node {1}'.format(key, data_node))
+
+    recursive_update(graph, data)

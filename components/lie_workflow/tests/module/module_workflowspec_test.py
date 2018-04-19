@@ -13,7 +13,7 @@ import unittest2
 from jsonschema.exceptions import ValidationError
 
 from lie_workflow import WorkflowSpec
-from lie_workflow.common import WorkflowError
+from lie_workflow.workflow_common import WorkflowError
 
 currpath = os.path.dirname(__file__)
 
@@ -75,7 +75,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         invalid_workflow = None
         with open(os.path.join(currpath, '../files/linear-workflow-invalid.json')) as wf:
             invalid_workflow = json.load(wf)
-        
+
         spec = WorkflowSpec()
         self.assertRaises(ValidationError, spec.load, invalid_workflow)
         
@@ -100,7 +100,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         # Set some metadata
         spec.workflow.title = 'Test project'
 
-        path = os.path.abspath(os.path.join(currpath, '../files/test_workflow_save.json'))
+        path = os.path.abspath(os.path.join(currpath, '../files/test_workflow_save.jgf'))
         self.tempfiles.append(path)
         spec.save(path=path)
         
@@ -121,7 +121,7 @@ class TestWorkflowSpec(unittest2.TestCase):
         """
         
         spec = WorkflowSpec()
-        spec.load(os.path.join(currpath, '../files/linear-workflow-finished.json'))
+        spec.load(os.path.join(currpath, '../files/linear-workflow-finished.jgf'))
         
         # Query local metadata
         task2 = spec.get_task(2)
@@ -166,7 +166,6 @@ class TestWorkflowSpec(unittest2.TestCase):
 
         # Set some metadata
         spec.workflow.title = 'Map-reduce project'
-       
         maptask = [n for n in spec.workflow.nodes if len(spec.workflow.adjacency[n]) > 1 and spec.workflow.nodes[n]['task_type'] == 'Task']
         redtask = [n for n in spec.workflow.nodes if spec.workflow.nodes[n]['task_type'] == 'Collect']
         self.assertListEqual(maptask, [4])

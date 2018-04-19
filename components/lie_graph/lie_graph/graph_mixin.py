@@ -20,6 +20,15 @@ class NodeEdgeToolsBaseClass(object):
     __metaclass__ = abc.ABCMeta
     __isnetbc__ = True
 
+    def __call__(self):
+        """
+        Implement class __call__
+
+        :return: default value using node_value_tag
+        """
+
+        return self.get()
+
     @abc.abstractmethod
     def __contains__(self, key):
         """
@@ -45,7 +54,7 @@ class NodeEdgeToolsBaseClass(object):
         :return:    attribute value
         """
 
-        if key not in self.__dict__:
+        if key not in self.__slots__:
             value = self.get(key=key, default='_Graph_no_key__')
             if value == '_Graph_no_key__':
                 raise AttributeError('No such node or edge attribute: {0}'.format(key))
@@ -74,21 +83,20 @@ class NodeEdgeToolsBaseClass(object):
 
     def __setattr__(self, key, value):
         """
-        Implement class __setattr__.
+        Implement class __setattr__
 
-        Setter for both node and edge dictionaries and standard class
-        attributes. If the attribute is not yet defined in either of
-        these cases it is considered a standard class attribute.
-        Use the `set` method to define new node or edge dictionary
-        attributes. The latter method can be overloaded by custom
-        classes.
+        Setattr method for Graph classes that resolves attribute assignment in
+        the following order:
 
-        __setattr__ is resolved in the following order:
-
-        1 self.__dict__ setter at class initiation
-        2 graph setter handled by property methods
-        3 `set` method for existing nodes/edges dictionary attributes.
-        3 self.__dict__ only for existing and new class attributes
+        1 Class attributes defined by __slots__. Graph objects do not allow for
+          additional attributes not defined in __slots__ to be assigned on the
+          class.
+        2 Graph setter handled by property methods
+        3 Any attribute not assigned by step 1 or 2 is considered a node or
+          edge attribute and will be set by the respective storage driver
+        4 None of the above will raise an AttributeError. __setattr__ doe not
+          support assignment of new attributes to nodes or edges. Use the 'set'
+          or __setitem__ methods instead.
 
         :param key:  attribute name.
         :param value: attribute value
@@ -96,24 +104,25 @@ class NodeEdgeToolsBaseClass(object):
 
         propobj = getattr(self.__class__, key, None)
 
-        if '_initialised' not in self.__dict__:
+        if key in self.__slots__:
             return dict.__setattr__(self, key, value)
         elif isinstance(propobj, property) and propobj.fset:
             propobj.fset(self, value)
         elif key in self:
             self.set(key, value)
         else:
-            return dict.__setattr__(self, key, value)
+            raise AttributeError, 'Graph object does not support attribute assignment for: {0}'.format(key)
 
     def __setitem__(self, key, value):
         """
-        Implement class __setitem__.
+        Implement class __setitem__
 
-        Set values using dictionary style access in the following order:
+        Set node or adge attributes using dictionary style attribute access in
+        the following order:
 
-        1 graph setter handled by property methods
-        2 self.__dict__ only for existing keys
-        3 `set` method for existing and new nodes/edges key,value pairs
+        1 Graph setter handled by property methods
+        2 Any attribute not assigned by step 1 is considered a node or
+          edge attribute and will be set by the respective storage driver
 
         :param key:   attribute name
         :type key:    str
@@ -124,8 +133,6 @@ class NodeEdgeToolsBaseClass(object):
 
         if isinstance(propobj, property) and propobj.fset:
             propobj.fset(self, value)
-        elif key in self.__dict__:
-            dict.__setattr__(self, key, value)
         else:
             self.set(key, value)
 
@@ -153,6 +160,16 @@ class NodeEdgeToolsBaseClass(object):
         :type defaultattr:  mixed
         :param default:     value to return when all fails
         :type default:      mixed
+        """
+
+        return
+
+    def new(self, **kwargs):
+        """
+        Custom initiation method for new nodes or edges
+
+        Called once by the add_node or add_edge method to allow custom classes
+        to perform any initiation on the newly created node or edge
         """
 
         return
@@ -196,6 +213,19 @@ class NodeEdgeToolsBaseClass(object):
         """
 
         return True
+
+    def update(self, data):
+        """
+        Python dict-like update method for node or edge data
+
+        :param data: source dictionary
+        :type data:  :py:dict
+        """
+
+        assert isinstance(data, dict), 'Dictionary required'
+
+        for key, value in data.items():
+            self.set(key, value)
 
 
 class NodeTools(NodeEdgeToolsBaseClass):
@@ -242,7 +272,7 @@ class NodeTools(NodeEdgeToolsBaseClass):
         :rtype: bool
         """
 
-        return len(self.adjacency[self.nid]) == 1
+        return len(self.adjacency.get(self.nid, [])) <= 1
 
     @property
     def nid(self):

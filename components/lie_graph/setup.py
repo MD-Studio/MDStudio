@@ -41,11 +41,10 @@ setup(
     packages=find_packages(),
     py_modules=[distribution_name],
     test_suite="tests",
-    test_requirements=test_requirements,
     extra_requirements={
         'test': test_requirements
     },
-    install_requires=['asq'],
+    install_requires=['uritools', 'pytz'],
     include_package_data=True,
     zip_safe=True,
     classifiers=[

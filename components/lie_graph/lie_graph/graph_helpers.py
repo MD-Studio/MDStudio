@@ -81,6 +81,9 @@ def renumber_id(graph, start):
     accordingly. Useful when duplicating a graph substructure.
     If the graph uses auto_nid, the node nid is also changed.
 
+    #TODO: this one failes if run on a subgraph. Probably need to make changes
+    #to nids in place instead of registering new DictStorage
+
     :param graph:   Graph object to renumber
     :type graph:    Graph object
     :param start:   New start number to renumber from
@@ -105,6 +108,10 @@ def renumber_id(graph, start):
     if graph.auto_nid:
         newnodes = {v: graph.nodes[k] for k, v in mapper.items()}
         graph.nodes = DictStorage(newnodes)
+
+    # Update root
+    if graph.root:
+        graph.root = mapper[graph.root]
 
     # Update edges.
     newedges = {}
@@ -174,3 +181,14 @@ class GraphException(Exception):
     def __init___(self, message='', *args, **kwargs):
         logger.critical(message)
         Exception.__init__(self, *args, **kwargs)
+
+
+class GraphValidationError(Exception):
+
+    def __init__(self, message, graph):
+
+        # Construct message
+        report = "ValidationError on instance {0}: {1}".format(graph.path(), message)
+        logger.error(report)
+
+        super(GraphValidationError, self).__init__(report)

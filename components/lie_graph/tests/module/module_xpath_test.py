@@ -123,11 +123,25 @@ class TestXPathQuery(unittest2.TestCase):
                                26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37])
         self.assertItemsEqual(xpath.resolve('//atom[@value>620][3]', self.graph).nodes.keys(), [23])
         self.assertItemsEqual(xpath.resolve('//atom[@value<608]', self.graph).nodes.keys(), [])
-        #self.assertItemsEqual(xpath.resolve('//atom[@value<=608]', self.graph).nodes.keys(), [4])
+        self.assertItemsEqual(xpath.resolve('//atom[@value<=608]', self.graph).nodes.keys(), [4])
 
+        # Select all nodes or all atom nodes with at least one attribute
         sel = self.graph.getnodes(10)
         self.assertItemsEqual(xpath.resolve('//*[@*]', sel).nodes.keys(), [10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
         self.assertItemsEqual(xpath.resolve('//atom[@*]', sel).nodes.keys(), [11, 12, 13, 14, 15, 16, 17, 18, 19])
+
+    def test_query_axis_filter(self):
+        """
+        Test XPath axis based selection syntax
+        """
+
+        xpath = XpathExpressionEvaluator()
+
+        self.assertItemsEqual(xpath.resolve('//segid/child::residue', self.graph).nodes.keys(), [3, 10, 21, 28])
+        self.assertItemsEqual(xpath.resolve('child::segid', self.graph).nodes.keys(), [2, 20])
+        self.assertItemsEqual(xpath.resolve('//residue[3]/following-sibling::residue', self.graph).nodes.keys(), [21])
+        self.assertItemsEqual(xpath.resolve('//atom/ancestor::segid', self.graph).nodes.keys(), [2, 20])
+        self.assertItemsEqual(xpath.resolve('//residue/parent::*', self.graph).nodes.keys(), [2, 20])
 
     def test_query_different_sepchar(self):
         """

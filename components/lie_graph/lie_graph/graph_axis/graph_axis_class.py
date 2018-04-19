@@ -8,6 +8,7 @@ node.
 """
 
 from lie_graph.graph import Graph
+from lie_graph.graph_math_operations import graph_axis_update
 from lie_graph.graph_helpers import GraphException
 from lie_graph.graph_query.query_xpath import XpathExpressionEvaluator
 from lie_graph.graph_axis.graph_axis_methods import (node_ancestors, node_children, node_descendants, node_neighbors,
@@ -37,7 +38,7 @@ class GraphAxis(Graph):
     True, is that it is non-destructive to the data and can be easily lifted
     again.
 
-    The behaviour of axis methods is furthermore affected by the directivity
+    The behaviour of axis methods is furthermore affected by the directivety
     of the graph. The default non-directive graphs can be fully traversed
     forwards and backwards. Directed graphs or mixed graphs block traversal
     to parts of the graph by lack of an edge to traverse over.
@@ -64,6 +65,13 @@ class GraphAxis(Graph):
             return self.nid
         except AttributeError:
             return self.root
+
+    def get_root(self):
+        """
+        Convenience method for returning the root node of a graph
+        """
+
+        return self._full_graph.getnodes(self.root)
 
     def ancestors(self, node=None, include_self=False, return_nids=False):
         """
@@ -323,6 +331,27 @@ class GraphAxis(Graph):
                     for n in self.iternodes()]
         return [(n.get(keystring), n.get(valuestring)) for n in self.iternodes()]
 
+    def keys(self, keystring=None, desc=False):
+        """
+        Python dict-like function to return node keys in the (sub)graph.
+
+        Keystring defines the key lookup in the node data dict.
+
+        :param keystring:  Data key to use for dictionary keys.
+        :type keystring:   :py:str
+        :param desc:       return nested values as new GraphAxis objects
+        :type desc:        :py:bool
+
+        :return:           List of keys
+        :rtype:            :py:list
+        """
+
+        keystring = keystring or self.node_key_tag
+
+        if desc:
+            return [n.get(keystring) if n.isleaf else n for n in self.iternodes()]
+        return [n.get(keystring) for n in self.iternodes()]
+
     def values(self, valuestring=None, desc=True):
         """
         Python dict-like function to return node values in the (sub)graph.
@@ -334,7 +363,6 @@ class GraphAxis(Graph):
         :param desc:        return nested values as new GraphAxis objects
         :type desc:         :py:bool
 
-
         :return:            List of values
         :rtype:             :py:list
         """
@@ -344,4 +372,14 @@ class GraphAxis(Graph):
         if desc:
             return [n.get(valuestring) if n.isleaf else n for n in self.iternodes()]
         return [n.get(valuestring) for n in self.iternodes()]
+
+    def update(self, data):
+        """
+        Python dict-like update method for recursive update graph nodes from
+        dictionary or other graph.
+
+        :param data: dictionary or graph to update from
+        """
+
+        graph_axis_update(self, data)
 

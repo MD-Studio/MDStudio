@@ -42,12 +42,15 @@ def read_jgf(jgf_format, graph=None):
     """
 
     # Try parsing the string using default Python json parser
-    jgf_format = open_anything(jgf_format)
-    try:
-        parsed = json.load(jgf_format)
-    except IOError:
-        logging.error('Unable to decode JSON string')
-        return
+    if isinstance(jgf_format, dict):
+        parsed = jgf_format
+    else:
+        jgf_format = open_anything(jgf_format)
+        try:
+            parsed = json.load(jgf_format)
+        except IOError:
+            logging.error('Unable to decode JSON string')
+            return
 
     # Check lie_graph version and format validity
     if not check_lie_graph_version(parsed.get('lie_graph_version')):
@@ -131,7 +134,8 @@ def write_jgf(graph, indent=2, encoding="utf-8", **kwargs):
             json_format[key] = value
 
     # Store graph meta data
-    for key, value in graph.__dict__.items():
+    for key in graph.__slots__:
+        value = getattr(graph, key)
         if not key.startswith('_') and isinstance(value, (int, float, bool, long, str, unicode)):
             json_format['graph'][key] = value
 
