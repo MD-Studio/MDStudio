@@ -13,7 +13,8 @@ root = os.path.split(file_path)[0]
 def create_workdir(name, path="/tmp/pylie"):
     """Create temporal workdir dir"""
     workdir = join(path, name)
-    os.makedirs(workdir, exist_ok=True)
+    if not os.path.isdir(workdir):
+        os.makedirs(workdir)
     return workdir
 
 
@@ -42,7 +43,7 @@ dict_trajectory = {
 
 dict_stable = {"mdframe": join(root, "files/stable/mdframe.csv"),
                "workdir": create_workdir("stable"),
-               "minlength": 45}
+               "FilterSplines": {"minlength": 45}}
 
 dict_average = {"mdframe": join(root, "files/average/mdframe_splinefiltered.csv"),
                 "workdir": create_workdir("average")}
@@ -100,10 +101,19 @@ dict_adan_yrange = {
 }
 
 expected_adan_yrange_results = {
-    'alpha': {0: 0.5937400744224419}, 'beta': {0: 0.3148979421603865}, 'case': {0: 1.0},
-    'dg_calc': {0: -24.76012625865582}, 'gamma': {0: 0.0}, 'prob-1': {0: 1.0},
-    'w_coul': {0: 8.451392745098037}, 'w_d1': {0: 1.0}, 'w_vdw': {0: -46.18427090196078},
-    'ref_affinity': {0: np.NaN}, 'error': {0: np.NaN}, 'CI': {0: 1}}
+    "case": {"0": 1.0},
+    "CI": {"0": 1},
+    "prob-1": {"0": 1.0},
+    "w_d1": {"0": 1.0},
+    "w_coul": {"0": 8.451392745098037},
+    "ref_affinity": {"0": np.NaN},
+    "dg_calc": {"0": -24.76012625865582},
+    "beta": {"0": 0.3148979421603865},
+    "w_vdw": {"0": -46.18427090196078},
+    "error": {"0": np.NaN},
+    "alpha": {"0": 0.5937400744224419},
+    "gamma": {"0": 0.0}
+}
 
 dict_adan_dene = {
     "ci_cutoff": 13.690708685318436,
@@ -112,6 +122,22 @@ dict_adan_dene = {
     "model_pkl": dict_adan_residue["model_pkl"],
     "dataframe": dict_adan_yrange["dataframe"],
     "center": [-53.11058012546337, 21.656883661248937]}
+
+expected_adan_results = {
+    "case": {"0": 1.0},
+    "CI": {"0": 0},
+    "mahal": {"0": 0.5355241558090091},
+    "prob-1": {"0": 1.0},
+    "w_d1": {"0": 1.0},
+    "w_coul": {"0": -13.2054909161509},
+    "ref_affinity": {"0": np.NaN},
+    "dg_calc": {"0": -24.76012625865582},
+    "beta": {"0": 0.3148979421603865},
+    "w_vdw": {"0": 6.926309223502592},
+    "error": {"0": np.NaN},
+    "alpha": {"0": 0.5937400744224419},
+    "gamma": {"0": 0.0}
+}
 
 
 class Run_pylie(ComponentSession):
@@ -128,6 +154,13 @@ class Run_pylie(ComponentSession):
             assert compare_csv_files(result_collect["mdframe"], dict_stable["mdframe"])
             print("method collect_energy_trajectories succeeded")
 
+            result_stable = yield self.call(
+                "mdgroup.lie_pylie.endpoint.filter_stable_trajectory",
+                dict_stable)
+            assert compare_csv_files(
+                result_stable["output"]["filtered_mdframe"], dict_average["mdframe"])
+            print("method filter_stable_trajectory succeeded!")
+
             result_average = yield self.call(
                 "mdgroup.lie_pylie.endpoint.calculate_lie_average", dict_average)
             assert compare_csv_files(result_average["averaged"], dict_deltag["dataframe"])
@@ -143,21 +176,10 @@ class Run_pylie(ComponentSession):
             assert compare_dictionaries(result_adan_yrange["decomp"], expected_adan_yrange_results)
             print("method adan_dene_yrange succeeded!")
 
-            result_stable = yield self.call(
-                "mdgroup.lie_pylie.endpoint.filter_stable_trajectory",
-                dict_stable)
-            print(result_stable)
-            assert compare_csv_files(
-                result_stable["output"]["filtered_mdframe"], dict_average["mdframe"])
-            print("method filter_stable_trajectory succeeded!")
-
-            # result_adan_dene = yield self.call(
-            #     "mdgroup.lie_pylie.endpoint.adan_dene", dict_adan_dene)
-            # print(result_adan_dene)
-
-            # result_adan_residues = yield self.call(
-            #     "mdgroup.lie_pylie.endpoint.adan_residue_decomp", dict_adan_residue)
-            # print(result_adan_residues)
+            result_adan_dene = yield self.call(
+                "mdgroup.lie_pylie.endpoint.adan_dene", dict_adan_dene)
+            assert compare_dictionaries(result_adan_dene["decomp"], expected_adan_results)
+            print("method adan_dene succeeded!")
 
 
 if __name__ == "__main__":
