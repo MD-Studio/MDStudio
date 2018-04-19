@@ -182,7 +182,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+            return False
 
         if self.adjacency.keys() != other.adjacency.keys():
             return False
@@ -325,7 +325,7 @@ class Graph(object):
         """
 
         if not isinstance(other, Graph):
-            raise GraphException("Object {0} not instance of Graph base class".format(type(other).__name__))
+            return False
 
         return not self.__eq__(other)
 
@@ -1015,6 +1015,7 @@ class Graph(object):
             if all([q in attr.items() for q in query_set]):
                 edges.append(edge)
 
+        edges = list(set(edges))
         return self.getedges(edges, orm_cls=orm_cls)
 
     def query_nodes(self, query=None, orm_cls=None, **kwargs):
