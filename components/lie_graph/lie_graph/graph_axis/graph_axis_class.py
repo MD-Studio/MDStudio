@@ -331,7 +331,7 @@ class GraphAxis(Graph):
                     for n in self.iternodes()]
         return [(n.get(keystring), n.get(valuestring)) for n in self.iternodes()]
 
-    def keys(self, keystring=None, desc=True):
+    def keys(self, keystring=None, desc=False):
         """
         Python dict-like function to return node keys in the (sub)graph.
 
