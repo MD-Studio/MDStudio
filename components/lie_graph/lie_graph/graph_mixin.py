@@ -164,6 +164,16 @@ class NodeEdgeToolsBaseClass(object):
 
         return
 
+    def new(self, **kwargs):
+        """
+        Custom initiation method for new nodes or edges
+
+        Called once by the add_node or add_edge method to allow custom classes
+        to perform any initiation on the newly created node or edge
+        """
+
+        return
+
     @abc.abstractmethod
     def nid(self):
         """

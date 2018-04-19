@@ -404,6 +404,11 @@ class Graph(object):
         Edge metadata defined as a dictionary allows it to be queried
         by the various graph query functions.
 
+        After de new edge is created the edge class 'new' method is called once
+        to allow any custom edge initiation to be performed. This feature is
+        enabled by overload of the 'new' method in the NodeEdgeToolsBaseClass
+        abstract base class.
+
         :param nd1:            edge defined by two node ID's. nd1 may also be
                                an edge tuple/list ignoring nd2
         :type nd1:             int or tuple/list
@@ -453,6 +458,9 @@ class Graph(object):
                 self.adjacency[edge[0]].append(edge[1])
 
             logger.debug('Add edge between node {0}-{1}'.format(*edge))
+
+        # Call 'new' method of new edges once to allow for custom initiation
+        self.getedges(edges_to_add[0]).new()
 
         return edges_to_add[0]
 
@@ -511,6 +519,11 @@ class Graph(object):
         dictionary style set and get methods of the graph, node and edge
         classes.
 
+        After de new node is created the node class 'new' method is called once
+        to allow any custom node initiation to be performed. This feature is
+        enabled by overload of the 'new' method in the NodeEdgeToolsBaseClass
+        abstract base class.
+
         .. note:: 'add_node' checks if there is a node with nid in the graph
                   already. If found, a warning is logged and the attributes
                   of the existing node are updated.
@@ -551,14 +564,15 @@ class Graph(object):
             node_data[self.node_key_tag] = node
         node_data.update(copy.deepcopy(kwargs))
 
-        # Always set a unique ID to the node
-        node_data['_id'] = self._nodeid
-
         self.adjacency[nid] = []
         self.nodes[nid] = node_data
 
-        # Always increment internal node ID by 1
+        # Always set a unique ID to the node
+        node_data['_id'] = self._nodeid
         self._nodeid += 1
+
+        # Call 'new' method of the new node once to allow for custom initiation
+        self.getnodes(nid).new()
 
         return nid
 
@@ -810,9 +824,7 @@ class Graph(object):
         if edges:
             edges_not_present = [e for e in edges if e not in self.edges]
             if edges_not_present:
-                raise GraphException(
-                    'Following edges are not in graph {0}'.format(
-                        edges_not_present))
+                raise GraphException('Edges not in graph {0}'.format(edges_not_present))
         else:
             edges = []
 
@@ -821,18 +833,13 @@ class Graph(object):
         custom_orm_cls = []
         if orm_cls:
             if not isinstance(orm_cls, list):
-                msg = 'Custom edge classes need to be defined as list'
-                raise GraphException(msg)
+                raise GraphException('Custom edge classes need to be defined as list')
             custom_orm_cls.extend(orm_cls)
         if len(edges) == 1 and add_edge_tools:
             custom_orm_cls.append(self.edge_tools)
 
-        base_cls = self.orm.get(
-            self, edges, self._get_class_object(), classes=custom_orm_cls)
-        w = base_cls(
-            adjacency=self.adjacency, nodes=self.nodes, edges=self.edges,
-            orm=self.orm)
-
+        base_cls = self.orm.get(self, edges, self._get_class_object(), classes=custom_orm_cls)
+        w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
         w.edges.set_view(edges)
 
         # Get nodes and adjacency for the edge selection if it represents
