@@ -2,7 +2,12 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
 from os.path import join
+import numpy as np
 import os
+import pybel
+
+file_path = os.path.realpath(__file__)
+root = os.path.split(file_path)[0]
 
 
 def create_workdir(name, path="/tmp/structures"):
@@ -12,6 +17,59 @@ def create_workdir(name, path="/tmp/structures"):
         os.makedirs(workdir)
     return workdir
 
+
+def compare_molecules(mol1, mol2, rtol=1e-5, atol=1e-8):
+    """Compare the coordinates of two molecules"""
+    m1 = pybel.readfile("mol2", mol1).next()
+    m2 = pybel.readfile("mol2", mol2).next()
+
+    arr = np.array([x.coords for x in m1])
+    brr = np.array([x.coords for x in m2])
+
+    return np.allclose(arr, brr, rtol, atol)
+
+
+dict_convert = {
+    "output_format": "mol2",
+    "workdir": create_workdir("convert"),
+    "input_format": "smi",
+    "mol": "O1[C@@H](CCC1=O)CCC",
+    "from_file": False
+}
+
+dict_make3d = {
+    "from_file": True,
+    "workdir": create_workdir("make3d"),
+    "input_format": "mol2",
+    "output_format": "mol2",
+    "mol": join(root, 'files/structure.mol2')
+}
+
+dict_addh = {
+    "from_file": True,
+    "workdir": create_workdir("addh"),
+    "input_format": "mol2",
+    "output_format": "mol2",
+    "mol": join(root, "files/structure3D.mol2"),
+    "pH": 7.4,
+    "correctForPH": False
+}
+
+dict_info = {
+    "mol": join(root, "files/structure3D.mol2"),
+    "input_format": "mol2",
+}
+
+dict_rotate = {
+    "from_file": True,
+    "workdir": create_workdir("rotate"),
+    "input_format": "mol2",
+    "output_format": "mol2",
+    "rotations": [
+        [1, 0, 0, 90], [1, 0, 0, -90], [0, 1, 0, 90],
+        [0, 1, 0, -90], [0, 0, 1, 90], [0, 0, 1, -90]],
+    "mol": join(root, "files/structureHs.mol2"),
+}
 
 dict_similarity = {
     "mol_format": "smi",
@@ -70,12 +128,40 @@ class Run_structures(ComponentSession):
                 "mdgroup.lie_structures.endpoint.supported_toolkits",
                 {})
             assert "pybel" in toolkits["toolkits"]
-            print("toolkits available!")
+            print("toolkits available: {}".format(toolkits['toolkits']))
 
-            similarity = yield self.call(
-                "mdgroup.lie_structures.endpoint.chemical_similarity",
-                dict_similarity)
-            print(similarity)
+            convert = yield self.call(
+                "mdgroup.lie_structures.endpoint.convert", dict_convert)
+            assert compare_molecules(convert['mol'], join(root, 'files/structure.mol2'))
+            print("converting {} from smile to mol2 succeeded!".format(
+                dict_convert['mol']))
+
+            make3d = yield self.call(
+                "mdgroup.lie_structures.endpoint.make3d", dict_make3d)
+            assert compare_molecules(make3d['mol'], join(root, 'files/structure3D.mol2'), atol=1e-2)
+            print("successful creation of a 3D structure for {}".format(
+                dict_convert['mol']))
+
+            addh = yield self.call(
+                "mdgroup.lie_structures.endpoint.addh", dict_addh)
+            assert compare_molecules(addh['mol'], join(root, 'files/structureHs.mol2'))
+            print("added hydrogens sucessfully!")
+
+            info = yield self.call(
+                "mdgroup.lie_structures.endpoint.info", dict_info)
+            atts = info['attributes']
+            assert all((
+                atts['formula'] == 'C7H12O2', atts['exactmass'] - 128.083729624 < 1e-5))
+            print('attributes information successfully retrieved!')
+
+            rotate = yield self.call(
+                "mdgroup.lie_structures.endpoint.rotate", dict_rotate)
+            assert compare_molecules(rotate['mol'], join(root, 'files/rotations.mol2'))
+            print("rotatation method succeeded!")
+            # similarity = yield self.call(
+            #     "mdgroup.lie_structures.endpoint.chemical_similarity",
+            #     dict_similarity)
+            # print(similarity)
 
 
 if __name__ == "__main__":
