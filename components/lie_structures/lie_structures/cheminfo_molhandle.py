@@ -7,7 +7,6 @@ Cinfony driven cheminformatics molecule read, write and manipulate functions
 """
 
 import os
-import logging
 
 from twisted.logger import Logger
 

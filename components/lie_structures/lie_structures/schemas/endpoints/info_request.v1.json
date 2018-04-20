@@ -1,8 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://mdstudio/schemas/structures_schema.json",
-    "title": "Convert molecule input",
-    "description": "Convert molecule representation",
+    "id": "http://mdstudio/schemas/info_request.json",
+    "description": "Molecular attributes",
     "type": "object",
     "properties": {
 	"from_file": {
@@ -23,14 +22,10 @@
             "type": "string",
             "description": "Structure input file format"
         },
-        "output_format": {
-            "type": "string",
-            "description": "Structure output file format"
-        },
 	"workdir": {
 	    "type": "string",
 	    "default": "."
 	}
     },
-    "required": ["mol", "input_format", "output_format"]
+    "required": ["mol", "input_format"]
 }

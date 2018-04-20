@@ -1,10 +1,9 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://liestudio/schemas/structures_schema.json",
-    "title": "Convert molecule output",
-    "description": "Convert molecule representation",
+    "id": "http://mdstudio/schemas/rotate_response.json",
+    "description": "Rotate a molecule using a matrix",
     "type": "object",
-    "properties": {	
+    "properties": {
 	"status": {
 	    "type": "string",
 	    "description": "Job final status",

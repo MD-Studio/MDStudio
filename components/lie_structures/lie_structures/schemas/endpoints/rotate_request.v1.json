@@ -1,8 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://mdstudio/schemas/structures_schema.json",
-    "title": "Convert molecule input",
-    "description": "Convert molecule representation",
+    "id": "http://mdstudio/schemas/rotate_request.json",
+    "description": "Rotate a molecule using a matrix",
     "type": "object",
     "properties": {
 	"rotations": {

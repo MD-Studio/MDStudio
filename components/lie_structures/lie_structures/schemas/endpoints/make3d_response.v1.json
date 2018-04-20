@@ -1,8 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://mdstudio/schemas/structures_schema.json",
-    "title":  "Get attributes output",
-    "description":"Return common structure attributes",
+    "id": "http://mdstudio/schemas/make3d_response.json",
+    "description":"create a guess 3D representation of a molecule",
     "type": "object",
     "properties": {
 	"status": {

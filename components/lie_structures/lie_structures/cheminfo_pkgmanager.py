@@ -147,7 +147,6 @@ import os
 import sys
 import collections
 import importlib
-import logging
 
 from retrying import retry
 from twisted.logger import Logger

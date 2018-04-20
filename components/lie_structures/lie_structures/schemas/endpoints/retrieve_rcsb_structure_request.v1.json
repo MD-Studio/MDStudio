@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://mdstudio/schemas/structures_schema.json",
+    "id": "http://mdstudio/schemas/retrieve_rcsb_request.json",
     "title": "Download PDB input",
     "description": "Download a structure file from the RCSB database using a PDB ID",
     "type": "object",

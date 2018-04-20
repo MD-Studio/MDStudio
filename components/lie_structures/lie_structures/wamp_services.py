@@ -31,6 +31,38 @@ class StructuresWampApi(
     def authorize_request(self, uri, claims):
         return True
 
+    @endpoint('chemical_similarity', 'chemical_similarity_request', 'chemical_similarity_response')
+    def calculate_chemical_similarity(self, request, claims):
+        return super(StructuresWampApi, self).calculate_chemical_similarity(request, claims)
+
+    @endpoint('descriptors', 'descriptors_request', 'descriptors_response')
+    def get_descriptors(self, request, claims):
+        return super(StructuresWampApi, self).get_descriptors(request, claims)
+
+    @endpoint('convert', 'convert_request', 'convert_response')
+    def convert_structures(self, request, claims):
+        return super(StructuresWampApi, self).convert_structures(request, claims)
+
+    @endpoint('addh', 'addh_request', 'addh_response')
+    def addh_structures(self, request, claims):
+        return super(StructuresWampApi, self).addh_structures(request, claims)
+
+    @endpoint('removeh', 'removeh_request', 'removeh_response')
+    def removeh_structures(self, request, claims):
+        return super(StructuresWampApi, self).removeh_structures(request, claims)
+
+    @endpoint('make3d', 'make3d_request', 'make3d_response')
+    def make3d_structures(self, request, claims):
+        return super(StructuresWampApi, self).make3d_structures(request, claims)
+
+    @endpoint('info', 'info_request', 'info_response')
+    def structure_attributes(self, request, claims):
+        return super(StructuresWampApi, self).structure_attributes(request, claims)
+
+    @endpoint('rotate', 'rotate_request', 'rotate_response')
+    def rotate_structures(self, request, claims):
+        return super(StructuresWampApi, self).rotate_structures(request, claims)
+
     @endpoint('supported_toolkits', 'supported_toolkits_request', 'supported_toolkits_response')
     def supported_toolkits(self, request, claims):
         """

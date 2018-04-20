@@ -6,13 +6,7 @@ file: cheminfo_molhandle.py
 Cinfony driven cheminformatics fingerprint functions
 """
 
-import logging
-
-from twisted.logger import Logger
-
 from . import toolkits
-
-logging = Logger()
 
 
 def available_descriptors():
@@ -33,4 +27,3 @@ def available_descriptors():
             available_descs[toolkit] = obj.descs
 
     return available_descs
-

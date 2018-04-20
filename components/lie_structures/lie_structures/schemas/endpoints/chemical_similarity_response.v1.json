@@ -11,7 +11,7 @@
 	    "enum": ["failed", "completed"]
 	},
 	"results": {
-	    "type": ["object", "null"],
+	    "type": "object",
 	    "description": "Statistics object"
 	}
     },

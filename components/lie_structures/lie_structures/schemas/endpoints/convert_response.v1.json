@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://mdstudio/schemas/retrieve_rcsb_response.json",
-    "title": "Download PDB output",
-    "description": "Download a structure file from the RCSB database using a PDB ID",
+    "id": "http://liestudio/schemas/convert_response.json",
+    "title": "Convert molecule output",
+    "description": "Convert molecule representation",
     "type": "object",
     "properties": {	
 	"status": {
@@ -15,5 +15,5 @@
 	    "description": "Resulting molecule"
 	}
     },
-    "required": ["status", "mol"]
-} 
+    "required": ["mol", "status"]
+}

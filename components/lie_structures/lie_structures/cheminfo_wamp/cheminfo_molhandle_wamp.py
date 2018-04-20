@@ -11,17 +11,11 @@ import os
 from lie_structures.cheminfo_molhandle import (
      mol_addh, mol_attributes, mol_make3D, mol_read, mol_removeh, mol_write, mol_combine_rotations)
 
-from mdstudio.api.endpoint import endpoint
-from mdstudio.component.session import ComponentSession
 
-
-class CheminfoMolhandleWampApi(ComponentSession):
+class CheminfoMolhandleWampApi(object):
     """
     Cheminformatics molecule handling WAMP API
     """
-    def authorize_request(self, uri, claims):
-        return True
-
     @staticmethod
     def read_mol(config):
         """Read molecular structure using `config` """
@@ -31,7 +25,6 @@ class CheminfoMolhandleWampApi(ComponentSession):
             from_file=config['from_file'],
             toolkit=config['toolkit'])
 
-    @endpoint('convert', 'convert_request', 'convert_response')
     def convert_structures(self, request, claims):
         """
         Convert input file format to a different format. For a detailed
@@ -53,7 +46,6 @@ class CheminfoMolhandleWampApi(ComponentSession):
 
         return {'mol': output, 'status': status}
 
-    @endpoint('addh', 'addh_request', 'addh_response')
     def addh_structures(self, request, claims):
         """
         Add hydrogens to the input structue. For a detailed
@@ -80,7 +72,6 @@ class CheminfoMolhandleWampApi(ComponentSession):
 
         return {'mol': output, 'status': status}
 
-    @endpoint('removeh', 'removeh_request', 'removeh_response')
     def removeh_structures(self, request, claims):
         """
         Remove hydrogens from the input structure. For a detailed
@@ -102,7 +93,6 @@ class CheminfoMolhandleWampApi(ComponentSession):
 
         return {'mol': output, 'status': status}
 
-    @endpoint('make3d', 'make3d_request', 'make3d_response')
     def make3d_structures(self, request, claims):
         """
         Convert 1D or 2D structure representation to 3D.
@@ -129,7 +119,6 @@ class CheminfoMolhandleWampApi(ComponentSession):
 
         return {'mol': output, 'status': status}
 
-    @endpoint('info', 'info_request', 'info_response')
     def structure_attributes(self, request, claims):
         """
         Return common structure attributes
@@ -148,7 +137,6 @@ class CheminfoMolhandleWampApi(ComponentSession):
 
         return {'status': status, 'attributes': attributes}
 
-    @endpoint('rotate', 'rotate_request', 'rotate_response')
     def rotate_structures(self, request, claims):
         """
         Rotate the structure around an axis defined by x,y,z.

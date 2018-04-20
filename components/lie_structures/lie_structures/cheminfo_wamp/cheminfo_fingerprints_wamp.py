@@ -12,18 +12,13 @@ import pandas
 
 from lie_structures.cheminfo_molhandle import mol_read
 from lie_structures.cheminfo_fingerprint import mol_fingerprint_cross_similarity
-from mdstudio.api.endpoint import endpoint
-from mdstudio.component.session import ComponentSession
 
 
-class CheminfoFingerprintsWampApi(ComponentSession):
+class CheminfoFingerprintsWampApi(object):
     """
     Cheminformatics fingerprints WAMP API
     """
-    def authorize_request(self, uri, claims):
-        return True
 
-    @endpoint('chemical_similarity', 'chemical_similarity_request', 'chemical_similarity_response')
     def calculate_chemical_similarity(self, request, claims):
         """
         Calculate the chemical similarity between two sets each containing one

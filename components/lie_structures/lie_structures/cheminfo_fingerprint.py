@@ -6,8 +6,6 @@ file: cheminfo_molhandle.py
 Cinfony driven cheminformatics fingerprint functions
 """
 
-import logging
-
 from itertools import combinations
 from twisted.logger import Logger
 from scipy.spatial.distance import squareform

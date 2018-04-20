@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://mdstudio/schemas/structures_schema.json",
+    "id": "http://mdstudio/schemas/info_response.json",
     "title":  "Get attributes input",
     "description":"Return common structure attributes",
     "type": "object",
@@ -10,11 +10,10 @@
 	    "description": "Job final status",
 	    "enum": ["failed", "completed"]
 	},
-	"mol": {
-	    "type": ["string", "null"],
-	    "description": "Resulting molecule"
+	"attributes": {
+	    "type": "object",
+	    "description": "molecular attributes"
 	}
     },
-    "required": ["mol", "status"]
-
+    "required": ["attributes", "status"]
     }

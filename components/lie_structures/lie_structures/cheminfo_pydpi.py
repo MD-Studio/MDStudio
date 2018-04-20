@@ -22,7 +22,7 @@ from pydpi.pydrug import PyDrug
 from cinfony.rdk import Molecule as RdkMolecule
 from cinfony.rdk import descs as rdk_descs
 from cinfony.rdk import readstring as rdk_readstring
-from cinfony.rdk import informats, outformats, forcefields, Fingerprint
+from cinfony.rdk import (informats, Fingerprint)
 
 # Available descriptors
 descs = rdk_descs
