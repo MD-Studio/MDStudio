@@ -254,6 +254,7 @@ def node_all_parents(graph, nid, root):
 
     return sorted(set(all_adjacent))
 
+
 def node_siblings(graph, nid, root):
     """
     Get the siblings of the source node
