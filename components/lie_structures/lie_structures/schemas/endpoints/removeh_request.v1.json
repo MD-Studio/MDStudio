@@ -8,7 +8,7 @@
 	"from_file": {
 	    "type": "boolean",
 	    "description": "Read molecule from file",
-	    "default": "true"
+	    "default": true
 	},
         "toolkit": {
             "type": "string",
