@@ -61,24 +61,29 @@ class IP6Address(NodeEdgeToolsBaseClass):
 
 class Hostname(NodeEdgeToolsBaseClass):
 
-    def hostname(self):
+    @staticmethod
+    def hostname():
         """
         Get hostname of current machine
         """
 
         return socket.gethostname()
 
-    def set(self, key, value=None):
+    def set(self, key=None, value=None):
         """
         Validate and set a hostname according to RFC 1034 with idn support in
         as in RFC 5890.
+        Set to current hostname if called without arguments.
 
         * Should be string
         * Maximum length of DNS name is 253 characters
         * Validate against hostname regex
         """
 
-        if key == self.node_key_tag:
+        key = key or self.node_value_tag
+        if key == self.node_value_tag:
+            if not value:
+                value = self.hostname()
             if not isinstance(value, (str, unicode)) or len(value) > 253 or not HOSTNAME_REGEX.match(value):
                 logging.error('Not a valid hostname: {0}'.format(value))
                 return
