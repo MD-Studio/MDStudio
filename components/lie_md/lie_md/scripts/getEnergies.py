@@ -207,10 +207,14 @@ def set_gmx_mpi_run(gmx):
     Try to run gmx mdrun using MPI see:
     `http://manual.gromacs.org/documentation/5.1/user-guide/mdrun-performance.html`
     """
-    nranks = compute_mpi_ranks()
-    gmx_bin = ['mpirun'] + nranks + [gmx]
+    if gmx == "gmx_mpi":
+        nranks = compute_mpi_ranks()
+        gmx_bin = ['mpirun'] + nranks + [gmx]
+        cmd = gmx_bin + ['mdrun']
+    else:
+        cmd = [gmx, 'mdrun', '-nice', '0', '-ntomp', '16']
 
-    return gmx_bin + ['mdrun']
+    return cmd
 
 
 def compute_mpi_ranks(ranks=''):
