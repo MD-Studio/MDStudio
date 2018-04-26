@@ -31,7 +31,10 @@ script:
   - (cd mdstudio && coverage run -m unittest discover -vvv)
   - (cd core/logger && coverage run -m unittest discover -vvv)
   - (cd core/db && coverage run -m unittest discover -vvv)
-  - (docker-compose up -d crossbar && pip install -e components/lie_echo && python -m lie_echo &)
+  # Test docker compose
+  - (docker-compose up -d crossbar && pip install -e components/lie_echo)
+  - (python -m lie_echo &)
+  - (python tests/test_crossbar.py)
 
 after_success:
   - codecov
