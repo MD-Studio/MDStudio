@@ -54,7 +54,6 @@ def call_cerise_gromit(
     print("Searching for pending jobs in DB")
     srv_data = yield retrieve_service_from_db(
         cerise_config, gromacs_config, cerise_db)
-    print("service data ", srv_data)
     if srv_data is None:
         print("There are no pending jobs!")
         # Create a new service if one is not already running

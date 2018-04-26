@@ -5,12 +5,12 @@ from os.path import join
 import os
 import shutil
 
-residues = [28, 29, 65, 73, 74]
+residues = [28, 29, 65, 73, 74, 75, 76, 78]
 workdir = "/tmp/mdstudio"
 if os.path.exists(workdir):
     shutil.rmtree(workdir)
 
-cerise_file = join(workdir, "cerise_config_das5.json")
+cerise_file = join(workdir, "cerise_config_binac.json")
 ligand_file = join(workdir, "compound.pdb")
 protein_file = None
 protein_top = join(workdir, "protein.top")
@@ -37,6 +37,7 @@ class Run_md(ComponentSession):
                  "topology_file": topology_file,
                  "include": include,
                  "residues": residues,
+                 "sim_time": 0.001,
                  "workdir": workdir})
             print("MD results ", r)
 
