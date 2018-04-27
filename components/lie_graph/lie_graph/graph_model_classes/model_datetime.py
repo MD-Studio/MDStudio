@@ -70,6 +70,17 @@ class DateTime(NodeEdgeToolsBaseClass):
 
         return to_datetime(self.get(), datetime)
 
+    def timestamp(self):
+        """
+        Return a seconds since epoch timestamp
+
+        :rtype: :py:int
+        """
+
+        dt = self.datetime()
+        if dt:
+            return int(dt.strftime('%s'))
+
     def set(self, key=None, value=None):
         """
         Set and validate an ISO string representation of a date-time instance
@@ -111,6 +122,17 @@ class Date(NodeEdgeToolsBaseClass):
 
         return to_datetime(self.get(), date)
 
+    def timestamp(self):
+        """
+        Return a seconds since epoch timestamp
+
+        :rtype: :py:int
+        """
+
+        dt = self.datetime()
+        if dt:
+            return int(dt.strftime('%s'))
+
     def set(self, key=None, value=None):
         """
         Set and validate an ISO string representation of a date instance
@@ -150,6 +172,17 @@ class Time(NodeEdgeToolsBaseClass):
         """
 
         return to_datetime(self.get(), time)
+
+    def timestamp(self):
+        """
+        Return a seconds since epoch timestamp
+
+        :rtype: :py:int
+        """
+
+        dt = self.datetime()
+        if dt:
+            return int(dt.strftime('%s'))
 
     def set(self, key=None, value=None):
         """
