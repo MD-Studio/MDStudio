@@ -32,7 +32,7 @@ def to_datetime(value, instance):
         return value
 
     # If it is a string, try parse to datetime object
-    elif isinstance(value, str):
+    elif isinstance(value, (str, unicode)):
 
         try:
             parsed = parse(value)
