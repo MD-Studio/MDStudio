@@ -34,7 +34,7 @@ script:
   # Test docker compose
   - (docker-compose up -d crossbar && pip install -e components/lie_echo)
   - (cd tests && python -m lie_echo &)
-  - (python test_crossbar.py) # && python check_echo_output.py)
+  - (cd tests && python test_crossbar.py) # && python check_echo_output.py)
 
 after_success:
   - codecov
