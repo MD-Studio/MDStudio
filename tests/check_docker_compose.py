@@ -23,8 +23,8 @@ def check_docker_compose(container, pattern):
     logs = container.logs()
     print("waiting for crossbar container to start")
     print("Crossbar docker container logs: ")
-    print(logs[-1000:])
-    return pattern in logs()
+    print(logs[-1000:].decode())
+    return pattern in logs
 
 
 def get_container(client, name):
