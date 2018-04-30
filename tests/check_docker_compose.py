@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import docker
 from retrying import retry
 
@@ -14,12 +16,15 @@ def retry_if_false(r):
     return not r
 
 
-@retry(retry_on_result=retry_if_false, stop_max_delay=3e5, wait_fixed=1e4)
+@retry(retry_on_result=retry_if_false, stop_max_delay=3e5, wait_fixed=3e4)
 def check_docker_compose(container, pattern):
     """Check that all the components are loaded correctly"""
     pattern = pattern.encode()  # Python 2 and 3 compatible
+    logs = container.logs()
     print("waiting for crossbar container to start")
-    return pattern in container.logs()
+    print("Crossbar docker container logs: ")
+    print(logs[-1000:])
+    return pattern in logs()
 
 
 def get_container(client, name):
