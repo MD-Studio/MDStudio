@@ -2,6 +2,7 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
 from mdstudio.utc import now
+import json
 
 
 msg = {"message":
@@ -20,7 +21,8 @@ class Run_md(ComponentSession):
             r = yield self.call(
                 "mdgroup.echo.endpoint.hello",
                 msg)
-            print("Echo response: ", r)
+        with open("/tmp/echo.json", "w") as f:
+            json.dump(r, f)
 
 
 if __name__ == "__main__":
