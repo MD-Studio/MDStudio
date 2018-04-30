@@ -33,9 +33,10 @@ script:
   - (cd core/db && coverage run -m unittest discover -vvv)
   # Test docker compose
   - (docker-compose up -d crossbar && pip install -e components/lie_echo)
-  - docker ps
-  - (cd tests && python -m lie_echo)
-  - (cd tests && python test_crossbar.py)  && python check_echo_output.py)
+  - pip install docker retrying
+  - (cd tests && python check_docker_compose.py)
+  - (cd tests && python -m lie_echo &)
+  - (cd tests && python test_crossbar.py && python check_echo_output.py)
 
 after_success:
   - codecov
