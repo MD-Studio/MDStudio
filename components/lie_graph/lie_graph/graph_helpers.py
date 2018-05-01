@@ -99,9 +99,6 @@ def renumber_id(graph, start):
 
         # Renumber
         value['_id'] = start
-        if graph.auto_nid:
-            value['nid'] = start
-
         start += 1
 
     # Update nid if auto_nid

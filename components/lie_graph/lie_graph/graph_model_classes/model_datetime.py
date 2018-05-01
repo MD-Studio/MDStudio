@@ -32,7 +32,7 @@ def to_datetime(value, instance):
         return value
 
     # If it is a string, try parse to datetime object
-    elif isinstance(value, str):
+    elif isinstance(value, (str, unicode)):
 
         try:
             parsed = parse(value)
@@ -49,7 +49,8 @@ def to_datetime(value, instance):
 
 class DateTime(NodeEdgeToolsBaseClass):
 
-    def now(self):
+    @staticmethod
+    def now():
         """
         Return a Python datetime.datetime object representing the current
         date-time respecting local timezone.
@@ -69,13 +70,28 @@ class DateTime(NodeEdgeToolsBaseClass):
 
         return to_datetime(self.get(), datetime)
 
-    def set(self, key, value=None):
+    def timestamp(self):
         """
-        Set and validate an ISO string representation of a date-time instance
-        in accordance to RFC 3339
+        Return a seconds since epoch timestamp
+
+        :rtype: :py:int
         """
 
+        dt = self.datetime()
+        if dt:
+            return int(dt.strftime('%s'))
+
+    def set(self, key=None, value=None):
+        """
+        Set and validate an ISO string representation of a date-time instance
+        in accordance to RFC 3339.
+        Set to current date-time if called without arguments.
+        """
+
+        key = key or self.node_value_tag
         if key == self.node_value_tag:
+            if not value:
+                value = self.now()
             dt = to_datetime(value, datetime)
             if dt:
                 value = dt.astimezone(pytz.utc).isoformat()
@@ -87,7 +103,8 @@ class DateTime(NodeEdgeToolsBaseClass):
 
 class Date(NodeEdgeToolsBaseClass):
 
-    def now(self):
+    @staticmethod
+    def now():
         """
         Return a Python datetime.datetime object representing the current date.
 
@@ -105,13 +122,26 @@ class Date(NodeEdgeToolsBaseClass):
 
         return to_datetime(self.get(), date)
 
-    def set(self, key, value=None):
+    def timestamp(self):
+        """
+        Return a seconds since epoch timestamp
+
+        :rtype: :py:int
+        """
+
+        dt = self.datetime()
+        if dt:
+            return int(dt.strftime('%s'))
+
+    def set(self, key=None, value=None):
         """
         Set and validate an ISO string representation of a date instance
         in accordance to RFC 3339
         """
 
         if key == self.node_value_tag:
+            if not value:
+                value = self.now()
             dt = to_datetime(value, date)
             if dt:
                 value = dt.isoformat()
@@ -143,13 +173,27 @@ class Time(NodeEdgeToolsBaseClass):
 
         return to_datetime(self.get(), time)
 
-    def set(self, key, value=None):
+    def timestamp(self):
+        """
+        Return a seconds since epoch timestamp
+
+        :rtype: :py:int
+        """
+
+        dt = self.datetime()
+        if dt:
+            return int(dt.strftime('%s'))
+
+    def set(self, key=None, value=None):
         """
         Set and validate an ISO string representation of a time instance
         in accordance to RFC 3339
         """
 
+        key = key or self.node_value_tag
         if key == self.node_value_tag:
+            if not value:
+                value = self.now()
             dt = to_datetime(value, time)
             if dt:
                 value = dt.isoformat()

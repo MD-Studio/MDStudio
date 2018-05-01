@@ -34,9 +34,9 @@ class FilePath(NodeEdgeToolsBaseClass):
 
         self.nodes[self.nid][key] = value
 
-    def create_dirs(self):
+    def makedirs(self):
         """
-        Create directories of the stored path
+        Recursively create the directory structure of the path
 
         :return:        Absolute path to working directory
         :rtype:         :py:str

@@ -316,6 +316,10 @@ class NodeTools(NodeEdgeToolsBaseClass):
         :type default:      mixed
         """
 
+        # If empty return default
+        if self.empty():
+            return default
+
         # Get node attributes
         target = self.nodes[self.nid]
 

@@ -59,7 +59,7 @@ class GraphORM(object):
 
         # Build the new base class
         base_cls_name = base_cls.__name__ or self._class_name
-        base_cls = type(base_cls_name, tuple(base_cls_mro), {'adjacency': None, 'nodes': None, 'edges': None})
+        base_cls = type(base_cls_name, tuple(base_cls_mro), {})
         return base_cls
 
     def _map_attributes(self, mapper):
