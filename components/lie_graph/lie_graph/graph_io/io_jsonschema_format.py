@@ -149,6 +149,11 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
         node = graph.getnodes(parent)
         node.update(attributes)
 
+        # Get 'required' attribute
+        required = schema_block.get('required', [])
+        if isinstance(required, list) and len(required):
+            del schema_block['required']
+
         # Store default data or None
         if attributes.get('default') is not None:
             node.set(graph.node_value_tag, attributes.get('default'))
@@ -162,6 +167,10 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
 
                     # Register block_name in child attributes
                     attr['schema_label'] = block
+
+                    # Register 'required' elements
+                    if child in required:
+                        attr['required'] = True
 
                     graph.add_edge(parent, nid)
                     walk_schema(attr, parent=nid)

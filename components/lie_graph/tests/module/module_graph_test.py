@@ -490,14 +490,6 @@ class TestGraph(unittest2.TestCase):
         self.assertEqual(len(self.graph.query_edges({'label': 'bi'}).edges()),
                          len([e for e in self.graph.edges() if self.graph.edges[e].get('label') == 'bi']))
 
-        v = self.graph.query_edges(label='mo')
-        self.assertEqual(len(v.edges()), 3)
-        self.assertEqual(len(v.nodes()), 11)
-
-        self.graph.is_masked = True
-        v = self.graph.query_edges(label='mo')
-        self.assertEqual(len(v.nodes()), 5)
-
     def test_edge_iteration(self):
         """
         Test edge based traversal of the graph
