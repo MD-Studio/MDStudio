@@ -10,8 +10,8 @@ from twisted.python.failure import Failure
 from lie_workflow.workflow_common import WorkflowError, concat_dict, validate_workflow
 from lie_workflow.workflow_spec import WorkflowSpec
 
-#from twisted.logger import Logger
-#logging = Logger()
+from twisted.logger import Logger
+logging = Logger()
 
 
 class WorkflowRunner(WorkflowSpec):
@@ -267,7 +267,7 @@ class WorkflowRunner(WorkflowSpec):
             if task.task_metadata.store_output():
                 project_dir = metadata.project_dir()
                 workdir = task.task_metadata.workdir
-                workdir.set('value', os.path.join(project_dir, 'task-{0}-{1}'.format(task.nid, task.key)))
+                workdir.set('value', os.path.join(project_dir, 'task-{0}-{1}'.format(task.nid, task.key.replace(' ', '_'))))
                 workdir.makedirs()
                 os.chdir(workdir.get())
 
