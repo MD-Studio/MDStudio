@@ -10,8 +10,7 @@ python:
   - "3.6"
 
 env:
-  - DOCKER_COMPOSE_VERSION=1.21.0
-  - MD_CONFIG_ENVIRONMENTS=dev,docker
+  - DOCKER_COMPOSE_VERSION=1.21.0 MD_CONFIG_ENVIRONMENTS=dev,docker
   
 before_install:
   - sudo rm /usr/local/bin/docker-compose
