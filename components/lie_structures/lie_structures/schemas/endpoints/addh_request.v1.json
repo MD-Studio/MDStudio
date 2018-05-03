@@ -9,7 +9,7 @@
 	    "type": "boolean",
 	    "description": "Read molecule from file",
 	    "default": true
-	},
+        },
         "toolkit": {
             "type": "string",
             "description": "Default cheminformatics toolkit to use",
