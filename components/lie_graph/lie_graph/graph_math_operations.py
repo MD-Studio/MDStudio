@@ -200,6 +200,6 @@ def graph_axis_update(graph, data):
             # Set single value
             if len(data_node) == 1:
                 data_node.set(node_value_tag, value)
-                logging.info('Update parameter "{0}" on node {1}'.format(key, data_node))
+                logging.debug('Update parameter "{0}" on node {1}'.format(key, data_node))
 
     recursive_update(graph, data)
