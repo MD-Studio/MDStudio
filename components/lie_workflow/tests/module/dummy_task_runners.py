@@ -10,8 +10,6 @@ constructs
 import time
 import jsonschema
 
-from lie_system import WAMPTaskMetaData
-
 
 dummy_task_schema_input = {
     "$schema": "http://json-schema.org/draft-04/schema#",
@@ -43,6 +41,11 @@ dummy_task_schema_input = {
             "description": "Instruct the dummy task to crash",
             "type": "boolean",
             "default": False
+        },
+        "output_to_disk": {
+            "description": "Write some output to disk",
+            "type": "boolean",
+            "default":False
         }
     },
     "required": ["dummy"]
@@ -78,7 +81,7 @@ def calculate_accumulated_task_runtime(workflow):
     return runtime
 
 
-def task_runner(session=None, **kwargs):
+def task_runner(**kwargs):
     """
     Run a task based on the information in the task_data.
     Task_data is validated according to the JSON task schema
@@ -87,43 +90,39 @@ def task_runner(session=None, **kwargs):
     # The session is validated by the WAMP framework but the tasks specific
     # data will have to be validated by the task
     jsonschema.validate(kwargs, dummy_task_schema_input)
-    
-    # Retrieve the WAMP session information
-    session = WAMPTaskMetaData(metadata=session or {})
-    
+
     # Simulate running the task
     time.sleep(kwargs.get('sleep',0))
     
     # Perform some calculations to simulate work
     # Add number to input
     output = kwargs['dummy'] + kwargs.get('add_number',0)
-    
-    # Fail or not
+
+    # Create some local output on disk
+    if kwargs.get('output_to_disk', False):
+        with open('task_output.txt', 'w') as outf:
+            outf.write('Output produced at: {0}\n\n'.format(time.time()))
+            outf.write('Recieved input:\n')
+            for i,p in kwargs.items():
+                outf.write('{0} = {1}\n'.format(i,p))
+            outf.write('\nReturned output:\n')
+            outf.write('dummy = {0}\n'.format(output))
+
+    # If fail that return None
     if kwargs.get('fail', False):
-        session.status = 'failed'
-    else:
-        session.status = 'completed'
-    session._update_time(time_stamp='utime')
-    
-    # Crash?
+        return None
+
+    # Crash the task by raising an exception with error message
     if kwargs.get('crash', False):
         raise Exception("Crashed task")
-    
-    # Prepare the output
-    session._metadata['utime'] = int(time.time())
-    
-    return {'session': session.dict(), 'dummy': output}
+
+    return {'dummy': output}
 
 
-def reduce_function(session=None, **kwargs):
+def reduce_function(**kwargs):
     """
     Dummy test reducer function taking the 'dummy' output from all previous
     tasks and adding them together
     """
-    
-    session = WAMPTaskMetaData(metadata=session or {})
-    session.status = 'completed'
-    session._metadata['utime'] = int(time.time())
 
-    output = {'session': session.dict(), 'dummy': sum(kwargs.get('dummy',[]))}
-    return output
+    return {'dummy': sum(kwargs.get('dummy',[]))}

@@ -1,13 +1,15 @@
-import os
-import json
+# -*- coding: utf-8 -*-
 
-from .workflow_runner import WorkflowRunner
+__module__ = 'lie_graph'
+__docformat__ = 'restructuredtext'
+__version__ = '{major:d}.{minor:d}'.format(major=1, minor=0)
+__author__ = 'Marc van Dijk'
+__status__ = 'pre-release beta1'
+__date__ = '15 april 2016'
+__licence__ = 'Apache Software License 2.0'
+__url__ = 'https://github.com/NLeSC/LIEStudio'
+__copyright__ = "Copyright (c) VU University, Amsterdam"
+__all__ = ['Workflow']
+
+from .workflow_runner import WorkflowRunner as Workflow
 from .workflow_spec import WorkflowSpec
-
-# All in one Workflow class combining the functionality of the WorkflowRunner
-# with the WorkflowSpec
-Workflow = type('Workflow', (WorkflowRunner, WorkflowSpec), {})
-
-# Load default JSON task schema and workflow schema from file
-TASK_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'task_schema.json')
-task_schema = json.load(open(TASK_SCHEMA_PATH))

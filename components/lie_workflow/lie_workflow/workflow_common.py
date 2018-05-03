@@ -1,32 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import os
 import logging
 import itertools
 
-from importlib import import_module
 from collections import Counter
-
-
-def _schema_to_data(schema, data=None, defdict=None):
-
-    default_data = defdict or {}
-
-    required = schema.get('required', [])
-    properties = schema.get('properties', {})
-
-    for key, value in properties.items():
-        if key in required:
-            if 'properties' in value:
-                default_data[key] = _schema_to_data(value)
-            else:
-                default_data[key] = value.get('default')
-
-    # Update with existing data
-    if data:
-        default_data.update(data)
-
-    return default_data
 
 
 class WorkflowError(Exception):
@@ -36,45 +13,6 @@ class WorkflowError(Exception):
         super(WorkflowError, self).__init__(message)
 
         logging.error(message)
-
-
-def load_task_function(python_uri):
-    """
-    Python function or class loader
-
-    Custom Python function can be run on the local machine using a blocking
-    or non-blocking task runner.
-    These functions are loaded dynamically ar runtime using the Python URI
-    of the function as stored in the task 'custom_func' attribute.
-    A function URI is defined as a dot-separated string in which the last
-    name defines the function name and all names in front the absolute or
-    relative path to the module containing the function. The module needs
-    to be in the python path.
-
-    Example: 'path.to.module.function'
-
-    :param python_uri: Python absolute or relative function URI
-    :type python_uri:  :py:str
-
-    :return:           function object
-    """
-
-    func = None
-    if python_uri:
-        module_name = '.'.join(python_uri.split('.')[:-1])
-        function_name = python_uri.split('.')[-1]
-
-        try:
-            imodule = import_module(module_name)
-            func = getattr(imodule, function_name)
-            logging.debug(
-                'Load task runner function: {0} from module: {1}'.format(
-                    function_name, module_name))
-        except ImportError:
-            msg = 'Unable to load task runner function: {0} from module: {1}'
-            logging.error(msg.format(function_name, module_name))
-
-    return func
 
 
 def concat_dict(dict_list):
@@ -103,56 +41,33 @@ def concat_dict(dict_list):
     return concatenated
 
 
-class ManageWorkingDirectory(object):
+def validate_workflow(workflow):
+    """
+    Validate the constructed workflow
 
-    def __init__(self, workdir=None):
+    :param workflow: Workflow graph to validate
+    :type workflow:  :lie_graph:GraphAxis
 
-        self.path = None
-        if workdir:
-            self.set(workdir)
+    :return: Validated or not
+    :rtype:  :py:bool
+    """
 
-    @property
-    def exists(self):
+    validated = True
 
-        if self.path:
-            return os.path.exists(self.path)
-        return False
+    # Required in case the workflow has only one task
+    # TODO: fix this, behaviour due to GraphAxis iterator that iterates
+    # children if only one top level element.
+    tasks = workflow.query_nodes(format='task')
+    if len(tasks) == 1:
+        tasks = [tasks]
 
-    @property
-    def iswritable(self):
+    # All Task objects should have a 'run_task' method
+    for task in tasks:
+        if not hasattr(task, 'run_task'):
+            logging.warning('Task {0} ({1}) has no "run_task" method'.format(task.nid, task.key))
+            validated = False
 
-        return os.access(self.path, os.W_OK)
+        if not task.validate():
+            validated = False
 
-    @staticmethod
-    def _make_abspath(path):
-
-        return os.path.abspath(path)
-
-    def set(self, path):
-        """
-        Set path.
-
-        :param path: Path to working directory
-        :type path:  :py:str
-        """
-
-        self.path = self._make_abspath(path)
-
-    def create(self):
-        """
-        Set working directory to store results.
-
-        :return:        Absolute path to working directory
-        :rtype:         :py:str
-        """
-
-        if self.exists and self.iswritable:
-            logging.info('Project directory exists and writable: {0}'.format(self.path))
-            return self.path
-
-        try:
-            os.makedirs(self.path, 0755)
-        except Exception:
-            raise WorkflowError('Unable to create project directory: {0}'.format(self.path))
-
-        return self.path
+    return validated

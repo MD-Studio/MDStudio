@@ -3,68 +3,89 @@
 """
 file: module_test.py
 
-Unit tests for a single branched workflow
+Unit test the Task model API
 """
 
 import os
 import unittest2
-import time
+import pkg_resources
+import pytz
 
-from lie_workflow import Workflow
-from dummy_task_runners import task_runner, calculate_accumulated_task_runtime
+from datetime import datetime
+
+from lie_graph.graph_io.io_jsonschema_format import read_json_schema
+from lie_graph.graph_io.io_jsonschema_format_drafts import GraphValidationError
+
+from lie_workflow.workflow_task_types import WORKFLOW_ORM
 
 currpath = os.path.dirname(__file__)
     
 
-class TestBranchedWorkflow(unittest2.TestCase):
+class TestTaskObject(unittest2.TestCase):
     """
-    Test simple branched workflow
+    Test creation and manipulation of Task objects using Task model API methods
     """
-    
-    workflow_spec_path = os.path.abspath(os.path.join(currpath, '../files/test-workflow-spec.jgf'))
-    
+
+    task_schema = pkg_resources.resource_filename('lie_workflow', '/schemas/resources/task_template.json')
+
     def setUp(self):
         """
-        Load a simple branched workflow from a JSON specification
+        Load a task specification from JSON Schema file
         """
-        
-        # Construct the workflow specification
-        self.wf = Workflow()
-        self.wf.task_runner = task_runner
-        self.wf.load(self.workflow_spec_path)
-        self.wf.set_wamp_session(session_data={'authid': 'dadara'})
 
-        # Define dummy input the dummy_task_runner knows how to handle
-        self.wf.input(self.wf.workflow.root, dummy=1)
+        self.task_graph = read_json_schema(self.task_schema, exclude_args=['description'])
+        self.task_graph.orm = WORKFLOW_ORM
+        self.task = self.task_graph.get_root()
 
-    def test_workflow_single_branched(self):
+    def test_task_status(self):
         """
-        Test single branched workflow successful execution.
-        With threaded tasks, the total workflow runtime is less than the
-        accumulated task runtime.
+        Test task status attribute
         """
-        
-        # Set some workflow metadata in the start node
-        workdir = '/Users/mvdijk/Documents/WorkProjects/liestudio-master/lieproject'
-        project_dir = os.path.join(workdir, str(int(time.time())))
-        start = self.wf.get_task(1)
-        start.set('workdir', project_dir)
-        
-        # Set 4 branched tasks
-        for t in range(4):
-            tid = self.wf.add_task('task{0}'.format(t+1))
-            self.wf.input(tid=tid, sleep=1)
-            self.wf.connect_task(1, t+2)
-        
-        # Set collect task
-        c = self.wf.add_task('collect', custom_func="dummy_task_runners.reduce_function")
-        for t in range(4):
-            self.wf.connect_task(t+2, c)
-            
-        # Run the workflow
-        self.wf.run()
 
-        while self.wf.is_running:
-            time.sleep(1)
-        
-        print(self.wf.save())
+        # Default status equals 'ready'
+        self.assertTrue(self.task.status.value, 'ready')
+
+        self.task.status.set('value', 'running')
+        self.assertTrue(self.task.status.value, 'running')
+
+        # Set number of options to choose from
+        self.assertRaises(GraphValidationError, self.task.status.set, 'value', 'unsupported')
+
+    def test_task_datetime(self):
+        """
+        Test get/set of various date-time stamps
+        """
+
+        start_time = self.task.startedAtTime
+        dt = datetime.now(tz=pytz.utc)
+        start_time.set()
+
+        self.assertEqual(start_time.get(), dt.replace(microsecond=(dt.microsecond // 1000) * 1000).isoformat())
+        self.assertIsInstance(start_time.datetime(), datetime)
+        self.assertIsInstance(start_time.get(), str)
+
+        # Date-time parsing from string validation
+        self.assertRaises(GraphValidationError, start_time.set, 'value', 'not a date-time string')
+
+    def test_task_taskid(self):
+        """
+        Test get/set of unique task ID
+        """
+
+        uuid = self.task.task_id.create()
+        self.task.task_id.set('value', uuid)
+
+        self.assertEqual(self.task.task_id.value, uuid)
+
+        # Basic UUID validation (regex)
+        self.assertRaises(GraphValidationError, self.task.task_id.set, 'value', '74cf20d9-417c-11z8-acbc32aebef5')
+
+    def test_task_retrycount(self):
+        """
+        Test get/set of task retry count
+        """
+
+        self.assertEqual(self.task.retry_count.value, 0)
+
+        self.task.retry_count.value += 1
+        self.assertEqual(self.task.retry_count.value, 1)

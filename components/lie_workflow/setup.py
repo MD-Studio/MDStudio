@@ -36,7 +36,7 @@ setup(
     keywords='LIEStudio WAMP workflow',
     platforms=['Any'],
     packages=find_packages(),
-    package_data={'': ['*.json']},
+    package_data={distribution_name: ['schemas/*', 'schemas/endpoints/*', 'schemas/resources/*']},
     py_modules=[distribution_name],
     include_package_data=True,
     zip_safe=True,

@@ -4,45 +4,44 @@
 file: workflow_spec.py
 
 Classes required to build microservice oriented workflow specifications
- that can be run using the `Workflow` runner class
+that can be run using the `Workflow` runner class
 """
 
 import os
-import json
-import time
-import jsonschema
 import logging
+import pkg_resources
 
-#from twisted.logger import Logger
+from lie_graph import GraphAxis
+from lie_graph.graph_io.io_jgf_format import write_jgf, read_jgf
+from lie_graph.graph_io.io_jsonschema_format import read_json_schema
+from lie_graph.graph_axis.graph_axis_mixin import NodeAxisTools
+from lie_graph.graph_helpers import renumber_id
 
-from lie_graph.graph_io.io_jgf_format import read_jgf, write_jgf
-from lie_graph.graph_io.io_helpers import open_anything
-
-from .workflow_common import WorkflowError, _schema_to_data
-from .workflow_task_specs import WORKFLOW_ORM
+from lie_workflow import __version__
+from lie_workflow.workflow_common import WorkflowError
+from lie_workflow.workflow_task_types import WORKFLOW_ORM
 
 # Path to default workflow JSON schema part of the module
-WORKFLOW_SCHEMA_PATH = os.path.join(
-    os.path.dirname(__file__), 'workflow_schema.json')
-
-#logging = Logger()
+workflow_metadata_template = pkg_resources.resource_filename('lie_workflow',
+                                                             '/schemas/resources/workflow_metadata_template.json')
 
 
 class WorkflowSpec(object):
     """
     Interface class for building workflow specifications.
 
-    A workflow is a Directed Acyclic Graph (DAG) in wich the nodes represent
+    A workflow is a Directed Acyclic Graph (DAG) in which the nodes represent
     tasks and the edges the connections between them. The Workflow class
     acts as manager collecting output from tasks and forwarding it to other
-    tasks along the edges.
+    tasks along the edges (push execution).
     The `lie_workflow` DAG follows the workflow principles as described by the
     Workflow Patterns initiative supporting many but not all of the described
     patterns (http://www.workflowpatterns.com).
 
-    The task node is the basic functional unit in the DAG. It accepts input,
-    offloads it to a microservice or dedicated Python function or class
-    that performs work and collects the returned output.
+    The task node is the basic functional unit in the DAG. It accepts task
+    configuration and input from other task nodes and provides these to the
+    specific task that may be a microservice or dedicated Python function or
+    class that performs work and collects the returned output.
     Offloading of work is performed by a dedicated task runner class that
     knows how to call external microservice or local Python function/class in
     asynchronous or blocking mode.
@@ -54,189 +53,84 @@ class WorkflowSpec(object):
     * Choice: a node that makes a choice on the next step to take based on the
       output of another node.
 
-    :param init_default: upon class initiation, create default empty workflow.
-    :type init_default:  :py:bool
     """
 
-    def __init__(self, init_default=True):
+    def __init__(self, workflow=None, **kwargs):
+        """
+        Init the workflow specification
 
-        self.workflow = None
+        If no workflow provided init a default empty one.
+        Additional keyword parameters are used to update the workflow project
+        metadata.
 
-        # Init default empty workflow based on a workflow JSON schema
-        if init_default:
+        :param workflow: workflow specification
+        :type workflow:  :lie_graph:GraphAxis
+        :param kwargs:   additional keyword arguments used to update project
+                         metadata
+        :type kwargs:    :py:dict
+        """
+
+        self.workflow = workflow
+
+        if self.workflow is None:
             self.new()
+        elif not isinstance(workflow, GraphAxis):
+            raise WorkflowError('Not a valid workflow {0}'.format(workflow))
 
-    @staticmethod
-    def _parse_schema(schema):
+        # Update project metadata
+        if kwargs:
+            project_metadata = self.workflow.query_nodes(key='project_metadata')
+            project_metadata.descendants().update(kwargs)
+
+    def __len__(self):
         """
-        Parse a workflow JSON schema from various input sources
+        Implement class __len__
 
-        Supports already parsed schemas as Python dictionaries and all formats
-        supported by the `open_anything` function that includes: strings,
-        files, file objects and URL sources.
-
-        :param schema: JSON workflow schema to parse
-        :type schema:  mixed
-
-        :return:       parsed schema
-        :rtype:        :py:dict
+        :return: return number of tasks in workflow
         """
 
-        # Schema already parsed as dictionary
-        if isinstance(schema, dict):
-            return schema
+        return len(self.workflow.query_nodes(format='task'))
 
-        # Try parsing using open_anything
-        schema_file_object = open_anything(schema)
-        if schema_file_object:
-            return json.load(schema_file_object)
-        else:
-            logging.error(
-                'Unsupported workflow JSON schema format {0}'.format(schema))
-
-    def new(self, schema=WORKFLOW_SCHEMA_PATH):
-        """
-        Build new (empty) workflow specification based on a JSON schema.
-
-        :param schema: JSON schema
-        :type schema:  format supported by the `_parse_schema` method
-
-        TODO: _schema_to_data function is a hack, should be replaced by
-        a solid module
-        """
-
-        # Parse the schema, no validation performed
-        schema_dict = self._parse_schema(schema)
-
-        # Build workflow template from schema
-        workflow_template = _schema_to_data(schema_dict)
-
-        # Validate template
-        jsonschema.validate(workflow_template, schema_dict)
-
-        # (empty) nodes and edges are usually not available
-        for d in ('nodes', 'edges', 'edge_attr'):
-            if d not in workflow_template:
-                workflow_template[d] = {}
-
-        # Construct a lie_graph GraphAxis object
-        self.workflow = read_jgf(workflow_template)
-        self.workflow.orm = WORKFLOW_ORM
-
-        # Add start node and make root
-        nid = self.add_task(task_type='Start', task_name='start')
-        self.workflow.root = nid
-        self.workflow.create_time = int(time.time())
-
-        logging.info('Init default empty workflow')
-
-    def load(self, workflow, schema=WORKFLOW_SCHEMA_PATH):
-        """
-        Load workflow specification
-
-        Initiate a workflow from a workflow specification or instance thereof.
-        Checks if the workflow defines a root node and if that node is a Start
-        task.
-
-        :param workflow: Predefined workflow object
-        :type workflow:  GraphAxis
-        """
-
-        # Parse the workflow and the schema to validate the workflow
-        workflow = self._parse_schema(workflow)
-        schema_dict = self._parse_schema(schema)
-
-        # Validate workflow specification
-        jsonschema.validate(workflow, schema_dict)
-
-        # Construct a lie_graph GraphAxis object
-        self.workflow = read_jgf(workflow)
-        self.workflow.orm = WORKFLOW_ORM
-
-        if self.workflow.root is None:
-            raise WorkflowError('Workflow does not have a root node defined')
-
-        if self.workflow.nodes[self.workflow.root]['task_type'] != 'Start':
-            raise WorkflowError('Workflow root node is not of type: Start')
-
-        wf_title = getattr(self.workflow, 'title', '')
-        logging.info(
-            'Load workflow specification. Title: {0}'.format(wf_title))
-
-        wf_description = getattr(self.workflow, 'description', '')
-        logging.info(
-            'Description: {0}'.format(wf_description))
-
-    def save(self, path=None):
-        """
-        serialize the workflow specification to JSON
-
-        :param path: optionally write JSON string to file
-        :type path:  :py:str
-
-        :return: serialized workflow
-        :rtype:  JSON string
-        """
-
-        json_string = write_jgf(self.workflow)
-        if path:
-            pred = os.path.exists(os.path.dirname(path))
-            msg = 'Directory does not exist: {0}'.format(os.path.dirname(path))
-            assert pred, msg
-            try:
-                with open(path, 'w') as json_to_file:
-                    json_to_file.write(json_string)
-                logging.info(
-                    'Save workflow {0} to file: {1}'.format(
-                        getattr(self.workflow, 'title', ''), path))
-            except IOError:
-                logging.error(
-                    'Unable to write workflow to file: {0}'.format(path))
-
-        return json_string
-
-    def add_task(self, task_name=None, task_type='Task', **kwargs):
+    def add_task(self, task_name, task_type='PythonTask', **kwargs):
         """
         Add a new task to the workflow from the set of supported workflow
         task types defined in the workflow ORM.
 
-        After a task of a specific type is added to the graph its init_task
-        method is called wich adds default and type specific metadata to
-        the node attributes. Additional keyword arguments to the `add_task`
-        method are passed to the init_task method.
+        The 'new' method of each task type is called at first creation to
+        construct the task data object in the graph.
+        Additional keyword arguments provided to the 'add_task' method will
+        used to update the task data
 
-        :param task_type: Task type to add
-        :type task_type:  :py:str
         :param task_name: Administrative name of the task
         :type task_name:  :py:str
-        :param kwargs:    additonal keyword arguments passed to the task
+        :param task_type: Task type to add
+        :type task_type:  :py:str
+        :param kwargs:    additional keyword arguments passed to the task
                           init_task method.
         :type kwargs:     :py:dict
 
-        :return:          Task node ID (nid) in the graph
-        :rtype:           :py:int
+        :return:          Task object
         """
 
         # Task type needs to be supported by ORM
-        pred_1 = isinstance(task_type, str),
-        msg_1 = 'Workflow task type needs to be of type string'
-        pred_2 = task_type in self.workflow.orm.mapped_node_types.get('task_type', [])
-        msg_2 = 'Workflow task type "{0}" not supported by graph ORM'.format(
-            task_type)
-        assert pred_1, msg_1
-        assert pred_2, msg_2
+        supported_task_types = self.workflow.orm.mapped_node_types.get('task_type', [])
+        if task_type not in supported_task_types:
+            raise WorkflowError('Workflow task type "{0}" not supported. Needs to be one of {1}'.format(task_type,
+                                                                                    ', '.join(supported_task_types)))
 
-        # Add the task as node
-        task_name = task_name or task_type.lower()
-        nid = self.workflow.add_node(task_name, task_type=task_type)
+        # Add the task as node to the workflow graph. The task 'new' method is
+        # called for initial task initiation.
+        nid = self.workflow.add_node(task_name, task_type=task_type, format='task')
 
-        # If the task has a `init_task` method, run it.
-        # Pass additonal keyword arguments.
-        node = self.workflow.getnodes(nid)
-        if hasattr(node, 'init_task'):
-            node.init_task(**kwargs)
+        # Update Task metadata
+        task = self.workflow.getnodes(nid)
+        task.descendants().update(kwargs)
 
-        return nid
+        # If this is the first task added, set the root to task nid
+        if len(self.workflow.query_nodes(format='task')) == 1:
+            self.workflow.root = nid
+
+        return task
 
     def connect_task(self, task1, task2, **kwargs):
         """
@@ -250,28 +144,99 @@ class WorkflowSpec(object):
         :type task1:          :py:int
         :param task2:         second task of two tasks to connect
         :type task2:          :py:int
-        :param data_mapping:  output-input data mapping
-        :type data_mapping:   :py:dict
-        :param data_select:   restrict input to selected keywords
-        :type data_select:    :py:list
         """
 
-        wf_nodes = self.workflow.nodes
-        assert task1 in wf_nodes, 'Task {0} not in workflow'.format(task1)
-        assert task2 in wf_nodes, 'Task {0} not in workflow'.format(task2)
+        assert task1 in self.workflow.nodes, 'Task {0} not in workflow'.format(task1)
+        assert task2 in self.workflow.nodes, 'Task {0} not in workflow'.format(task2)
 
-        self.workflow.add_edge(task1, task2, **kwargs)
+        eid = self.workflow.add_edge(task1, task2, label='task_link', data_mapping=kwargs)
 
-    def get_task(self, nid):
+        return eid
+
+    def get_tasks(self, tid=None):
         """
         Return a task by task ID (graph nid)
 
-        :param nid:       nid of task to return
-        :type nid:        :py:int
+        :param tid:       nid of task to return
+        :type tid:        :py:int
         """
 
-        if nid not in self.workflow.nodes:
-            logging.warn('No workflow task with nid: {0}'.format(nid))
-            return None
+        tasks = self.workflow.query_nodes(format="task")
+        if len(tasks) == 1:
+            return [tasks]
 
-        return self.workflow.getnodes(nid)
+        return list(tasks)
+
+    def new(self, schema=workflow_metadata_template):
+        """
+        Construct new empty workflow based on template JSON Schema file
+
+        :param schema: JSON schema
+        """
+
+        # Build workflow template from schema
+        template = read_json_schema(schema, exclude_args=['title', 'description', 'schema_label'])
+        self.workflow = template.query_nodes(key='project_metadata').descendants(include_self=True).copy()
+        self.workflow.is_directed = True
+        self.workflow.node_tools = NodeAxisTools
+        self.workflow.orm = WORKFLOW_ORM
+        renumber_id(self.workflow, 1)
+
+        # Update workflow meta-data
+        metadata = self.workflow.query_nodes(key='project_metadata')
+        metadata.create_time.set()
+        metadata.user.set()
+        metadata.version.set('value', __version__)
+
+        logging.info('Init default empty workflow')
+
+    def load(self, workflow):
+        """
+        Load workflow specification
+
+        Initiate a workflow from a workflow specification or instance thereof.
+
+        :param workflow: Predefined workflow object
+        :type workflow:  GraphAxis
+        """
+
+        # Construct a workflow GraphAxis object
+        self.workflow = read_jgf(workflow)
+        self.workflow.node_tools = NodeAxisTools
+        self.workflow.orm = WORKFLOW_ORM
+
+        assert self.workflow.root is not None, WorkflowError('Workflow does not have a root node defined')
+
+        # Get metadata
+        metadata = self.workflow.query_nodes(key='project_metadata')
+        logging.info('Load workflow "{0}"'.format(metadata.title.get()))
+        logging.info('Created: {0}, updated: {1}'.format(metadata.create_time.get(), metadata.update_time.get()))
+        logging.info('Description: {0}'.format(metadata.description.get()))
+
+    def save(self, path=None):
+        """
+        Serialize the workflow specification to a graph JSON format (.jgf)
+
+        :param path: optionally write JSON string to file
+        :type path:  :py:str
+
+        :return: serialized workflow
+        :rtype:  :py:str
+        """
+
+        # Update workflow meta-data
+        metadata = self.workflow.query_nodes(key='project_metadata')
+
+        json_string = write_jgf(self.workflow)
+        if path:
+            pred = os.path.exists(os.path.dirname(path))
+            msg = 'Directory does not exist: {0}'.format(os.path.dirname(path))
+            assert pred, msg
+            try:
+                with open(path, 'w') as json_to_file:
+                    json_to_file.write(json_string)
+                logging.info('Save workflow "{0}" to file: {1}'.format(metadata.title.get(), path))
+            except IOError:
+                logging.error('Unable to write workflow to file: {0}'.format(path))
+
+        return json_string

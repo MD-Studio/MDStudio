@@ -1,0 +1,1270 @@
+{
+  "graph": {
+    "node_key_tag": "key",
+    "node_value_tag": "value",
+    "is_directed": true,
+    "edge_key_tag": "label",
+    "is_masked": false,
+    "root": 11,
+    "auto_nid": true
+  },
+  "nodes": {
+    "1": {
+      "_id": 1,
+      "type": "object",
+      "key": "project_metadata"
+    },
+    "2": {
+      "_id": 2,
+      "type": "string",
+      "key": "update_time",
+      "value": "2018-04-30T11:47:48.761000+00:00",
+      "format": "date-time"
+    },
+    "3": {
+      "_id": 3,
+      "type": "string",
+      "key": "description",
+      "value": "Test a simple linear workflow of 5 blocking python tasks"
+    },
+    "4": {
+      "default": "MDStudio workflow",
+      "_id": 4,
+      "type": "string",
+      "value": "Simple linear workflow",
+      "key": "title"
+    },
+    "5": {
+      "_id": 5,
+      "type": "string",
+      "value": "2018-04-30T11:47:47.970000+00:00",
+      "key": "finish_time",
+      "format": "date-time"
+    },
+    "6": {
+      "_id": 6,
+      "type": "string",
+      "value": "2018-04-30T11:47:39.720000+00:00",
+      "key": "start_time",
+      "format": "date-time"
+    },
+    "7": {
+      "_id": 7,
+      "type": "string",
+      "key": "create_time",
+      "value": "2018-04-30T11:47:11.822000+00:00",
+      "format": "date-time"
+    },
+    "8": {
+      "_id": 8,
+      "type": "string",
+      "key": "user",
+      "value": "mvdijk"
+    },
+    "9": {
+      "_id": 9,
+      "type": "string",
+      "key": "version",
+      "value": "1.0"
+    },
+    "10": {
+      "_id": 10,
+      "type": "string",
+      "key": "project_dir"
+    },
+    "11": {
+      "_id": 11,
+      "task_type": "BlockingPythonTask",
+      "key": "test1",
+      "format": "task"
+    },
+    "12": {
+      "_id": 12,
+      "key": "task_metadata",
+      "$ref": "../resources/task_template.json/#root"
+    },
+    "13": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 13,
+      "type": "string",
+      "key": "custom_func",
+      "value": "dummy_task_runners.task_runner"
+    },
+    "14": {
+      "default": "ready",
+      "enum": [
+        "ready",
+        "submitted",
+        "running",
+        "failed",
+        "aborted",
+        "completed",
+        "disabled"
+      ],
+      "value": "completed",
+      "key": "status",
+      "_id": 14,
+      "type": "string"
+    },
+    "15": {
+      "_id": 15,
+      "type": "string",
+      "key": "workdir"
+    },
+    "16": {
+      "_id": 16,
+      "type": "string",
+      "key": "task_id",
+      "value": "383b5c61-4c6c-11e8-a9a1-acbc32aebef5",
+      "format": "uuid"
+    },
+    "17": {
+      "_id": 17,
+      "type": "object",
+      "value": {
+        "dummy": 3,
+        "sleep": 1,
+        "add_number": 1
+      },
+      "key": "input_data"
+    },
+    "18": {
+      "_id": 18,
+      "type": "object",
+      "value": {
+        "dummy": 4
+      },
+      "key": "output_data"
+    },
+    "19": {
+      "_id": 19,
+      "type": "string",
+      "value": "2018-04-30T11:47:40.748000+00:00",
+      "key": "endedAtTime",
+      "format": "date-time"
+    },
+    "20": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 20,
+      "type": "string",
+      "key": "uri"
+    },
+    "21": {
+      "_id": 21,
+      "type": "string",
+      "value": "2018-04-30T11:47:39.731000+00:00",
+      "key": "startedAtTime",
+      "format": "date-time"
+    },
+    "22": {
+      "default": 0,
+      "value": 0,
+      "minimum": 0,
+      "key": "retry_count",
+      "_id": 22,
+      "type": "integer"
+    },
+    "23": {
+      "default": false,
+      "_id": 23,
+      "type": "boolean",
+      "value": false,
+      "key": "store_output"
+    },
+    "24": {
+      "default": false,
+      "_id": 24,
+      "type": "boolean",
+      "value": false,
+      "key": "breakpoint"
+    },
+    "25": {
+      "default": false,
+      "_id": 25,
+      "type": "boolean",
+      "value": false,
+      "key": "active"
+    },
+    "26": {
+      "_id": 26,
+      "task_type": "BlockingPythonTask",
+      "key": "test2",
+      "format": "task"
+    },
+    "27": {
+      "_id": 27,
+      "key": "task_metadata",
+      "$ref": "../resources/task_template.json/#root"
+    },
+    "28": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 28,
+      "type": "string",
+      "key": "custom_func",
+      "value": "dummy_task_runners.task_runner"
+    },
+    "29": {
+      "default": "ready",
+      "enum": [
+        "ready",
+        "submitted",
+        "running",
+        "failed",
+        "aborted",
+        "completed",
+        "disabled"
+      ],
+      "value": "completed",
+      "key": "status",
+      "_id": 29,
+      "type": "string"
+    },
+    "30": {
+      "_id": 30,
+      "type": "string",
+      "key": "workdir"
+    },
+    "31": {
+      "_id": 31,
+      "type": "string",
+      "key": "task_id",
+      "value": "383e7f1c-4c6c-11e8-ac99-acbc32aebef5",
+      "format": "uuid"
+    },
+    "32": {
+      "_id": 32,
+      "type": "object",
+      "value": {
+        "dummy": "$11.dummy",
+        "sleep": 2,
+        "add_number": 2
+      },
+      "key": "input_data"
+    },
+    "33": {
+      "_id": 33,
+      "type": "object",
+      "value": {
+        "dummy": 6
+      },
+      "key": "output_data"
+    },
+    "34": {
+      "_id": 34,
+      "type": "string",
+      "value": "2018-04-30T11:47:42.788000+00:00",
+      "key": "endedAtTime",
+      "format": "date-time"
+    },
+    "35": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 35,
+      "type": "string",
+      "key": "uri"
+    },
+    "36": {
+      "_id": 36,
+      "type": "string",
+      "value": "2018-04-30T11:47:40.771000+00:00",
+      "key": "startedAtTime",
+      "format": "date-time"
+    },
+    "37": {
+      "default": 0,
+      "value": 0,
+      "minimum": 0,
+      "key": "retry_count",
+      "_id": 37,
+      "type": "integer"
+    },
+    "38": {
+      "default": false,
+      "_id": 38,
+      "type": "boolean",
+      "value": false,
+      "key": "store_output"
+    },
+    "39": {
+      "default": false,
+      "_id": 39,
+      "type": "boolean",
+      "value": false,
+      "key": "breakpoint"
+    },
+    "40": {
+      "default": false,
+      "_id": 40,
+      "type": "boolean",
+      "value": false,
+      "key": "active"
+    },
+    "41": {
+      "_id": 41,
+      "task_type": "BlockingPythonTask",
+      "key": "test3",
+      "format": "task"
+    },
+    "42": {
+      "_id": 42,
+      "key": "task_metadata",
+      "$ref": "../resources/task_template.json/#root"
+    },
+    "43": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 43,
+      "type": "string",
+      "key": "custom_func",
+      "value": "dummy_task_runners.task_runner"
+    },
+    "44": {
+      "default": "ready",
+      "enum": [
+        "ready",
+        "submitted",
+        "running",
+        "failed",
+        "aborted",
+        "completed",
+        "disabled"
+      ],
+      "value": "completed",
+      "key": "status",
+      "_id": 44,
+      "type": "string"
+    },
+    "45": {
+      "_id": 45,
+      "type": "string",
+      "key": "workdir"
+    },
+    "46": {
+      "_id": 46,
+      "type": "string",
+      "key": "task_id",
+      "value": "3840ccde-4c6c-11e8-a97f-acbc32aebef5",
+      "format": "uuid"
+    },
+    "47": {
+      "_id": 47,
+      "type": "object",
+      "value": {
+        "dummy": "$26.dummy",
+        "sleep": 1,
+        "add_number": 1
+      },
+      "key": "input_data"
+    },
+    "48": {
+      "_id": 48,
+      "type": "object",
+      "value": {
+        "dummy": 7
+      },
+      "key": "output_data"
+    },
+    "49": {
+      "_id": 49,
+      "type": "string",
+      "value": "2018-04-30T11:47:43.836000+00:00",
+      "key": "endedAtTime",
+      "format": "date-time"
+    },
+    "50": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 50,
+      "type": "string",
+      "key": "uri"
+    },
+    "51": {
+      "_id": 51,
+      "type": "string",
+      "value": "2018-04-30T11:47:42.817000+00:00",
+      "key": "startedAtTime",
+      "format": "date-time"
+    },
+    "52": {
+      "default": 0,
+      "value": 0,
+      "minimum": 0,
+      "key": "retry_count",
+      "_id": 52,
+      "type": "integer"
+    },
+    "53": {
+      "default": false,
+      "_id": 53,
+      "type": "boolean",
+      "value": false,
+      "key": "store_output"
+    },
+    "54": {
+      "default": false,
+      "_id": 54,
+      "type": "boolean",
+      "value": false,
+      "key": "breakpoint"
+    },
+    "55": {
+      "default": false,
+      "_id": 55,
+      "type": "boolean",
+      "value": false,
+      "key": "active"
+    },
+    "56": {
+      "_id": 56,
+      "task_type": "BlockingPythonTask",
+      "key": "test4",
+      "format": "task"
+    },
+    "57": {
+      "_id": 57,
+      "key": "task_metadata",
+      "$ref": "../resources/task_template.json/#root"
+    },
+    "58": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 58,
+      "type": "string",
+      "key": "custom_func",
+      "value": "dummy_task_runners.task_runner"
+    },
+    "59": {
+      "default": "ready",
+      "enum": [
+        "ready",
+        "submitted",
+        "running",
+        "failed",
+        "aborted",
+        "completed",
+        "disabled"
+      ],
+      "value": "completed",
+      "key": "status",
+      "_id": 59,
+      "type": "string"
+    },
+    "60": {
+      "_id": 60,
+      "type": "string",
+      "key": "workdir"
+    },
+    "61": {
+      "_id": 61,
+      "type": "string",
+      "key": "task_id",
+      "value": "38429597-4c6c-11e8-8923-acbc32aebef5",
+      "format": "uuid"
+    },
+    "62": {
+      "_id": 62,
+      "type": "object",
+      "value": {
+        "dummy": "$41.dummy",
+        "sleep": 3,
+        "add_number": 3
+      },
+      "key": "input_data"
+    },
+    "63": {
+      "_id": 63,
+      "type": "object",
+      "value": {
+        "dummy": 10
+      },
+      "key": "output_data"
+    },
+    "64": {
+      "_id": 64,
+      "type": "string",
+      "value": "2018-04-30T11:47:46.885000+00:00",
+      "key": "endedAtTime",
+      "format": "date-time"
+    },
+    "65": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 65,
+      "type": "string",
+      "key": "uri"
+    },
+    "66": {
+      "_id": 66,
+      "type": "string",
+      "value": "2018-04-30T11:47:43.865000+00:00",
+      "key": "startedAtTime",
+      "format": "date-time"
+    },
+    "67": {
+      "default": 0,
+      "value": 0,
+      "minimum": 0,
+      "key": "retry_count",
+      "_id": 67,
+      "type": "integer"
+    },
+    "68": {
+      "default": false,
+      "_id": 68,
+      "type": "boolean",
+      "value": false,
+      "key": "store_output"
+    },
+    "69": {
+      "default": false,
+      "_id": 69,
+      "type": "boolean",
+      "value": false,
+      "key": "breakpoint"
+    },
+    "70": {
+      "default": false,
+      "_id": 70,
+      "type": "boolean",
+      "value": false,
+      "key": "active"
+    },
+    "71": {
+      "_id": 71,
+      "task_type": "BlockingPythonTask",
+      "key": "test5",
+      "format": "task"
+    },
+    "72": {
+      "_id": 72,
+      "key": "task_metadata",
+      "$ref": "../resources/task_template.json/#root"
+    },
+    "73": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 73,
+      "type": "string",
+      "key": "custom_func",
+      "value": "dummy_task_runners.task_runner"
+    },
+    "74": {
+      "default": "ready",
+      "enum": [
+        "ready",
+        "submitted",
+        "running",
+        "failed",
+        "aborted",
+        "completed",
+        "disabled"
+      ],
+      "value": "completed",
+      "key": "status",
+      "_id": 74,
+      "type": "string"
+    },
+    "75": {
+      "_id": 75,
+      "type": "string",
+      "key": "workdir"
+    },
+    "76": {
+      "_id": 76,
+      "type": "string",
+      "key": "task_id",
+      "value": "38447e4c-4c6c-11e8-abcb-acbc32aebef5",
+      "format": "uuid"
+    },
+    "77": {
+      "_id": 77,
+      "type": "object",
+      "value": {
+        "dummy": "$56.dummy",
+        "sleep": 1,
+        "add_number": 1
+      },
+      "key": "input_data"
+    },
+    "78": {
+      "_id": 78,
+      "type": "object",
+      "value": {
+        "dummy": 11
+      },
+      "key": "output_data"
+    },
+    "79": {
+      "_id": 79,
+      "type": "string",
+      "value": "2018-04-30T11:47:47.940000+00:00",
+      "key": "endedAtTime",
+      "format": "date-time"
+    },
+    "80": {
+      "pattern": "^\\w+(\\w+\\.)+\\w+$",
+      "_id": 80,
+      "type": "string",
+      "key": "uri"
+    },
+    "81": {
+      "_id": 81,
+      "type": "string",
+      "value": "2018-04-30T11:47:46.919000+00:00",
+      "key": "startedAtTime",
+      "format": "date-time"
+    },
+    "82": {
+      "default": 0,
+      "value": 0,
+      "minimum": 0,
+      "key": "retry_count",
+      "_id": 82,
+      "type": "integer"
+    },
+    "83": {
+      "default": false,
+      "_id": 83,
+      "type": "boolean",
+      "value": false,
+      "key": "store_output"
+    },
+    "84": {
+      "default": false,
+      "_id": 84,
+      "type": "boolean",
+      "value": false,
+      "key": "breakpoint"
+    },
+    "85": {
+      "default": false,
+      "_id": 85,
+      "type": "boolean",
+      "value": false,
+      "key": "active"
+    }
+  },
+  "lie_graph_version": "1.0",
+  "edge_attr": {
+    "56": {
+      "data_mapping": {},
+      "label": "task_link"
+    },
+    "49": {
+      "data_mapping": {},
+      "label": "task_link"
+    },
+    "68": {
+      "data_mapping": {},
+      "label": "task_link"
+    },
+    "125": {
+      "data_mapping": {},
+      "label": "task_link"
+    }
+  },
+  "edges": {
+    "0": [
+      57,
+      61
+    ],
+    "1": [
+      81,
+      72
+    ],
+    "2": [
+      46,
+      42
+    ],
+    "3": [
+      49,
+      42
+    ],
+    "4": [
+      26,
+      28
+    ],
+    "5": [
+      25,
+      12
+    ],
+    "6": [
+      1,
+      6
+    ],
+    "7": [
+      85,
+      72
+    ],
+    "8": [
+      66,
+      57
+    ],
+    "9": [
+      38,
+      27
+    ],
+    "10": [
+      61,
+      57
+    ],
+    "11": [
+      29,
+      27
+    ],
+    "12": [
+      67,
+      57
+    ],
+    "13": [
+      36,
+      27
+    ],
+    "14": [
+      12,
+      17
+    ],
+    "15": [
+      21,
+      12
+    ],
+    "16": [
+      54,
+      42
+    ],
+    "17": [
+      60,
+      57
+    ],
+    "18": [
+      57,
+      70
+    ],
+    "19": [
+      56,
+      58
+    ],
+    "20": [
+      52,
+      42
+    ],
+    "21": [
+      57,
+      59
+    ],
+    "22": [
+      27,
+      40
+    ],
+    "23": [
+      57,
+      69
+    ],
+    "24": [
+      12,
+      22
+    ],
+    "25": [
+      75,
+      72
+    ],
+    "26": [
+      22,
+      12
+    ],
+    "27": [
+      3,
+      1
+    ],
+    "28": [
+      42,
+      53
+    ],
+    "29": [
+      68,
+      57
+    ],
+    "30": [
+      57,
+      65
+    ],
+    "31": [
+      63,
+      57
+    ],
+    "32": [
+      27,
+      34
+    ],
+    "33": [
+      80,
+      72
+    ],
+    "34": [
+      72,
+      77
+    ],
+    "35": [
+      39,
+      27
+    ],
+    "36": [
+      35,
+      27
+    ],
+    "37": [
+      27,
+      37
+    ],
+    "38": [
+      2,
+      1
+    ],
+    "39": [
+      42,
+      47
+    ],
+    "40": [
+      72,
+      83
+    ],
+    "41": [
+      79,
+      72
+    ],
+    "42": [
+      77,
+      72
+    ],
+    "43": [
+      23,
+      12
+    ],
+    "44": [
+      5,
+      1
+    ],
+    "45": [
+      62,
+      57
+    ],
+    "46": [
+      57,
+      60
+    ],
+    "47": [
+      30,
+      27
+    ],
+    "48": [
+      27,
+      33
+    ],
+    "49": [
+      56,
+      71
+    ],
+    "50": [
+      7,
+      1
+    ],
+    "51": [
+      72,
+      74
+    ],
+    "52": [
+      12,
+      24
+    ],
+    "53": [
+      1,
+      5
+    ],
+    "54": [
+      41,
+      43
+    ],
+    "55": [
+      1,
+      10
+    ],
+    "56": [
+      41,
+      56
+    ],
+    "57": [
+      72,
+      80
+    ],
+    "58": [
+      4,
+      1
+    ],
+    "59": [
+      42,
+      52
+    ],
+    "60": [
+      57,
+      63
+    ],
+    "61": [
+      12,
+      18
+    ],
+    "62": [
+      70,
+      57
+    ],
+    "63": [
+      12,
+      20
+    ],
+    "64": [
+      27,
+      31
+    ],
+    "65": [
+      71,
+      73
+    ],
+    "66": [
+      42,
+      48
+    ],
+    "67": [
+      6,
+      1
+    ],
+    "68": [
+      11,
+      26
+    ],
+    "69": [
+      27,
+      38
+    ],
+    "70": [
+      31,
+      27
+    ],
+    "71": [
+      53,
+      42
+    ],
+    "72": [
+      17,
+      12
+    ],
+    "73": [
+      24,
+      12
+    ],
+    "74": [
+      12,
+      23
+    ],
+    "75": [
+      1,
+      3
+    ],
+    "76": [
+      27,
+      39
+    ],
+    "77": [
+      33,
+      27
+    ],
+    "78": [
+      57,
+      66
+    ],
+    "79": [
+      57,
+      64
+    ],
+    "80": [
+      69,
+      57
+    ],
+    "81": [
+      84,
+      72
+    ],
+    "82": [
+      82,
+      72
+    ],
+    "83": [
+      40,
+      27
+    ],
+    "84": [
+      50,
+      42
+    ],
+    "85": [
+      15,
+      12
+    ],
+    "86": [
+      72,
+      78
+    ],
+    "87": [
+      20,
+      12
+    ],
+    "88": [
+      18,
+      12
+    ],
+    "89": [
+      45,
+      42
+    ],
+    "90": [
+      42,
+      44
+    ],
+    "91": [
+      72,
+      84
+    ],
+    "92": [
+      44,
+      42
+    ],
+    "93": [
+      51,
+      42
+    ],
+    "94": [
+      42,
+      54
+    ],
+    "95": [
+      11,
+      13
+    ],
+    "96": [
+      27,
+      32
+    ],
+    "97": [
+      12,
+      14
+    ],
+    "98": [
+      72,
+      75
+    ],
+    "99": [
+      12,
+      25
+    ],
+    "100": [
+      1,
+      4
+    ],
+    "101": [
+      41,
+      42
+    ],
+    "102": [
+      1,
+      9
+    ],
+    "103": [
+      42,
+      49
+    ],
+    "104": [
+      72,
+      81
+    ],
+    "105": [
+      34,
+      27
+    ],
+    "106": [
+      57,
+      67
+    ],
+    "107": [
+      57,
+      62
+    ],
+    "108": [
+      48,
+      42
+    ],
+    "109": [
+      12,
+      19
+    ],
+    "110": [
+      27,
+      30
+    ],
+    "111": [
+      1,
+      7
+    ],
+    "112": [
+      71,
+      72
+    ],
+    "113": [
+      83,
+      72
+    ],
+    "114": [
+      9,
+      1
+    ],
+    "115": [
+      57,
+      68
+    ],
+    "116": [
+      37,
+      27
+    ],
+    "117": [
+      47,
+      42
+    ],
+    "118": [
+      12,
+      16
+    ],
+    "119": [
+      27,
+      29
+    ],
+    "120": [
+      1,
+      2
+    ],
+    "121": [
+      74,
+      72
+    ],
+    "122": [
+      32,
+      27
+    ],
+    "123": [
+      14,
+      12
+    ],
+    "124": [
+      8,
+      1
+    ],
+    "125": [
+      26,
+      41
+    ],
+    "126": [
+      42,
+      50
+    ],
+    "127": [
+      56,
+      57
+    ],
+    "128": [
+      27,
+      36
+    ],
+    "129": [
+      19,
+      12
+    ],
+    "130": [
+      72,
+      79
+    ],
+    "131": [
+      12,
+      21
+    ],
+    "132": [
+      65,
+      57
+    ],
+    "133": [
+      55,
+      42
+    ],
+    "134": [
+      42,
+      51
+    ],
+    "135": [
+      42,
+      45
+    ],
+    "136": [
+      72,
+      85
+    ],
+    "137": [
+      10,
+      1
+    ],
+    "138": [
+      42,
+      55
+    ],
+    "139": [
+      11,
+      12
+    ],
+    "140": [
+      27,
+      35
+    ],
+    "141": [
+      16,
+      12
+    ],
+    "142": [
+      12,
+      15
+    ],
+    "143": [
+      26,
+      27
+    ],
+    "144": [
+      72,
+      76
+    ],
+    "145": [
+      64,
+      57
+    ],
+    "146": [
+      59,
+      57
+    ],
+    "147": [
+      1,
+      8
+    ],
+    "148": [
+      42,
+      46
+    ],
+    "149": [
+      72,
+      82
+    ],
+    "150": [
+      78,
+      72
+    ],
+    "151": [
+      76,
+      72
+    ]
+  }
+}
