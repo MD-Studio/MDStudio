@@ -10,6 +10,7 @@ settings:
         components:
           - echo
           - lie_amber
+          - lie_atb
           - lie_haddock
           - lie_md
           - lie_plants_docking
