@@ -40,6 +40,16 @@ class WampTask(TaskBase):
             # Set unique task uuid
             self.task_metadata.task_id.set('value', self.task_metadata.task_id.create())
 
+    def get_input(self):
+
+        input_dict = super(WampTask, self).get_input()
+
+        meta = self.task_metadata
+        if meta.store_output() and meta.workdir():
+            input_dict['workdir'] = meta.workdir()
+
+        return input_dict
+
     def run_task(self, callback, errorback, **kwargs):
         """
         Implements run_task method
