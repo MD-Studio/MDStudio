@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_submit_request.json",
+  "title": "ATB submit",
+  "description": "Submit calculation to ATB server",
+  "type": "object",
+  "properties": {
+    "atb_api_token": {
+      "type": "string",
+      "description": "ATB server API token required for communication"
+    },
+    "isfile": {
+      "type": "boolean",
+      "description": "Read molecule from file",
+      "default": true
+    },
+    "pdb": {
+      "type": "string",
+      "description": "PDB structure to submit"
+    },
+    "netcharge": {
+      "type": "integer",
+      "description": "The net charge of the system",
+      "default": 0
+    },
+    "moltype": {
+      "type": "string",
+      "description": "The molecular type",
+      "default": "heteromolecule",
+      "enum": ["heteromolecule", "amino acid", "nucleic acid", "sugar", "lipid", "solvent"]
+    },
+    "public": {
+      "type": "boolean",
+      "description": "Make ATB results publicly available on the server",
+      "default": true
+    },
+    "workdir": {
+      "type": "string",
+      "default": "."
+    }
+  },
+  "required": ["atb_api_token", "pdb"]
+}

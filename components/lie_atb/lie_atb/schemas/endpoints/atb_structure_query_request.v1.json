@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_structure_query_request.json",
+  "title": "Structure query",
+  "description": "Query the ATB server database for molecules based on a structure",
+  "type": "object",
+  "properties": {
+    "atb_api_token": {
+      "type": "string",
+      "description": "ATB server API token required for communication"
+    },
+    "mol": {
+      "type": "string",
+      "description": "Molecular structure to query with"
+    },
+    "isfile": {
+      "type": "boolean",
+      "description": "Read molecule from file",
+      "default": true
+    },
+    "netcharge": {
+      "type": "number",
+      "description": "The net charge of the system"
+    },
+    "structure_format": {
+      "type": "string",
+      "description": "The structure file format",
+      "default": "pdb",
+      "enum": ["pdb", "mol", "mol2", "sdf", "inchi"]
+    },
+    "workdir": {
+      "type": "string",
+      "default": "."
+    }
+  },
+  "required": ["atb_api_token", "mol"]
+}

@@ -8,10 +8,8 @@ lie_atb module wide settings
 
 SETTINGS = {
     'atb_url': 'https://atb.uq.edu.au',
-    'atb_api_token': '53A4C6BE1CB66913D3A658AD7932B4DD',
     'atb_api_debug': False,
     'atb_api_timeout': 45,
-    'atb_forcefield_version': ['53A6', '54A7']
 }
 
 ALLOWED_QUERY_KEYS = ['iupac', 'inchi', 'inchi_key', 'common_name', 'formula', 'rnme',

@@ -40,11 +40,6 @@ setup(
     install_requires=['twisted', 'autobahn', 'requests'],
     include_package_data=True,
     zip_safe=True,
-    entry_points={
-        'autobahn.twisted.wamplet': [
-            'wamp_services = lie_atb.wamp_services:make'
-        ],
-    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',

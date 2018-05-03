@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_submit_response.json",
+  "title": "ATB submit outpur",
+  "description": "ATB server response",
+  "type": "object",
+  "properties": {}
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_structure_query_response.json",
+  "title": "Structure query results",
+  "description": "Query the ATB server database for molecules based on a structure",
+  "type": "object",
+  "properties": {
+    "matched": {
+      "type": "array",
+      "description": "Structure query results as ATB molecule ID's"
+    }
+  },
+  "required": ["matches"]
+}

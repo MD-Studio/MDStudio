@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_get_structure_response.json",
+  "title": "Get structure response",
+  "description": "Retrieve a structure file from the ATB server by molid",
+  "type": "object",
+  "properties": {}
+}

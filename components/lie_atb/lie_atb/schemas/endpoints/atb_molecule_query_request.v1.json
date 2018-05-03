@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_molecule_query_request.json",
+  "title": "Molecule query results",
+  "description": "Query the ATB server database for molecules based on molecule meta-data",
+  "type": "object",
+  "properties": {
+    "atb_api_token": {
+      "type": "string",
+      "description": "ATB server API token required for communication"
+    },
+    "iupac": {
+      "type": "string",
+      "description": "The official IUPAC name of the  molecule"
+    },
+    "inchi_key": {
+      "type": "string",
+      "description": "The unique InChI code of the molecule"
+    },
+    "smiles": {
+      "type": "string",
+      "description": "Canonical SMILES of the molecule"
+    },
+    "common_name": {
+      "type": "string",
+      "description": "The common name of the molecule"
+    },
+    "formula": {
+      "type": "string",
+      "description": "The molecular formula (e.a. C2H6O)"
+    },
+    "maximum_qm_level": {
+      "type": "string",
+      "description": "String of comma seperated integers"
+    },
+    "curation_trust": {
+      "type": "integer",
+      "description": "level of expected accuracy of the molecule parameters as string of comma seperated integers. -1 = unfinished ATB molecule, 0 = finished ATB molecule, 1 = manual parameters from reliable users, 2 = manual parameters from official source",
+      "enum": [-1, 0, 1, 2]
+    },
+    "is_finished": {
+      "type": "boolean",
+      "description": "Are calculations for the molecule still running"
+    },
+    "user_label": {
+      "type": "string",
+      "description": "Any user specific label that may have been given to the molecule"
+    },
+    "max_atoms": {
+      "type": "integer",
+      "description": "Maximum number of atoms"
+    },
+    "min_atoms": {
+      "type": "integer",
+      "description": "Minimum number of atoms"
+    },
+    "has_pdb_hetId": {
+      "type": "boolean",
+      "description": "Molecule has PDB heteroatom ID"
+    },
+    "match_partial": {
+      "type": "boolean",
+      "description": "Enable partial matching of string attributes"
+    }
+  },
+  "required": ["atb_api_token"]
+}

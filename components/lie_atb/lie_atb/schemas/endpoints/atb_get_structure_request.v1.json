@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_get_structure_request.json",
+  "title": "Get structure",
+  "description": "Retrieve a structure file from the ATB server by molid",
+  "type": "object",
+  "properties": {
+    "atb_api_token": {
+      "type": "string",
+      "description": "ATB server API token required for communication"
+    },
+    "molid": {
+      "type": "integer",
+      "description": "ATB molecule ID"
+    },
+    "ffversion": {
+      "type": "string",
+      "description": "ATB supported forcefield version",
+      "default": "54A7",
+      "enum": ["53A6", "54A7"]
+    },
+    "fformat": {
+      "type": "string",
+      "description": "ATB supported file format",
+      "default": "pdb_allatom_optimised"
+    },
+    "atb_hash": {
+      "type": "string",
+      "description": "ATB server hash version",
+      "default": "HEAD"
+    },
+    "workdir": {
+      "type": "string"
+    }
+  },
+  "required": ["atb_api_token", "molid"]
+}

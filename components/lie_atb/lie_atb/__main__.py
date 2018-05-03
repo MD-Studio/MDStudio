@@ -1,5 +1,5 @@
 from mdstudio.runner import main
-from . import wampapi
+from lie_atb.wamp_services import ATBWampApi
 
 if __name__ == '__main__':
-    main(wampapi)
+    main(ATBWampApi)

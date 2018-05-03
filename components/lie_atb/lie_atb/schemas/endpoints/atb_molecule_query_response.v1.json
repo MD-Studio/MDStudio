@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_molecule_query_response.json",
+  "title": "Molecule query results",
+  "description": "Query the ATB server database for molecules based on molecule meta-data",
+  "type": "object",
+  "properties": {
+    "result": {
+      "type": "array",
+      "description": "Molecular query results as ATB molecule ID's"
+    }
+  },
+  "required": ["results"]
+}

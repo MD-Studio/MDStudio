@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://liestudio/schemas/atb_get_topology_response.json",
+  "title": "Get topology response",
+  "description": "Retrieve structure topology files from the ATB server by molid",
+  "type": "object",
+  "properties": {}
+}
