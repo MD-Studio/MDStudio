@@ -132,13 +132,17 @@ class WorkflowSpec(object):
 
         return task
 
-    def connect_task(self, task1, task2, **kwargs):
+    def connect_task(self, task1, task2, *args, **kwargs):
         """
         Connect tasks by task ID (graph nid)
 
         Creates the directed graph edge connecting two tasks (nodes) together.
-        The `data_mapping` edge argument enables name mapping for the output
-        attributes of the first task to the input attributes of the second.
+        An edge also defines which parameters in the output of one task serve
+        as input for another task and how they are named.
+
+        Parameter selection is defined by all additional arguments and keyword
+        arguments provided to `connect_task`. Keyword arguments also define the
+        name translation of the argument.
 
         :param task1:         first task of two tasks to connect
         :type task1:          :py:int
@@ -149,7 +153,7 @@ class WorkflowSpec(object):
         assert task1 in self.workflow.nodes, 'Task {0} not in workflow'.format(task1)
         assert task2 in self.workflow.nodes, 'Task {0} not in workflow'.format(task2)
 
-        eid = self.workflow.add_edge(task1, task2, label='task_link', data_mapping=kwargs)
+        eid = self.workflow.add_edge(task1, task2, label='task_link', data_mapping=kwargs, data_select=list(args))
 
         return eid
 

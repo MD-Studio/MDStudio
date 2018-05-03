@@ -68,8 +68,20 @@ class WorkflowRunner(WorkflowSpec):
             # selection if needed
             for ptask in parent_tasks:
                 output = ptask.get_output()
-                mapper = self.workflow.edges[(ptask.nid, task.nid)].get('data_mapping', {})
-                select = self.workflow.edges[(ptask.nid, task.nid)].get('data_select', output.keys())
+                edge = self.workflow.getedges((ptask.nid, task.nid))
+
+                # Apply data mapping and selection by selecting only parameters
+                # from the previous task that are defined in the edge
+                # data_select list and data_mapping dictionary. In the latter
+                # case the key/value mapping is performed.
+                mapper = edge.get('data_mapping', {})
+                select = edge.get('data_select', default=[])
+                for key, value in mapper.items():
+                    if not key in select:
+                        select.append(key)
+                    if value in select:
+                        select.remove(value)
+
                 new_dict = {mapper.get(k, k): '${0}.{1}'.format(ptask.nid, k) for k, v in output.items() if k in select}
                 collected_output.append(new_dict)
         else:
@@ -180,7 +192,8 @@ class WorkflowRunner(WorkflowSpec):
         # If the active failed an no retry is allowed, save workflow and stop.
         if task.status == 'failed' and task.task_metadata.retry_count() == 0:
             logging.error('Task {0} ({1}) failed'.format(task.nid, task.key))
-            self.save(os.path.join(metadata.project_dir() or os.getcwd(), 'workflow.jgf'))
+            if metadata.project_dir():
+                self.save(os.path.join(metadata.project_dir(), 'workflow.jgf'))
             self.is_running = False
             return
 
@@ -208,7 +221,8 @@ class WorkflowRunner(WorkflowSpec):
                 self.is_running = False
                 if not metadata.finish_time():
                     metadata.finish_time.set()
-                self.save(os.path.join(metadata.project_dir() or os.getcwd(), 'workflow.jgf'))
+                if metadata.project_dir():
+                    self.save(os.path.join(metadata.project_dir(), 'workflow.jgf'))
                 return
 
         # Launch new tasks

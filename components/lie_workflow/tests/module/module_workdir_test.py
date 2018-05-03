@@ -21,7 +21,7 @@ class TestLocalWorkdir(unittest2.TestCase):
 
     def setUp(self):
         """
-        Build single task workflow
+        Build two task workflow
         """
 
         self.wf = Workflow(project_dir=tmp_project_dir)

@@ -46,6 +46,11 @@ dummy_task_schema_input = {
             "description": "Write some output to disk",
             "type": "boolean",
             "default":False
+        },
+        "return_more": {
+            "description": "Return a bunch of extra parameters",
+            "type": "boolean",
+            "default": False
         }
     },
     "required": ["dummy"]
@@ -116,7 +121,12 @@ def task_runner(**kwargs):
     if kwargs.get('crash', False):
         raise Exception("Crashed task")
 
-    return {'dummy': output}
+    # Return additional output
+    rdict = {'dummy': output}
+    if kwargs.get('return_more', False):
+        rdict.update({'param1': True, 'param2': [1,2,3], 'param3': 5})
+
+    return rdict
 
 
 def reduce_function(**kwargs):
