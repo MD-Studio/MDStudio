@@ -10,8 +10,8 @@ python:
   - "3.6"
 
 env:
-  - DOCKER_COMPOSE_VERSION=1.21.0
-
+  - DOCKER_COMPOSE_VERSION=1.21.0 MD_CONFIG_ENVIRONMENTS=dev,docker
+  
 before_install:
   - sudo rm /usr/local/bin/docker-compose
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
@@ -35,8 +35,10 @@ script:
   - (docker-compose up -d crossbar && pip install -e components/lie_echo)
   - pip install docker retrying
   - (cd tests && python check_docker_compose.py)
-  # - (cd tests && python -m lie_echo &)
-  # - (cd tests && python test_crossbar.py && python check_echo_output.py)
+  - (cd tests && python -m lie_echo &)
+  - (cd tests && (python test_crossbar.py &) && python check_echo_output.py)
+  # kill microservice
+  - (ps axf | grep lie_structures | grep -v grep | awk '{print "kill -9 " $1}' | sh)
 
 after_success:
   - codecov

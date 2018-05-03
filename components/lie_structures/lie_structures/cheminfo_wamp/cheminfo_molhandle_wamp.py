@@ -39,7 +39,8 @@ class CheminfoMolhandleWampApi(object):
         if 'workdir' in request:
             file_path = os.path.join(request['workdir'], 'structure.{0}'.format(request['output_format']))
 
-        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
+        outfmt = request.get('output_format', request['input_format'])
+        output = mol_write(molobject, mol_format=outfmt, file_path=file_path)
 
         # Update session
         status = 'completed'
@@ -65,7 +66,8 @@ class CheminfoMolhandleWampApi(object):
         else:
             file_path = None
 
-        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
+        outfmt = request.get('output_format', request['input_format'])
+        output = mol_write(molobject, mol_format=outfmt, file_path=file_path)
 
         # Update session
         status = 'completed'
@@ -86,7 +88,8 @@ class CheminfoMolhandleWampApi(object):
         if 'workdir' in request:
             file_path = os.path.join(request['workdir'], 'structure.{0}'.format(request['input_format']))
 
-        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
+        outfmt = request.get('output_format', request['input_format'])
+        output = mol_write(molobject, mol_format=outfmt, file_path=file_path)
 
         # Update session
         status = 'completed'
@@ -112,7 +115,8 @@ class CheminfoMolhandleWampApi(object):
         if 'workdir' in request:
             file_path = os.path.join(request['workdir'], 'structure.{0}'.format(request['input_format']))
 
-        output = mol_write(molobject, mol_format=request['output_format'], file_path=file_path)
+        outfmt = request.get('output_format', request['input_format'])
+        output = mol_write(molobject, mol_format=outfmt, file_path=file_path)
 
         # Update session
         status = 'completed'
