@@ -23,6 +23,10 @@
             "type": "string",
             "description": "Structure input file format"
         },
+        "output_format": {
+            "type": "string",
+            "description": "Structure output file format"
+        },
         "correctForPH": {
             "type": "boolean",
             "description": "Correct for pH when adding hydrogens to the structure",
