@@ -290,12 +290,26 @@ def create_lie_job(srv, gromacs_config, cerise_config):
     parameters using `gromacs_config`.
     """
     job_name = 'job_{}'.format(cerise_config['task_id'])
-    job = srv.create_job(job_name)
+    job = try_to_create_job(srv, job_name)
 
     # Copy gromacs input files
     job = add_input_files_lie(job, gromacs_config)
 
     return set_input_parameters_lie(job, gromacs_config)
+
+
+def try_to_create_job(srv, job_name):
+    """Create a new job or relaunch cancel or failed job """
+    try:
+        job = srv.get_job_by_name(job_name)
+        state = job.state
+        if state in ["Waiting", "Running", "Success"]:
+            return job
+        else:
+            srv.destroy_job(job)
+            return srv.create_job(job_name)
+    except cc.errors.JobNotFound:
+        return srv.create_job(job_name)
 
 
 def add_input_files_lie(job, gromacs_config):

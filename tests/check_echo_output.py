@@ -1,5 +1,4 @@
 from os.path import join
-from time import sleep
 import json
 import jsonschema
 import lie_echo
@@ -35,5 +34,4 @@ def check_echo(d):
 
 
 if __name__ == "__main__":
-    sleep(2)  # give some time to the application to write
     main()
