@@ -7,7 +7,6 @@ WAMP service methods the module exposes.
 """
 
 import os
-import tempfile
 import pickle
 
 from pandas import (read_csv, read_json, read_excel, read_table, concat, DataFrame)
@@ -110,14 +109,11 @@ class PylieWampApi(ComponentSession):
         file_format = request['fileformat']
         filepath = os.path.join(workdir, 'liedeltag.{0}'.format(file_format))
         if self._export_dataframe(dg_calc, filepath, file_format=file_format):
-            status = 'completed'
             results = dg_calc.to_dict()
         else:
-            status = 'failed'
-            filepath = None
-            results = None
+            return
 
-        return {'status': status, 'liedeltag_file': filepath, 'liedeltag': results}
+        return {'liedeltag_file': filepath, 'liedeltag': results}
 
     @endpoint('concat_dataframes', 'concat_dataframes_request', 'concat_dataframes_response')
     def concat_dataframes(self, request, claims):
@@ -144,8 +140,6 @@ class PylieWampApi(ComponentSession):
                 dfs, ignore_index=request['ignore_index'],
                 axis=request['axis'], join=request['join'])
 
-            status = 'completed'
-
             # Create workdir to save file
             workdir = request['workdir']
             self.create_workdir(workdir)
@@ -155,10 +149,9 @@ class PylieWampApi(ComponentSession):
             if self._export_dataframe(concat_df, filepath, file_format=file_format):
                 concat_mdframe = filepath
         else:
-            status = 'failed'
-            concat_mdframe = None
+            return
 
-        return {'status': status, 'concat_mdframe': concat_mdframe}
+        return {'concat_mdframe': concat_mdframe}
 
     @endpoint('calculate_lie_average', 'calculate_lie_average_request', 'calculate_lie_average_response')
     def calculate_lie_average(self, request, claims):
@@ -176,8 +169,7 @@ class PylieWampApi(ComponentSession):
 
         if not os.path.isfile(mdframe):
             self.log.error('MDFrame csv file does not exist: {0}'.format(mdframe))
-            status = 'failed'
-            return {'status': status, 'averaged': None}
+            return
 
         # Create workdir to save file
         workdir = request['workdir']
@@ -191,7 +183,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'averaged.csv')
         ave.to_csv(filepath)
 
-        return {'status': self._check_file_status(filepath), 'averaged': filepath}
+        return {'averaged': filepath}
 
     @endpoint('gaussian_filter', 'gaussian_filter_request', 'gaussian_filter_response')
     def filter_gaussian(self, request, claims):
@@ -225,13 +217,10 @@ class PylieWampApi(ComponentSession):
         # Save filtered dataframe
         file_format = request['file_format']
         filepath = os.path.join(workdir, 'gauss_filter.{0}'.format(file_format))
-        if self._export_dataframe(
-                filtered, filepath, file_format=file_format):
-            status = 'completed'
-        else:
-            status = 'failed'
+        if not self._export_dataframe(filtered, filepath, file_format=file_format):
+            return
 
-        return {'status': status, 'gauss_filter': filepath}
+        return {'gauss_filter': filepath}
 
     @endpoint('filter_stable_trajectory', 'filter_stable_request', 'filter_stable_response')
     def filter_stable_trajectory(self, request, claims):
@@ -248,7 +237,7 @@ class PylieWampApi(ComponentSession):
         mdframe = request['mdframe']
         if not os.path.isfile(mdframe):
             self.log.error('MDFrame csv file does not exist: {0}'.format(mdframe))
-            return {'status': 'failed', 'output': None}
+            return
 
         # Create workdir to save file
         workdir = request['workdir']
@@ -284,7 +273,7 @@ class PylieWampApi(ComponentSession):
 
         output['filtered_mdframe'] = filepath
 
-        return {'status': self._check_file_status(filepath), 'output': output}
+        return output
 
     @endpoint('collect_energy_trajectories', 'collect_energy_request', 'collect_energy_response')
     def import_mdene_files(self, request, claims):
@@ -335,7 +324,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'mdframe.csv')
         mdframe.to_csv(filepath)
 
-        return {'status': self._check_file_status(filepath), 'mdframe': filepath}
+        return {'mdframe': filepath}
 
     @endpoint('adan_residue_decomp', 'adan_residue_decomp_request', 'adan_residue_decomp_response')
     def adan_residue_decomp(self, request, claims):
@@ -346,18 +335,18 @@ class PylieWampApi(ComponentSession):
         For a detailed output description see:
           pydlie/schemas/endpoints/adan_residue_decomp_response.v1.json
         """
+
         model_pkl = request['model_pkl']
         # Load the model
         if not os.path.isfile(model_pkl):
             self.log.error('eTOX model file does not exist: {0}'.format(model_pkl))
-
-            return {'status': 'failed', 'decomp': None}
+            return
 
         model = pickle.load(open(model_pkl))
 
         # Parse gromacs residue decomposition energy files to DataFrame
         decomp_dfs = []
-        for dcfile in request['decomp_files']:
+        for dcfile in request['decompose_files']:
             decomp_dfs.append(parse_gromacs_decomp(dcfile))
 
         # Run AD test
@@ -371,7 +360,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'adan_residue_decomp.csv')
         ene.to_csv(filepath)
 
-        return {'status': self._check_file_status(filepath), 'decomp': ene.to_dict()}
+        return {'decomp': ene.to_dict()}
 
     @endpoint('adan_dene', 'adan_dene_request', 'adan_dene_response')
     def adan_dene(self, request, claims):
@@ -387,8 +376,7 @@ class PylieWampApi(ComponentSession):
         # Load the model
         if not os.path.isfile(model_pkl):
             self.log.error('eTOX model file does not exist: {0}'.format(model_pkl))
-
-            return {'session': 'failed', 'decomp': None}
+            return
 
         model = pickle.load(open(model_pkl))
 
@@ -407,7 +395,7 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'adan_dene.csv')
         ene.to_csv(filepath)
 
-        return {'status': self._check_file_status(filepath), 'decomp': ene.to_dict()}
+        return {'decomp': ene.to_dict()}
 
     @endpoint('adan_dene_yrange', 'adan_dene_yrange_request', 'adan_dene_yrange_response')
     def adan_dene_yrange(self, request, claims):
@@ -431,4 +419,4 @@ class PylieWampApi(ComponentSession):
         filepath = os.path.join(workdir, 'adan_dene_yrange.csv')
         ene.to_csv(filepath)
 
-        return {'status': self._check_file_status(filepath), 'decomp': ene.to_dict()}
+        return {'decomp': ene.to_dict()}

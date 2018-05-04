@@ -1,20 +1,19 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-   "id": "http://mdstudio/schemas/ada_dene_response.json",
-    "title": "Adan dene output",
-    "description": "",
-    "type": "object",
-    "properties": {
-	"status": {
-	    "type": "string",
-	    "description": "Job final status",
-	    "enum": ["failed", "completed"]
-	},
-	"decomp": {
-	    "type":["null", "object"],
-	    "description": "Adan Dene result"
-	}
-    },
-    "required": ["status", "decomp"]
-
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://mdstudio/schemas/ada_dene_response.json",
+  "title": "Adan dene output",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "decomp": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "description": "Adan Dene result"
+    }
+  },
+  "required": [
+    "decomp"
+  ]
 }
