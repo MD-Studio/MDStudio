@@ -9,6 +9,11 @@ python:
   - "3.5"
   - "3.6"
 
+
+matrix:
+  allow_failures:
+    - python: "2.7"
+  
 env:
   - DOCKER_COMPOSE_VERSION=1.21.0 MD_CONFIG_ENVIRONMENTS=dev,docker
   
