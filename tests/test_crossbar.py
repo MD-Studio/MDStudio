@@ -2,6 +2,7 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
 from mdstudio.utc import now
+from time import sleep
 import json
 
 
@@ -26,4 +27,5 @@ class Run_md(ComponentSession):
 
 
 if __name__ == "__main__":
+    sleep(5)  # give some time to the lie_echo to register
     main(Run_md)
