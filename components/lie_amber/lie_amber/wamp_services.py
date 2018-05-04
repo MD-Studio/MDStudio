@@ -65,10 +65,7 @@ def call_amber_package(request, config, function):
 
     # Run amber function
     output = function(tmp_file, config, workdir)
-
-    status = 'failed' if output is None else 'completed'
-
-    return {'status': status, 'output': output}
+    return output
 
 
 def copy_structure(structure, from_file, tmp_file):
