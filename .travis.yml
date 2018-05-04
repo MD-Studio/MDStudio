@@ -35,8 +35,7 @@ script:
   - (docker-compose up -d crossbar && pip install -e components/lie_echo)
   - pip install docker retrying
   - (cd tests && python check_docker_compose.py)
-  - (cd tests && (python -m lie_echo &) && (python test_crossbar.py &))
-  # - (cd tests  #  && python check_echo_output.py)
+  - (cd tests && (python -m lie_echo &) && (python test_crossbar.py &) && python check_echo_output.py)
   # kill microservice
   - (ps axf | grep lie_echo | grep -v grep | awk '{print "kill -9 " $1}' | sh)
 
