@@ -102,7 +102,8 @@ def decompose(args):
     """
     if args.resList is None:
         msg = 'TERMINATED. List of residues not provided.'
-        log_and_quit(msg)
+        logging.info(msg)
+        return None
 
     gmx = search_commands(['gmx', 'gmx_mpi'], args.gmxEnv)
     if gmx is None:
