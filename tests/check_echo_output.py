@@ -17,9 +17,8 @@ def main(path="/tmp/echo.json"):
         with open(path, "r") as f:
             d = json.load(f)
         check_echo(d)
-    except file_exception:
-        msg = "something went wrong calling the echo component!!"
-        raise RuntimeError(msg)
+    except:
+        raise
 
 
 def check_echo(d):
@@ -31,9 +30,8 @@ def check_echo(d):
             s = json.load(f)
         jsonschema.validate(d['message'], s)
         print("The echo component is running!!")
-    except jsonschema.ValidationError:
-        msg = "The echo component produced an unexpected output!!"
-        raise RuntimeError(msg)
+    except:
+        raise
 
 
 if __name__ == "__main__":
