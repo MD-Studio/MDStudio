@@ -290,7 +290,8 @@ def create_lie_job(srv, gromacs_config, cerise_config):
     parameters using `gromacs_config`.
     """
     job_name = 'job_{}'.format(cerise_config['task_id'])
-    job = try_to_create_job(srv, job_name)
+    # job = try_to_create_job(srv, job_name)
+    job = srv.create_job(job_name)
 
     # Copy gromacs input files
     job = add_input_files_lie(job, gromacs_config)
