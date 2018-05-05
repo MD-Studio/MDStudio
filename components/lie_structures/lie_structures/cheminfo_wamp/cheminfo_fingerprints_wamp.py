@@ -71,4 +71,4 @@ class CheminfoFingerprintsWampApi(object):
         stats.to_csv(filepath)
 
         status = 'completed'
-        return {'status': status, 'result': stats.to_dict()}
+        return {'status': status, 'results': stats.to_dict()}

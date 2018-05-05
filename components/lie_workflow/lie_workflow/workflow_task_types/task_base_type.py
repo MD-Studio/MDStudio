@@ -114,6 +114,10 @@ class TaskBase(NodeTools):
     def get_input(self):
         """
         Prepare the input data
+
+        If the task is configured to store output to disk (store_output == True)
+        the dictionary with input data is serialized to JSON and stored in the
+        task directory.
         """
 
         input_data = self.task_metadata.input_data.get(default={})
@@ -127,6 +131,15 @@ class TaskBase(NodeTools):
                 input_dict[key] = [self._process_reference(v) if isinstance(v, str) else v for v in value]
             else:
                 input_dict[key] = value
+
+        # Write input to disk as JSON?
+        if self.task_metadata.store_output():
+            task_dir = self.task_metadata.workdir.get()
+            if task_dir and os.path.exists(task_dir):
+                input_json = os.path.join(task_dir, 'input.json')
+                json.dump(input_dict, open(input_json, 'w'), indent=2)
+            else:
+                raise WorkflowError('Task directory does not exist: {0}'.format(task_dir))
 
         return input_dict
 
@@ -179,7 +192,7 @@ class TaskBase(NodeTools):
             task_dir = self.task_metadata.workdir.get()
             if task_dir and os.path.exists(task_dir):
                 output_json = os.path.join(task_dir, 'output.json')
-                json.dump(output, open(output_json, 'w'))
+                json.dump(output, open(output_json, 'w'), indent=2)
                 output = {'$ref': output_json}
             else:
                 raise WorkflowError('Task directory does not exist: {0}'.format(task_dir))

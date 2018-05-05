@@ -1,20 +1,19 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "http://mdstudio/schemas/adan_residue_decomp_response.json",
-    "title": "Adan residues output",
-    "description": "Adan residues decomposition",
-    "type": "object",
-    "properties": {
-	"status": {
-	    "type": "string",
-	    "description": "Job final status",
-	    "enum": ["failed", "completed"]
-	},
-	"decomp": {
-	    "type":["null", "object"],
-	    "description": "Adan Decomposition result"
-	}
-    },
-    "required": ["status", "decomp"]
-
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://mdstudio/schemas/adan_residue_decomp_response.json",
+  "title": "Adan residues output",
+  "description": "Adan residues decomposition",
+  "type": "object",
+  "properties": {
+    "decomp": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "description": "Adan Decomposition result"
+    }
+  },
+  "required": [
+    "decomp"
+  ]
 }
