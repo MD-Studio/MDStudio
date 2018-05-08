@@ -63,17 +63,17 @@ def call_cerise_gromit(
         sim_dict = yield extract_simulation_info(
             srv_data, cerise_config, cerise_db)
 
-    # is the job still running?
-    elif srv_data['job_state'] == 'Running':
+    elif srv_data['job_state'] == 'Success':
+        print("job is already done!")
+        sim_dict = srv_data
+
+    # is the job still running? if it has failed lauch it again
+    else:
+        print("The job status is: ", srv_data['job_state'])
         srv_data = yield restart_srv_job(
             srv_data, gromacs_config, cerise_config, cerise_db)
         sim_dict = yield extract_simulation_info(
             srv_data, cerise_config, cerise_db)
-
-    else:
-        msg = "job is already done!"
-        print(msg)
-        sim_dict = srv_data
 
     # Shutdown Service if there are no other jobs running
     yield try_to_close_service(srv_data, cerise_db)
@@ -195,8 +195,8 @@ def start_from_scratch(job_id, gromacs_config, cerise_config, cerise_db):
     necessary.
     """
     srv = create_service(cerise_config)
-    yield remove_srv_job_from_db(job_id, cerise_db)
     print("restarting job from scratch")
+    yield remove_srv_job_from_db(job_id, cerise_db)
     job = yield submit_new_job(
         srv, gromacs_config, cerise_config, cerise_db)
     return_value(job)
@@ -287,7 +287,6 @@ def create_lie_job(srv, gromacs_config, cerise_config):
     Create a Cerise job using the cerise `srv` and set gromacs
     parameters using `gromacs_config`.
     """
-    print("creating lie job")
     job_name = 'job_{}'.format(cerise_config['task_id'])
     job = try_to_create_job(srv, job_name)
     # job = srv.create_job(job_name)
@@ -301,7 +300,6 @@ def create_lie_job(srv, gromacs_config, cerise_config):
 def try_to_create_job(srv, job_name):
     """Create a new job or relaunch cancel or failed job """
     try:
-        print("Get job by name")
         job = srv.get_job_by_name(job_name)
         print("job already exists")
         state = job.state
