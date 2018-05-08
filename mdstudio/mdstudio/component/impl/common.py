@@ -350,6 +350,7 @@ class CommonSession(ApplicationSession):
                         path_decomposition = re.match('(.*?)\\.?(v\\d+)?\\.json', rel_path)
 
                         with open(path, 'r') as f:
+                            print("path: ", path)
                             schema_entry = {
                                 'schema': json.load(f),
                                 'name': path_decomposition.group(1)

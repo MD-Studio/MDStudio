@@ -75,8 +75,6 @@ def call_cerise_gromit(
         print(msg)
         sim_dict = srv_data
 
-    print("results ", sim_dict)
-
     # Shutdown Service if there are no other jobs running
     yield try_to_close_service(srv_data, cerise_db)
 
@@ -246,10 +244,10 @@ def wait_extract_clean(job, srv, cerise_config, cerise_db):
     wait_for_job(job, cerise_config['log'])
     if job.state == "Success":
         output = get_output(job, cerise_config)
-        cleanup(job, srv, cerise_db)
     else:
         output = None
 
+    cleanup(job, srv, cerise_db)
     return output
 
 
@@ -289,6 +287,7 @@ def create_lie_job(srv, gromacs_config, cerise_config):
     Create a Cerise job using the cerise `srv` and set gromacs
     parameters using `gromacs_config`.
     """
+    print("creating lie job")
     job_name = 'job_{}'.format(cerise_config['task_id'])
     # job = try_to_create_job(srv, job_name)
     job = srv.create_job(job_name)
@@ -302,7 +301,10 @@ def create_lie_job(srv, gromacs_config, cerise_config):
 def try_to_create_job(srv, job_name):
     """Create a new job or relaunch cancel or failed job """
     try:
+        print("Get job by name")
+        print("jobs: ", srv.list_jobs())
         job = srv.get_job_by_name(job_name)
+        print("job already exists")
         state = job.state
         if state in ["Waiting", "Running", "Success"]:
             return job
@@ -343,17 +345,9 @@ def set_input_parameters_lie(job, gromacs_config):
     Set input variables for gromit `job`
     and residues to compute the lie energy.
     """
-    # Key to run the MD simulation
-    md_keys = [x.split('.')[1] for x in gromacs_config.keys()
-               if 'lie_md' in x]
-
     # Pass parameters to cerise job
-    for k in md_keys:
-        job.set_input(k, gromacs_config[k])
-
-    # Finally set residues
-    residues = gromacs_config['residues']
-    job.set_input('residues', residues)
+    for k, val in gromacs_config['parameters'].items():
+        job.set_input(k, val)
 
     return job
 

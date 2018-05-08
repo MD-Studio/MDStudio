@@ -11,39 +11,28 @@ inputs:
     type: File
   forcefield:
     type: string
-    default: "amber99sb"
   periodic_distance:
     type: double
-    default: 1.8
   pressure:
     type: double
-    default: 1.01325
   prfc:
     type: int[]
-    default: [10000, 5000, 50, 0]
   ptau:
     type: double
-    default: 0.5
   residues:
     type: int[]
   resolution:
     type: double
-    default: 0.002
   salinity:
     type: double
-    default: 0.1539976
   sim_time:
     type: double
-    default: 1
   solvent:
     type: string
-    default: "tip3p"
   temperature:
     type: int[]
-    default: [100, 200, 300]
   ttau:
     type: double
-    default: 0.1
     
 outputs:
   gromitout:
