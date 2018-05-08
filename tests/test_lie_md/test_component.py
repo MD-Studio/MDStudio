@@ -10,7 +10,7 @@ workdir = "/tmp/mdstudio"
 if os.path.exists(workdir):
     shutil.rmtree(workdir)
 
-cerise_file = join(workdir, "cerise_config_binac.json")
+cerise_file = join(workdir, "cerise_config_das5.json")
 ligand_file = join(workdir, "compound.pdb")
 protein_file = None
 protein_top = join(workdir, "protein.top")
@@ -36,9 +36,10 @@ class Run_md(ComponentSession):
                  "protein_top": protein_top,
                  "topology_file": topology_file,
                  "include": include,
-                 "residues": residues,
-                 "sim_time": 0.001,
-                 "workdir": workdir})
+                 "workdir": workdir,
+                 "parameters": {
+                     "sim_time": 0.001,
+                     "residues": residues}})
             print("MD results ", r)
 
 
