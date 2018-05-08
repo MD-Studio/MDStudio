@@ -289,8 +289,8 @@ def create_lie_job(srv, gromacs_config, cerise_config):
     """
     print("creating lie job")
     job_name = 'job_{}'.format(cerise_config['task_id'])
-    # job = try_to_create_job(srv, job_name)
-    job = srv.create_job(job_name)
+    job = try_to_create_job(srv, job_name)
+    # job = srv.create_job(job_name)
 
     # Copy gromacs input files
     job = add_input_files_lie(job, gromacs_config)
@@ -302,7 +302,6 @@ def try_to_create_job(srv, job_name):
     """Create a new job or relaunch cancel or failed job """
     try:
         print("Get job by name")
-        print("jobs: ", srv.list_jobs())
         job = srv.get_job_by_name(job_name)
         print("job already exists")
         state = job.state
