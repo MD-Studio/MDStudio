@@ -1,5 +1,5 @@
 
-version: '2'
+version: '3'
 services:
 
     workspace:
@@ -34,17 +34,17 @@ services:
         env_file:
             - .docker.env
 
-    echo:
-        extends:
-            file: docker-compose-common.yml
-            service: base-py3
-        volumes:
-            # mount component
-            - ./components/lie_echo:/app/components/lie_echo
-        environment:
-            - COMPONENT=lie_echo
-        links:
-            - crossbar
+    # echo:
+    #     extends:
+    #         file: docker-compose-common.yml
+    #         service: base-py3
+    #     volumes:
+    #         # mount component
+    #         - ./components/lie_echo:/app/components/lie_echo
+    #     environment:
+    #         - COMPONENT=lie_echo
+    #     links:
+    #         - crossbar
 
     mongo:
         image: mongo:latest
@@ -65,6 +65,25 @@ services:
             - "7001:7001"
         volumes:
             - redis:/data/db
+
+    # LIE components
+    lie_amber:
+      image: lie_amber:test
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - "./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem"
+
+    lie_structures:
+      image: lie_structures:test
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - "./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem"
 
 
 volumes:
