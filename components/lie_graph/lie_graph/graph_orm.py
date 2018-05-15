@@ -301,9 +301,9 @@ class GraphORM(object):
 
         return orm_classes
 
-    def get(self, graph, objects, classes=None):
+    def get_nodes(self, graph, nodes, classes=None):
         """
-        Resolve mapped node or edge classes.
+        Resolve mapped nodes
 
         TODO: extend matching engine to match only key or values and use logical operators on values.
         TODO: now only match single objects to prevent 'unambiguous' mapping
@@ -313,27 +313,20 @@ class GraphORM(object):
 
         :param graph:                       a graph to match against
         :type graph:                        `lie_graph.graph.Graph`
-        :param objects:                     one or more nodes or edges to match against
+        :param objects:                     one or more nodes
         :type objects:                      list
         :param classes:                     additional classes to include in base class when
                                             building custom Graph class
         :type classes:                      list or tuple
         """
 
-        # Are we matching edges or nodes?
-        is_edges = all([type(i) in (tuple, list) for i in objects])
-        if not is_edges:
-
-            is_nodes = all([type(i) in (int, str, unicode) for i in objects])
-            assert is_nodes, 'Query need to be only nodes or only edges not mixed.'
-
-        if len(objects) > 1:
+        if len(nodes) > 1:
             customcls = classes or []
             return self._class_factory(graph._get_class_object(), customcls, exclude_node_edge=True)
 
         # Get the node/edge attributes to match against
         query = []
-        for i in objects:
+        for i in nodes:
             query.extend([(k, v) for k, v in graph.attr(i).items() if not type(v) in (list, dict)])
 
         # query matching based on set operation, does not work for unhashable types
@@ -343,13 +336,54 @@ class GraphORM(object):
             logging.error('Unable to build query')
             query = set([])
 
-        # Use node or edge mapping dictionary
-        mapper = self._node_orm_mapping
-        if is_edges:
-            mapper = self._edge_orm_mapping
+        # Match
+        orm_mapids = [(mapdict['mro_pos'], mapdict['class']) for mapdict in self._node_orm_mapping.values() if mapdict['mapping'].intersection(query)]
+        orm_classes = [c[1] for c in sorted(orm_mapids)]
+
+        # If custom classes
+        if classes:
+            orm_classes.extend(classes)
+
+        return self._class_factory(graph._get_class_object(), orm_classes)
+
+    def get_edges(self, graph, edges, classes=None):
+        """
+        Resolve mapped nodes
+
+        TODO: extend matching engine to match only key or values and use logical operators on values.
+        TODO: now only match single objects to prevent 'unambiguous' mapping
+
+        If there is nothing to map, return the base class which by default is
+        the same class as the Graph instance making the call to the get method.
+
+        :param graph:                       a graph to match against
+        :type graph:                        `lie_graph.graph.Graph`
+        :param objects:                     one or more nodes
+        :type objects:                      list
+        :param classes:                     additional classes to include in base class when
+                                            building custom Graph class
+        :type classes:                      list or tuple
+        """
+
+        if len(edges) > 1:
+            customcls = classes or []
+            return self._class_factory(graph._get_class_object(), customcls, exclude_node_edge=True)
+
+        # Get the node/edge attributes to match against
+        query = []
+        for i in edges:
+            query.extend([(k, v) for k, v in graph.attr(i).items() if not type(v) in (list, dict)])
+
+        # query matching based on set operation, does not work for unhashable types
+        try:
+            query = set(query)
+        except TypeError:
+            logging.error('Unable to build query')
+            query = set([])
 
         # Match
-        orm_mapids = [(mapdict['mro_pos'], mapdict['class']) for mapdict in mapper.values() if mapdict['mapping'].intersection(query)]
+        orm_mapids = [(mapdict['mro_pos'], mapdict['class']) for mapdict in self._edge_orm_mapping.values() if
+                      mapdict['mapping'].intersection(query)]
         orm_classes = [c[1] for c in sorted(orm_mapids)]
 
         # If custom classes

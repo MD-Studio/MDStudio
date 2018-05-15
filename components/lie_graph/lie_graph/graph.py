@@ -838,7 +838,7 @@ class Graph(object):
         if len(edges) == 1 and add_edge_tools:
             custom_orm_cls.append(self.edge_tools)
 
-        base_cls = self.orm.get(self, edges, classes=custom_orm_cls)
+        base_cls = self.orm.get_edges(self, edges, classes=custom_orm_cls)
         w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
         w.edges.set_view(edges)
 
@@ -916,7 +916,7 @@ class Graph(object):
         if len(nodes) == 1 and add_node_tools:
             custom_orm_cls.append(self.node_tools)
 
-        base_cls = self.orm.get(self, nodes, classes=custom_orm_cls)
+        base_cls = self.orm.get_nodes(self, nodes, classes=custom_orm_cls)
         w = base_cls(adjacency=self.adjacency, nodes=self.nodes, edges=self.edges, orm=self.orm)
         w.nodes.set_view(nodes)
 
