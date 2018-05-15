@@ -68,7 +68,7 @@ services:
 
     # LIE components
     lie_amber:
-      image: lie_amber:test
+      image: mdstudio/lie_amber:0.0.1
       links:
         - crossbar
       environment:

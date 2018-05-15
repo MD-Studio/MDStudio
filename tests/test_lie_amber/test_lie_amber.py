@@ -5,7 +5,9 @@ import os
 import shutil
 
 workdir = "/tmp/amber"
-amber_input = os.path.join(os.getcwd(), "input.mol2")
+structure_path = os.path.join(os.getcwd(), "input.mol2")
+with open(structure_path, 'r') as f:
+    amber_input = f.read()
 if os.path.exists(workdir):
     shutil.rmtree(workdir)
 
@@ -18,11 +20,12 @@ class Run_acpype(ComponentSession):
     @chainable
     def on_run(self):
         with self.group_context('mdgroup'):
-            self.call(
+            result = yield self.call(
                 "mdgroup.lie_amber.endpoint.acpype",
                 {"structure": amber_input,
                  "workdir": workdir,
-                 "from_file": True})
+                 "from_file": False})
+            print(result)
 
 
 if __name__ == "__main__":
