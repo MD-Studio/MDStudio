@@ -4,12 +4,10 @@ from mdstudio.runner import main
 import os
 import shutil
 
-workdir = "/tmp/amber"
+workdir = "/tmp/mdstudio/lie_amber"
 structure_path = os.path.join(os.getcwd(), "input.mol2")
 with open(structure_path, 'r') as f:
     amber_input = f.read()
-if os.path.exists(workdir):
-    shutil.rmtree(workdir)
 
 
 class Run_acpype(ComponentSession):

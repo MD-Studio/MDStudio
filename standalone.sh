@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-docker-compose up -d crossbar
+export WORKDIR=/tmp/mdstudio
+docker-compose up -d crossbar lie_amber

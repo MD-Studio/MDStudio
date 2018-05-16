@@ -74,7 +74,7 @@ services:
       environment:
         - CROSSBAR_HOST=crossbar
       volumes:
-        - "./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem"
+        - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
 
     lie_structures:
       image: lie_structures:test
@@ -83,7 +83,7 @@ services:
       environment:
         - CROSSBAR_HOST=crossbar
       volumes:
-        - "./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem"
+        - ${WORKDIR}/lie_structures:/tmp/mdstudio/lie_structures
 
 
 volumes:
