@@ -151,8 +151,8 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
 
         # Get 'required' attribute
         required = schema_block.get('required', [])
-        if isinstance(required, list) and len(required):
-            del schema_block['required']
+        if not isinstance(required, list):
+            required = []
 
         # Store default data or None
         if attributes.get('default') is not None:
