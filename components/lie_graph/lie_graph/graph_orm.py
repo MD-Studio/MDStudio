@@ -58,25 +58,16 @@ class GraphORM(object):
         for n in reversed(classes):
             if n not in base_cls_mro:
                 base_cls_mro.insert(0, n)
-        #print(base_cls_mro)
+
         # Build the new base class
-        base_cls_name = base_cls.__name__ or self._class_name
-        base_cls = type(base_cls_name, tuple(base_cls_mro), {})
-        return base_cls
-
-    def _create_map_id(self, mapper):
-
-        id = len(mapper) + 1
-        while id in mapper:
-            id += 1
-
-        return id
+        base_cls_name = base_cls.__name__ or self.class_name
+        return type(base_cls_name, tuple(base_cls_mro), {})
 
     @staticmethod
     def _map_attributes(mapper):
 
         matching_rules = {}
-        for rules in [map['mapping'] for map in mapper.values()]:
+        for rules in [orm_map['mapping'] for orm_map in mapper.values()]:
             for rule in rules:
                 if rule[0] not in matching_rules:
                     matching_rules[rule[0]] = []
@@ -111,6 +102,44 @@ class GraphORM(object):
         """
 
         return self._map_attributes(self._edge_orm_mapping)
+
+    def query(self, graph, target, mapping):
+        """
+        Set based key/value pair matching
+
+        Simple query that performs a literal match node or edge attributes
+        and mapped attribute key/value pairs using set based intersection
+        operation.
+
+        :param graph:    a graph to match against
+        :type graph:     :lie_graph:graph:Graph
+        :param target:   nodes or edges
+        :type target:    :py:list
+        :param mapping:  node or edge mapping
+        :type mapping:   :py:dict
+
+        :return:         mapped custom classes
+        :rtype:          :py:list
+        """
+
+        # Get the node/edge attributes to match against
+        query = []
+        for i in target:
+            query.extend([(k, v) for k, v in graph.attr(i).items() if not type(v) in (list, dict)])
+
+        # query matching based on set operation, does not work for unhashable types
+        try:
+            query = set(query)
+        except TypeError:
+            logging.error('Unable to build query')
+            query = set([])
+
+        # Match and sort mapped classes according to preferred MRO order (mro_pos)
+        orm_mapids = [(mapdict['mro_pos'], mapdict['class']) for mapdict in mapping.values() if
+                      mapdict['mapping'].intersection(query)]
+        orm_classes = [c[1] for c in sorted(orm_mapids)]
+
+        return orm_classes
 
     def map_node(self, cls, *args, **kwargs):
         """
@@ -165,7 +194,7 @@ class GraphORM(object):
         matching_rules = self._collect_matching_rules(args, kwargs)
 
         # Add to node mapping dictionary
-        node_mapper_id = self._create_map_id(self._node_orm_mapping)
+        node_mapper_id = len(self._node_orm_mapping) + 1
         self._node_orm_mapping[node_mapper_id] = {'mro_pos': mro_pos,
                                                   'class': cls,
                                                   'mapping': set(matching_rules)}
@@ -224,16 +253,16 @@ class GraphORM(object):
         matching_rules = self._collect_matching_rules(args, kwargs)
 
         # Add to node mapping dictionary
-        edge_mapper_id = self._create_map_id(self._edge_orm_mapping)
+        edge_mapper_id = len(self._edge_orm_mapping) + 1
         self._edge_orm_mapping[edge_mapper_id] = {'mro_pos': mro_pos,
                                                   'class': cls,
                                                   'mapping': set(matching_rules)}
         return edge_mapper_id
 
-    def update(self, orm):
+    def update_nodes(self, orm):
         """
-        Update the current node and edge orm mapping with those defined by
-        another orm instance
+        Update the current node orm mapping with those defined by another orm
+        instance
 
         :param orm: Source orm class to update from
         :type orm:  GraphORM
@@ -241,155 +270,113 @@ class GraphORM(object):
 
         assert isinstance(orm, GraphORM), 'Requires GraphORM class to update from'
 
-        # Update node mapping
-        for node_cls, node_map in orm._node_orm_mapping.items():
-            if node_cls not in self._node_orm_mapping:
-                self._node_orm_mapping[node_cls] = node_map
-            else:
-                mapping = list(self._node_orm_mapping[node_cls])
-                if node_map in mapping:
-                    logging.warning('Reassign node mapping {0}'.format(node_map))
-                mapping.append(node_map)
-                self._node_orm_mapping[node_cls] = set(mapping)
+        # Update node mapping for all unique mappings in other ORM
+        to_add = []
+        for other_id, other_mapping in orm._node_orm_mapping.items():
+            similar = False
+            for self_mapping in self._node_orm_mapping.values():
+                if other_mapping['class'] == self_mapping['class'] and other_mapping['mapping'] == self_mapping['mapping']:
+                    similar = True
 
-        # Update edge mapping
-        for edge_cls, edge_map in orm._edge_orm_mapping.items():
-            if edge_cls not in self._edge_orm_mapping:
-                self._edge_orm_mapping[edge_cls] = edge_map
-            else:
-                mapping = list(self._edge_orm_mapping[edge_cls])
-                if edge_map in mapping:
-                    logging.warning('Reassign edge mapping {0}'.format(edge_map))
-                mapping.append(edge_map)
-                self._edge_orm_mapping[edge_cls] = set(mapping)
+            if not similar:
+                to_add.append(other_id)
 
-    def resolve_mro(self, graph, objects, classes=None):
+        for map_id in to_add:
+            node_mapper_id = len(self._node_orm_mapping) + 1
+            self._node_orm_mapping[node_mapper_id] = orm._node_orm_mapping[map_id]
 
-        # Are we matching edges or nodes?
-        is_edges = all([type(i) in (tuple, list) for i in objects])
-        if not is_edges:
+    def update_edges(self, orm):
+        """
+        Update the current edges orm mapping with those defined by another orm
+        instance
 
-            is_nodes = all([type(i) in (int, str, unicode) for i in objects])
-            assert is_nodes, 'Query need to be only nodes or only edges not mixed.'
+        :param orm: Source orm class to update from
+        :type orm:  GraphORM
+        """
 
-        if len(objects) > 1:
-            customcls = classes or []
-            return self._class_factory(graph._get_class_object(), customcls, exclude_node_edge=True)
+        assert isinstance(orm, GraphORM), 'Requires GraphORM class to update from'
 
-        # Get the node/edge attributes to match against
-        query = []
-        for i in objects:
-            query.extend([(k, v) for k, v in graph.attr(i).items() if not type(v) in (list, dict)])
+        # Update edge mapping for all unique mappings in other ORM
+        to_add = []
+        for other_id, other_mapping in orm._edge_orm_mapping.items():
+            similar = False
+            for self_mapping in self._edge_orm_mapping.values():
+                if other_mapping['class'] == self_mapping['class'] and other_mapping['mapping'] == self_mapping['mapping']:
+                    similar = True
 
-        # query matching based on set operation, does not work for unhashable types
-        try:
-            query = set(query)
-        except TypeError:
-            logging.error('Unable to build query')
-            query = set([])
+            if not similar:
+                to_add.append(other_id)
 
-        # Use node or edge mapping dictionary
-        mapper = self._node_orm_mapping
-        if is_edges:
-            mapper = self._edge_orm_mapping
-
-        # Match
-        orm_mapids = [(mapdict['mro_pos'], mapdict['class']) for mapdict in mapper.values() if mapdict['mapping'].intersection(query)]
-        orm_classes = [c[1] for c in sorted(orm_mapids)]
-
-        # If custom classes
-        if classes:
-            orm_classes.extend(classes)
-
-        return orm_classes
+        for map_id in to_add:
+            node_mapper_id = len(self._edge_orm_mapping) + 1
+            self._node_orm_mapping[node_mapper_id] = orm._edge_orm_mapping[map_id]
 
     def get_nodes(self, graph, nodes, classes=None):
         """
         Resolve mapped nodes
 
-        TODO: extend matching engine to match only key or values and use logical operators on values.
-        TODO: now only match single objects to prevent 'unambiguous' mapping
+        Node mapping and construction of custom classes is only performed when
+        a single node is provided.
+        For multiple nodes or when the query yields no result, the same class
+        is returned base on the Graph instance making the call to the get
+        method including any custom classes defined.
 
-        If there is nothing to map, return the base class which by default is
-        the same class as the Graph instance making the call to the get method.
+        :param graph:    a graph to match against
+        :type graph:     :lie_graph:graph:Graph
+        :param nodes:    one or more nodes
+        :type nodes:     :py:list
+        :param classes:  additional classes to include in the base class when
+                         building the custom Graph class
+        :type classes:   :py:list or :py:tuple
 
-        :param graph:                       a graph to match against
-        :type graph:                        `lie_graph.graph.Graph`
-        :param objects:                     one or more nodes
-        :type objects:                      list
-        :param classes:                     additional classes to include in base class when
-                                            building custom Graph class
-        :type classes:                      list or tuple
+        :return:         new Graph class instance
         """
 
         if len(nodes) > 1:
             customcls = classes or []
             return self._class_factory(graph._get_class_object(), customcls, exclude_node_edge=True)
 
-        # Get the node/edge attributes to match against
-        query = []
-        for i in nodes:
-            query.extend([(k, v) for k, v in graph.attr(i).items() if not type(v) in (list, dict)])
-
-        # query matching based on set operation, does not work for unhashable types
-        try:
-            query = set(query)
-        except TypeError:
-            logging.error('Unable to build query')
-            query = set([])
-
-        # Match
-        orm_mapids = [(mapdict['mro_pos'], mapdict['class']) for mapdict in self._node_orm_mapping.values() if mapdict['mapping'].intersection(query)]
-        orm_classes = [c[1] for c in sorted(orm_mapids)]
+        # Perform query
+        orm_classes = self.query(graph, nodes, self._node_orm_mapping)
 
         # If custom classes
         if classes:
             orm_classes.extend(classes)
 
+        # Build new (custom) Graph class
         return self._class_factory(graph._get_class_object(), orm_classes)
 
     def get_edges(self, graph, edges, classes=None):
         """
-        Resolve mapped nodes
+        Resolve mapped edges
 
-        TODO: extend matching engine to match only key or values and use logical operators on values.
-        TODO: now only match single objects to prevent 'unambiguous' mapping
+        Edge mapping and construction of custom classes is only performed when
+        a single edge is provided.
+        For multiple edges or when the query yields no result, the same class
+        is returned base on the Graph instance making the call to the get
+        method including any custom classes defined.
 
-        If there is nothing to map, return the base class which by default is
-        the same class as the Graph instance making the call to the get method.
+        :param graph:    a graph to match against
+        :type graph:     :lie_graph:graph:Graph
+        :param edges:    one or more edges
+        :type edges:     :py:list
+        :param classes:  additional classes to include in the base class when
+                         building the custom Graph class
+        :type classes:   :py:list or :py:tuple
 
-        :param graph:                       a graph to match against
-        :type graph:                        `lie_graph.graph.Graph`
-        :param objects:                     one or more nodes
-        :type objects:                      list
-        :param classes:                     additional classes to include in base class when
-                                            building custom Graph class
-        :type classes:                      list or tuple
+        :return:         new Graph class instance
         """
 
         if len(edges) > 1:
             customcls = classes or []
             return self._class_factory(graph._get_class_object(), customcls, exclude_node_edge=True)
 
-        # Get the node/edge attributes to match against
-        query = []
-        for i in edges:
-            query.extend([(k, v) for k, v in graph.attr(i).items() if not type(v) in (list, dict)])
-
-        # query matching based on set operation, does not work for unhashable types
-        try:
-            query = set(query)
-        except TypeError:
-            logging.error('Unable to build query')
-            query = set([])
-
-        # Match
-        orm_mapids = [(mapdict['mro_pos'], mapdict['class']) for mapdict in self._edge_orm_mapping.values() if
-                      mapdict['mapping'].intersection(query)]
-        orm_classes = [c[1] for c in sorted(orm_mapids)]
+        # Perform query
+        orm_classes = self.query(graph, edges, self._edge_orm_mapping)
 
         # If custom classes
         if classes:
             orm_classes.extend(classes)
 
+        # Build new (custom) Graph class
         return self._class_factory(graph._get_class_object(), orm_classes)
