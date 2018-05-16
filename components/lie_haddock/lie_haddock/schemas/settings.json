@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "type": "object",
+  "properties": {
+    "settings": {
+      "description": "lie_haddock component settings",
+      "type": "object",
+      "properties": {
+        "haddock_schema_version": {
+          "description": "Haddock JSON schema version to use",
+          "default": "v1",
+          "type": "string"
+        },
+        "haddock_server_url": {
+          "description": "Haddock server XMLRPC endpoint URL",
+          "default": "http://milou.science.uu.nl/cgi/services/HADDOCK2.2/haddockserver-xmlrpc.cgi",
+          "type": "string"
+        },
+        "haddock_username": {
+          "description": "Default haddock server username",
+          "type": "string"
+        },
+        "haddock_password": {
+          "description": "Default haddock server password",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "settings"
+  ]
+}

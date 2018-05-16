@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Haddock macromolecular docking parameter definition",
+  "type": "object",
+  "required": ["project_id"],
+  "properties": {
+    "project_id": {
+      "description": "Haddock project identifier",
+      "type": "string"
+    },
+    "rdc": {
+      "description": "Residual Dipolar Coupling restraints",
+      "haddock_type": "RDCParameters",
+      "type": "object",
+      "properties": {
+        "choice": {
+          "default": "SANI",
+          "description": "RDC type",
+          "type": "string",
+          "enum": [
+            "SANI",
+            "XRDC",
+            "VANGLE"
+          ]
+        },
+        "r": {
+          "default": 0.4,
+          "description": "",
+          "type": "number"
+        },
+        "d": {
+          "default": 8.0,
+          "description": "",
+          "type": "number"
+        },
+        "rdcdata": {
+          "default": "",
+          "description": "HADDOCK TBL file containing RDC restraints",
+          "haddock_type": "CNSRestraintFile",
+          "type": "string"
+        },
+        "constants": {
+          "description": "SANI energy constants",
+          "haddock_type": "ExtStageConstants",
+          "type": "object",
+          "properties": {
+            "firstit": {
+              "default": 0,
+              "description": "First iteration",
+              "type": "integer",
+              "enum": [0,1,2]
+            },
+            "lastit": {
+              "default": 2,
+              "description": "Last iteration",
+              "type": "integer",
+              "enum": [0,1,2]
+            },
+            "stages": {
+              "description": "Energy constants per stage",
+              "haddock_type": "StageConstants",
+              "type": "object",
+              "properties": {
+                "cool1": {
+                  "default": 1.0,
+                  "description": "Cool 1",
+                  "type": "number"
+                },
+                "cool2": {
+                  "default": 1.0,
+                  "description": "Cool 2",
+                  "type": "number"
+                },
+                "cool3": {
+                  "default": 1.0,
+                  "description": "Cool 3",
+                  "type": "number"
+                },
+                "hot": {
+                  "default": 0.1,
+                  "description": "Hot",
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "fin_bor": {
+          "description": "VEAN energy constants",
+          "haddock_type": "StageConstants",
+          "type": "object",
+          "properties": {
+            "cool1": {
+              "default": 40.0,
+              "description": "Cool 1",
+              "type": "number"
+            },
+            "cool2": {
+              "default": 40.0,
+              "description": "Cool 2",
+              "type": "number"
+            },
+            "cool3": {
+              "default": 40.0,
+              "description": "Cool 3",
+              "type": "number"
+            },
+            "hot": {
+              "default": 10.0,
+              "description": "Hot",
+              "type": "number"
+            }
+          }
+        },
+        "fin_cen": {
+          "description": "VEAN energy constants",
+          "haddock_type": "StageConstants",
+          "type": "object",
+          "properties": {
+            "cool1": {
+              "default": 10.0,
+              "description": "Cool 1",
+              "type": "number"
+            },
+            "cool2": {
+              "default": 10.0,
+              "description": "Cool 2",
+              "type": "number"
+            },
+            "cool3": {
+              "default": 10.0,
+              "description": "Cool 3",
+              "type": "number"
+            },
+            "hot": {
+              "default": 2.5,
+              "description": "Hot",
+              "type": "number"
+            }
+          }
+        },
+        "ini_bor": {
+          "description": "VEAN energy constants",
+          "haddock_type": "StageConstants",
+          "type": "object",
+          "properties": {
+            "cool1": {
+              "default": 10.0,
+              "description": "Cool 1",
+              "type": "number"
+            },
+            "cool2": {
+              "default": 40.0,
+              "description": "Cool 2",
+              "type": "number"
+            },
+            "cool3": {
+              "default": 40.0,
+              "description": "Cool 3",
+              "type": "number"
+            },
+            "hot": {
+              "default": 1.0,
+              "description": "Hot",
+              "type": "number"
+            }
+          }
+        },
+        "ini_cen": {
+          "description": "VEAN energy constants",
+          "haddock_type": "StageConstants",
+          "type": "object",
+          "properties": {
+            "cool1": {
+              "default": 2.5,
+              "description": "Cool 1",
+              "type": "number"
+            },
+            "cool2": {
+              "default": 10.0,
+              "description": "Cool 2",
+              "type": "number"
+            },
+            "cool3": {
+              "default": 10.0,
+              "description": "Cool 3",
+              "type": "number"
+            },
+            "hot": {
+              "default": 0.25,
+              "description": "Hot",
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  }
+}

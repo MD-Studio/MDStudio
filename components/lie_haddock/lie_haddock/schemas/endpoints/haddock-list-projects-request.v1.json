@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "List the status of all or a selection of Haddock docking projects for a user",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "projects": {
+      "description": "List status for specific projects",
+      "default": [],
+      "type": "array"
+    }
+  }
+}
