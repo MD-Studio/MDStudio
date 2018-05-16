@@ -63,7 +63,7 @@ def resolve_json_ref(graph, **kwargs):
             # update target node dictionary
             if not def_root.get('document_path'):
                 for k, v in def_root.nodes[def_root.nid].items():
-                    if not k in def_target:
+                    if k not in def_target:
                         def_target.set(k, v)
 
             if len(def_graph) > 1:
@@ -115,8 +115,8 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
     json_schema = open_anything(schema)
     try:
         json_schema = json.load(json_schema)
-    except (IOError, ValueError), e:
-        logging.error('Unable to decode JSON string: {0}'.format(e))
+    except (IOError, ValueError) as error:
+        logging.error('Unable to decode JSON string: {0}'.format(error))
         return
 
     if not isinstance(graph, GraphAxis):
@@ -151,8 +151,8 @@ def read_json_schema(schema, graph=None, node_key_tag=None, edge_key_tag=None, e
 
         # Get 'required' attribute
         required = schema_block.get('required', [])
-        if isinstance(required, list) and len(required):
-            del schema_block['required']
+        if not isinstance(required, list):
+            required = []
 
         # Store default data or None
         if attributes.get('default') is not None:

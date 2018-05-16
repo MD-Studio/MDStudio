@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Haddock project remove parameter response",
+  "type": "object",
+  "required": [
+    "project_id",
+    "success"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "project_id": {
+      "description": "Haddock project identifier",
+      "type": "string"
+    },
+    "success": {
+      "description": "Removal was successful",
+      "type": "boolean"
+    }
+  }
+}

@@ -7,7 +7,16 @@ Python runner for lie_haddock module unit tests, run as:
 """
 
 import os
+import sys
 import unittest2
+import logging
+
+# Init basic logging
+logging.basicConfig(level=logging.INFO)
+
+# Add modules in package to path so we can import them
+modulepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.insert(0, modulepath)
 
 
 def module_test_suite():
@@ -17,8 +26,8 @@ def module_test_suite():
     loader = unittest2.TestLoader()
 
     print('Running lie_haddock unittests')
-    searchpath = os.path.join(os.path.dirname(__file__), 'module/')
-    suite = loader.discover(searchpath, pattern='module_*.py')
+    testpath = os.path.join(os.path.dirname(__file__), 'module')
+    suite = loader.discover(testpath, pattern='module_*.py')
     runner = unittest2.TextTestRunner(verbosity=2)
     runner.run(suite)
 

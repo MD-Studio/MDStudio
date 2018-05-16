@@ -58,13 +58,14 @@ class TestGraphORM(unittest2.TestCase):
         self.graph = read_tgf(self._gpf_graph)
 
         self.orm = GraphORM()
-        self.orm.map_edge(ORMtestMo, {'label': 'mo'})
-        self.orm.map_edge(ORMtestBi, {'label': 'bi'})
-        self.orm.map_node(ORMtestTgf6, {'key': 'six'})
-        self.orm.map_node(ORMtestTgf9, {'key': 'nine'})
+        self.orm.map_edge(ORMtestMo, label='mo')
+        self.orm.map_edge(ORMtestBi, label='bi')
+        self.orm.map_node(ORMtestTgf6, key='six')
+        self.orm.map_node(ORMtestTgf9, key='nine', ids='edi')
 
         self.graph.orm = self.orm
         self.graph.nodes[6]['add'] = 6
+        self.graph.nodes[6]['ids'] = 'edi'
 
     def test_graph_orm_exceptions(self):
         """
@@ -72,10 +73,6 @@ class TestGraphORM(unittest2.TestCase):
         """
 
         base_cls = self.graph._get_class_object()
-
-        # Only perform orm lookup for a list with only nodes or edges, not mixed.
-        self.assertRaises(AssertionError, self.orm.get, self.graph, (3.4, 5), base_cls)
-        self.assertRaises(AssertionError, self.orm.get, self.graph, ((1, 2), 'node'), base_cls)
 
         # Mapper only accepts classes
         self.assertRaises(AssertionError, self.orm.map_node, 'not_a_class', {'key': 'two'})
@@ -90,8 +87,8 @@ class TestGraphORM(unittest2.TestCase):
         Test if all nodes are correctly mapped
         """
 
-        self.assertItemsEqual(self.graph.orm.mapped_node_types.keys(), ['key'])
-        self.assertItemsEqual(self.graph.orm.mapped_node_types.values()[0], ['nine', 'six'])
+        self.assertItemsEqual(self.graph.orm.mapped_node_types.keys(), ['ids', 'key'])
+        self.assertItemsEqual(self.graph.orm.mapped_node_types.values()[0], ['edi'])
 
     def test_graph_orm_mapped_edges(self):
         """
@@ -150,11 +147,11 @@ class TestGraphORM(unittest2.TestCase):
 
     def test_graph_orm_inherit(self):
         """
-        Test inheritence of non-package classes in ORM generated classes
+        Test inheritance of non-package classes in ORM generated classes
         """
 
         # Turn inheritance of
-        self.graph.orm._inherit = False
+        self.graph.orm.inherit = False
 
         # First call to ORM from base, node 6 should still have 'add' attribute
         node6 = self.graph.getnodes(6)
@@ -163,3 +160,19 @@ class TestGraphORM(unittest2.TestCase):
         # Second call to ORM from node 6, node 9 should not have 'add'
         node9 = node6.getnodes(9)
         self.assertFalse(hasattr(node9, 'add'))
+
+    def test_graph_mro(self):
+        """
+        Test python Method Resolution Order management
+        """
+
+        # Default behaviour
+        d = self.graph.orm.get_nodes(self.graph, [6])
+        dmro = [cls.__name__ for cls in d.mro()]
+        self.assertEqual(dmro, ['Graph', 'ORMtestTgf6', 'ORMtestTgf9', 'Graph', 'object'])
+
+        # ORMtestTgf9 first
+        self.graph.orm._node_orm_mapping[2]['mro_pos'] = -10
+        d = self.graph.orm.get_nodes(self.graph, [6])
+        dmro = [cls.__name__ for cls in d.mro()]
+        self.assertEqual(dmro, ['Graph', 'ORMtestTgf9', 'ORMtestTgf6', 'Graph', 'object'])

@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Haddock macromolecular docking partner definition",
+  "type": "object",
+  "required": ["project_id"],
+  "properties": {
+    "project_id": {
+      "description": "Haddock project identifier",
+      "type": "string"
+    },
+    "p": {
+      "description": "Partner molecule",
+      "haddock_type": "HaddockPartnerParameters",
+      "type": "object",
+      "properties": {
+        "segid": {
+          "description": "Segid to use during docking",
+          "type": "string",
+          "enum": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+        },
+        "moleculetype": {
+          "default": "Protein",
+          "description": "Type of molecule to dock",
+          "type": "string",
+          "enum": [
+            "Protein",
+            "Protein-DNA",
+            "Protein-RNA",
+            "DNA",
+            "RNA"
+          ]
+        },
+        "charged_cter": {
+          "default": false,
+          "description": "Use charged C-terminus?",
+          "type": "boolean"
+        },
+        "charged_nter": {
+          "default": false,
+          "description": "Use charged N-terminus?",
+          "type": "boolean"
+        },
+        "auto_his": {
+          "default": true,
+          "description": "Use automatic definition of histidine protonation states?",
+          "type": "boolean"
+        },
+        "his": {
+          "default": [],
+          "description": "Histidine protonation states",
+          "haddock_type": "HistidineStateArray",
+          "type": "array"
+        },
+        "r": {
+          "description": "Restraint definition",
+          "haddock_type": "RestraintsInterface",
+          "type": "object",
+          "properties": {
+            "activereslist": {
+              "default": "",
+              "description": "List of active residues for AIRs",
+              "type": "string"
+            },
+            "auto_passive": {
+              "default": false,
+              "description": "Automatically define passive restraints as neighbours of active restraints",
+              "type": "boolean"
+            },
+            "passivereslist": {
+              "default": "",
+              "description": "List of passive residues for AIRs",
+              "type": "string"
+            }
+          }
+        },
+        "semiflex": {
+          "description": "Side-chains and backbone of these residues will be allowed to move during semi-flexible refinement",
+          "haddock_type": "SemiflexSegmentList",
+          "type": "object",
+          "properties": {
+            "mode": {
+              "default": "automatic",
+              "description": "",
+              "type": "string",
+              "enum": ["manual", "automatic", "full"]
+            },
+            "segments": {
+              "description": "Semi-flexible segments",
+              "haddock_type": "RangeArray",
+              "type": "array"
+            }
+          }
+        },
+        "fullyflex": {
+          "description": "These segments will be allowed to move at all stages of it1",
+          "haddock_type": "SegmentList",
+          "type": "object",
+          "properties": {
+            "segments": {
+              "description": "Fully flexible segments",
+              "haddock_type": "RangeArray",
+              "type": "array"
+            }
+          }
+        },
+        "pdb": {
+          "description": "",
+          "haddock_type": "PDBData",
+          "type": "object",
+          "properties": {
+            "chain": {
+              "default": "All",
+              "description": "Which chain to use (chain ID)",
+              "type": "string",
+              "enum": ["All", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+            },
+            "mode": {
+              "default": "submit",
+              "description": "Where is the structure provided?",
+              "type": "string",
+              "enum": ["submit", "download"]
+            },
+            "pdbdata": {
+              "description": "",
+              "type": "string"
+            },
+            "code": {
+              "description": "PDB ID",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

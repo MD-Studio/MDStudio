@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Haddock Relaxation anisotropy restraints definition",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "description": "Haddock project identifier",
+      "type": "string"
+    },
+    "dan": {
+      "description": "Relaxation anisotropy restraints",
+      "haddock_type": "DANIParameters",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "choice": {
+          "default": "DANI",
+          "description": "Anisotropy type",
+          "type": "string",
+          "enum": ["DANI"]
+        },
+        "anis": {
+          "default": 1.557,
+          "description": "D",
+          "type": "number",
+          "minimum": 0
+        },
+        "r": {
+          "default": 0.455,
+          "description": "R",
+          "type": "number",
+          "minimum": 0
+        },
+        "tc": {
+          "default": 9.771,
+          "description": "Correlation time",
+          "type": "number",
+          "minimum": 0
+        },
+        "wh": {
+          "default": 599.91,
+          "description": "H frequency",
+          "type": "number",
+          "minimum": 0
+        },
+        "wn": {
+          "default": 60.82,
+          "description": "N frequency",
+          "type": "number",
+          "minimum": 0
+        },
+        "danidata": {
+          "description": "Anisotropy file",
+          "haddock_type": "CNSRestraintFile",
+          "type": "string"
+        },
+        "constants": {
+          "description": "DANI energy constants",
+          "haddock_type": "ExtStageConstants",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "firstit": {
+              "default": 0,
+              "description": "First iteration",
+              "type": "integer",
+              "enum": [0,1,2]
+            },
+            "lastit": {
+              "default": 2,
+              "description": "Last iteration",
+              "type": "integer",
+              "enum": [0,1,2]
+            },
+            "stages": {
+              "description": "",
+              "haddock_type": "StageConstants",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "cool1": {
+                  "default": 5.0,
+                  "description": "Cool 1",
+                  "type": "number",
+                  "minimum": 0
+                },
+                "cool2": {
+                  "default": 10.0,
+                  "description": "Cool 2",
+                  "type": "number",
+                  "minimum": 0
+                },
+                "cool3": {
+                  "default": 10.0,
+                  "description": "Cool 3",
+                  "type": "number",
+                  "minimum": 0
+                },
+                "hot": {
+                  "default": 1.0,
+                  "description": "Hot",
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

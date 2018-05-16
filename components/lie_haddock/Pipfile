@@ -6,7 +6,3 @@ name = "pypi"
 [packages]
 mdstudio = {path = "../../mdstudio/", editable = true}
 local = {path = "./", editable = true}
-cmd2 = "*"
-
-[dev-packages]
-unittest2 =  "*"
