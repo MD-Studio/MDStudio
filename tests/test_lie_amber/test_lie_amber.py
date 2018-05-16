@@ -2,7 +2,6 @@ from mdstudio.deferred.chainable import chainable
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
 import os
-import shutil
 
 workdir = "/tmp/mdstudio/lie_amber"
 structure_path = os.path.join(os.getcwd(), "input.mol2")
@@ -23,7 +22,7 @@ class Run_acpype(ComponentSession):
                 {"structure": amber_input,
                  "workdir": workdir,
                  "from_file": False})
-            print(result)
+        assert all(os.path.isfile(p) or os.path.isdir(p) for p in result.values())
 
 
 if __name__ == "__main__":
