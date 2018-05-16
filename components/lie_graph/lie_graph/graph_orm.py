@@ -12,12 +12,14 @@ import logging
 
 class GraphORM(object):
 
+    __slots__ = ('_node_orm_mapping', '_edge_orm_mapping', 'class_name', 'inherit')
+
     def __init__(self, inherit=True):
 
         self._node_orm_mapping = {}
         self._edge_orm_mapping = {}
-        self._class_name = 'Graph'
-        self._inherit = inherit
+        self.class_name = 'Graph'
+        self.inherit = inherit
 
     def _class_factory(self, base_cls, classes, exclude_node_edge=False):
         """
@@ -44,7 +46,7 @@ class GraphORM(object):
         base_cls_mro = [c for c in base_cls.mro() if not self.__module__ == c.__module__]
 
         # Inherit previous custom modules or only graph module classes
-        if not self._inherit:
+        if not self.inherit:
             base_cls_mro = [c for c in base_cls_mro if c.__module__.startswith('lie_graph')]
 
         # Prevent inheritance of node/edge tools for instance for a query
