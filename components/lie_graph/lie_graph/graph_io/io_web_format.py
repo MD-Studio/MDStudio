@@ -168,7 +168,7 @@ def json_decode_params(param):
     # Try JSON decode
     try:
         param = json.loads(param, encoding='utf8')
-    except ValueError, e:
+    except ValueError:
 
         # Last resort to parse nasty Spyder multi-lines in single string
         s = param.strip('"')
