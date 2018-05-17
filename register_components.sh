@@ -15,7 +15,7 @@ for c in $( ls components ); do
 done
 
 # Launch services. two times lie_md in roundrobin
-SERVICES=( "lie_atb" "lie_echo" "lie_md" "lie_md" "lie_plants_docking" "lie_structures" "pylie" )
+SERVICES=( "lie_atb" "lie_echo" "lie_md" "lie_plants_docking" "lie_structures")
 
 for x in ${SERVICES[@]};do
     echo "Registering component: ${x}"

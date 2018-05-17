@@ -76,6 +76,15 @@ services:
       volumes:
         - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
 
+    lie_pylie:
+      image: mdstudio/lie_pylie:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
+        
     lie_structures:
       image: lie_structures:test
       links:
