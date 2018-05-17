@@ -76,6 +76,15 @@ services:
       volumes:
         - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
 
+    lie_plants_docking:
+      image: mdstudio/lie_plants_docking:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_plants_docking:/tmp/mdstudio/lie_plants_docking
+        
     lie_pylie:
       image: mdstudio/lie_pylie:0.0.1
       links:
