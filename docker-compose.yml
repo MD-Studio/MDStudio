@@ -1,4 +1,3 @@
-
 version: '3'
 services:
 
@@ -76,6 +75,15 @@ services:
       volumes:
         - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
 
+    lie_atb:
+      image: mdstudio/lie_atb:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
+        
     lie_plants_docking:
       image: mdstudio/lie_plants_docking:0.0.1
       links:
