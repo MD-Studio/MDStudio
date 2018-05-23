@@ -84,15 +84,15 @@ services:
       volumes:
         - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
 
-    # lie_haddock:
-    #   # image: mdstudio/lie_haddock:0.0.1
-    #   image: lie_haddock:test
-    #   links:
-    #     - crossbar
-    #   environment:
-    #     - CROSSBAR_HOST=crossbar
-    #   volumes:
-    #     - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
+    lie_haddock:
+      # image: mdstudio/lie_haddock:0.0.1
+      image: lie_haddock:test
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
 
     lie_plants_docking:
       image: mdstudio/lie_plants_docking:0.0.1
