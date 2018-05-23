@@ -85,8 +85,7 @@ services:
         - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
 
     lie_haddock:
-      # image: mdstudio/lie_haddock:0.0.1
-      image: lie_haddock:test
+      image: mdstudio/lie_haddock:0.0.1
       links:
         - crossbar
       environment:
