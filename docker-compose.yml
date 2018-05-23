@@ -83,7 +83,17 @@ services:
         - CROSSBAR_HOST=crossbar
       volumes:
         - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
-        
+
+    lie_haddock:
+      # image: mdstudio/lie_haddock:0.0.1
+      image: lie_haddock:test
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
+
     lie_plants_docking:
       image: mdstudio/lie_plants_docking:0.0.1
       links:
@@ -92,7 +102,7 @@ services:
         - CROSSBAR_HOST=crossbar
       volumes:
         - ${WORKDIR}/lie_plants_docking:/tmp/mdstudio/lie_plants_docking
-        
+
     lie_pylie:
       image: mdstudio/lie_pylie:0.0.1
       links:
@@ -101,9 +111,9 @@ services:
         - CROSSBAR_HOST=crossbar
       volumes:
         - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
-        
+
     lie_structures:
-      image: lie_structures:test
+      image: mdstudio/lie_structures:0.0.1
       links:
         - crossbar
       environment:
