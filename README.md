@@ -70,7 +70,7 @@ Install the virtual environment with:
 
 You can install the virtual environment in your directory by enabling the environment variable:
 ```
-PIPENV_VENV_IN_PROJECT = 1
+PIPENV_VENV_IN_PROJECT=1
 ```
 For more information see [this](https://docs.pipenv.org/advanced.html#custom-virtual-environment-location).
   
