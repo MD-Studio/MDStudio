@@ -4,12 +4,19 @@ from mdstudio.runner import main
 import os
 import shutil
 
-workdir = "/tmp/plants_docking"
-protein_file = os.path.join(os.getcwd(), "DT_conf_1.mol2")
-ligand_file = os.path.join(os.getcwd(), "ligand.mol2")
-exec_path = os.path.abspath("../../bin/plants_linux")
-if os.path.exists(workdir):
-    shutil.rmtree(workdir)
+
+def copy_to_workdir(file_path, workdir):
+    shutil.copy(file_path, workdir)
+    base = os.path.basename(file_path)
+    return os.path.join(workdir, base)
+
+
+workdir = "/tmp/mdstudio/lie_plants_docking"
+protein_file = copy_to_workdir(
+    os.path.join(os.getcwd(), "DT_conf_1.mol2"), workdir)
+ligand_file = copy_to_workdir(
+    os.path.join(os.getcwd(), "ligand.mol2"), workdir)
+exec_path = copy_to_workdir("plants_linux", workdir)
 
 
 class Run_docking(ComponentSession):
@@ -20,7 +27,7 @@ class Run_docking(ComponentSession):
     @chainable
     def on_run(self):
         with self.group_context('mdgroup'):
-            self.call(
+            result = yield self.call(
                 "mdgroup.lie_plants_docking.endpoint.docking",
                 {"protein_file": protein_file,
                  "ligand_file": ligand_file,
@@ -31,6 +38,7 @@ class Run_docking(ComponentSession):
                      4.926394772324452, 19.079624537618873, 21.98915631296689],
                  "workdir": workdir,
                  "exec_path": exec_path})
+            assert result['status'] == 'completed'
 
 
 if __name__ == "__main__":

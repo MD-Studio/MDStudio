@@ -1,4 +1,3 @@
-
 version: '3'
 services:
 
@@ -35,7 +34,7 @@ services:
             - .docker.env
 
     # echo:
-    #     extends:
+      #     extends:
     #         file: docker-compose-common.yml
     #         service: base-py3
     #     volumes:
@@ -74,16 +73,52 @@ services:
       environment:
         - CROSSBAR_HOST=crossbar
       volumes:
-        - "./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem"
+        - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
 
-    lie_structures:
-      image: lie_structures:test
+    lie_atb:
+      image: mdstudio/lie_atb:0.0.1
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
       volumes:
-        - "./data/crossbar/server_cert.pem:/app/data/crossbar/server_cert.pem"
+        - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
+
+    lie_haddock:
+      image: mdstudio/lie_haddock:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
+
+    lie_plants_docking:
+      image: mdstudio/lie_plants_docking:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_plants_docking:/tmp/mdstudio/lie_plants_docking
+
+    lie_pylie:
+      image: mdstudio/lie_pylie:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
+
+    lie_structures:
+      image: mdstudio/lie_structures:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_structures:/tmp/mdstudio/lie_structures
 
 
 volumes:
