@@ -4,7 +4,7 @@
 export MD_CONFIG_ENVIRONMENTS=dev,docker
 
 # install cinfony from github
-#pip install "https://github.com/cinfony/cinfony/tarball/master#egg=cinfony-1.2" > /dev/null 2>&1
+pip install "https://github.com/cinfony/cinfony/tarball/master#egg=cinfony-1.2" > /dev/null 2>&1
 
 # install dependencies
 for c in $( ls components ); do
@@ -15,7 +15,7 @@ for c in $( ls components ); do
 done
 
 # Launch services. two times lie_md in roundrobin
-SERVICES=( "lie_atb" "lie_amber" "lie_echo" "lie_md" "lie_md" "lie_plants_docking" "lie_structures" "pylie" )
+SERVICES=( "lie_atb" "lie_amber" "lie_echo" "lie_md" "lie_plants_docking" "lie_structures" "pylie" )
 
 for x in ${SERVICES[@]};do
     echo "Registering component: ${x}"
