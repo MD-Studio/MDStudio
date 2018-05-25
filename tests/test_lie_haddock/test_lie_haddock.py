@@ -25,8 +25,8 @@ class Run_haddock(ComponentSession):
             result = yield self.call(
                 "mdgroup.lie_haddock.endpoint.submit_project",
                 {"project_id": project_file,
-                 "haddock_username": "marcvdijk",
-                 "haddock_password": "m@rcvd1jk"})
+                 "haddock_username": "",
+                 "haddock_password": ""})
             print(result['project_id'])
 
 
