@@ -55,6 +55,9 @@ setup(
         'service_identity',  # For Twisted host TLS verification
         'pypiwin32 >= 1.0;platform_system=="Windows"'
     ],
+    extras_require={
+        'test': ['coverage', 'faker', 'mock', 'pyfakefs']
+    },
     test_suite="tests",
     include_package_data=True,
     zip_safe=True,
