@@ -45,4 +45,4 @@ script:
   - (ps axf | grep lie_echo | grep -v grep | awk '{print "kill -9 " $1}' | sh)
 
 after_success:
-  - bash < (curl -s https://codecov.io/bash)
+  - codecov
