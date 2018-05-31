@@ -6,7 +6,6 @@ from typing import Union, Optional, Callable
 
 import six
 from autobahn.wamp import RegisterOptions
-from copy import deepcopy
 from jsonschema import ValidationError
 from twisted.internet.defer import _inlineCallbacks, Deferred
 
@@ -16,7 +15,7 @@ from mdstudio.api.context import ContextManager
 from mdstudio.api.request_hash import request_hash
 from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, MDStudioClaimSchema, InlineSchema, \
     MDStudioSchema
-from mdstudio.deferred.chainable import chainable, Chainable
+from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
 SchemaType = Union[str, dict, ISchema]
@@ -37,7 +36,6 @@ def validation_error(schema, instance, error, prefix, uri):
 class WampEndpoint(object):
     def __init__(self, wrapped_f, uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
         from mdstudio.component.impl.common import CommonSession
-
         self.uri_suffix = uri
         self.uri = None
         self.options = options
@@ -62,7 +60,10 @@ class WampEndpoint(object):
         )
 
     def register(self):
-        return self.instance.register(self, self.uri)
+        if self.options is None:
+            return self.instance.register(self, self.uri)
+        else:
+            return self.instance.register(self, self.uri, options=RegisterOptions(**self.options))
 
     def __call__(self, request, signed_claims=None):
         with ContextManager({'call_context': self.instance.default_call_context}):
