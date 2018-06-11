@@ -12,12 +12,6 @@ schema = {path = "core/schema/", editable = true}
 logger = {path = "core/logger/", editable = true}
 twisted = "==17.9.0"
 cryptography = "*"
-"44deae6" = {path = "./mdstudio", editable = true}
-"ca495cc" = {path = "./core/auth", editable = true}
-"aec92a7" = {path = "./core/cache", editable = true}
-"f1a20da" = {path = "./core/db", editable = true}
-"abeda11" = {path = "./core/schema", editable = true}
-"07eb6d8" = {path = "./core/logger", editable = true}
 
 [dev-packages]
 bandit = "*"
