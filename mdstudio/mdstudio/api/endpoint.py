@@ -62,7 +62,7 @@ class WampEndpoint(object):
         )
 
     def register(self):
-        return self.instance.register(self, self.uri)
+        return self.instance.register(self, self.uri, options=self.options)
 
     def __call__(self, request, signed_claims=None):
         with ContextManager({'call_context': self.instance.default_call_context}):
