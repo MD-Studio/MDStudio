@@ -1,11 +1,8 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 
-
 [packages]
-
 crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "da6c3d220ba6d8b3fc8c1b9ec00eda48b3a8d57b"}
 mdstudio = {path = "mdstudio/", editable = true}
 auth = {path = "core/auth/", editable = true}
@@ -15,9 +12,14 @@ schema = {path = "core/schema/", editable = true}
 logger = {path = "core/logger/", editable = true}
 twisted = "17.9.0"
 cryptography = "*"
+"44deae6" = {path = "./mdstudio", editable = true}
+"ca495cc" = {path = "./core/auth", editable = true}
+"aec92a7" = {path = "./core/cache", editable = true}
+"f1a20da" = {path = "./core/db", editable = true}
+"abeda11" = {path = "./core/schema", editable = true}
+"07eb6d8" = {path = "./core/logger", editable = true}
 
 [dev-packages]
-
 bandit = "*"
 future = "*"
 sphinx = "*"
