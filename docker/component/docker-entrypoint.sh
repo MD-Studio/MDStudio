@@ -3,7 +3,7 @@
 cd components/$COMPONENT
 
 if [ ! -f /root/.cache/.firstrun-docker ]; then
-    pipenv install --skip-lock --sequential
+    pipenv install
 fi
 
 touch /root/.cache/.firstrun-docker
