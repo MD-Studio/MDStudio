@@ -18,4 +18,5 @@ script:
   - (cd core/db && coverage run -m unittest discover -vvv)
   - (cd core/schema && coverage run -m unittest discover -vvv)
 after_success:
+  - coverage combine mdstudio core/logger core/db core/schema
   - codecov
