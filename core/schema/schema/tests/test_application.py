@@ -240,7 +240,7 @@ class TestSchemaComponent(DBTestCase, APITestCase):
             self.assertEqual(output, {'test': 'schema'})
             self.service.claims.find_latest.assert_called_once_with(self.vendor, component, name, version)
 
-    @chainable
+    @test_chainable
     def test_get_other(self):
 
         self.service.claims = mock.MagicMock()
@@ -265,7 +265,7 @@ class TestSchemaComponent(DBTestCase, APITestCase):
                 self.assertRegex(str(e), 'Schema type "{}" is not known'.format(type))
             self.assertFalse(completed)
 
-    @chainable
+    @test_chainable
     def test_get_not_found(self):
 
         self.service.claims = mock.MagicMock()
