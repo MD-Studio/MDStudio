@@ -128,10 +128,9 @@ def inject_context(gen):
     while True:
         try:
             res = gen.send(res)
-            if isinstance(res, (defer.Deferred, Chainable)):
-                ctx = ContextManager.get_context()
-                res = yield res
-                ContextManager.set_context(ctx)
+            ctx = ContextManager.get_context()
+            res = yield res
+            ContextManager.set_context(ctx)
         except StopIteration as e:
             return_value(getattr(e, 'value', None))
 
