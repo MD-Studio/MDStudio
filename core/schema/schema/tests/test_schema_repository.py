@@ -375,6 +375,79 @@ class TestSchemaRepository(DBTestCase):
         self.assertFalse(completed)
 
     @test_chainable
+    def test_upsert_new_incompatible_override(self):
+        vendor = self.fake.word()
+        component = self.fake.word()
+        name = self.fake.word()
+        version = self.fake.random_number(3)
+        self.rep.allow_override = True
+        yield self.rep.upsert(vendor, component, {
+            'name': name,
+            'version': version,
+            'schema': {
+            }
+        }, self.claims)
+        yield self.rep.upsert(vendor, component, {
+            'name': name,
+            'version': version,
+            'schema': {
+                '$schema': 'http://json-schema.org/schema#'
+            }
+        }, self.claims)
+
+        uploaded = yield self.rep.find_latest(vendor, component, name, version)
+        self.assertIsInstance(uploaded['updatedAt'], datetime)
+        self.assertLess(now() - uploaded['updatedAt'], timedelta(seconds=1))
+        expected = {
+            'name': name,
+            'version': version,
+            'vendor': vendor,
+            'component': component,
+            'updatedAt': uploaded['updatedAt'],
+            'build': 2,
+            'schema': '{"$schema": "http://json-schema.org/schema#"}',
+            'hash': '180c4463f342b46548551cb463b6834363fa7e2d150f2bd4035190625b374602'
+        }
+        self.assertEqual(uploaded, expected)
+
+        found = yield self.db.find_one('{}.schema'.format(self.type), {}, projection={'_id': False})['result']
+        self.assertEqual(found, expected)
+
+        found_history = yield self.db.find_one('{}.history'.format(self.type), {}, projection={'_id': False})[
+            'result']
+        self.assertIsInstance(found_history['builds'][0]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][0]['createdAt'], timedelta(seconds=1))
+        self.assertIsInstance(found_history['builds'][1]['createdAt'], datetime)
+        self.assertLess(now() - found_history['builds'][1]['createdAt'], timedelta(seconds=1))
+        del found_history['builds'][0]['createdAt']
+        del found_history['builds'][1]['createdAt']
+        self.maxDiff = None
+        self.assertEqual(found_history, {
+            'name': name,
+            'version': version,
+            'vendor': vendor,
+            'component': component,
+            'builds': [
+                {
+                    'createdBy': {
+                        'group': self.claims['group'],
+                        'username': self.claims['username']
+                    },
+                    'hash': 'c89a148be40e6752261e3038609a4b68de22fa3bfdaf32f884edffb8480b9bbe',
+                    'schema': '{}'
+                },
+                {
+                    'createdBy': {
+                        'group': self.claims['group'],
+                        'username': self.claims['username']
+                    },
+                    'hash': '180c4463f342b46548551cb463b6834363fa7e2d150f2bd4035190625b374602',
+                    'schema': '{"$schema": "http://json-schema.org/schema#"}'
+                }
+            ]
+        })
+
+    @test_chainable
     def test_upsert_new_incompatible3(self):
 
         vendor = self.fake.word()
