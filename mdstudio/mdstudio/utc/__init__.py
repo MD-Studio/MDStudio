@@ -43,4 +43,4 @@ def from_date_string(ldate):
     return parsed.astimezone(pytz.utc).date()
 
 def timestamp(ldate):
-    return (ldate - datetime(1970, 1, 1, tzinfo=pytz.timezone.utc)).total_seconds()
+    return (ldate - datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
