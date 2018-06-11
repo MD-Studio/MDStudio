@@ -187,7 +187,7 @@ class SchemaRepository(object):
                 }
             }, upsert=True, return_updated=True)
 
-            self.schemas.replace_one({
+            yield self.schemas.replace_one({
                 'vendor': vendor,
                 'component': component,
                 'version': version,
