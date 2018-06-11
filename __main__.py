@@ -19,7 +19,6 @@ from twisted.python.logfile import DailyLogFile
 
 from mdstudio.logging.brand import ascii_brand
 from mdstudio.logging.impl.printing_observer import PrintingLogObserver
-from mdstudio.logging.logger import log_critical
 
 if __name__ == '__main__':
     temp_config = None
@@ -70,7 +69,6 @@ if __name__ == '__main__':
         if not os.path.isdir('logs'):
             os.mkdir('logs')
         log_file = DailyLogFile('daily.log', 'logs')
-        twisted.python.log.addObserver(log_critical)
         twisted.python.log.addObserver(PrintingLogObserver(log_file))
 
         print(ascii_brand)
