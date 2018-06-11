@@ -25,8 +25,15 @@
       "properties": {
         "username": {
           "type": "string"
+        },
+        "password": {
+          "type": "string"
         }
-      }
+      },
+      "required": [
+        "username",
+        "password"
+      ]
     },
     "settings": {
       "type": "object"
