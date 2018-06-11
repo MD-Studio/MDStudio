@@ -13,7 +13,7 @@ cache = {path = "core/cache/", editable = true}
 db = {path = "core/db/", editable = true}
 schema = {path = "core/schema/", editable = true}
 logger = {path = "core/logger/", editable = true}
-twisted = "*"
+twisted = "17.9.0"
 cryptography = "*"
 
 [dev-packages]
