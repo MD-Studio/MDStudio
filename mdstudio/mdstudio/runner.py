@@ -15,6 +15,7 @@ from twisted.internet.ssl import CertificateOptions
 
 from mdstudio.logging.brand import ascii_brand
 from mdstudio.logging.impl.printing_observer import PrintingLogObserver
+from mdstudio.logging.logger import log_critical
 
 
 def main(component, auto_reconnect=True):
@@ -42,6 +43,7 @@ def main(component, auto_reconnect=True):
                 f.write('*')
 
         log_file = DailyLogFile('daily.log', logdir)
+        twisted.python.log.addObserver(log_critical)
         twisted.python.log.addObserver(PrintingLogObserver(log_file))
 
         print(ascii_brand)

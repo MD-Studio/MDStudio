@@ -21,7 +21,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/logger" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/schema" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="MDStudio - Docker-Compose" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.6.4 Docker Compose (workspace at [C:\Users\Paul\Nextcloud\Documents\Repositories\Python\MDStudio\docker-compose.yml])" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">
