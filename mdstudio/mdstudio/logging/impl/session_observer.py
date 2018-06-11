@@ -70,7 +70,7 @@ class SessionLogObserver(object):
         if len(self.logs) > 0:
             dirname = os.path.dirname(self.recovery_file(self.session))
             if not os.path.exists(dirname):
-                os.makedirs(dirname, exist_ok=True)
+                os.makedirs(dirname)
             with open(self.recovery_file(self.session), 'w') as recovery_file:
                 json.dump(self.logs, recovery_file)
                 self.logs = []

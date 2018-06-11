@@ -41,3 +41,6 @@ def from_date_string(ldate):
     if not parsed.tzinfo:
         parsed = parsed.replace(tzinfo=pytz.utc)
     return parsed.astimezone(pytz.utc).date()
+
+def timestamp(ldate):
+    return (ldate - datetime(1970, 1, 1, tzinfo=pytz.timezone.utc)).total_seconds()
