@@ -128,9 +128,10 @@ def inject_context(gen):
     while True:
         try:
             res = gen.send(res)
-            ctx = ContextManager.get_context()
-            res = yield res
-            ContextManager.set_context(ctx)
+            if isinstance(res, (defer.Deferred, Chainable)):
+                ctx = ContextManager.get_context()
+                res = yield res
+                ContextManager.set_context(ctx)
         except StopIteration as e:
             return_value(getattr(e, 'value', None))
 
@@ -160,18 +161,10 @@ def chainable(f):
     return unwindGenerator
 
 
+# WARNING: use this in tests instead of chainable, the test framework does not understand Chainable in place of Deferred
 def test_chainable(f):
-    # Similar to chainable, but without actually wrapping the Deferred
-    @wraps(f)
-    def unwindGenerator(*args, **kwargs):
-        try:
-            gen = f(*args, **kwargs)
-        except defer._DefGen_Return as e:
-            return defer.succeed(e.value)
+    def _chainable(*args, **kwargs):
+        deferred = defer.inlineCallbacks(f)(*args, **kwargs)
+        return deferred
 
-        if not isinstance(gen, types.GeneratorType):
-            return defer.succeed(gen)
-
-        return inject_context(gen)
-
-    return unwindGenerator
+    return _chainable
