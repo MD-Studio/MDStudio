@@ -13,10 +13,10 @@ install:
   - pipenv install --dev --skip-lock
 script:
   # Run the unitary tests excluding the expensive computations
-  - (cd mdstudio && coverage run -m unittest discover -vvv)
-  - (cd core/logger && coverage run -m unittest discover -vvv)
-  - (cd core/db && coverage run -m unittest discover -vvv)
-  - (cd core/schema && coverage run -m unittest discover -vvv)
+  - (cd mdstudio && coverage run --branch -m unittest discover -vvv)
+  - (cd core/logger && coverage run --branch -m unittest discover -vvv)
+  - (cd core/db && coverage run --branch -m unittest discover -vvv)
+  - (cd core/schema && coverage run --branch -m unittest discover -vvv)
 after_success:
-  - coverage combine mdstudio core/logger core/db core/schema
+  - coverage combine mdstudio/.coverage core/logger/.coverage core/db core/schema/.coverage
   - codecov
