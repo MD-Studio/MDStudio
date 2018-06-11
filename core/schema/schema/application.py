@@ -16,12 +16,16 @@ class SchemaComponent(CoreComponentSession):
         yield super(SchemaComponent, self).on_run()
 
     def pre_init(self):
-        self.endpoints = SchemaRepository(self.db, 'endpoints')
-        self.resources = SchemaRepository(self.db, 'resources')
-        self.claims = SchemaRepository(self.db, 'claims')
         self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
         
         super(SchemaComponent, self).pre_init()
+
+    def on_init(self):
+        self.endpoints = SchemaRepository(self.db, 'endpoints', self.component_config.settings.get('allowSchemaOverride', False))
+        self.resources = SchemaRepository(self.db, 'resources', self.component_config.settings.get('allowSchemaOverride', False))
+        self.claims = SchemaRepository(self.db, 'claims', self.component_config.settings.get('allowSchemaOverride', False))
+
+        super(SchemaComponent, self).on_init()
 
     @endpoint('upload', {}, {})
     @chainable
