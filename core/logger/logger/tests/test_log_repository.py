@@ -86,6 +86,8 @@ class TestLogRepository(DBTestCase):
     def test_insert(self):
         dic1 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
         dic2 = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
+        dic1['time'] = self.faker.datetime()
+        dic2['time'] = self.faker.datetime()
         yield self.rep.insert(self.claims, [dic1, dic2])
         all = yield self.db.find_many('users~{}'.format(self.claims['username']), {}, projection={'_id': False})['results']
 
