@@ -25,6 +25,7 @@ def main(component, auto_reconnect=True):
 
     cert = ssl.Certificate.loadPEM(cert_data)
     options = CertificateOptions(caCerts=[cert])
+    print('Connecting to host: {}'.format(crossbar_host))
 
     runner = ApplicationRunner(
         u"wss://{}:8080/ws".format(crossbar_host),
