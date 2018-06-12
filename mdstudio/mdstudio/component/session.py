@@ -53,17 +53,6 @@ class ComponentSession(CommonSession):
         self.cache = GlobalCache.get_wrapper(ConnectionType.User)
 
     @chainable
-    def onJoin(self, details):
-        # server_proof = SCRAM.str_to_binary(details.authextra['serverProof'])
-        # server_signature = SCRAM.server_signature(self.server_key, self.auth_message)
-        #
-        # if server_proof != server_signature:
-        #     self.log.error('Server not authenticated')
-        #     yield self.leave()
-            
-        yield super(ComponentSession, self).onJoin(details)
-
-    @chainable
     def flush_logs(self, logs):
         with self.default_context() as c:
             result = yield self.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, c.get('call_context').get_log_claims())

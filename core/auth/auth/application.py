@@ -153,25 +153,18 @@ class AuthComponent(CoreComponentSession):
     @inlineCallbacks
     def user_login(self, realm, authid, details):
         assert authid
-        # authmethod = details.get(u'authmethod', None)
-        # assert authmethod == u'scram', 'Only scram is supported for login, but you tried to use {}, please use the ComponentSession'.format(authmethod)
 
-        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod}, phase: {authphase}', realm=realm, authid=authid, authmethod=None, authphase=None)
+        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}', realm=realm, authid=authid)
 
         user = yield self.user_repository.find_user(authid, with_authentication=True)
 
         if user is not None:
-            user_auth = user.authentication
+            user_auth = copy.deepcopy(user.authentication)
+            user_auth['stored-key'] = user_auth.pop('storedKey')
+            user_auth['server-key'] = user_auth.pop('serverKey')
+            user_auth['role'] = 'user'
 
-            returnValue({
-                'stored-key': user_auth['storedKey'],
-                'server-key': user_auth['serverKey'],
-                'memory': user_auth['memory'],
-                'kdf': user_auth['kdf'],
-                'salt': user_auth['salt'],
-                'iterations': user_auth['iterations'],
-                'role': 'user'
-            })
+            returnValue(user_auth)
         else:
             raise ApplicationError("No such user")
 
@@ -185,39 +178,7 @@ class AuthComponent(CoreComponentSession):
                 if u is None:
                     salt = os.urandom(16)
 
-                    hash_data = argon2.low_level.hash_secret(
-                        secret=saslprep(user['password']).encode('ascii'),
-                        salt=salt,
-                        time_cost=4096,
-                        memory_cost=512,
-                        parallelism=1,
-                        hash_len=32,
-                        type=argon2.low_level.Type.ID,
-                        version=0x13,
-                    )
-
-                    _, tag, v, params, othersalt, salted_password = hash_data.decode('ascii').split('$')
-                    assert tag == 'argon2id'
-                    assert v == 'v=19'  # argon's version 1.3 is represented as 0x13, which is 19 decimal...
-                    params = {
-                        k: v
-                        for k, v in
-                        [x.split('=') for x in params.split(',')]
-                    }
-
-                    salted_password = salted_password.encode('ascii')
-                    client_key = hmac.new(salted_password, b"Client Key", hashlib.sha256).digest()
-                    stored_key = hashlib.new('sha256', client_key).digest()
-                    server_key = hmac.new(salted_password, b"Server Key", hashlib.sha256).digest()
-
-                    authentication = {
-                        'memory': int(params['m']),
-                        'kdf': 'argon2id-13',
-                        'iterations': int(params['t']),
-                        'salt': binascii.b2a_hex(salt).decode('ascii'),
-                        'storedKey': binascii.b2a_hex(stored_key).decode('ascii'),
-                        'serverKey': binascii.b2a_hex(server_key).decode('ascii')
-                    }
+                    authentication = SCRAM.create_authentication(user['password'], salt)
 
                     u = yield self.user_repository.create_user(user['username'], authentication, user['email'])
                 assert u.name == user['username'], 'User provisioning for user {} changed. If intentional, clear the database.'.format(user['username'])
