@@ -178,13 +178,10 @@ class AuthComponent(CoreComponentSession):
     @chainable
     def on_run(self):
         # repo = UserRepository(self.db)
-        yield self.user_repository.users.delete_many({})
-        yield self.user_repository.groups.delete_many({})
         provisioning = self.component_config.settings.get('provisioning', None)
         if provisioning is not None:
             for user in provisioning.get('users', []):
                 u = yield self.user_repository.find_user(user['username'])
-                print(u)
                 if u is None:
                     salt = os.urandom(16)
 
@@ -194,9 +191,9 @@ class AuthComponent(CoreComponentSession):
                         time_cost=4096,
                         memory_cost=512,
                         parallelism=1,
-                        hash_len=16,
+                        hash_len=32,
                         type=argon2.low_level.Type.ID,
-                        version=19,
+                        version=0x13,
                     )
 
                     _, tag, v, params, othersalt, salted_password = hash_data.decode('ascii').split('$')
@@ -209,19 +206,20 @@ class AuthComponent(CoreComponentSession):
                     }
 
                     salted_password = salted_password.encode('ascii')
-                    print(salt, othersalt, salted_password)
                     client_key = hmac.new(salted_password, b"Client Key", hashlib.sha256).digest()
                     stored_key = hashlib.new('sha256', client_key).digest()
                     server_key = hmac.new(salted_password, b"Server Key", hashlib.sha256).digest()
 
-                    u = yield self.user_repository.create_user(user['username'], {
+                    authentication = {
                         'memory': int(params['m']),
                         'kdf': 'argon2id-13',
                         'iterations': int(params['t']),
                         'salt': binascii.b2a_hex(salt).decode('ascii'),
                         'storedKey': binascii.b2a_hex(stored_key).decode('ascii'),
                         'serverKey': binascii.b2a_hex(server_key).decode('ascii')
-                    }, user['email'])
+                    }
+
+                    u = yield self.user_repository.create_user(user['username'], authentication, user['email'])
                 assert u.name == user['username'], 'User provisioning for user {} changed. If intentional, clear the database.'.format(user['username'])
             for group in provisioning.get('groups', []):
                 g = yield self.user_repository.find_group(group['groupName'])
