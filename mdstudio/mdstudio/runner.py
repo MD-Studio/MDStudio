@@ -44,7 +44,7 @@ def main(component, auto_reconnect=True):
                 f.write('*')
 
         log_file = DailyLogFile('daily.log', logdir)
-        twisted.python.log.addObserver(log_critical)
+        # twisted.python.log.addObserver(log_critical)
         twisted.python.log.addObserver(PrintingLogObserver(log_file))
 
         print(ascii_brand)
