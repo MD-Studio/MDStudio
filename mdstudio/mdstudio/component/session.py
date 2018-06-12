@@ -1,6 +1,10 @@
+import base64
+import binascii
 import json
 
 from autobahn.wamp import auth
+from autobahn.wamp.auth import create_authenticator, AuthScram
+from autobahn.wamp.message import Challenge
 
 from mdstudio.api.scram import SCRAM
 from mdstudio.cache.impl.connection import GlobalCache
@@ -18,31 +22,25 @@ class ComponentSession(CommonSession):
     db = None
 
     def on_connect(self):
-        auth_methods = [u'wampcra']
-        authid, self.client_nonce = SCRAM.authid(self.component_config.session.username)
+        auth_methods = [u'scram']
         auth_role = u'user'
+        self.authenticator = create_authenticator(AuthScram.name, authid=self.component_config.session.username, password=self.component_config.session.password)
 
-        self.join(self.config.realm, authmethods=auth_methods, authid=authid, authrole=auth_role)
+        self.join(self.config.realm, authmethods=auth_methods, authid=self.component_config.session.username, authrole=auth_role, authextra=self.authenticator.authextra)
 
     onConnect = on_connect
 
     def on_challenge(self, challenge):
-        server_nonce = json.loads(challenge.extra['challenge']).get('session')
-        client_nonce = self.client_nonce
-
-        self.auth_message = SCRAM.auth_message(client_nonce, server_nonce)
-
-        _, _, salted_password = SCRAM.salted_password(self.component_config.session.password, challenge.extra['salt'], challenge.extra['iterations'])
-        client_key = SCRAM.client_key(salted_password)
-        self.server_key = SCRAM.server_key(salted_password)
-        stored_key = SCRAM.stored_key(client_key)
-        client_signature = SCRAM.client_signature(stored_key, self.auth_message)
-
-        client_proof = SCRAM.client_proof(client_key, client_signature)
-
-        return SCRAM.binary_to_str(client_proof)
+        challenge.extra['salt'] = challenge.extra['salt'].encode('ascii')
+        print(challenge.extra['salt'])
+        return self.authenticator.on_challenge(self, challenge)
 
     onChallenge = on_challenge
+
+    def on_welcome(self, authextra):
+        return self.authenticator.on_welcome(self, authextra)
+
+    onWelcome = on_welcome
 
     @chainable
     def on_join(self):
