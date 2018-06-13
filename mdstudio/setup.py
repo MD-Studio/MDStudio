@@ -53,6 +53,7 @@ setup(
         'node-semver',
         'passlib',
         'service_identity',  # For Twisted host TLS verification
+        'argon2-cffi',
         'pypiwin32 >= 1.0;platform_system=="Windows"',
         'functools32 >= 0.0;python_version<"3.4"'
     ],
