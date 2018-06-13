@@ -5,7 +5,6 @@ from types import GeneratorType
 from typing import Union, Optional, Callable
 
 import six
-from autobahn.wamp import RegisterOptions
 from jsonschema import ValidationError
 from twisted.internet.defer import _inlineCallbacks, Deferred
 
@@ -60,10 +59,7 @@ class WampEndpoint(object):
         )
 
     def register(self):
-        if self.options is None:
-            return self.instance.register(self, self.uri)
-        else:
-            return self.instance.register(self, self.uri, options=RegisterOptions(**self.options))
+        return self.instance.register(self, self.uri, options=self.options)
 
     def __call__(self, request, signed_claims=None):
         with ContextManager({'call_context': self.instance.default_call_context}):

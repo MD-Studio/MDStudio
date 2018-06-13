@@ -1,7 +1,7 @@
 #! /bin/bash
 
 if [ ! -f /root/.cache/.firstrun-docker ]; then
-    pipenv install --skip-lock --sequential --dev
+    pipenv install
 fi
 
 touch /root/.cache/.firstrun-docker

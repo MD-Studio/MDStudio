@@ -12,7 +12,7 @@ from mdstudio.deferred.chainable import test_chainable
 from mdstudio.logging.impl.session_observer import SessionLogObserver
 from mdstudio.logging.log_type import LogType
 from mdstudio.unittest.db import DBTestCase
-from mdstudio.utc import from_utc_string, now
+from mdstudio.utc import from_utc_string, now, to_utc_string, timestamp
 
 # Python 2 compatibility.
 try:
@@ -56,7 +56,7 @@ class SessionObserverTests(DBTestCase):
             'log_format': 'hello {str}',
             'log_namespace': 'test namespace',
             'log_level': LogType.Group,
-            'log_time': time.mktime(t.timetuple()),
+            'log_time': timestamp(t),
             'str': 'test'
         })
 
@@ -74,7 +74,7 @@ class SessionObserverTests(DBTestCase):
             'message': 'hello test',
             'log_namespace': 'test namespace',
             'log_level': LogType.Group,
-            'log_time': time.mktime(t.timetuple()),
+            'log_time': timestamp(t),
         })
 
         self.assertLessEqual(t - from_utc_string(self.observer.logs[1]['time']), timedelta(seconds=1))

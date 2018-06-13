@@ -65,10 +65,11 @@ class SchemaRepository(object):
         def __init__(self, wrapper=None, collection=None):
             super(SchemaRepository.History, self).__init__(wrapper=wrapper, collection=collection)
 
-    def __init__(self, db_wrapper, type):
+    def __init__(self, db_wrapper, type, allow_override = False):
         # type: (IDatabase, str) -> None
         self.wrapper = db_wrapper
         self.type = type
+        self.allow_override = allow_override
 
     def find_latest(self, vendor, component, name, version, schema_str=None):
         key = {
@@ -161,7 +162,8 @@ class SchemaRepository(object):
         })
         if not found:
             old = yield self.find_latest(vendor, component, name, version)
-            self._check_stored_compatibility(old, schema)
+            if not self.allow_override:
+                self._check_stored_compatibility(old, schema)
 
             updated = yield self.history.find_one_and_update({
                 'vendor': vendor,
@@ -185,7 +187,7 @@ class SchemaRepository(object):
                 }
             }, upsert=True, return_updated=True)
 
-            self.schemas.replace_one({
+            yield self.schemas.replace_one({
                 'vendor': vendor,
                 'component': component,
                 'version': version,

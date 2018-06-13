@@ -140,7 +140,11 @@ class CommonSession(ApplicationSession):
             return Chainable(super(CommonSession, self).call(u'{}'.format(procedure), request, signed_claims=signed_claims, **kwargs))
 
         try:
-            result = yield make_original_call()
+            if ContextManager.get_context() is None:
+                with self.default_call_context:
+                    result = yield make_original_call()
+            else:
+                result = yield make_original_call()
         except ApplicationError:
             result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 
@@ -148,7 +152,11 @@ class CommonSession(ApplicationSession):
             signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
 
             try:
-                result = yield make_original_call()
+                if ContextManager.get_context() is None:
+                    with self.default_call_context:
+                        result = yield make_original_call()
+                else:
+                    result = yield make_original_call()
             except ApplicationError:
                 result = APIResult(error='Call to {uri} failed'.format(uri=procedure))
 

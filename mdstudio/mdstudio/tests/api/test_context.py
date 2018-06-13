@@ -5,14 +5,14 @@ import mock
 from twisted.trial.unittest import TestCase
 
 from mdstudio.api.context import ContextManager
-from mdstudio.deferred.chainable import test_chainable as chainable
+from mdstudio.deferred.chainable import test_chainable, chainable
 from mdstudio.deferred.sleep import sleep
 from mdstudio.util.random import random_uuid
 
 
 class ContextTests(TestCase):
 
-    @chainable
+    @test_chainable
     def test_context_twice_nested(self):
         def _get_identifier(expected):
             identifier = ContextManager.get('identifier')

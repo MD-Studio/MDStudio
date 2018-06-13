@@ -3,12 +3,12 @@ language: python
 
 os:
   - linux
+  - osx
 
 python:
   - "2.7"
   - "3.5"
   - "3.6"
-
 
 matrix:
   allow_failures:
@@ -45,4 +45,6 @@ script:
   - (ps axf | grep lie_echo | grep -v grep | awk '{print "kill -9 " $1}' | sh)
 
 after_success:
+  - coverage combine mdstudio/.coverage core/logger/.coverage core/db/.coverage core/schema/.coverage
   - codecov
+
