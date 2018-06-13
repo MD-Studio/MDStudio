@@ -29,6 +29,7 @@ services:
 install:
   - pip install codecov
   - pip install pipenv
+  - pip install unittest2
   - pipenv install --dev --skip-lock
 
 script:
