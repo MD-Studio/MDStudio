@@ -22,17 +22,7 @@ Run the builder under bash:
 ### Usage
 To use the docker environment you have to start the container:
 
-    >> ./start.sh
-
-To start a **development** container use:
-
-    >> ./start-dev.sh
-
-This command will spin up the complete environment including MongoDB, and logs in into the 
-container. When you want to exit this mode just use `>> exit` to exit. Containers can be
-stopped using:
-
-    >> ./stop.sh
+    >> ./standalone.sh
 
 ### IDE Integration
 
