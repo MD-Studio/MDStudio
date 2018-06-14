@@ -56,7 +56,7 @@ The only external dependencies are:
 ### Installation
 Install the virtual environment with:
 
-    >> pipenv install --skip-lock --dev --sequential
+    >> pipenv install --skip-lock --dev
 
 You can install the virtual environment in your directory by enabling the environment variable:
 ```
