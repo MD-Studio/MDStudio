@@ -1,5 +1,10 @@
+import base64
+import binascii
 import json
 
+from autobahn.wamp.auth import create_authenticator, AuthScram
+from autobahn.wamp.message import Challenge
+from passlib.utils import saslprep
 from mdstudio.api.scram import SCRAM
 from mdstudio.cache.impl.connection import GlobalCache
 from mdstudio.component.impl.common import CommonSession
@@ -15,31 +20,24 @@ class ComponentSession(CommonSession):
     db = None
 
     def on_connect(self):
-        auth_methods = [u'wampcra']
-        authid, self.client_nonce = SCRAM.authid(self.component_config.session.username)
+        auth_methods = [u'scram']
         auth_role = u'user'
+        self.authenticator = create_authenticator(AuthScram.name, authid=self.component_config.session.username, password=saslprep(self.component_config.session.password))
 
-        self.join(self.config.realm, authmethods=auth_methods, authid=authid, authrole=auth_role)
+        self.join(self.config.realm, authmethods=auth_methods, authid=self.component_config.session.username, authrole=auth_role, authextra=self.authenticator.authextra)
 
     onConnect = on_connect
 
     def on_challenge(self, challenge):
-        server_nonce = json.loads(challenge.extra['challenge']).get('session')
-        client_nonce = self.client_nonce
-
-        self.auth_message = SCRAM.auth_message(client_nonce, server_nonce)
-
-        _, _, salted_password = SCRAM.salted_password(self.component_config.session.password, challenge.extra['salt'], challenge.extra['iterations'])
-        client_key = SCRAM.client_key(salted_password)
-        self.server_key = SCRAM.server_key(salted_password)
-        stored_key = SCRAM.stored_key(client_key)
-        client_signature = SCRAM.client_signature(stored_key, self.auth_message)
-
-        client_proof = SCRAM.client_proof(client_key, client_signature)
-
-        return SCRAM.binary_to_str(client_proof)
+        challenge.extra['salt'] = challenge.extra['salt'].encode('ascii')
+        return self.authenticator.on_challenge(self, challenge)
 
     onChallenge = on_challenge
+
+    def on_welcome(self, welcome):
+        return self.authenticator.on_welcome(self, welcome.authextra)
+
+    onWelcome = on_welcome
 
     @chainable
     def on_join(self):
@@ -50,17 +48,6 @@ class ComponentSession(CommonSession):
 
         self.db = GlobalConnection.get_wrapper(ConnectionType.User)
         self.cache = GlobalCache.get_wrapper(ConnectionType.User)
-
-    @chainable
-    def onJoin(self, details):
-        server_proof = SCRAM.str_to_binary(details.authextra['serverProof'])
-        server_signature = SCRAM.server_signature(self.server_key, self.auth_message)
-
-        if server_proof != server_signature:
-            self.log.error('Server not authenticated')
-            yield self.leave()
-            
-        yield super(ComponentSession, self).onJoin(details)
 
     @chainable
     def flush_logs(self, logs):

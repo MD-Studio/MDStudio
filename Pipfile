@@ -4,7 +4,7 @@ url = "https://pypi.python.org/simple"
 verify_ssl = true
 
 [packages]
-crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "da6c3d220ba6d8b3fc8c1b9ec00eda48b3a8d57b"}
+crossbar = {git = "https://github.com/Zefiros-Software/crossbar.git", ref = "849a93dbb860f61b8d1ce5e123728483b0076990"}
 mdstudio = {path = "mdstudio/", editable = true}
 auth = {path = "core/auth/", editable = true}
 cache = {path = "core/cache/", editable = true}

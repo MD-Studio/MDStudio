@@ -1,84 +1,44 @@
-import os
-from base64 import b64encode, b64decode
-from hashlib import sha256
-from hmac import HMAC
+import binascii
+import hashlib
+import hmac
 
-from passlib.hash import scram
-from passlib.utils import xor_bytes
+import argon2
+from passlib.utils import saslprep
 
 
 class SCRAM(object):
     @staticmethod
-    def split_authid(authid):
-        auth = authid.split('~', 1)
-        return auth[0], auth[1]
+    def create_authentication(password, salt):
+        hash_data = argon2.low_level.hash_secret(
+            secret=saslprep(password).encode('ascii'),
+            salt=salt,
+            time_cost=4096,
+            memory_cost=512,
+            parallelism=1,
+            hash_len=32,
+            type=argon2.low_level.Type.ID,
+            version=0x13,
+        )
 
-    @classmethod
-    def client_nonce(cls):
-        return cls.binary_to_str(os.urandom(24))
+        _, tag, v, params, _, salted_password = hash_data.decode('ascii').split('$')
+        assert tag == 'argon2id'
+        assert v == 'v=19'  # argon's version 1.3 is represented as 0x13, which is 19 decimal...
+        params = {
+            k: v
+            for k, v in
+            [x.split('=') for x in params.split(',')]
+        }
 
-    @classmethod
-    def authid(cls, username):
-        client_nonce = cls.client_nonce()
-        return u'{}~{}'.format(username, client_nonce), client_nonce
+        salted_password = salted_password.encode('ascii')
+        client_key = hmac.new(salted_password, b"Client Key", hashlib.sha256).digest()
+        stored_key = hashlib.new('sha256', client_key).digest()
+        server_key = hmac.new(salted_password, b"Server Key", hashlib.sha256).digest()
 
-    @staticmethod
-    def binary_to_str(binary):
-        return b64encode(binary).decode('utf8')
-
-    @staticmethod
-    def str_to_binary(data):
-        return b64decode(data.encode('utf8'))
-
-    @classmethod
-    def salted_password(cls, password, salt=None, iterations=656000):
-        if salt is None:
-            salt = cls.binary_to_str(os.urandom(16))
-
-        salted_password = scram.derive_digest(password, salt.encode('utf8'), iterations, 'sha256')
-
-        return salt, iterations, salted_password
-
-    @staticmethod
-    def auth_message(client_nonce, server_nonce):
-        return u'{}.{}'.format(client_nonce, server_nonce).encode('utf8')
-
-    @staticmethod
-    def stored_key(client_key):
-        return sha256(client_key).digest()
-
-    @classmethod
-    def client_key(cls, salted_password):
-        return cls._hmac(salted_password, b'Client Key')
-
-    @classmethod
-    def server_key(cls, salted_password):
-        return cls._hmac(salted_password, b'Server Key')
-
-    @classmethod
-    def client_signature(cls, stored_key, auth_message):
-        return cls._hmac(stored_key, auth_message)
-
-    @staticmethod
-    def client_proof(client_key, client_signature):
-        return xor_bytes(client_key, client_signature)
-
-    @classmethod
-    def server_proof(cls, server_key, auth_message):
-        return cls._hmac(server_key, auth_message)
-
-    @classmethod
-    def server_signature(cls, server_key, auth_message):
-        return cls._hmac(server_key, auth_message)
-
-    @classmethod
-    def authenticate_client(cls, client_signature, client_proof, stored_key):
-        return cls.client_proof(client_proof, client_signature) == stored_key
-
-    @staticmethod
-    def authenticate_server(server_signature, server_response):
-        return server_response == server_signature
-
-    @staticmethod
-    def _hmac(key, message):
-        return HMAC(key, message).digest()
+        return {
+            'memory': int(params['m']),
+            'kdf': 'argon2id-13',
+            'iterations': int(params['t']),
+            'salt': binascii.b2a_hex(salt).decode('ascii'),
+            'storedKey': binascii.b2a_hex(stored_key).decode('ascii'),
+            'serverKey': binascii.b2a_hex(server_key).decode('ascii')
+        }

@@ -106,8 +106,7 @@ workers:
               anonymous:
                 role: public
                 type: static
-              wampcra:
-                manual-signature-check: true
+              scram:
                 authenticator: mdstudio.auth.endpoint.login
                 type: dynamic
             type: websocket

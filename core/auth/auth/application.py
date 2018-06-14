@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 import base64
+import binascii
 import copy
 import datetime
+import hashlib
+import hmac
+import os
 
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
 from jwt import encode as jwt_encode, decode as jwt_decode, DecodeError, ExpiredSignatureError
 from oauthlib import oauth2
 from oauthlib.common import generate_client_id as generate_secret
+from passlib.utils import saslprep
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from auth.user_repository import UserRepository, PermissionType
@@ -25,6 +30,7 @@ except ImportError:
 
 from mdstudio.utc import now
 from mdstudio.service.model import Model
+import argon2
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
 
@@ -147,73 +153,34 @@ class AuthComponent(CoreComponentSession):
     @inlineCallbacks
     def user_login(self, realm, authid, details):
         assert authid
-        authmethod = details.get(u'authmethod', None)
-        assert authmethod == u'wampcra', 'Only wampcra is supported for login, please use the ComponentSession'
 
-        authid = authid.strip()
-        username, client_nonce = SCRAM.split_authid(authid)
-        server_nonce = details['session']
+        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}', realm=realm, authid=authid)
 
-        self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}, method: {authmethod}, phase: {authphase}', realm=realm, authid=username, authmethod=authmethod, authphase=details['authphase'])
-
-        user = yield self.user_repository.find_user(username, with_authentication=True)
+        user = yield self.user_repository.find_user(authid, with_authentication=True)
 
         if user is not None:
-            user_auth = user.authentication
-            stored_key = SCRAM.str_to_binary(user_auth['storedKey'])
-            server_key = SCRAM.str_to_binary(user_auth['serverKey'])
+            user_auth = copy.deepcopy(user.authentication)
+            user_auth['stored-key'] = user_auth.pop('storedKey')
+            user_auth['server-key'] = user_auth.pop('serverKey')
+            user_auth['role'] = 'user'
 
-            if details['authphase'] == 'preChallenge':
-                auth_ticket = {
-                    'role': 'user',
-                    'iterations': user_auth['iterations'],
-                    'salt': user_auth['salt'],
-                    'secret': SCRAM.binary_to_str(stored_key)
-                }
-            else:
-                auth_message = SCRAM.auth_message(client_nonce, server_nonce)
-                client_signature = SCRAM.client_signature(stored_key, auth_message)
-                client_proof = SCRAM.str_to_binary(details['signature'])
-                client_key = SCRAM.client_proof(client_proof, client_signature)
-
-                if SCRAM.stored_key(client_key) == stored_key:
-                    auth_ticket = {
-                        'authid': username,
-                        'success': True,
-                        'extra': {
-                            'serverProof': SCRAM.binary_to_str(SCRAM.server_proof(server_key, auth_message))
-                        }
-                    }
-
-                    # Log authorization
-                    self.log.info('Access granted. user: {user}', user=username)
-                else:
-                    auth_ticket = False
+            returnValue(user_auth)
         else:
             raise ApplicationError("No such user")
-
-        returnValue(auth_ticket)
 
     @chainable
     def on_run(self):
         # repo = UserRepository(self.db)
-        yield self.user_repository.users.delete_many({})
-        yield self.user_repository.groups.delete_many({})
         provisioning = self.component_config.settings.get('provisioning', None)
         if provisioning is not None:
             for user in provisioning.get('users', []):
                 u = yield self.user_repository.find_user(user['username'])
                 if u is None:
-                    salt, iterations, salted_password = SCRAM.salted_password(user['password'])
-                    stored_key = SCRAM.stored_key(SCRAM.client_key(salted_password))
-                    server_key = SCRAM.server_key(salted_password)
+                    salt = os.urandom(16)
 
-                    u = yield self.user_repository.create_user(user['username'], {
-                        'storedKey': SCRAM.binary_to_str(stored_key),
-                        'serverKey': SCRAM.binary_to_str(server_key),
-                        'salt': salt,
-                        'iterations': iterations
-                    }, user['email'])
+                    authentication = SCRAM.create_authentication(user['password'], salt)
+
+                    u = yield self.user_repository.create_user(user['username'], authentication, user['email'])
                 assert u.name == user['username'], 'User provisioning for user {} changed. If intentional, clear the database.'.format(user['username'])
             for group in provisioning.get('groups', []):
                 g = yield self.user_repository.find_group(group['groupName'])

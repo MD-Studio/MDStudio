@@ -8,7 +8,7 @@ import yaml
 import json
 import os
 
-from crossbar.controller.cli import run
+from crossbar import run
 from twisted.internet import reactor
 from twisted.python.logfile import DailyLogFile
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
         print(ascii_brand)
 
-        run('crossbar', [
+        run([
             'start',
             '--cbdir',
             '.',
@@ -76,7 +76,7 @@ if __name__ == '__main__':
             temp_config.name,
             '--loglevel',
             'info',
-        ], reactor=reactor)
+        ])
     finally:
         if temp_config:
             os.remove(temp_config.name)
