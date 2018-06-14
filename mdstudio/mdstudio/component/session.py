@@ -5,6 +5,7 @@ import json
 from autobahn.wamp import auth
 from autobahn.wamp.auth import create_authenticator, AuthScram
 from autobahn.wamp.message import Challenge
+from passlib.utils import saslprep
 
 from mdstudio.api.scram import SCRAM
 from mdstudio.cache.impl.connection import GlobalCache
@@ -24,7 +25,7 @@ class ComponentSession(CommonSession):
     def on_connect(self):
         auth_methods = [u'scram']
         auth_role = u'user'
-        self.authenticator = create_authenticator(AuthScram.name, authid=self.component_config.session.username, password=self.component_config.session.password)
+        self.authenticator = create_authenticator(AuthScram.name, authid=self.component_config.session.username, password=saslprep(self.component_config.session.password))
 
         self.join(self.config.realm, authmethods=auth_methods, authid=self.component_config.session.username, authrole=auth_role, authextra=self.authenticator.authextra)
 
@@ -32,13 +33,12 @@ class ComponentSession(CommonSession):
 
     def on_challenge(self, challenge):
         challenge.extra['salt'] = challenge.extra['salt'].encode('ascii')
-        print(challenge.extra['salt'])
         return self.authenticator.on_challenge(self, challenge)
 
     onChallenge = on_challenge
 
-    def on_welcome(self, authextra):
-        return self.authenticator.on_welcome(self, authextra)
+    def on_welcome(self, welcome):
+        return self.authenticator.on_welcome(self, welcome.authextra)
 
     onWelcome = on_welcome
 
@@ -51,17 +51,6 @@ class ComponentSession(CommonSession):
 
         self.db = GlobalConnection.get_wrapper(ConnectionType.User)
         self.cache = GlobalCache.get_wrapper(ConnectionType.User)
-
-    @chainable
-    def onJoin(self, details):
-        server_proof = SCRAM.str_to_binary(details.authextra['serverProof'])
-        server_signature = SCRAM.server_signature(self.server_key, self.auth_message)
-
-        if server_proof != server_signature:
-            self.log.error('Server not authenticated')
-            yield self.leave()
-            
-        yield super(ComponentSession, self).onJoin(details)
 
     @chainable
     def flush_logs(self, logs):
