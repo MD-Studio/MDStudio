@@ -94,7 +94,7 @@ services:
         - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
 
     lie_plants_docking:
-      image: mdstudio/lie_plants_docking:0.0.1
+      image: mdstudio/lie_plants_docking:0.0.2
       links:
         - crossbar
       environment:
