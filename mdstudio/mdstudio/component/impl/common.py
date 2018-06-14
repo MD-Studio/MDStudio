@@ -23,6 +23,8 @@ from mdstudio.logging.impl.session_observer import SessionLogObserver
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
 
+from twisted.internet.defer import setDebugging
+setDebugging(True)
 
 class CommonSession(ApplicationSession):
     class Config(object):
