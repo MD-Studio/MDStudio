@@ -52,6 +52,7 @@ setup(
         'typing',
         'node-semver',
         'passlib',
+        'argon2-cffi',
         'service_identity',  # For Twisted host TLS verification
         'pypiwin32 >= 1.0;platform_system=="Windows"',
         'functools32 >= 0.0;python_version<"3.4"'

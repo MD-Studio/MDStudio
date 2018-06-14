@@ -36,7 +36,8 @@ def main(component, auto_reconnect=True):
 
     def start_component(config):
         logdir = os.path.join(component.component_root_path(), 'logs')
-        os.makedirs(logdir, exist_ok=True)
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
 
         gitignorepath = os.path.join(logdir, '.gitignore')
         if not os.path.isfile(gitignorepath):
