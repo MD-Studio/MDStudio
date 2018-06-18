@@ -1,11 +1,13 @@
 #! /bin/bash
+trap 'pkill crossbar' SIGTERM
 
 if [ ! -f /root/.cache/.firstrun-docker ]; then
-    pipenv install
+    virtualenv ~/mdstudio
+
+    (source ~/mdstudio/bin/activate && pip-sync requirements.txt)
 fi
 
 touch /root/.cache/.firstrun-docker
 
-trap 'pkill crossbar' SIGTERM
-
-pipenv run python -u .
+source ~/mdstudio/bin/activate
+python -u .

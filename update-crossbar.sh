@@ -1,3 +1,3 @@
 docker-compose pull
-docker-compose run --rm crossbar pipenv install
-docker-compose run --rm workspace pipenv install --dev
+docker-compose run --rm crossbar pip-sync requirements.txt
+docker-compose run --rm workspace pip-sync requirements-dev.txt

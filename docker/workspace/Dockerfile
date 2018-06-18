@@ -1,9 +1,8 @@
 FROM python:3.6
 
 RUN pip install --upgrade pip
-RUN pip install --upgrade pipenv
-
-COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN pip install --upgrade pip-tools
+RUN pip install --upgrade virtualenv
 
 VOLUME /app
 WORKDIR /app
@@ -17,4 +16,4 @@ ENV PYENV_SHELL=/bin/bash
 
 ADD .bashrc_mdstudio /root/.bashrc_mdstudio
 
-CMD ["bash", "/docker-entrypoint.sh"]
+CMD "bash"
