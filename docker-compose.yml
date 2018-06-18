@@ -65,6 +65,14 @@ services:
         volumes:
             - redis:/data/db
 
+    # Resources available to all the microservices
+    common_resources:
+      image: mdstudio/common_resources:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+            
     # LIE components
     lie_amber:
       image: mdstudio/lie_amber:0.0.1
