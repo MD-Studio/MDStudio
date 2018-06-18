@@ -75,7 +75,8 @@ services:
             
     # LIE components
     lie_amber:
-      image: mdstudio/lie_amber:0.0.1
+      # image: mdstudio/lie_amber:0.0.1
+      image: lie_amber:devel
       links:
         - crossbar
       environment:
@@ -102,7 +103,8 @@ services:
         - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
 
     lie_plants_docking:
-      image: mdstudio/lie_plants_docking:0.0.2
+      # image: mdstudio/lie_plants_docking:0.0.2
+      image: lie_plants_docking:devel
       links:
         - crossbar
       environment:

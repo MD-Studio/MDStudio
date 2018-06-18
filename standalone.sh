@@ -14,9 +14,6 @@ for s in ${ALL_SERVICES[@]}; do
     mkdir -p ${WORKDIR}/${s}
 done
 
-# The plants executable cannot be distribute
-cp ${PLANTS_BIN} ${WORKDIR}/lie_plants_docking
-
 # start docker microservices
 docker-compose up -d crossbar ${SERVICES[@]}
 
