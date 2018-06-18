@@ -1,16 +1,18 @@
 from typing import Optional, Any, List, Union, Tuple
 
-from mdstudio.cache import CacheType
+from mdstudio.api.context import ContextCallable
 from mdstudio.cache.cache import ICache
-import mdstudio
+from mdstudio.cache.cache_type import CacheType
 
 
-class SessionCacheWrapper(ICache):
+class SessionCacheWrapper(ICache, ContextCallable):
 
     def __init__(self, session, cache_type=CacheType.User):
         # type: (CommonSession, CacheType) -> None
         self.session = session  # type: CommonSession
         self.cache_type = cache_type
+
+        ContextCallable.__init__(self, session)
 
     def put(self, key, value, expiry=None):
         # type: (str, Any, Optional[int]) -> dict
@@ -77,4 +79,4 @@ class SessionCacheWrapper(ICache):
         return self._call('forget', request)
 
     def _call(self, uri, request):
-        return self.session.call('mdstudio.cache.endpoint.{}'.format(uri), request, claims=mdstudio.api.context.ContextManager.get('call_context').get_cache_claims(self.cache_type))
+        return self.session.call('mdstudio.cache.endpoint.{}'.format(uri), request, claims=self.call_context.get_cache_claims(self.cache_type))

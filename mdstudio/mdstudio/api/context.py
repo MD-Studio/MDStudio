@@ -1,63 +1,27 @@
-from copy import deepcopy
+import mdstudio
+import copy
 from functools import wraps
 
 import six
 
-from mdstudio.api.singleton import Singleton
-
-from mdstudio.api.singleton import Singleton
 from mdstudio.cache.cache_type import CacheType
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.logging.log_type import LogType
 
 
-@six.add_metaclass(Singleton)
-class ContextWrapper(object):
-    def __init__(self):
-        self.context = None
+class ContextCallable(object):
+    def __init__(self, session=None, context=None):
+        self._session = session
+        self._context = context
 
+    def __call__(self, ctx):
+        cc = copy.copy(self)
+        cc._context = ctx
+        return cc
 
-class ContextManager:
-    def __init__(self, ctx):
-        self.old_context = ContextWrapper().context
-        self.context = ctx
-
-    def __enter__(self, *args):
-        ContextWrapper().context = self.context
-        return self
-
-    def __exit__(self, *args):
-        ContextWrapper().context = self.old_context
-
-    @staticmethod
-    def get(key):
-        ctx = ContextWrapper().context
-        return None if ctx is None else ctx.get(key)
-
-    @staticmethod
-    def get_context():
-        return ContextWrapper().context
-
-    @staticmethod
-    def set_context(ctx):
-        ContextWrapper().context = ctx
-
-    @staticmethod
-    def call_with_context(ctx, f, *args, **kwargs):
-        with ContextManager(ctx):
-            return f(*args, **kwargs)
-
-
-def with_default_context(f):
-    @wraps(f)
-    def _f(instance, *args, **kwargs):
-        from mdstudio.component.impl.common import CommonSession
-        assert isinstance(instance, CommonSession)
-
-        with instance.default_context():
-            return f(instance, *args, **kwargs)
-
-    return _f
+    @property
+    def call_context(self):
+        return self._context or (self._session.default_call_context if self._session is not None else None)
 
 
 class IContext(object):
@@ -67,7 +31,7 @@ class IContext(object):
 
     def get_claims(self, additional_claims):
         if isinstance(additional_claims, dict):
-            return deepcopy(additional_claims)
+            return copy.deepcopy(additional_claims)
         else:
             return {}
 
@@ -82,7 +46,8 @@ class IContext(object):
 
 
 class UserContext(IContext):
-    def get_db_claims(self, connection_type=ConnectionType.User):
+    def get_db_claims(self, connection_type=mdstudio.db.connection_type.ConnectionType.User):
+        from mdstudio.db.connection_type import ConnectionType
         assert connection_type == ConnectionType.User, 'Only user connections are allowed in the UserContext'
 
         return self.get_claims({'connectionType': str(connection_type)})

@@ -11,6 +11,7 @@ from bson import ObjectId
 from pymongo import ReturnDocument, IndexModel
 from pymongo.cursor import Cursor
 
+from mdstudio.api.context import ContextCallable
 from mdstudio.collection.cache_dict import CacheDict
 from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, SortOperators, \
     ProjectionOperators, AggregationOperator
@@ -22,7 +23,7 @@ from mdstudio.logging.logger import Logger
 
 
 # noinspection PyShadowingBuiltins
-class MongoDatabaseWrapper(IDatabase):
+class MongoDatabaseWrapper(IDatabase, ContextCallable):
     _database_name = None
     _db = None
 
@@ -42,6 +43,7 @@ class MongoDatabaseWrapper(IDatabase):
         # @TODO:  this method is really insecure since we can ask arbitrary cursors,
         #         and should be fixed ASAP
         self._cursors = CacheDict(max_age_seconds=10 * 60)
+        ContextCallable.__init__(self)
 
     @make_deferred
     def more(self, cursor_id, claims=None):

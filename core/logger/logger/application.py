@@ -70,8 +70,7 @@ class LoggerComponent(CoreComponentSession):
     @chainable
     def push_logs(self, request, claims=None):
         try:
-            with self.grouprole_context('mdstudio', 'logger'):
-                res = yield self.logs.insert(self._clean_claims(claims), [self._map_level(l) for l in request['logs']])
+            res = yield self.logs(self.grouprole_context('mdstudio', 'logger')).insert(self._clean_claims(claims), [self._map_level(l) for l in request['logs']])
         except CallException as _:
             return_value(APIResult(error='The database is not online, please try again later.'))
         else:
@@ -83,10 +82,9 @@ class LoggerComponent(CoreComponentSession):
     @chainable
     def push_event(self, request, claims=None):
         try:
-            with self.grouprole_context('mdstudio', 'logger'):
-                event = request['event']
-                tags = event.pop('tags')
-                res = yield self.logs.insert(self._clean_claims(claims), [self._map_level(event)], tags)
+            event = request['event']
+            tags = event.pop('tags')
+            res = yield self.logs(self.grouprole_context('mdstudio', 'logger')).insert(self._clean_claims(claims), [self._map_level(event)], tags)
         except CallException as _:
             return_value(APIResult(error='The database is not online, please try again later.'))
         else:

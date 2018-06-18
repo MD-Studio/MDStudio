@@ -3,6 +3,7 @@ from typing import List
 from copy import deepcopy
 
 from mdstudio.api.claims import whois
+from mdstudio.api.context import ContextCallable
 from mdstudio.api.paginate import paginate_cursor
 from mdstudio.service.model import Model
 from mdstudio.deferred.chainable import chainable
@@ -11,7 +12,7 @@ from mdstudio.logging.log_type import LogType
 from mdstudio.utc import now
 
 
-class LogRepository(object):
+class LogRepository(ContextCallable):
     class Logs(Model):
         """
         {
@@ -27,6 +28,7 @@ class LogRepository(object):
 
     def __init__(self, db):
         self.db = db
+        super(LogRepository, self).__init__()
 
     def insert(self, claims, logs, tags=None):
         # type: (dict, List[dict]) -> List[str]
@@ -52,7 +54,7 @@ class LogRepository(object):
         return_value((results, prev_meta, next_meta))
 
     def logs(self, claims):
-        return self.Logs(self.db, collection=self.get_log_collection_name(claims))
+        return self.Logs(self.db, collection=self.get_log_collection_name(claims))(self.call_context)
 
     @staticmethod
     def get_log_collection_name(claims):
