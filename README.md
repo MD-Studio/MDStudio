@@ -50,7 +50,7 @@ Note specifically:
 
 |                      |                                                            |
 |----------------------|------------------------------------------------------------|
-| Interpreter path     | `/root/.local/share/virtualenvs/app-4PlAip0Q/bin/python`   |
+| Interpreter path     | `/root/mdstudio/app-4PlAip0Q/bin/python`   |
 
 ## Manual
 When you want to keep track of the whole environment for yourself, you should follow these

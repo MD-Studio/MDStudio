@@ -3,11 +3,14 @@
 cd components/$COMPONENT
 
 if [ ! -f /root/.cache/.firstrun-docker ]; then
-    pipenv install
+    virtualenv ~/mdstudio
+    (source ~/mdstudio/bin/activate && pip-sync requirements.txt)
 fi
 
 touch /root/.cache/.firstrun-docker
 
+source ~/mdstudio/bin/activate
+
 echo "Starting component $COMPONENT"
 trap 'pkill python' SIGTERM
-pipenv run bash -c 'cd ../.. && python -u -m "$COMPONENT"'
+cd ../.. && python -u -m "$COMPONENT"
