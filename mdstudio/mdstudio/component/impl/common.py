@@ -335,11 +335,10 @@ class CommonSession(ApplicationSession):
 
         if schemas['endpoints'] or schemas['resources']:
             try:
-                with self.group_context(self.component_config.static.vendor):
-                    yield self.call(u'mdstudio.schema.endpoint.upload', {
-                        'component': self.component_config.static.component,
-                        'schemas': schemas
-                    }, claims={'vendor': self.component_config.static.vendor})
+                yield self.group_context(self.component_config.static.vendor).call(u'mdstudio.schema.endpoint.upload', {
+                    'component': self.component_config.static.component,
+                    'schemas': schemas
+                }, claims={'vendor': self.component_config.static.vendor})
             except CallException as e:
                 self.log.error('Error during schema uploading: {message}', message=str(e))
             else:

@@ -14,7 +14,7 @@ class CacheComponent(CoreComponentSession):
 
         self._rc = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
         self._cache = RedisClientWrapper(self._rc)
-        self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
+        self.component_waiters.append(self.ComponentWaiter(self, 'schema', self.group_context('mdstudio')))
 
     @chainable
     def _on_join(self):

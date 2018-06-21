@@ -29,6 +29,9 @@ class IContext(object):
         # type: (CommonSession) -> None
         self.session = session  # type: CommonSession
 
+    def call(self, *args, **kwargs):
+        return self.session.call(*args, context=self, **kwargs)
+
     def get_claims(self, additional_claims):
         if isinstance(additional_claims, dict):
             return copy.deepcopy(additional_claims)

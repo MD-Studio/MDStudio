@@ -32,8 +32,8 @@ from .authorizer import Authorizer
 class AuthComponent(CoreComponentSession):
     def pre_init(self):
         self.oauth_client = oauth2.BackendApplicationClient('auth')
-        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
-        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'schema'))
+        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db', self.group_context('mdstudio')))
+        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'schema', self.group_context('mdstudio')))
         self.status_list = {'auth': True}
         super(AuthComponent, self).pre_init()
 
