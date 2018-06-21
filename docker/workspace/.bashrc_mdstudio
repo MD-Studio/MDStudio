@@ -3,7 +3,7 @@
 if [ ! -f /root/.cache/.firstrun-docker ]; then
     virtualenv ~/mdstudio
 
-    (source ~/mdstudio/bin/activate && pip-sync requirements-dev.txt)
+    (source ~/mdstudio/bin/activate && pip install -r requirements-dev.txt)
 fi
 touch /root/.cache/.firstrun-docker
 
