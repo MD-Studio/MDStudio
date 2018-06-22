@@ -75,8 +75,7 @@ services:
             
     # LIE components
     lie_amber:
-      # image: mdstudio/lie_amber:0.0.1
-      image: lie_amber:devel
+      image: mdstudio/lie_amber:0.0.2
       links:
         - crossbar
       environment:
@@ -103,8 +102,7 @@ services:
         - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
 
     lie_plants_docking:
-      # image: mdstudio/lie_plants_docking:0.0.2
-      image: lie_plants_docking:devel
+      image: mdstudio/lie_plants_docking:0.0.2
       links:
         - crossbar
       environment:
@@ -113,7 +111,7 @@ services:
         - ${WORKDIR}/lie_plants_docking:/tmp/mdstudio/lie_plants_docking
 
     lie_pylie:
-      image: mdstudio/lie_pylie:0.0.1
+      image: mdstudio/lie_pylie:0.0.2
       links:
         - crossbar
       environment:
@@ -122,7 +120,7 @@ services:
         - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
 
     lie_structures:
-      image: mdstudio/lie_structures:0.0.1
+      image: mdstudio/lie_structures:0.0.2
       links:
         - crossbar
       environment:
