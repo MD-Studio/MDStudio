@@ -27,7 +27,7 @@ services:
 
 install:
   - pip install codecov
-  - pip install pipenv
+  - pip install pip-tools
   - pipenv install --dev --skip-lock
 
 script:

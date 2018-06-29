@@ -16,7 +16,7 @@ class SchemaComponent(CoreComponentSession):
         yield super(SchemaComponent, self).on_run()
 
     def pre_init(self):
-        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db'))
+        self.component_waiters.append(CoreComponentSession.ComponentWaiter(self, 'db', self.group_context('mdstudio')))
         
         super(SchemaComponent, self).pre_init()
 

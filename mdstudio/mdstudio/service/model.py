@@ -13,15 +13,18 @@ from mdstudio.db.index import Index
 from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateManyResponse
 from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
+from mdstudio.api.context import ContextCallable
 
 
 # noinspection PyShadowingBuiltins
-class Model(object):
+class Model(ContextCallable):
 
     class Paginate:
 
         def __init__(self, model):
             self.model = model
+
+            super(Model.Paginate, self).__init__()
 
         @chainable
         def find_many(self, filter, *args, **kwargs):
@@ -55,7 +58,9 @@ class Model(object):
 
     def __init__(self, wrapper=None, collection=None, connection_type=None):
         # type: (Optional[IDatabase], Optional[str], Optional[Collection], Optional[ConnectionType]) -> None
-        self.wrapper = wrapper or GlobalConnection.get_wrapper(connection_type or self.connection_type)
+        super(Model, self).__init__()
+
+        self._wrapper = wrapper or GlobalConnection.get_wrapper(connection_type or self.connection_type)
         self._check_wrapper()
 
         if issubclass(self.__class__, Model) and self.__class__ != Model and collection is None:
@@ -257,8 +262,13 @@ class Model(object):
             return None
         return self._return_fields(own_fields)
 
+    @property
+    def wrapper(self):
+        return self._wrapper(self.call_context)
+
     def _return_fields(self, fields):
         return fields
 
     def _check_wrapper(self):
-        assert isinstance(self.wrapper, IDatabase), 'Wrapper should inherit IDatabase'
+        assert isinstance(self._wrapper, IDatabase), 'Wrapper should inherit IDatabase'
+        assert isinstance(self._wrapper, ContextCallable), 'Wrapper should inherit ContextCallable'

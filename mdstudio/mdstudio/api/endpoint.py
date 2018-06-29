@@ -10,7 +10,6 @@ from twisted.internet.defer import _inlineCallbacks, Deferred
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.converter import convert_obj_to_json
-from mdstudio.api.context import ContextManager
 from mdstudio.api.request_hash import request_hash
 from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, MDStudioClaimSchema, InlineSchema, \
     MDStudioSchema
@@ -62,8 +61,7 @@ class WampEndpoint(object):
         return self.instance.register(self, self.uri, options=self.options)
 
     def __call__(self, request, signed_claims=None):
-        with ContextManager({'call_context': self.instance.default_call_context}):
-            return self.execute(request, signed_claims)  # type: Chainable
+        return self.execute(request, signed_claims)  # type: Chainable
 
     @chainable
     def execute(self, request, signed_claims):

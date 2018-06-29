@@ -16,10 +16,11 @@ class CoreComponentSession(CommonSession):
     class ComponentWaiter(object):
         log = Logger()
 
-        def __init__(self, session, component):
+        def __init__(self, session, component, context=None):
             # type: (CoreComponentSession, str) -> None
             self.session = session
             self.component = component
+            self.context = context
 
         @chainable
         def wait(self):
@@ -27,7 +28,7 @@ class CoreComponentSession(CommonSession):
             tried = False
 
             def status_call():
-                return self.session.call('mdstudio.auth.endpoint.ring0.get-status', {'component': self.component})
+                return self.session.call('mdstudio.auth.endpoint.ring0.get-status', {'component': self.component}, context=self.context)
 
             try:
                 online = yield status_call()
@@ -82,9 +83,8 @@ class CoreComponentSession(CommonSession):
     def _on_join(self):
         print('{} is waiting for {}'.format(self.class_name(), [waiter.component for waiter in self.component_waiters]))
 
-        with self.group_context('mdstudio'):
-            for waiter in self.component_waiters:
-                yield waiter.wait()
+        for waiter in self.component_waiters:
+            yield waiter.wait()
 
         yield super(CoreComponentSession, self)._on_join()
 
@@ -103,9 +103,5 @@ class CoreComponentSession(CommonSession):
 
         super(CoreComponentSession, self).load_settings()
 
-    @chainable
     def flush_logs(self, logs):
-        with self.group_context('mdstudio'):
-            result = yield self.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, claims={'logType': str(LogType.Group)})
-
-        return_value(result)
+        return self.group_context('mdstudio').call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, claims={'logType': str(LogType.Group)})

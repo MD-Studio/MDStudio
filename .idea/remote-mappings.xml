@@ -3,7 +3,7 @@
   <component name="RemoteMappingsManager">
     <list>
       <list>
-        <remote-mappings server-id="python@docker-compose://[docker-compose.yml]:crossbar//root/.local/share/virtualenvs/app-4PlAip0Q/bin/python" />
+        <remote-mappings server-id="python@docker-compose://[docker-compose.yml]:crossbar//root/mdstudio/bin/python" />
       </list>
     </list>
   </component>

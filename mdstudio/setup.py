@@ -3,12 +3,7 @@
 
 # package: mdstudio
 # file: setup.py
-#
-# Part of ‘mdstudio’, a package providing MongoDB access for the MDStudio
-# package.
-#
-# Copyright © 2016 Marc van Dijk, VU University Amsterdam, the Netherlands
-#
+
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at

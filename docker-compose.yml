@@ -12,7 +12,7 @@ services:
         volumes:
             - .:/app
             - workspace_pipcache:/root/.cache
-            - workspace_pipenv:/root/.local/share/virtualenvs
+            - workspace_venv:/root/mdstudio
             - .docker.env:/app/.env
         env_file:
             - .docker.env
@@ -27,8 +27,6 @@ services:
             - 8080:8080
         volumes:
             - .:/app
-            - crossbar_pipcache:/root/.cache
-            - crossbar_pipenv:/root/.local/share/virtualenvs
             - .docker.env:/app/.env
         env_file:
             - .docker.env
@@ -136,13 +134,13 @@ volumes:
         driver: "local"
     workspace_pipcache:
         driver: "local"
-    workspace_pipenv:
+    workspace_venv:
         driver: "local"
     crossbar_pipcache:
         driver: "local"
     crossbar_pipcache:
         driver: "local"
-    crossbar_pipenv:
+    crossbar_venv:
         driver: "local"
     cli_pipcache:
         driver: "local"
