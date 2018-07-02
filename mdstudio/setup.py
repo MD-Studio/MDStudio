@@ -54,7 +54,8 @@ setup(
         'functools32 >= 0.0;python_version<"3.4"'
     ],
     extras_require={
-        'test': ['coverage', 'faker', 'mock',  'pyfakefs', 'unittest2']
+        'test': ['coverage', 'dictdiffer', 'faker', 'mock', 'mongomock',
+                 'pyfakefs', 'pymongo', 'unittest2']
     },
     test_suite="tests",
     include_package_data=True,
