@@ -740,15 +740,17 @@ class ResourceSchemaTests(DBTestCase):
                 content = self.faker.pydict(10, True, 'str', 'str', 'str', 'str', 'float', 'int', 'int', 'uri', 'email')
 
                 session = mock.MagicMock()
+                group_context = mock.MagicMock()
+                group_context.call = mock.MagicMock(return_value=content)
+                session.group_context = mock.MagicMock(return_value=group_context)
                 session.component_schemas_path = mock.MagicMock(return_value=base_path)
-                session.call = mock.MagicMock(return_value=content)
                 schema = ResourceSchema('{}/{}/{}'.format(vendor, component, schema_path))
                 self.assertTrue((yield schema.flatten(session)))
                 self.assertEqual(schema.cached, {
                     1: content
                 })
 
-                session.call.assert_called_once_with('mdstudio.schema.endpoint.get', {
+                group_context.call.assert_called_once_with('mdstudio.schema.endpoint.get', {
                     'name': schema_path,
                     'version': 1,
                     'component': component,
@@ -797,19 +799,21 @@ class ResourceSchemaTests(DBTestCase):
                 patcher.fs.CreateFile(os.path.join(base_path, schema_path) + '.v1.json', contents=json.dumps(content))
 
                 session = mock.MagicMock()
+                group_context = mock.MagicMock()
+                group_context.call = mock.MagicMock(return_value=content)
+                session.group_context = mock.MagicMock(return_value=group_context)
                 session.component_schemas_path = mock.MagicMock(return_value=base_path)
                 session.component_config = mock.MagicMock()
                 session.component_config.static = mock.MagicMock()
                 session.component_config.static.vendor = vendor
 
-                session.call = mock.MagicMock(return_value=content)
                 schema = ResourceSchema('{}/{}/{}'.format(vendor, component, schema_path))
                 self.assertTrue((yield schema.flatten(session)))
                 self.assertEqual(schema.cached, {
                     1: content
                 })
 
-                session.call.assert_called_once_with('mdstudio.schema.endpoint.get', {
+                group_context.call.assert_called_once_with('mdstudio.schema.endpoint.get', {
                     'name': schema_path,
                     'version': 1,
                     'component': component,
@@ -832,19 +836,21 @@ class ResourceSchemaTests(DBTestCase):
                 patcher.fs.CreateFile(os.path.join(base_path, schema_path) + '.v1.json', contents=json.dumps(content))
 
                 session = mock.MagicMock()
+                group_context = mock.MagicMock()
+                group_context.call = mock.MagicMock(return_value=content)
+                session.group_context = mock.MagicMock(return_value=group_context)
                 session.component_schemas_path = mock.MagicMock(return_value=base_path)
                 session.component_config = mock.MagicMock()
                 session.component_config.static = mock.MagicMock()
                 session.component_config.static.component = component
 
-                session.call = mock.MagicMock(return_value=content)
                 schema = ResourceSchema('{}/{}/{}'.format(vendor, component, schema_path))
                 self.assertTrue((yield schema.flatten(session)))
                 self.assertEqual(schema.cached, {
                     1: content
                 })
 
-                session.call.assert_called_once_with('mdstudio.schema.endpoint.get', {
+                group_context.call.assert_called_once_with('mdstudio.schema.endpoint.get', {
                     'name': schema_path,
                     'version': 1,
                     'component': component,
@@ -894,11 +900,10 @@ class ResourceSchemaTests(DBTestCase):
                 patcher.fs.CreateFile(os.path.join(base_path, schema_path) + '.v1.json', contents=json.dumps(content))
 
                 session = mock.MagicMock()
+                group_context = mock.MagicMock()
+                group_context.call = mock.MagicMock(return_value=content)
+                session.group_context = mock.MagicMock(return_value=group_context)
                 session.component_schemas_path = mock.MagicMock(return_value=base_path)
-
-                session = mock.MagicMock()
-                session.component_schemas_path = mock.MagicMock(return_value=base_path)
-                session.call = mock.MagicMock(return_value=content)
                 schema = ResourceSchema('{}/{}/{}'.format(vendor, component, schema_path))
                 self.assertTrue((yield schema.flatten(session)))
                 self.assertEqual(schema.cached, {
