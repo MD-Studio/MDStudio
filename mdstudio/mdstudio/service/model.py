@@ -19,7 +19,7 @@ from mdstudio.api.context import ContextCallable
 # noinspection PyShadowingBuiltins
 class Model(ContextCallable):
 
-    class Paginate:
+    class Paginate(object):
 
         def __init__(self, model):
             self.model = model
