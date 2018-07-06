@@ -11,7 +11,7 @@
 -e ./core/logger
 -e ./mdstudio
 -e ./core/schema
-argh==0.26.2              # via argh, watchdog
+argh==0.26.2              # via watchdog
 argon2-cffi==18.1.0
 asn1crypto==0.24.0        # via cryptography
 asq==1.3
@@ -24,7 +24,7 @@ certifi==2018.4.16        # via requests
 cffi==1.11.5              # via argon2-cffi, cryptography, pynacl
 chardet==3.0.4            # via requests
 click==6.7
-constantly==15.1.0        # via constantly, twisted
+constantly==15.1.0        # via twisted
 cryptography==2.2.2
 dictdiffer==0.7.1
 h2==3.0.1
@@ -33,35 +33,33 @@ hpack==3.0.0              # via h2
 hyperframe==5.1.0         # via h2
 hyperlink==18.0.0         # via twisted
 idna==2.5                 # via cryptography, hyperlink, requests, twisted
-incremental==17.5.0       # via incremental, treq, twisted, txtorcon
-jinja2==2.10              # via jinja2
+incremental==17.5.0       # via treq, twisted, txtorcon
+jinja2==2.10
 jsonschema[format]==2.6.0
 lmdb==0.94
-markupsafe==1.0           # via jinja2, markupsafe
+markupsafe==1.0           # via jinja2
 mistune==0.8.3
 netaddr==0.7.19
 node-semver==0.3.0
 oauthlib==2.1.0
 passlib==1.7.1
-pathtools==0.1.2          # via pathtools, watchdog
+pathtools==0.1.2          # via watchdog
 priority==1.3.0
 psutil==5.4.6
 py-ubjson==0.11.0
 pyasn1-modules==0.2.1     # via service-identity
 pyasn1==0.4.3             # via pyasn1-modules, service-identity
 pycparser==2.18           # via cffi
-pygments==2.2.0           # via pygments
+pygments==2.2.0
 pyjwt==1.6.4
 pymongo==3.6.1
 pynacl==1.2.1
 pyopenssl==18.0.0         # via service-identity, twisted
-pypiwin32==223
 pyqrcode==1.2.1
 python-dateutil==2.7.3
 pytrie==0.3
 pytz==2018.4
-pywin32==223              # via pypiwin32
-pyyaml==3.12              # via pyyaml, watchdog
+pyyaml==3.12              # via watchdog
 redis-py-cluster==1.3.4
 redis==2.10.6             # via redis-py-cluster
 requests==2.19.1          # via treq
@@ -69,7 +67,7 @@ rfc3987==1.3.7            # via jsonschema
 sdnotify==0.3.2
 service-identity==17.0.0  # via twisted
 setproctitle==1.1.10
-six==1.11.0               # via argon2-cffi, autobahn, automat, cryptography, pynacl, pyopenssl, python-dateutil, six, treq, txaio
+six==1.11.0               # via argon2-cffi, autobahn, automat, cryptography, pynacl, pyopenssl, python-dateutil, treq, txaio
 sortedcontainers==2.0.4   # via pytrie
 strict-rfc3339==0.7       # via jsonschema
 treq==17.8.0
@@ -79,6 +77,6 @@ txtorcon==0.20.0
 typing==3.6.4
 u-msgpack-python==2.5.0
 urllib3==1.23             # via requests
-watchdog==0.8.3           # via watchdog
+watchdog==0.8.3
 webcolors==1.8.1          # via jsonschema
 zope.interface==4.5.0     # via twisted, txtorcon
