@@ -3,7 +3,7 @@ language: python
 
 os:
   - linux
-
+  # - osx  # @todo: replace this with a custom python install during the build
 python:
   - "2.7"
   - "3.5"
@@ -27,8 +27,8 @@ services:
 
 install:
   - pip install codecov
-  - pip install --upgrade pip-tools
-  - pip install --upgrade virtualenv
+  - pip install pip-tools
+  - pip install -r requirements-dev.txt  
   - (cd mdstudio && pip install -e .[test])
 
 script:

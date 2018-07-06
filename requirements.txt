@@ -4,13 +4,13 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
--e file:///app/core/auth
--e file:///app/core/cache
+-e ./core/auth
+-e ./core/cache
 -e git+https://github.com/Zefiros-Software/crossbar.git@849a93dbb860f61b8d1ce5e123728483b0076990#egg=crossbar
--e file:///app/core/db
--e file:///app/core/logger
--e file:///app/mdstudio
--e file:///app/core/schema
+-e ./core/db
+-e ./core/logger
+-e ./mdstudio
+-e ./core/schema
 argh==0.26.2              # via watchdog
 argon2-cffi==18.1.0
 asn1crypto==0.24.0        # via cryptography
