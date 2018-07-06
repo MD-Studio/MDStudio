@@ -245,14 +245,17 @@ class TestSchemaComponent(DBTestCase, APITestCase):
 
         self.service.claims = mock.MagicMock()
         for _ in range(50):
-            self.service.claims.find_latest = mock.MagicMock(return_value={'schema': json.dumps({'test': 'schema'})})
             component = self.faker.word()
             name = self.faker.word()
-            type = self.faker.word()
+            schema_type = self.faker.word()
             version = self.faker.random_number(3)
+
+            while schema_type in ('endpoint', 'resourec', 'claim'):
+                schema_type = self.faker.word()
+
             obj = {
                 'component': component,
-                'type': type,
+                'type': schema_type,
                 'name': name,
                 'version': version
             }
@@ -262,7 +265,7 @@ class TestSchemaComponent(DBTestCase, APITestCase):
                 yield self.assertApi(self.service, 'schema_get', obj, self.claims)
                 completed = True
             except SchemaException as e:
-                self.assertRegex(str(e), 'Schema type "{}" is not known'.format(type))
+                self.assertRegex(str(e), 'Schema type "{}" is not known'.format(schema_type))
             self.assertFalse(completed)
 
     @test_chainable
