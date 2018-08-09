@@ -38,12 +38,6 @@ class Run_components(ComponentSession):
         assert os.path.isfile(result['gmx_top'])
         print("LIE Amber up and running!")
 
-        result_collect = yield self.call(
-            "mdgroup.lie_pylie.endpoint.collect_energy_trajectories",
-            dict_trajectory)
-        assert os.path.isfile(result_collect['mdframe'])
-        print("LIE pylie up and running")
-
         # test lie_structures
         toolkits = yield self.call(
             "mdgroup.lie_structures.endpoint.supported_toolkits",
