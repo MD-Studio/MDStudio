@@ -101,24 +101,21 @@ services:
         - CROSSBAR_HOST=crossbar
       volumes:
         - ${WORKDIR}/lie_plants_docking:/tmp/mdstudio/lie_plants_docking
-
+        
     lie_pylie:
-      image: mdstudio/lie_pylie:0.0.3
+      image: mdstudio/lie_pylie:0.0.4
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
 
     lie_structures:
-      image: mdstudio/lie_structures:0.0.3
+      image: mdstudio/lie_structures:0.0.4
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_structures:/tmp/mdstudio/lie_structures
+
 
 
 volumes:
