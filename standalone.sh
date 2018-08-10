@@ -4,7 +4,7 @@ export WORKDIR=/tmp/mdstudio
 export MD_CONFIG_ENVIRONMENTS=dev,docker
 
 # Docker based Services
-SERVICES=("lie_amber" "lie_atb" "lie_plants_docking" "lie_pylie" "lie_structures" "lie_haddock")
+SERVICES=("common_resources" "lie_amber" "lie_atb" "lie_plants_docking" "lie_pylie" "lie_structures" "lie_haddock")
 
 # Services install locally with pip
 STANDALONE_SERVICES=( "lie_md" "lie_cli" )
