@@ -25,7 +25,7 @@ Next, run the builder and start the microservice docker environment under bash a
 	Clone the repository using the devel branch
 	>> git clone -b devel git@github.com:MD-Studio/MDStudio.git
 	Install the dependencies from the MDStudio folder
-	>> pip install -r dependencies-dev.txt
+	>> pip install -r requirements-dev.txt
 	Install mdstudio
 	>> pip install -e mdstudio
     >> ./build.sh
