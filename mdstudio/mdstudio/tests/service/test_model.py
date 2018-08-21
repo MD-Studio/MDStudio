@@ -6,6 +6,7 @@ from autobahn.twisted import ApplicationSession
 from faker import Faker
 from twisted.trial.unittest import TestCase
 
+from mdstudio.api.context import ContextCallable
 from mdstudio.db.cursor import Cursor
 from mdstudio.db.database import IDatabase
 from mdstudio.db.fields import Fields
@@ -21,8 +22,11 @@ class ModelTests(TestCase):
     faker = Faker()
 
     def setUp(self):
-        self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
+        def get_wrapper(*args, **kwargs):
+            return self.wrapper
+        self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper, side_effect=get_wrapper)
         self.wrapper._check_wrapper = mock.MagicMock()
+        self.wrapper.wrapper = self.wrapper
         self.collection = 'coll'
         self.model = Model(self.wrapper, self.collection)
         self.time = self.faker.date_time(pytz.utc)
@@ -46,19 +50,21 @@ class ModelTests(TestCase):
         self.documents = [self.document, self.document2]
 
     def test_construction(self):
-        self.wrapper = mock.Mock(spec=IDatabase)
+
+        class MockDatabaseWrapper(IDatabase, ContextCallable):
+            pass
+
+        self.wrapper = mock.Mock(spec=MockDatabaseWrapper)
         self.collection = 'coll'
         self.model = Model(self.wrapper, self.collection)
-        self.assertEqual(self.model.wrapper, self.wrapper)
+        self.assertEqual(self.model._wrapper, self.wrapper)
 
     def test_construction2(self):
-        self.assertEqual(self.model.wrapper, self.wrapper)
+        self.assertEqual(self.model._wrapper, self.wrapper)
 
         self.assertIsInstance(self.model.wrapper, SessionDatabaseWrapper)
 
     def test_construction3(self):
-        self.wrapper = mock.MagicMock(spec=SessionDatabaseWrapper)
-
         self.model = Model(self.wrapper, self.collection)
         self.assertEqual(self.model.wrapper, self.wrapper)
 

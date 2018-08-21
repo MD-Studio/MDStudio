@@ -51,9 +51,5 @@ class ComponentSession(CommonSession):
         self.db = GlobalConnection.get_wrapper(ConnectionType.User)
         self.cache = GlobalCache.get_wrapper(ConnectionType.User)
 
-    @chainable
     def flush_logs(self, logs):
-        with self.default_context() as c:
-            result = yield self.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, c.get('call_context').get_log_claims())
-
-        return_value(result)
+        return self.default_call_context.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, self.default_call_context.get_log_claims())

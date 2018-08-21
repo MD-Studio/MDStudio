@@ -32,7 +32,7 @@ class DBComponent(CoreComponentSession):
             ('secret', (['MD_MONGO_SECRET'], None))
         ]))
 
-        self.component_waiters.append(self.ComponentWaiter(self, 'schema'))
+        self.component_waiters.append(self.ComponentWaiter(self, 'schema', self.group_context('mdstudio')))
 
         self._client = MongoClientWrapper(self.component_config.settings['host'], self.component_config.settings['port'])
 

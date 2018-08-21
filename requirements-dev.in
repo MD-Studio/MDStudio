@@ -1,0 +1,15 @@
+bandit
+future
+sphinx
+sphinx-rtd-theme>=0.1.9
+sphinx-autobuild>=0.6.0
+coverage
+flake8
+flake8-docstrings
+pepper8
+autopep8
+mock
+faker
+pyfakefs
+unittest2
+-e git+https://github.com/Zefiros-Software/mongomock.git#egg=mongomock

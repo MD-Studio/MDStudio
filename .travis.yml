@@ -3,7 +3,7 @@ language: python
 
 os:
   - linux
-
+  # - osx  # @todo: replace this with a custom python install during the build
 python:
   - "2.7"
   - "3.5"
@@ -27,8 +27,9 @@ services:
 
 install:
   - pip install codecov
-  - pip install pipenv
-  - pipenv install --dev --skip-lock
+  - pip install pip-tools
+  - pip install -r requirements-dev.txt  
+  - (cd mdstudio && pip install -e .[test])
 
 script:
   # Run the unitary tests excluding the expensive computations 
@@ -40,9 +41,9 @@ script:
   - (docker-compose up -d crossbar && pip install -e components/lie_echo)
   - pip install docker retrying
   - (cd tests && python check_docker_compose.py)
-  - (cd tests && (python -m lie_echo &) && sleep 5 && (python test_crossbar.py &) && sleep 5 && python check_echo_output.py)
-  # kill microservice
-  - (ps axf | grep lie_echo | grep -v grep | awk '{print "kill -9 " $1}' | sh)
+  # - (cd tests && (python -m lie_echo &) && sleep 5 && (python test_crossbar.py &) && sleep 5 && python check_echo_output.py)
+  # # kill microservice
+  # - (ps axf | grep lie_echo | grep -v grep | awk '{print "kill -9 " $1}' | sh)
 
 after_success:
   - coverage combine mdstudio/.coverage core/logger/.coverage core/db/.coverage core/schema/.coverage

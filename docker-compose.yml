@@ -12,7 +12,7 @@ services:
         volumes:
             - .:/app
             - workspace_pipcache:/root/.cache
-            - workspace_pipenv:/root/.local/share/virtualenvs
+            - workspace_venv:/root/mdstudio
             - .docker.env:/app/.env
         env_file:
             - .docker.env
@@ -27,8 +27,6 @@ services:
             - 8080:8080
         volumes:
             - .:/app
-            - crossbar_pipcache:/root/.cache
-            - crossbar_pipenv:/root/.local/share/virtualenvs
             - .docker.env:/app/.env
         env_file:
             - .docker.env
@@ -65,33 +63,35 @@ services:
         volumes:
             - redis:/data/db
 
+    # Resources available to all the microservices
+    common_resources:
+      image: mdstudio/common_resources:0.0.1
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+            
     # LIE components
     lie_amber:
-      image: mdstudio/lie_amber:0.0.1
+      image: mdstudio/lie_amber:0.0.4
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
 
     lie_atb:
-      image: mdstudio/lie_atb:0.0.1
+      image: mdstudio/lie_atb:0.0.2
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
 
     lie_haddock:
-      image: mdstudio/lie_haddock:0.0.1
+      image: mdstudio/lie_haddock:0.0.2
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
 
     lie_plants_docking:
       image: mdstudio/lie_plants_docking:0.0.2
@@ -101,24 +101,21 @@ services:
         - CROSSBAR_HOST=crossbar
       volumes:
         - ${WORKDIR}/lie_plants_docking:/tmp/mdstudio/lie_plants_docking
-
+        
     lie_pylie:
-      image: mdstudio/lie_pylie:0.0.1
+      image: mdstudio/lie_pylie:0.0.4
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
 
     lie_structures:
-      image: mdstudio/lie_structures:0.0.1
+      image: mdstudio/lie_structures:0.0.4
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_structures:/tmp/mdstudio/lie_structures
+
 
 
 volumes:
@@ -128,13 +125,13 @@ volumes:
         driver: "local"
     workspace_pipcache:
         driver: "local"
-    workspace_pipenv:
+    workspace_venv:
         driver: "local"
     crossbar_pipcache:
         driver: "local"
     crossbar_pipcache:
         driver: "local"
-    crossbar_pipenv:
+    crossbar_venv:
         driver: "local"
     cli_pipcache:
         driver: "local"

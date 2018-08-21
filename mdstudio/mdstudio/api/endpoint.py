@@ -10,7 +10,6 @@ from twisted.internet.defer import _inlineCallbacks, Deferred
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.converter import convert_obj_to_json
-from mdstudio.api.context import ContextManager
 from mdstudio.api.request_hash import request_hash
 from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, MDStudioClaimSchema, InlineSchema, \
     MDStudioSchema
@@ -62,8 +61,7 @@ class WampEndpoint(object):
         return self.instance.register(self, self.uri, options=self.options)
 
     def __call__(self, request, signed_claims=None):
-        with ContextManager({'call_context': self.instance.default_call_context}):
-            return self.execute(request, signed_claims)  # type: Chainable
+        return self.execute(request, signed_claims)  # type: Chainable
 
     @chainable
     def execute(self, request, signed_claims):
@@ -72,6 +70,7 @@ class WampEndpoint(object):
 
         from mdstudio.component.impl.common import CommonSession
 
+        request = bytes_to_str(request)
         claims = yield super(CommonSession, self.instance).call(u'mdstudio.auth.endpoint.verify', signed_claims)
 
         claim_errors = self.validate_claims(claims, request)
@@ -265,3 +264,18 @@ def cursor_endpoint(uri, input_schema, output_schema, claim_schema=None, options
         return CursorWampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
 
     return wrap_f
+
+def bytes_to_str(obj):
+    if isinstance(obj, dict):
+        for k in obj.keys():
+            if isinstance(k, bytes):
+                obj[k.decode()] = bytes_to_str(obj.pop(k))
+        for k, v in obj.items():
+            obj[k] = bytes_to_str(v)
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            obj[i] = bytes_to_str(obj[i])
+    elif isinstance(obj, bytes):
+        return obj.decode()
+    
+    return obj

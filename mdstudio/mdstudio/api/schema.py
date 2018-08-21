@@ -250,7 +250,7 @@ class ResourceSchema(ISchema):
     @chainable
     def _retrieve_wamp(self, session):
         for version in self.versions:
-            self.cached[version] = yield session.call('mdstudio.schema.endpoint.get', {
+            self.cached[version] = yield session.group_context(session.component_config.static.vendor).call('mdstudio.schema.endpoint.get', {
                 'name': self.schema_path,
                 'version': version,
                 'component': self.component,

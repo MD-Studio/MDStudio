@@ -1,5 +1,4 @@
 import twisted.trial.unittest as trial_unit
-from unittest2.case import _AssertRaisesContext
 
 create_mock_client = False
 
@@ -26,5 +25,6 @@ class DBTestCase(trial_unit.TestCase):
             args: Function to be called and extra positional args.
             kwargs: Extra kwargs.
         """
+        from unittest2.case import _AssertRaisesContext
         context = _AssertRaisesContext(expected_exception, self, expected_regex)
         return context.handle('assertRaisesRegex', args, kwargs)

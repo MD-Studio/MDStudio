@@ -1,0 +1,8 @@
+-e git+https://github.com/Zefiros-Software/crossbar.git@849a93dbb860f61b8d1ce5e123728483b0076990#egg=crossbar
+-e ./mdstudio/
+-e ./core/auth/
+-e ./core/cache/
+-e ./core/db/
+-e ./core/schema/
+-e ./core/logger/
+cryptography

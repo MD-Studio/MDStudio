@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 
 import six
 
-from mdstudio.api.context import ContextManager
+from mdstudio.api.context import ContextCallable
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.cursor import Cursor
@@ -16,13 +16,14 @@ from mdstudio.deferred.return_value import return_value
 
 
 # noinspection PyShadowingBuiltins
-class SessionDatabaseWrapper(IDatabase):
+class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
     def __init__(self, session, connection_type=ConnectionType.User):
         # type: (CommonSession, ConnectionType) -> None
         self.session = session  # type: CommonSession
 
         self.connection_type = connection_type
+        ContextCallable.__init__(self, session)
 
     def more(self, cursor_id):
         # type: (str) -> Dict[str, Any]
@@ -315,4 +316,4 @@ class SessionDatabaseWrapper(IDatabase):
 
     def _call(self, uri, request):
         return self.session.call('mdstudio.db.endpoint.{}'.format(uri), request,
-                                 claims=ContextManager.get('call_context').get_db_claims(self.connection_type))
+                                 claims=self.call_context.get_db_claims(self.connection_type))

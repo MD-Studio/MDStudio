@@ -33,14 +33,13 @@ class EchoComponent(ComponentSession):
 
     @chainable
     def call_hello(self):
-        with self.group_context('mdgroup'):
-            send_time = now()
-            response = yield self.call('mdgroup.echo.endpoint.hello', {
-                'message': {
-                    'greeting': 'Hello World!',
-                    'sendTime': send_time
-                }
-            })
+        send_time = now()
+        response = yield self.group_context('mdgroup').call('mdgroup.echo.endpoint.hello', {
+            'message': {
+                'greeting': 'Hello World!',
+                'sendTime': send_time
+            }
+        })
 
         return_time = from_utc_string(response['returnTime'])
         response['returnTime'] = return_time

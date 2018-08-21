@@ -8,6 +8,7 @@ settings:
       - groupName: mdgroup
         owner: mdadmin
         components:
+          - common_resources
           - echo
           - lie_amber
           - lie_atb

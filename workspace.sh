@@ -1,1 +1,1 @@
-docker-compose run --rm workspace bash
+docker-compose run --rm workspace
