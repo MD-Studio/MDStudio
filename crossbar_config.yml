@@ -57,8 +57,16 @@ workers:
             name: logger
           - authorizer: mdstudio.auth.endpoint.authorize.public
             name: public
-          - authorizer: mdstudio.auth.endpoint.authorize.user
-            name: user
+            # @todo: reenable user authentication
+          - name: user
+            # authorizer: mdstudio.auth.endpoint.authorize.user
+            permissions:
+              - uri: '*'
+                allow: 
+                  call: true
+                  publish: true
+                  register: true
+                  subscribe: true
           - authorizer: mdstudio.auth.endpoint.authorize.admin
             name: admin
           - authorizer: mdstudio.auth.endpoint.authorize.oauth
@@ -104,11 +112,17 @@ workers:
           ws:
             auth:
               anonymous:
-                role: public
                 type: static
-              scram:
-                authenticator: mdstudio.auth.endpoint.login
-                type: dynamic
+                role: public
+              # scram:
+              #   authenticator: mdstudio.auth.endpoint.login
+              #   type: dynamic
+              ticket:
+                type: static
+                principals:
+                  mdadmin:
+                    ticket: this_should_be_replaced_for_production!@#$%^&*()_+1234567890-=
+                    role: user
             type: websocket
         type: web
     type: router

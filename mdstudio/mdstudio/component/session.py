@@ -26,18 +26,22 @@ class ComponentSession(CommonSession):
         password = u'{}'.format(self.component_config.session.password)
         self.authenticator = create_authenticator(AuthScram.name, authid=authid, password=saslprep(password))
 
-        self.join(self.config.realm, authmethods=auth_methods, authid=authid, authrole=auth_role, authextra=self.authenticator.authextra)
+        # self.join(self.config.realm, authmethods=auth_methods, authid=authid, authrole=auth_role, authextra=self.authenticator.authextra)
+        self.join(self.config.realm, ['ticket'], authid, 'user')
 
     onConnect = on_connect
 
     def on_challenge(self, challenge):
-        challenge.extra['salt'] = challenge.extra['salt'].encode('ascii')
-        return self.authenticator.on_challenge(self, challenge)
+        # challenge.extra['salt'] = challenge.extra['salt'].encode('ascii')
+        # return self.authenticator.on_challenge(self, challenge)
+        password = u'{}'.format(self.component_config.session.password)
+        return password
 
     onChallenge = on_challenge
 
     def on_welcome(self, welcome):
-        return self.authenticator.on_welcome(self, welcome.authextra)
+        # return self.authenticator.on_welcome(self, welcome.authextra)
+        pass
 
     onWelcome = on_welcome
 
