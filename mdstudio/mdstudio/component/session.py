@@ -27,7 +27,7 @@ class ComponentSession(CommonSession):
         self.authenticator = create_authenticator(AuthScram.name, authid=authid, password=saslprep(password))
 
         # self.join(self.config.realm, authmethods=auth_methods, authid=authid, authrole=auth_role, authextra=self.authenticator.authextra)
-        self.join(self.config.realm, [u'ticket'], authid, 'user')
+        self.join(self.config.realm, [u'ticket'], authid, u'user')
 
     onConnect = on_connect
 
