@@ -6,7 +6,7 @@ from mdstudio.utc import to_utc_string, to_date_string
 def convert_obj_to_json(document):
     if isinstance(document, bytes):      
         return document.decode('utf-8')
-    if isinstance(document, (str, int)): 
+    if isinstance(document, str): 
         return str(document)
     if isinstance(document, dict):       
         return dict(map(convert_obj_to_json, document.items()))
@@ -20,3 +20,5 @@ def convert_obj_to_json(document):
         return to_date_string(document)
     if isinstance(document, datetime):
         return to_utc_string(document)
+
+    return document
