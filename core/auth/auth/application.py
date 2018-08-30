@@ -12,7 +12,8 @@ from oauthlib.common import generate_client_id as generate_secret
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from auth.user_repository import UserRepository, PermissionType
-from mdstudio.api.endpoint import endpoint, bytes_to_str
+from mdstudio.api.endpoint import endpoint
+from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.scram import SCRAM
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.deferred.chainable import chainable
@@ -58,7 +59,7 @@ class AuthComponent(CoreComponentSession):
         if not isinstance(claims, dict):
             raise TypeError()
 
-        claims = bytes_to_str(claims)
+        claims = convert_obj_to_json(claims)
 
         assert not any(key in claims for key in ['group', 'role', 'username']), 'Illegal key detected in claims'
 
@@ -100,7 +101,6 @@ class AuthComponent(CoreComponentSession):
                 authid = 'mdadmin'
             user = yield self.user_repository.find_user(authid)
 
-            claims = bytes_to_str(claims)
             claims['username'] = user.name
 
             g, c, _, e = claims['uri'].split('.', 3)

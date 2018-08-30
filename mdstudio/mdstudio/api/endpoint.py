@@ -70,7 +70,7 @@ class WampEndpoint(object):
 
         from mdstudio.component.impl.common import CommonSession
 
-        request = bytes_to_str(request)
+        request = convert_obj_to_json(request)
         claims = yield super(CommonSession, self.instance).call(u'mdstudio.auth.endpoint.verify', signed_claims)
 
         claim_errors = self.validate_claims(claims, request)
@@ -264,18 +264,3 @@ def cursor_endpoint(uri, input_schema, output_schema, claim_schema=None, options
         return CursorWampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
 
     return wrap_f
-
-def bytes_to_str(obj):
-    if isinstance(obj, dict):
-        for k in obj.keys():
-            if isinstance(k, bytes):
-                obj[k.decode()] = bytes_to_str(obj.pop(k))
-        for k, v in obj.items():
-            obj[k] = bytes_to_str(v)
-    elif isinstance(obj, list):
-        for i, v in enumerate(obj):
-            obj[i] = bytes_to_str(obj[i])
-    elif isinstance(obj, bytes):
-        return obj.decode()
-    
-    return obj

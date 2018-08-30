@@ -14,9 +14,14 @@ def convert_obj_to_json(document):
     for key, value in iters:
         if isinstance(value, date) and not isinstance(value, datetime):
             document[key] = to_date_string(value)
-        if isinstance(value, datetime):
+        elif isinstance(value, datetime):
             document[key] = to_utc_string(value)
+        elif isinstance(value, bytes):
+            document[key] = value.decode('utf-8')
         else:
             convert_obj_to_json(value)
+
+        if isinstance(key, bytes):
+            document[key.decode('utf-8')] = document.pop(key)
 
     return document
