@@ -87,7 +87,7 @@ class WampEndpoint(object):
         result = yield result
 
         result = result if isinstance(result, APIResult) else APIResult(result)
-        convert_obj_to_json(result)
+        result = convert_obj_to_json(result)
 
         if 'error' in result:
             return_value(result)

@@ -127,8 +127,7 @@ class CommonSession(ApplicationSession):
         claims['uri'] = procedure
         claims['action'] = 'call'
 
-        request = deepcopy(request)
-        convert_obj_to_json(request)
+        request = convert_obj_to_json(request)
 
         claims['requestHash'] = request_hash(request)
 
