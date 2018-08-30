@@ -121,6 +121,7 @@ class AuthComponent(CoreComponentSession):
 
         claims['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=1)
 
+        claims = convert_obj_to_json(claims)
         return_value(jwt_encode(claims, self.jwt_key))
 
     @wamp.register(u'mdstudio.auth.endpoint.verify')
