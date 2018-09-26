@@ -1,0 +1,44 @@
+# YAML 1.2
+---
+abstract: "A general framework for microservice based distributed applications."
+authors: 
+  -
+    affiliation: "VU University, Amsterdam"
+    family-names: Dijk
+    given-names: Marc
+    name-particle: van
+    orcid: "https://orcid.org/0000-0002-3773-9357"
+  -
+    affiliation: "Zefiros Software"
+    family-names: Visscher
+    given-names: Paul
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Zapata
+    given-names: Felipe
+  -
+    affiliation: "Zefiros Software"
+    family-names: Duijn
+    given-names: Mick
+    name-particle: van
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Veen
+    given-names: Lourens
+    orcid: "https://orcid.org/0000-0002-6311-1168"
+cff-version: "1.0.3"
+date-released: 2018-09-26
+keywords: 
+  - python
+  - crossbar
+  - "microservice framework"
+  - science
+  - "scientific computing"
+  - bioinformatics
+  - "molecular dynamics"
+license: "Apache-2.0"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/MD-Studio/MDStudio"
+title: MDStudio
+version: "1.0.0"
+...
