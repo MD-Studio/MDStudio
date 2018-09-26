@@ -1,0 +1,40 @@
+{
+    "creators": [
+        {
+            "affiliation": "VU University, Amsterdam",
+            "name": "van Dijk, Marc",
+            "orcid": "0000-0002-3773-9357"
+        },
+        {
+            "affiliation": "Zefiros Software",
+            "name": "Visscher, Paul"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Zapata, Felipe"
+        },
+        {
+            "affiliation": "Zefiros Software",
+            "name": "van Duijn, Mick"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Veen, Lourens",
+            "orcid": "0000-0002-6311-1168"
+        }
+    ],
+    "description": "A general framework for microservice based distributed applications.",
+    "keywords": [
+        "python",
+        "crossbar",
+        "microservice framework",
+        "science",
+        "scientific computing",
+        "bioinformatics",
+        "molecular dynamics"
+    ],
+    "license": {
+        "id": "Apache-2.0"
+    },
+    "title": "MDStudio"
+}
