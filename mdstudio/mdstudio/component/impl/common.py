@@ -460,9 +460,10 @@ class CommonSession(ApplicationSession):
     def _retrieve_stored_settings(self):
         loaded_settings = {}
         for file in self.settings_files():
-            settings_file = os.path.join(self.component_root_path(), file)
+            for base_path in [self.component_root_path(), os.getcwd()]:
+                settings_file = os.path.join(base_path, file)
 
-            if os.path.isfile(settings_file):
-                with open(settings_file, 'r') as f:
-                    merge_dicts(loaded_settings, yaml.safe_load(f))
+                if os.path.isfile(settings_file):
+                    with open(settings_file, 'r') as f:
+                        merge_dicts(loaded_settings, yaml.safe_load(f))
         return loaded_settings
