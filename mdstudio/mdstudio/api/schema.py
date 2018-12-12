@@ -131,7 +131,7 @@ class EndpointSchema(ISchema):
 
     def __init__(self, uri, versions=None):
         super(EndpointSchema, self).__init__()
-        uri_decomposition = re.match(r'([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
+        uri_decomposition = re.match(r'([\w/\-_]+?)(/((v?\d+,?)*))?$', uri)
         if not uri_decomposition:
             raise RegisterException('An {0} schema uri must be in the form "{0}://<schema path>(/v<versions>), '
                                     'where <versions> is a comma separated list of version numbers. Only alphanumberic, and "/_-"'
@@ -207,7 +207,7 @@ class MDStudioClaimSchema(object):
 class ResourceSchema(ISchema):
     def __init__(self, uri, versions=None):
         super(ResourceSchema, self).__init__()
-        uri_decomposition = re.match(r'([\w\-]+)/([\w\-]+)/([\w/\-]+?)(/((v?\d+,?)*))?$', uri)
+        uri_decomposition = re.match(r'([\w\-_]+)/([\w\-_]+)/([\w/\-_]+?)(/((v?\d+,?)*))?$', uri)
         if not uri_decomposition:
             raise RegisterException(
                 'An resource schema uri must be in the form "resource://<vendor>/<component>/<schema path>(/v<versions>), '
