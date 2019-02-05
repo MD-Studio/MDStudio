@@ -228,7 +228,8 @@ class CommonSession(ApplicationSession):
                 try:
                     yield endpoint.register()
                     successful += 1
-                except:
+                except Exception as e:
+                    self.log.info("ERROR: {class_name}: {message}", class_name=self.class_name(), message=str(e))
                     failures += 1
 
         yield self._on_join()
