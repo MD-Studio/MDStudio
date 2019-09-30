@@ -457,7 +457,6 @@ class CommonSession(ApplicationSession):
         return [os.path.join(cls.component_schemas_path(), 'settings.json'),
                 os.path.join(cls.mdstudio_schemas_path(), 'settings.json')]
 
-
     def _retrieve_stored_settings(self):
         loaded_settings = {}
         for file in self.settings_files():
