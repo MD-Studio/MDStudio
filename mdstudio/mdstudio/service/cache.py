@@ -4,6 +4,7 @@ from typing import Optional, List, Tuple, Any, Union
 from mdstudio.cache.cache import ICache
 from mdstudio.cache.cache_type import CacheType
 from mdstudio.cache.impl.connection import GlobalCache
+from mdstudio.util.exception import MDStudioException
 
 
 class Cache(object):
@@ -44,4 +45,5 @@ class Cache(object):
         return expiry
 
     def _check_wrapper(self):
-        assert isinstance(self.wrapper, ICache), 'Wrapper should inherit ICache'
+        if not isinstance(self.wrapper, ICache):
+            raise MDStudioException('Wrapper should inherit ICache')

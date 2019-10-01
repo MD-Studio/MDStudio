@@ -14,6 +14,7 @@ from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateMa
 from mdstudio.deferred.chainable import chainable, Chainable
 from mdstudio.deferred.return_value import return_value
 from mdstudio.api.context import ContextCallable
+from mdstudio.util.exception import MDStudioException
 
 
 # noinspection PyShadowingBuiltins
@@ -66,7 +67,8 @@ class Model(ContextCallable):
         if issubclass(self.__class__, Model) and self.__class__ != Model and collection is None:
             self.collection = self.__class__.__name__.lower()
         else:
-            assert collection, "No collection name was given!"
+            if not collection:
+                raise MDStudioException('No collection name was given!')
             self.collection = collection
 
         self.paginate = self.Paginate(self)
@@ -270,5 +272,8 @@ class Model(ContextCallable):
         return fields
 
     def _check_wrapper(self):
-        assert isinstance(self._wrapper, IDatabase), 'Wrapper should inherit IDatabase'
-        assert isinstance(self._wrapper, ContextCallable), 'Wrapper should inherit ContextCallable'
+
+        if not isinstance(self._wrapper, IDatabase):
+            raise MDStudioException('Wrapper should inherit IDatabase')
+        if not isinstance(self._wrapper, ContextCallable):
+            raise MDStudioException('Wrapper should inherit ContextCallable')

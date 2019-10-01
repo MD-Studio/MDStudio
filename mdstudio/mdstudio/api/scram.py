@@ -1,10 +1,10 @@
 import binascii
 import hashlib
 import hmac
-
 import argon2
-from passlib.utils import saslprep
 
+from passlib.utils import saslprep
+from mdstudio.util.exception import MDStudioException
 
 class SCRAM(object):
     @staticmethod
@@ -21,8 +21,11 @@ class SCRAM(object):
         )
 
         _, tag, v, params, _, salted_password = hash_data.decode('ascii').split('$')
-        assert tag == 'argon2id'
-        assert v == 'v=19'  # argon's version 1.3 is represented as 0x13, which is 19 decimal...
+        if tag != 'argon2id':
+            raise MDStudioException()
+        if v != 'v=19':  # argon's version 1.3 is represented as 0x13, which is 19 decimal...
+            raise MDStudioException()
+
         params = {
             k: v
             for k, v in

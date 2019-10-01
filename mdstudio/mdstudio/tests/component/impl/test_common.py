@@ -7,6 +7,7 @@ from pyfakefs.fake_filesystem_unittest import Patcher
 from unittest2 import TestCase
 
 from mdstudio.component.impl.common import CommonSession
+from mdstudio.util.exception import MDStudioException
 
 
 # noinspection PyCompatibility
@@ -82,24 +83,29 @@ class TestCommonSession(TestCase):
         # noinspection PyAttributeOutsideInit
         class TestSession(CommonSession):
             def load_settings(self):
-                assert self.environment
+                if not self.environment:
+                    raise MDStudioException()
 
             def load_environment(self, mapping, attribute=None):
                 self.environment = True
 
             def validate_settings(self):
-                assert self.pre_init
+                if not self.pre_init:
+                    raise MDStudioException()
 
             def extract_custom_scopes(self):
-                assert self.component_config
+                if not self.component_config:
+                    raise MDStudioException()
                 self.extracted = True
 
             def pre_init(self):
-                assert self.extracted
+                if not self.extracted:
+                    raise MDStudioException()
                 self.pre_init = True
 
             def on_init(self):
-                assert self.pre_init
+                if not self.pre_init:
+                    raise MDStudioException()
                 self.on_init = True
 
         session = TestSession()

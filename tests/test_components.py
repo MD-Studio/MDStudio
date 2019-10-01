@@ -1,8 +1,10 @@
+import os
 from os.path import join
 from mdstudio.deferred.chainable import chainable
 from mdstudio.component.session import ComponentSession
 from mdstudio.runner import main
-import os
+from mdstudio.util.exception import MDStudioException
+
 
 # Workdirs
 cwd = os.getcwd()
@@ -35,14 +37,16 @@ class Run_components(ComponentSession):
             "mdgroup.lie_amber.endpoint.acpype",
             {"structure": amber_input,
              "workdir": join(workdir, 'lie_amber')})
-        assert os.path.isfile(result['gmx_top'])
-        print("LIE Amber up and running!")
+
+        if not os.path.isfile(result['gmx_top']):
+            raise MDStudioException('Gromacs topology file (gmx_top) required')
+        print('LIE Amber up and running!')
 
         # test lie_structures
-        toolkits = yield self.call(
-            "mdgroup.lie_structures.endpoint.supported_toolkits",
-            {})
-        assert "pybel" in toolkits["toolkits"]
+        toolkits = yield self.call('mdgroup.lie_structures.endpoint.supported_toolkits', {})
+        if not 'pybel' in toolkits['toolkits']:
+            raise MDStudioException('pybel toolkit required')
+
         print("LIE structure up and running!")
 
 

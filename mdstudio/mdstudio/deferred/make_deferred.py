@@ -4,6 +4,7 @@ from typing import Callable, Any
 from twisted.internet.threads import deferToThread
 
 from mdstudio.deferred.chainable import Chainable
+from mdstudio.util.exception import MDStudioException
 
 
 def make_deferred(method):
@@ -17,7 +18,8 @@ def make_deferred(method):
     """
 
     def wrapper(*args, **kwargs):
-        assert currentThread().getName() == 'MainThread'
+        if currentThread().getName() != 'MainThread':
+            raise MDStudioException('Not on the main thread')
         return Chainable(deferToThread(method, *args, **kwargs))
 
     return wrapper

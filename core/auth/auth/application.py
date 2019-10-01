@@ -17,6 +17,7 @@ from mdstudio.api.scram import SCRAM
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
+from mdstudio.util.exception import MDStudioException
 
 try:
     import urlparse
@@ -57,8 +58,8 @@ class AuthComponent(CoreComponentSession):
             raise TypeError()
 
         claims = bytes_to_str(claims)
-
-        assert not any(key in claims for key in ['group', 'role', 'username']), 'Illegal key detected in claims'
+        if not all(key in claims for key in ['group', 'role', 'username']):
+            raise MDStudioException('Illegal key detected in claims: {0}'.format(', '.join(claims.keys())))
 
         if 'asGroup' in claims:
             group = claims.pop('asGroup')
@@ -69,7 +70,8 @@ class AuthComponent(CoreComponentSession):
             group = None
 
         if 'asRole' in claims:
-            assert group is not None, 'You cannot claim to be member of a role without the corresponding group'
+            if group is None:
+                raise MDStudioException('You cannot claim to be member of a role without the corresponding group')
 
             group_role = claims.pop('asRole')
 
@@ -146,7 +148,9 @@ class AuthComponent(CoreComponentSession):
     @wamp.register(u'mdstudio.auth.endpoint.login')
     @inlineCallbacks
     def user_login(self, realm, authid, details):
-        assert authid
+
+        if authid is None:
+            raise MDStudioException('authid cannot be None')
 
         self.log.info('WAMP authentication request for realm: {realm}, authid: {authid}', realm=realm, authid=authid)
 
@@ -175,27 +179,36 @@ class AuthComponent(CoreComponentSession):
                     authentication = SCRAM.create_authentication(user['password'], salt)
 
                     u = yield self.user_repository.create_user(user['username'], authentication, user['email'])
-                assert u.name == user['username'], 'User provisioning for user {} changed. If intentional, clear the database.'.format(user['username'])
+
+                if u.name != user['username']:
+                    raise MDStudioException('User provisioning for user {0} changed. If intentional, clear the database.'.format(user['username']))
+
             for group in provisioning.get('groups', []):
                 g = yield self.user_repository.find_group(group['groupName'])
                 if g is None:
                     g = yield self.user_repository.create_group(group['groupName'], group['owner'])
-                assert g.name == group['groupName']
+
+                if g.name != group['groupName']:
+                    raise MDStudioException('Group provisioning for group {0} changed'.format(group['groupName']))
 
                 for component in group.get('components', []):
                     c = yield self.user_repository.find_component(g.name, component)
                     if c is None:
                         c = yield self.user_repository.create_component(g.name, 'owner', component)
-                    assert c.name == component
+                    if c.name != component:
+                        raise MDStudioException()
 
                 for component in ['auth', 'db', 'logger', 'schema']:
                     p = yield self.user_repository.find_permission_rule(g.name, 'owner', 'groupResourcePermission', component)
                     if p is None:
                         p = yield self.user_repository.add_permission_rule(g.name, 'owner', 'roleResourcePermissions', component, PermissionType.FullAccess, full_namespace=True)
-                        assert p
+                        if p is None:
+                            raise MDStudioException()
                     else:
                         p = yield self.user_repository.find_permission_rule(g.name, 'owner', 'groupResourcePermission', component)
-                        assert p.full_namespace
+                        if p.full_namespace is None:
+                            raise MDStudioException()
+
             '''for client in provisioning.get('clients', []):
                 client_id = self.user_repository.generate_token()
                 client_secret = self.user_repository.generate_token()

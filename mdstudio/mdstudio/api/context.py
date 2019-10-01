@@ -7,6 +7,7 @@ import six
 from mdstudio.cache.cache_type import CacheType
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.logging.log_type import LogType
+from mdstudio.util.exception import MDStudioException
 
 
 class ContextCallable(object):
@@ -51,17 +52,20 @@ class IContext(object):
 class UserContext(IContext):
     def get_db_claims(self, connection_type=mdstudio.db.connection_type.ConnectionType.User):
         from mdstudio.db.connection_type import ConnectionType
-        assert connection_type == ConnectionType.User, 'Only user connections are allowed in the UserContext'
+        if connection_type != ConnectionType.User:
+            raise MDStudioException('Only user connections are allowed in the UserContext')
 
         return self.get_claims({'connectionType': str(connection_type)})
 
     def get_log_claims(self, log_type=LogType.User):
-        assert log_type == LogType.User, 'Only user connections are allowed in the UserContext'
+        if log_type != LogType.User:
+            raise MDStudioException('Only user connections are allowed in the UserContext')
 
         return self.get_claims({'logType': str(log_type)})
 
     def get_cache_claims(self, cache_type=CacheType.User):
-        assert cache_type == CacheType.User, 'Only user connections are allowed in the UserContext'
+        if cache_type == CacheType.User:
+            raise MDStudioException('Only user connections are allowed in the UserContext')
 
         return self.get_claims({'cacheType': str(cache_type)})
 
@@ -77,18 +81,20 @@ class GroupContext(UserContext):
         return claims
 
     def get_db_claims(self, connection_type=ConnectionType.Group):
-        assert connection_type in [ConnectionType.User,
-                                   ConnectionType.Group], 'Only user and group connections are allowed in the GroupContext'
+        if connection_type not in (ConnectionType.User, ConnectionType.Group):
+            raise MDStudioException('Only user and group connections are allowed in the GroupContext')
 
         return self.get_claims({'connectionType': str(connection_type)})
 
     def get_log_claims(self, log_type=LogType.Group):
-        assert log_type in [LogType.User, LogType.Group], 'Only user and group connections are allowed in the GroupContext'
+        if log_type not in (LogType.User, LogType.Group):
+            raise MDStudioException('Only user and group connections are allowed in the GroupContext')
 
         return self.get_claims({'logType': str(log_type)})
 
     def get_cache_claims(self, cache_type=CacheType.Group):
-        assert cache_type in [CacheType.User, CacheType.Group], 'Only user and group connections are allowed in the GroupContext'
+        if cache_type not in (CacheType.User, CacheType.Group):
+            raise MDStudioException('Only user and group connections are allowed in the GroupContext')
 
         return self.get_claims({'cacheType': str(cache_type)})
 

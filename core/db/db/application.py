@@ -17,6 +17,7 @@ from mdstudio.db.index import Index
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.lock import Lock
 from mdstudio.deferred.return_value import return_value
+from mdstudio.util.exception import MDStudioException
 
 
 class DBComponent(CoreComponentSession):
@@ -40,12 +41,13 @@ class DBComponent(CoreComponentSession):
 
     def on_init(self):
 
-        assert self.component_config.settings['secret'], 'The database must have a secret set!\n' \
-                                                         'Please modify your configuration or set "MD_MONGO_SECRET"'
-        assert len(self.component_config.settings['secret']) >= 20, 'The database secret must be at least 20 characters long! ' \
-                                                                    'Please make sure it is larger than it is now.'
-        self._set_secret()
+        if 'secret' not in self.component_config.settings:
+            raise MDStudioException('The database must have a secret set!\n Please modify your configuration or set "MD_MONGO_SECRET"')
 
+        if len(self.component_config.settings['secret']) < 20:
+            raise MDStudioException('The database secret must be at least 20 characters long! Please make sure it is larger than it is now')
+
+        self._set_secret()
         self.database_lock = Lock()
 
     @property
@@ -349,22 +351,26 @@ class DBComponent(CoreComponentSession):
 
         if connection_type == ConnectionType.User:
             database_name = 'users~{user}'.format(user=claims['username'])
+            if database_name.count('~') > 1:
+                MDStudioException('Someone tried to spoof the key database!')
 
-            assert database_name.count('~') <= 1, 'Someone tried to spoof the key database!'
         elif connection_type == ConnectionType.Group:
             database_name = 'groups~{group}'.format(group=claims['group'])
+            if database_name.count('~') > 1:
+                MDStudioException('Someone tried to spoof the key database!')
 
-            assert database_name.count('~') <= 1, 'Someone tried to spoof the key database!'
         elif connection_type == ConnectionType.GroupRole:
             database_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['role'])
+            if database_name.count('~') > 2:
+                MDStudioException('Someone tried to spoof the key database!')
 
-            assert database_name.count('~') <= 2, 'Someone tried to spoof the key database!'
         else:
             raise NotImplementedError('This distinction does not exist')
 
         result = None
         if database_name:
-            assert database_name.strip() != 'users~db', 'Someone tried to spoof the key database!'
+            if database_name.strip() == 'users~db':
+                raise MDStudioException('Someone tried to spoof the key database!')
 
             yield self.database_lock.acquire()
             result = self._client.get_database(database_name)

@@ -13,6 +13,7 @@ from mdstudio.deferred.return_value import return_value
 from mdstudio.service.model import Model
 from mdstudio.utc import now
 from mdstudio.util.random import random_uuid
+from mdstudio.util.exception import MDStudioException
 
 
 class ModelInstance(dict):
@@ -265,8 +266,8 @@ class UserRepository(object):
     def find_user(self, username=None, handle=None, email=None, with_authentication=False):
         # type: (Optional[str], Optional[str], Optional[str]) -> UserRepository.Users.Instance
         user_filter = self._add_to_request({}, ['username', 'handle', 'email'], username=username, handle=handle, email=email)
-
-        assert user_filter, "You need at least one of [username, handle, email]"
+        if not user_filter:
+            raise MDStudioException('You need at least one of [username, handle, email]')
 
         user_filter['deletedAt'] = {'$exists': False}
 
@@ -280,8 +281,8 @@ class UserRepository(object):
     @chainable
     def update_user(self, handle, **kwargs):
         update_user = self._add_to_request({}, ['display_name', 'email', 'password', 'timezone'], **kwargs)
-
-        assert update_user, 'You need to provide at least one property to update'
+        if not update_user:
+            raise MDStudioException('You need to provide at least one property to update')
 
         update_user['updatedAt'] = now()
 
@@ -304,7 +305,8 @@ class UserRepository(object):
             if value:
                 request[p] = value
 
-        assert len(kwargs.items()) == 0, 'Provided invalid parameters: {}'.format(kwargs.keys())
+        if len(kwargs.items()) != 0:
+            raise MDStudioException('Provided invalid parameters: {}'.format(kwargs.keys()))
 
         return request
 

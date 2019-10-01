@@ -5,6 +5,7 @@ from mdstudio.cache.impl.redis_client_wrapper import RedisClientWrapper
 from mdstudio.component.impl.core import CoreComponentSession
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.deferred.chainable import chainable
+from mdstudio.util.exception import MDStudioException
 
 
 class CacheComponent(CoreComponentSession):
@@ -71,16 +72,19 @@ class CacheComponent(CoreComponentSession):
 
         if connection_type == ConnectionType.User:
             namespace = 'users:{user}'.format(user=claims['username'])
+            if namespace.count(':') > 1:
+                raise MDStudioException('Someone tried to spoof the cache!')
 
-            assert namespace.count(':') <= 1, 'Someone tried to spoof the cache!'
         elif connection_type == ConnectionType.Group:
             namespace = 'groups:{group}'.format(group=claims['group'])
+            if namespace.count(':') > 1:
+                raise MDStudioException('Someone tried to spoof the cache!')
 
-            assert namespace.count(':') <= 1, 'Someone tried to spoof the cache!'
         elif connection_type == ConnectionType.GroupRole:
             namespace = 'grouproles:{group}:{group_role}'.format(group=claims['group'], group_role=claims['role'])
+            if namespace.count(':') > 2:
+                raise MDStudioException('Someone tried to spoof the cache!')
 
-            assert namespace.count(':') <= 2, 'Someone tried to spoof the cache!'
         else:
             raise NotImplementedError('This distinction does not exist')
 

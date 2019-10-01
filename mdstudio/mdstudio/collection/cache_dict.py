@@ -19,6 +19,8 @@ import time
 from collections import OrderedDict
 from threading import RLock
 
+from mdstudio.util.exception import MDStudioException
+
 
 class CacheDict(OrderedDict):
     lock = RLock()
@@ -27,7 +29,8 @@ class CacheDict(OrderedDict):
         super(CacheDict, self).__init__(self)
 
         self.max_age = max_age_seconds
-        assert max_age_seconds >= 0
+        if max_age_seconds < 0:
+            raise MDStudioException()
 
     def __getitem__(self, key):
         with self.lock:

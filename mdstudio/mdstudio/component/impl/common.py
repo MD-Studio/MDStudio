@@ -22,6 +22,7 @@ from mdstudio.deferred.return_value import return_value
 from mdstudio.logging.impl.session_observer import SessionLogObserver
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger
+from mdstudio.util.exception import MDStudioException
 
 
 class CommonSession(ApplicationSession):
@@ -183,7 +184,9 @@ class CommonSession(ApplicationSession):
         @chainable
         def _handler(*args, **kwargs):
             signed_claims = kwargs.pop('signed_claims', None)
-            assert signed_claims, "Subscribe was called without claims"
+            if not signed_claims:
+                raise MDStudioException('Subscribe was called without claims')
+
             claims = yield super(CommonSession, self).call('mdstudio.auth.endpoint.verify', signed_claims)
 
             if not ('error' in claims or 'expired' in claims):
