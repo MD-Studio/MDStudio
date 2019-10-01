@@ -37,6 +37,7 @@ script:
   - (cd core/logger && coverage run --branch -m unittest discover -vvv)
   - (cd core/db && coverage run --branch -m unittest discover -vvv)
   - (cd core/schema && coverage run --branch -m unittest discover -vvv)
+
   # Test docker compose
   - (docker-compose up -d crossbar && pip install -e components/lie_echo)
   - pip install docker retrying
@@ -45,7 +46,7 @@ script:
   # # kill microservice
   # - (ps axf | grep lie_echo | grep -v grep | awk '{print "kill -9 " $1}' | sh)
 
-after_success:
+  # Run code coverage
   - coverage combine mdstudio/.coverage core/logger/.coverage core/db/.coverage core/schema/.coverage
   - codecov
 
