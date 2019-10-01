@@ -69,7 +69,7 @@ class OAuthRequestValidator(oauth2.RequestValidator):
             token['accessToken'] = token.pop('access_token')
             token['expirationTime'] = (datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=token.pop('expires_in'))).isoformat()
 
-            Model(self.session, 'tokens').insert_one(copy.deepcopy(token), date_fields=['insert.expirationTime'])
+            Model(self.session, 'tokens').insert_one(copy.deepcopy(token), fields=['insert.expirationTime'])
         else:
             raise NotImplementedError('Subclasses has not implemented this path.')
 
