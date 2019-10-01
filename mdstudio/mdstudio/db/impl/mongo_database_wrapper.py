@@ -47,12 +47,12 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def more(self, cursor_id, claims=None):
-        # type: (str) -> Dict[str, Any]
+        # type: (str, Optional[dict]) -> Dict[str, Any]
         return self._more(cursor_id, claims)
 
     @make_deferred
     def rewind(self, cursor_id, claims=None):
-        # type: (str) -> Dict[str, Any]
+        # type: (str, Optional[dict]) -> Dict[str, Any]
         try:
             self._cursors[cursor_id][0].rewind()
 
@@ -62,7 +62,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def insert_one(self, collection, insert, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
         self._convert_fields(fields, {'insert': insert}, ['insert'], claims)
@@ -74,7 +74,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def insert_many(self, collection, insert, fields=None, claims=None):
-        # type: (CollectionType, List[DocumentType], Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, List[DocumentType], Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, True)
 
         self._convert_fields(fields, {'insert': insert}, ['insert'], claims)
@@ -86,7 +86,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def replace_one(self, collection, filter, replacement, upsert=False, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
@@ -104,7 +104,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
     @make_deferred
     def count(self, collection=None, filter=None, skip=None, limit=None, fields=None, claims=None, cursor_id=None,
               with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Optional[Fields]], Optional[str]) -> Dict[str, Any]
+        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Fields], Optional[dict], Optional[str], bool) -> Dict[str, Any]
         total = 0
         if cursor_id:
             total = self._cursors[cursor_id][0].count(with_limit_and_skip)
@@ -126,7 +126,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def update_one(self, collection, filter, update, upsert=False, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Optional[Fields]]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
@@ -143,7 +143,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def update_many(self, collection, filter, update, upsert=False, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
@@ -159,7 +159,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def find_one(self, collection, filter, projection=None, skip=None, sort=None, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         skip = 0 if not skip else skip
@@ -180,7 +180,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, Optional[Fields], Optional[dicts]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         skip = 0 if not skip else skip
@@ -200,9 +200,9 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         return self._get_cursor(cursor, fields=fields, claims=claims)
 
     @make_deferred
-    def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
-                            return_updated=False, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields]) -> Dict[str, Any]
+    def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None, return_updated=False, fields=None,
+                            claims=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
@@ -225,7 +225,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
     @make_deferred
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
@@ -248,7 +248,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def find_one_and_delete(self, collection, filter, projection=None, sort=None, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         result = None
@@ -267,7 +267,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def distinct(self, collection, field, filter=None, fields=None, claims=None):
-        # type: (CollectionType, str, Optional[DocumentType], Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, str, Optional[DocumentType], Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         results = []
@@ -305,7 +305,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def delete_one(self, collection, filter, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
@@ -321,7 +321,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def delete_many(self, collection=None, filter=None, fields=None, claims=None):
-        # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
+        # type: (CollectionType, DocumentType, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
@@ -353,7 +353,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
     @make_deferred
     def drop_indexes(self, collection, indexes):
-        # type: (CollectionType, str, List[Index]) -> Any
+        # type: (CollectionType, List[Index]) -> Any
         db_collection = self._get_collection(collection)
 
         if db_collection:
@@ -488,7 +488,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         }
 
     def _more(self, cursor_id, claims):
-        # type: (str) -> Dict[str, Any]
+        # type: (str, dict) -> Dict[str, Any]
 
         try:
             cursor, fields = self._cursors[cursor_id]

@@ -30,75 +30,75 @@ IndexKeys = Union[List[Tuple[str, SortMode]], Tuple[str, SortMode]]
 class IDatabase(object):
 
     @abc.abstractmethod
-    def more(self, cursor_id):
-        # type: (str) -> Any
+    def more(self, cursor_id, claims=None):
+        # type: (str, Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def rewind(self, cursor_id):
-        # type: (str) -> Any
+    def rewind(self, cursor_id, claims=None):
+        # type: (str, Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def insert_one(self, collection, insert, fields=None):
-        # type: (CollectionType, DocumentType, Optional[Fields]) -> Any
+    def insert_one(self, collection, insert, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def insert_many(self, collection, insert, fields=None):
-        # type: (CollectionType, List[DocumentType], Optional[Fields]) -> Any
+    def insert_many(self, collection, insert, fields=None, claims=None):
+        # type: (CollectionType, List[DocumentType], Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def replace_one(self, collection, filter, replacement, upsert=False, fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Any
+    def replace_one(self, collection, filter, replacement, upsert=False, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def count(self, collection, filter=None, skip=None, limit=None, fields=None, cursor_id=None, with_limit_and_skip=False):
-        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Fields], Optional[str], bool) -> Any
+    def count(self, collection, filter=None, skip=None, limit=None, fields=None, claims=None, cursor_id=None, with_limit_and_skip=False):
+        # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Fields], Optional[dict], Optional[str], bool) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def update_one(self, collection, filter, update, upsert=False, fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Any
+    def update_one(self, collection, filter, update, upsert=False, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def update_many(self, collection, filter, update, upsert=False, fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Any
+    def update_many(self, collection, filter, update, upsert=False, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_one(self, collection, filter, projection=None, skip=None, sort=None, fields=None):
-        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[Fields]) -> Any
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[Fields],Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, fields=None):
-        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[Fields]) -> Any
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
-                            return_updated=False, fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Any
+    def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None, return_updated=False, fields=None,
+                            claims=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
     def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
-                             return_updated=False, fields=None):
-        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Any
+                             return_updated=False, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None, fields=None):
-        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], SortOperators, Optional[Fields]) -> Any
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, Optional[ProjectionOperators], SortOperators, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def distinct(self, collection, field, filter=None, fields=None):
-        # type: (CollectionType, str, Optional[DocumentType], Optional[Fields]) -> Any
+    def distinct(self, collection, field, filter=None, fields=None, claims=None):
+        # type: (CollectionType, str, Optional[DocumentType], Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -107,13 +107,13 @@ class IDatabase(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def delete_one(self, collection, filter, fields=None):
-        # type: (CollectionType, DocumentType, Optional[Fields]) -> Any
+    def delete_one(self, collection, filter, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
-    def delete_many(self, collection, filter, fields=None):
-        # type: (CollectionType, DocumentType, Optional[Fields]) -> Any
+    def delete_many(self, collection, filter, fields=None, claims=None):
+        # type: (CollectionType, DocumentType, Optional[Fields], Optional[dict]) -> Any
         raise NotImplementedError
 
     @abc.abstractmethod
