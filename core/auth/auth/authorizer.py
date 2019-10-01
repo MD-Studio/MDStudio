@@ -1,12 +1,14 @@
 import itertools
 import re
 
+
 class ActionRule(object):
     def __init__(self, actions):
         self.actions = actions
 
     def match(self, uri, action, **kw):
         return any(a in self.actions for a in ('*', action))
+
 
 class PrefixRule(ActionRule):
     def __init__(self, prefix, actions=None):
@@ -18,6 +20,7 @@ class PrefixRule(ActionRule):
     def match(self, uri, action, **kw):
         return uri.startswith(self.prefix.format(uri=uri, **kw)) and super(PrefixRule, self).match(uri, action, **kw)
 
+
 class RegexRule(ActionRule):
     def __init__(self, pattern, actions=None):
         if actions is None:
@@ -28,6 +31,7 @@ class RegexRule(ActionRule):
     def match(self, uri, action, **kw):
         return super(RegexRule, self).match(uri, action, **kw) and re.match(self.pattern.format(uri=uri, **kw), uri)
 
+
 class ExactRule(ActionRule):
     def __init__(self, uri, actions=None):
         if actions is None:
@@ -37,6 +41,7 @@ class ExactRule(ActionRule):
 
     def match(self, uri, action, **kw):
         return self.uri.format(uri=uri, **kw) == uri and super(ExactRule, self).match(uri, action, **kw)
+
 
 class Authorizer(object):
     def __init__(self):

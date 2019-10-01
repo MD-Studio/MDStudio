@@ -3,7 +3,7 @@ from time import sleep
 from twisted.trial.unittest import TestCase
 
 from mdstudio.collection.cache_dict import CacheDict
-
+from mdstudio.util.exception import MDStudioException
 
 class TestCacheDict(TestCase):
     def setUp(self):
@@ -13,7 +13,7 @@ class TestCacheDict(TestCase):
         self.assertEqual(self.d.max_age, 1)
 
     def test_construct_assert(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(MDStudioException):
             CacheDict(-1)
 
     def test_empty_contains(self):

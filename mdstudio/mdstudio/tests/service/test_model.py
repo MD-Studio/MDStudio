@@ -15,6 +15,7 @@ from mdstudio.db.response import ReplaceOneResponse, UpdateOneResponse, UpdateMa
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.deferred.chainable import chainable
+from mdstudio.util.exception import MDStudioException
 
 
 # noinspection PyCallByClass,PyTypeChecker
@@ -73,7 +74,7 @@ class ModelTests(TestCase):
     def test_construction4(self):
         self.wrapper = mock.MagicMock(spec=ApplicationSession)
 
-        self.assertRaises(AssertionError, Model, self.wrapper, self.collection)
+        self.assertRaises(MDStudioException, Model, self.wrapper, self.collection)
 
     def test_construction_class(self):
         class Users(Model):

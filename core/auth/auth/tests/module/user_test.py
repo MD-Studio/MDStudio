@@ -31,7 +31,7 @@ except BaseException:
 from lie_user.management import generate_password, hash_password, check_password, UserManager
 
 
-@unittest2.skipIf(dbenabled == False, "Not supported, no active LIE MongoDB.")
+@unittest2.skipIf(dbenabled is False, "Not supported, no active LIE MongoDB.")
 class UserDatabaseTests(unittest2.TestCase):
     """
     Unittest user management component
