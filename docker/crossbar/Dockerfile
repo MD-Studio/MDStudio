@@ -16,6 +16,6 @@ RUN echo "" >> ~/.bashrc && \
 
 ENV PYENV_SHELL=/bin/bash
 
-ADD .bashrc_crossbar /root/.bashrc_crossbar
+COPY .bashrc_crossbar /root/.bashrc_crossbar
 
 CMD ["bash", "/docker-entrypoint.sh"]
