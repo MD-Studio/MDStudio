@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-cd components/$COMPONENT
+cd components/${COMPONENT}
 
-if [ ! -f /root/.cache/.firstrun-docker ]; then
+if [[ ! -f /root/.cache/.firstrun-docker ]]; then
     virtualenv ~/mdstudio
     (source ~/mdstudio/bin/activate && pip install -r requirements.txt)
 fi
