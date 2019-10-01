@@ -1,4 +1,5 @@
-#! /bin/bash
+#!/usr/bin/env bash
+
 trap 'pkill crossbar' SIGTERM
 
 if [ ! -f /root/.cache/.firstrun-docker ]; then

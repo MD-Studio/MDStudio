@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 max_port="$1"
 
 program_entry_template ()

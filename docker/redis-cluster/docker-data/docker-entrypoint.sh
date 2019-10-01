@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ "$1" = 'redis-cluster' ]; then
     max_port=7007

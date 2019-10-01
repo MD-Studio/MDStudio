@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export WORKDIR=/tmp/mdstudio
 export MD_CONFIG_ENVIRONMENTS=dev,docker
