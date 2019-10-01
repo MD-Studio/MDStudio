@@ -58,7 +58,7 @@ class AuthComponent(CoreComponentSession):
             raise TypeError()
 
         claims = bytes_to_str(claims)
-        if not all(key in claims for key in ['group', 'role', 'username']):
+        if any(key in claims for key in ['group', 'role', 'username']):
             raise MDStudioException('Illegal key detected in claims: {0}'.format(', '.join(claims.keys())))
 
         if 'asGroup' in claims:
