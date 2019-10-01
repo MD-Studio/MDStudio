@@ -83,7 +83,7 @@ class Cursor:
             raise StopIteration
 
     def previous(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     # python 3 compatibility
     __next__ = next

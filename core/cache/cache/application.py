@@ -82,7 +82,7 @@ class CacheComponent(CoreComponentSession):
 
             assert namespace.count(':') <= 2, 'Someone tried to spoof the cache!'
         else:
-            raise NotImplemented('This distinction does not exist')
+            raise NotImplementedError('This distinction does not exist')
 
         return '{}:{}'.format(namespace, key)
 

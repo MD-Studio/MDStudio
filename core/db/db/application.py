@@ -360,7 +360,7 @@ class DBComponent(CoreComponentSession):
 
             assert database_name.count('~') <= 2, 'Someone tried to spoof the key database!'
         else:
-            raise NotImplemented('This distinction does not exist')
+            raise NotImplementedError('This distinction does not exist')
 
         result = None
         if database_name:

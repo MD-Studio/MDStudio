@@ -67,6 +67,6 @@ class LogRepository(ContextCallable):
         elif log_type == LogType.GroupRole:
             collection_name = 'grouproles~{group}~{group_role}'.format(group=claims['group'], group_role=claims['groupRole'])
         else:
-            raise NotImplemented('This distinction does not exist')
+            raise NotImplementedError('This distinction does not exist')
 
         return collection_name

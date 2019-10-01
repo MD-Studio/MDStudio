@@ -78,5 +78,5 @@ class KeyRepository(object):
             request['group'] = claims['group']
             request['role'] = claims['role']
         else:
-            raise NotImplemented('This distinction does not exist')
+            raise NotImplementedError('This distinction does not exist')
         return request
