@@ -1,7 +1,5 @@
 FROM redis:3.2
 
-MAINTAINER Johan Andersson <Grokzen@gmail.com>
-
 # Some Environment Variables
 ENV HOME /root
 ENV DEBIAN_FRONTEND noninteractive
