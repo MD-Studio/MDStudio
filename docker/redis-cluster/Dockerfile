@@ -8,8 +8,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -yqq \
       net-tools supervisor ruby rubygems locales gettext-base wget && \
-    apt-get clean -yqq && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean -yqq
 
 # # Ensure UTF-8 lang and locale
 RUN locale-gen en_US.UTF-8
@@ -21,7 +20,8 @@ ENV SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
 
 RUN gem install redis -v 3.3.3
 
-RUN apt-get install -y --no-install-recommends gcc make g++ build-essential libc6-dev tcl git supervisor ruby
+RUN apt-get install -y --no-install-recommends gcc make g++ build-essential libc6-dev tcl git supervisor ruby && \
+    rm -rf /var/lib/apt/lists/*
 
 ARG redis_version=4.0.8
 
