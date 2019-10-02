@@ -1,10 +1,9 @@
-from typing import List
+from typing import List, Optional
 
 from copy import deepcopy
 
 from mdstudio.api.claims import whois
 from mdstudio.api.context import ContextCallable
-from mdstudio.api.paginate import paginate_cursor
 from mdstudio.service.model import Model
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
@@ -31,7 +30,7 @@ class LogRepository(ContextCallable):
         super(LogRepository, self).__init__()
 
     def insert(self, claims, logs, tags=None):
-        # type: (dict, List[dict]) -> List[str]
+        # type: (dict, List[dict], Optional[list]) -> List[str]
 
         if not tags:
             tags = ['logs']
@@ -45,8 +44,8 @@ class LogRepository(ContextCallable):
         return self.logs(claims).insert_many(logs)
 
     @chainable
-    def get(self, filter, claims, **kwargs):
-        results, prev_meta, next_meta = yield self.logs(claims).paginate.find_many(filter, **kwargs)
+    def get(self, logfilter, claims, **kwargs):
+        results, prev_meta, next_meta = yield self.logs(claims).paginate.find_many(logfilter, **kwargs)
 
         for o in results:
             del o['_id']

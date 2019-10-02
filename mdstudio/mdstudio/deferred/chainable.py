@@ -2,11 +2,7 @@ import types
 from functools import wraps
 
 from twisted.internet import defer
-
 from twisted.internet.defer import Deferred
-
-# noinspection PyPep8Naming
-from mdstudio.deferred.return_value import return_value
 
 
 class Chainable(object):

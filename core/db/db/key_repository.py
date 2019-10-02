@@ -30,7 +30,8 @@ class KeyRepository(object):
             }, upsert=True, return_document=ReturnDocument.AFTER)
         return self._decrypt_key(found['key'])
 
-    def _key_from_password(self, password, salt):
+    @staticmethod
+    def _key_from_password(password, salt):
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -65,10 +66,9 @@ class KeyRepository(object):
     def _get_key_model(self, connection_type):
         return self._internal_db._db['{}.keys'.format(connection_type)]
 
-    def _get_key_body(self, claims, connection_type):
-        request = {
-            'type': connection_type
-        }
+    @staticmethod
+    def _get_key_body(claims, connection_type):
+        request = {'type': connection_type}
         connection_type = ConnectionType.from_string(connection_type)
         if connection_type == ConnectionType.User:
             request['username'] = claims['username']

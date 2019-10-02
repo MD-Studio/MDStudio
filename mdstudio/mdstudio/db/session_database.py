@@ -241,22 +241,22 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('aggregate', request)
 
-    def delete_one(self, collection, filter, fields=None):
+    def delete_one(self, collection, dbfilter, fields=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'filter': filter
+            'filter': dbfilter
         }
         if fields:
             request['fields'] = fields.to_dict()
 
         return self._call('delete_one', request)
 
-    def delete_many(self, collection, filter, fields=None):
+    def delete_many(self, collection, dbfilter, fields=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'filter': filter
+            'filter': dbfilter
         }
         if fields:
             request['fields'] = fields.to_dict()

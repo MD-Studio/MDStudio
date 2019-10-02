@@ -207,15 +207,15 @@ class CursorWampEndpoint(WampEndpoint):
     def call_wrapped(self, request, claims):
 
         meta = None
-        id = None
+        cid = None
         if 'next' in request:
-            id = request['next']
+            cid = request['next']
         elif 'previous' in request:
-            id = request['previous']
+            cid = request['previous']
 
-        if id:
-            meta = json.loads(self.instance.session.cache.extract('cursor#{}'.format(id)))
-            if meta.get('uuid') != id:
+        if cid:
+            meta = json.loads(self.instance.session.cache.extract('cursor#{}'.format(cid)))
+            if meta.get('uuid') != cid:
                 return_value(APIResult(error='You tried to get a cursor that either doesn\'t exist, or is expired. Please check your code.'))
             if not meta:
                 meta = None
@@ -264,6 +264,7 @@ def cursor_endpoint(uri, input_schema, output_schema, claim_schema=None, options
         return CursorWampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
 
     return wrap_f
+
 
 def bytes_to_str(obj):
     if isinstance(obj, dict):

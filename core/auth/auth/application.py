@@ -209,14 +209,6 @@ class AuthComponent(CoreComponentSession):
                         if p.full_namespace is None:
                             raise MDStudioException()
 
-            '''for client in provisioning.get('clients', []):
-                client_id = self.user_repository.generate_token()
-                client_secret = self.user_repository.generate_token()
-
-                c = yield self.user_repository.create_client(client['username'], {
-
-                })'''
-
         # @todo: use this for testing
         # user = yield self.user_repository.create_user('foo', 'bar', 'foo@bar')
         # user2 = yield self.user_repository.create_user('foo2', 'bar2', 'foo@bar')
@@ -491,7 +483,8 @@ class AuthComponent(CoreComponentSession):
 
         return check
 
-    def _http_basic_authentication(self, username, password):
+    @staticmethod
+    def _http_basic_authentication(username, password):
         # mimic HTTP basic authentication
         # concatenate username and password with a colon
         http_basic = u'{}:{}'.format(username, password)

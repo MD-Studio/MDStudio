@@ -8,7 +8,6 @@ import six
 import twisted
 from autobahn.wamp.exception import ApplicationError, TransportLost
 from twisted.internet import task, reactor
-from twisted.python.failure import Failure
 
 from mdstudio.api.exception import CallException
 from mdstudio.api.singleton import Singleton
@@ -61,8 +60,6 @@ class SessionLogObserver(object):
                 'time': to_utc_string(datetime.fromtimestamp(event['log_time'], tz=pytz.utc)),
                 'message': message
             })
-        # else:
-        #     raise NotImplementedError('No message')
 
     @chainable
     def store_recovery(self):

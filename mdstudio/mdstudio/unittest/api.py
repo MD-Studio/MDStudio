@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 

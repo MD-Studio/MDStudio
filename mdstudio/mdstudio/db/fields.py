@@ -1,11 +1,9 @@
-import collections
 import datetime
-from typing import List, Callable, Optional, Union, Iterable, Mapping
+from typing import List, Callable, Optional, Union
 
 import base64
 import hashlib
 import pytz
-import six
 from copy import deepcopy
 
 import six
@@ -218,7 +216,8 @@ class Fields(object):
                 else:
                     subdoc[key] = parser(self, subdoc[key], subdoc, key, **kwargs)
 
-    def parse_date_time(self, val, sub, key, *args, **kwargs):
+    @staticmethod
+    def parse_date_time(val, sub, key, *args, **kwargs):
         if isinstance(val, (six.text_type, str)):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
@@ -231,7 +230,8 @@ class Fields(object):
         else:
             raise DatabaseException("Failed to parse datetime field '{}' with key '{}'".format(val, key))
 
-    def parse_date(self, val, sub, key, *args, **kwargs):
+    @staticmethod
+    def parse_date(val, sub, key, *args, **kwargs):
         if isinstance(val, (six.text_type, str)):
             return from_date_string(val)
         elif isinstance(val, datetime.datetime):
@@ -254,7 +254,8 @@ class Fields(object):
         else:
             return val
 
-    def parse_hashed(self, val, sub, key, *args, **kwargs):
+    @staticmethod
+    def parse_hashed(val, sub, key, *args, **kwargs):
         if isinstance(val, (six.text_type, str)):
             sval = val.encode()
         else:

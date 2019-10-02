@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from pprint import pprint
-
 from logger.log_repository import LogRepository
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.comparison import Comparison
@@ -40,31 +38,29 @@ class LoggerComponent(CoreComponentSession):
 
         with self.grouprole_context('mdstudio', 'logger'):
 
-            filter = {}
+            logfilter = {}
             if 'level' in request:
-                filter['level'] = {
-                    '${}'.format(Comparison.from_string(filter['level']['comparison'])): self._map_level(filter['level']['value'])
+                logfilter['level'] = {
+                    '${}'.format(Comparison.from_string(logfilter['level']['comparison'])): self._map_level(logfilter['level']['value'])
                 }
             if 'source' in request:
-                filter['source'] = {
-                    '$regex': filter['source']['pattern']
-                }
+                logfilter['source'] = {'$regex': logfilter['source']['pattern']}
                 if 'options' in request['source']:
-                    filter['source']['$options'] = request['source']['options']
+                    logfilter['source']['$options'] = request['source']['options']
             if 'time' in request:
-                filter['time'] = {}
+                logfilter['time'] = {}
                 if 'since' in request['time']:
-                    filter['time']['$gte'] = request['time']['since']
+                    logfilter['time']['$gte'] = request['time']['since']
                 if 'until' in request['time']:
-                    filter['time']['$lte'] = request['time']['until']
+                    logfilter['time']['$lte'] = request['time']['until']
             if 'createdAt' in request:
-                filter['createdAt'] = {}
+                logfilter['createdAt'] = {}
                 if 'since' in request['createdAt']:
-                    filter['createdAt']['$gte'] = request['createdAt']['since']
+                    logfilter['createdAt']['$gte'] = request['createdAt']['since']
                 if 'until' in request['createdAt']:
-                    filter['createdAt']['$lte'] = request['createdAt']['until']
+                    logfilter['createdAt']['$lte'] = request['createdAt']['until']
 
-            return self.logs.get(filter, claims, **kwargs)
+            return self.logs.get(logfilter, claims, **kwargs)
 
     @endpoint('push-logs', 'push/logs-request/v1', 'push/logs-response/v1')
     @chainable
@@ -94,9 +90,9 @@ class LoggerComponent(CoreComponentSession):
         connection_type = LogType.from_string(claims['logType'])
 
         if connection_type == LogType.User:
-            return ('username' in claims) == True
+            return ('username' in claims) is True
         elif connection_type == LogType.Group:
-            return ('group' in claims) == True
+            return ('group' in claims) is True
         elif connection_type == LogType.GroupRole:
             return all(key in claims for key in ['group', 'role'])
 
@@ -124,6 +120,7 @@ class LoggerComponent(CoreComponentSession):
             log['level'] = from_map[log['level']]
         return log
 
-    def _clean_claims(self, claims):
+    @staticmethod
+    def _clean_claims(claims):
 
         return claims

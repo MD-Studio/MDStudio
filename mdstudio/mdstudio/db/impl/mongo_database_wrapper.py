@@ -13,8 +13,7 @@ from pymongo.cursor import Cursor
 
 from mdstudio.api.context import ContextCallable
 from mdstudio.collection.cache_dict import CacheDict
-from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, SortOperators, \
-    ProjectionOperators, AggregationOperator
+from mdstudio.db.database import IDatabase, CollectionType, DocumentType, Fields, SortOperators, ProjectionOperators, AggregationOperator
 from mdstudio.db.exception import DatabaseException
 from mdstudio.db.index import Index
 from mdstudio.db.sort_mode import SortMode
@@ -85,19 +84,19 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         }
 
     @make_deferred
-    def replace_one(self, collection, filter, replacement, upsert=False, fields=None, claims=None):
+    def replace_one(self, collection, dbfilter, replacement, upsert=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
             return self._update_response(upsert)
 
-        self._convert_fields(fields, {'filter': filter, 'replacement': replacement}, ['filter', 'replacement'], claims)
+        self._convert_fields(fields, {'filter': dbfilter, 'replacement': replacement}, ['filter', 'replacement'], claims)
 
-        filter = self._prepare_for_mongo(filter)
+        dbfilter = self._prepare_for_mongo(dbfilter)
         replacement = self._prepare_for_mongo(replacement)
 
-        replace_result = db_collection.replace_one(filter, replacement, upsert)
+        replace_result = db_collection.replace_one(dbfilter, replacement, upsert)
 
         return self._update_response(upsert, result=replace_result)
 
@@ -125,40 +124,40 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         }
 
     @make_deferred
-    def update_one(self, collection, filter, update, upsert=False, fields=None, claims=None):
+    def update_one(self, collection, dbfilter, update, upsert=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
             return self._update_response(upsert)
 
-        self._convert_fields(fields, {'filter': filter, 'update': update}, ['filter', 'update'], claims)
+        self._convert_fields(fields, {'filter': dbfilter, 'update': update}, ['filter', 'update'], claims)
 
-        filter = self._prepare_for_mongo(filter)
+        dbfilter = self._prepare_for_mongo(dbfilter)
         update = self._prepare_for_mongo(update)
 
-        result = db_collection.update_one(filter, update, upsert)
+        result = db_collection.update_one(dbfilter, update, upsert)
 
         return self._update_response(upsert, result=result)
 
     @make_deferred
-    def update_many(self, collection, filter, update, upsert=False, fields=None, claims=None):
+    def update_many(self, collection, dbfilter, update, upsert=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         if not db_collection:
             return self._update_response(upsert)
 
-        self._convert_fields(fields, {'filter': filter, 'update': update}, ['filter', 'update'], claims)
-        filter = self._prepare_for_mongo(filter)
+        self._convert_fields(fields, {'filter': dbfilter, 'update': update}, ['filter', 'update'], claims)
+        dbfilter = self._prepare_for_mongo(dbfilter)
         update = self._prepare_for_mongo(update)
 
-        result = db_collection.update_many(filter, update, upsert)
+        result = db_collection.update_many(dbfilter, update, upsert)
 
         return self._update_response(upsert, result=result)
 
     @make_deferred
-    def find_one(self, collection, filter, projection=None, skip=None, sort=None, fields=None, claims=None):
+    def find_one(self, collection, dbfilter, projection=None, skip=None, sort=None, fields=None, claims=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], SortOperators, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
@@ -166,11 +165,11 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
         result = None
         if db_collection:
-            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
+            self._convert_fields(fields, {'filter': dbfilter}, ['filter'], claims)
 
-            filter = self._prepare_for_mongo(filter)
+            dbfilter = self._prepare_for_mongo(dbfilter)
 
-            result = db_collection.find_one(filter, projection, skip=skip, sort=self._prepare_sortmode(sort))
+            result = db_collection.find_one(dbfilter, projection, skip=skip, sort=self._prepare_sortmode(sort))
 
             self._prepare_result(claims, fields, result)
 
@@ -179,7 +178,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         }
 
     @make_deferred
-    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, fields=None, claims=None):
+    def find_many(self, collection, dbfilter, projection=None, skip=None, limit=None, sort=None, fields=None, claims=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, Optional[int], Optional[int], SortOperators, Optional[Fields], Optional[dicts]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
@@ -193,27 +192,27 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
                 'size': 0
             }
 
-        self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
-        filter = self._prepare_for_mongo(filter)
+        self._convert_fields(fields, {'filter': dbfilter}, ['filter'], claims)
+        dbfilter = self._prepare_for_mongo(dbfilter)
 
-        cursor = db_collection.find(filter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
+        cursor = db_collection.find(dbfilter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
         return self._get_cursor(cursor, fields=fields, claims=claims)
 
     @make_deferred
-    def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None, return_updated=False, fields=None,
+    def find_one_and_update(self, collection, dbfilter, update, upsert=False, projection=None, sort=None, return_updated=False, fields=None,
                             claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
-            self._convert_fields(fields, {'filter': filter, 'update': update}, ['filter', 'update'], claims)
+            self._convert_fields(fields, {'filter': dbfilter, 'update': update}, ['filter', 'update'], claims)
 
-            filter = self._prepare_for_mongo(filter)
+            dbfilter = self._prepare_for_mongo(dbfilter)
             update = self._prepare_for_mongo(update)
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
-            result = db_collection.find_one_and_update(filter, update, projection, sort=self._prepare_sortmode(sort),
+            result = db_collection.find_one_and_update(dbfilter, update, projection, sort=self._prepare_sortmode(sort),
                                                        upsert=upsert, return_document=return_document)
 
             self._prepare_result(claims, fields, result)
@@ -223,20 +222,20 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         }
 
     @make_deferred
-    def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
+    def find_one_and_replace(self, collection, dbfilter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, fields=None, claims=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, ProjectionOperators, SortOperators, bool, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection, upsert)
 
         result = None
         if db_collection:
-            self._convert_fields(fields, {'filter': filter, 'replacement': replacement}, ['filter', 'replacement'], claims)
+            self._convert_fields(fields, {'filter': dbfilter, 'replacement': replacement}, ['filter', 'replacement'], claims)
 
-            filter = self._prepare_for_mongo(filter)
+            dbfilter = self._prepare_for_mongo(dbfilter)
             replacement = self._prepare_for_mongo(replacement)
 
             return_document = ReturnDocument.BEFORE if not return_updated else ReturnDocument.AFTER
-            result = db_collection.find_one_and_replace(filter, replacement, projection,
+            result = db_collection.find_one_and_replace(dbfilter, replacement, projection,
                                                         sort=self._prepare_sortmode(sort), upsert=upsert,
                                                         return_document=return_document)
 
@@ -247,17 +246,17 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         }
 
     @make_deferred
-    def find_one_and_delete(self, collection, filter, projection=None, sort=None, fields=None, claims=None):
+    def find_one_and_delete(self, collection, dbfilter, projection=None, sort=None, fields=None, claims=None):
         # type: (CollectionType, DocumentType, ProjectionOperators, SortOperators, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         result = None
         if db_collection:
-            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
+            self._convert_fields(fields, {'filter': dbfilter}, ['filter'], claims)
 
-            filter = self._prepare_for_mongo(filter)
+            dbfilter = self._prepare_for_mongo(dbfilter)
 
-            result = db_collection.find_one_and_delete(filter, projection, sort=self._prepare_sortmode(sort))
+            result = db_collection.find_one_and_delete(dbfilter, projection, sort=self._prepare_sortmode(sort))
 
             self._prepare_result(claims, fields, result)
 
@@ -304,20 +303,19 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         return self._get_cursor(cursor)
 
     @make_deferred
-    def delete_one(self, collection, filter, fields=None, claims=None):
+    def delete_one(self, collection, dbfilter, fields=None, claims=None):
         # type: (CollectionType, DocumentType, Optional[Fields], Optional[dict]) -> Dict[str, Any]
         db_collection = self._get_collection(collection)
 
         count = 0
         if db_collection:
-            self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
+            self._convert_fields(fields, {'filter': dbfilter}, ['filter'], claims)
 
-            filter = self._prepare_for_mongo(filter)
+            dbfilter = self._prepare_for_mongo(dbfilter)
 
-            count = db_collection.delete_one(filter).deleted_count
-        return {
-            'count': count
-        }
+            count = db_collection.delete_one(dbfilter).deleted_count
+
+        return {'count': count}
 
     @make_deferred
     def delete_many(self, collection=None, filter=None, fields=None, claims=None):
@@ -396,7 +394,8 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
             else:
                 self._convert_to_utc(value)
 
-    def _prepare_for_mongo(self, doc):
+    @staticmethod
+    def _prepare_for_mongo(doc):
         def _prepare_obj(obj):
             if obj and '_id' in obj:
                 # convert json _id from str to ObjectId

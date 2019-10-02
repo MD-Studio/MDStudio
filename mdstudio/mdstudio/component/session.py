@@ -1,17 +1,12 @@
-import base64
-import binascii
-import json
+# -*- coding: utf-8 -*-
 
 from autobahn.wamp.auth import create_authenticator, AuthScram
-from autobahn.wamp.message import Challenge
 from passlib.utils import saslprep
-from mdstudio.api.scram import SCRAM
 from mdstudio.cache.impl.connection import GlobalCache
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.impl.connection import GlobalConnection
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.return_value import return_value
 from mdstudio.session import GlobalSession
 
 
@@ -52,4 +47,5 @@ class ComponentSession(CommonSession):
         self.cache = GlobalCache.get_wrapper(ConnectionType.User)
 
     def flush_logs(self, logs):
-        return self.default_call_context.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs}, self.default_call_context.get_log_claims())
+        return self.default_call_context.call(u'mdstudio.logger.endpoint.push-logs', {'logs': logs},
+                                              self.default_call_context.get_log_claims())

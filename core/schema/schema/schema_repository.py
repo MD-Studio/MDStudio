@@ -12,7 +12,6 @@ from mdstudio.api.claims import whois
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.database import IDatabase
 from mdstudio.service.model import Model
-from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
 
 
@@ -118,7 +117,8 @@ class SchemaRepository(object):
         # type: (str) -> str
         return hashlib.sha256(self.schema_to_string(schema).encode()).hexdigest()
 
-    def schema_to_string(self, schema):
+    @staticmethod
+    def schema_to_string(schema):
         # type: (dict) -> str
         return json.dumps(schema, sort_keys=True)
 

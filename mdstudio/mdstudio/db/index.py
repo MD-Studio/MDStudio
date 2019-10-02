@@ -1,4 +1,5 @@
-from typing import List, Optional
+# -*- coding: utf-8 -*-
+from typing import Optional
 
 from mdstudio.db.sort_mode import SortMode
 
@@ -13,7 +14,7 @@ class Index(object):
         self.documentTTL = documentTTL
 
     def to_dict(self, name_exclusive=False, create=True, to_mongo=False):
-        # type: (Optional[bool], Optional[bool]) -> dict
+        # type: (bool, bool, bool) -> dict
         if create:
             kwargs = {
                 'background': True

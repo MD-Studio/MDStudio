@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from mdstudio.db.impl.mongo_database_wrapper import MongoDatabaseWrapper
 from mdstudio.logging.logger import Logger
 
+
 class MongoClientWrapper(object):
     logger = Logger()
 
@@ -32,6 +33,6 @@ class MongoClientWrapper(object):
             if db.create_mock_client:
                 import mongomock
                 return mongomock.MongoClient(host, port)
-        except:
+        except Exception:
             pass
         return MongoClient(host, port)

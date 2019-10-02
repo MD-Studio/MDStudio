@@ -1,4 +1,4 @@
-from autobahn.wamp import auth
+# -*- coding: utf-8 -*-
 
 from mdstudio.api.exception import CallException
 from mdstudio.cache.session_cache import SessionCacheWrapper
@@ -6,7 +6,6 @@ from mdstudio.component.impl.common import CommonSession
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.session_database import SessionDatabaseWrapper
 from mdstudio.deferred.chainable import chainable
-from mdstudio.deferred.return_value import return_value
 from mdstudio.deferred.sleep import sleep
 from mdstudio.logging.log_type import LogType
 from mdstudio.logging.logger import Logger

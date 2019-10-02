@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import inspect
 import json
 import os
@@ -396,8 +398,9 @@ class CommonSession(ApplicationSession):
                 'mdstudio.auth.endpoint.oauth.registerscopes.{}'.format(self.component_info.get('namespace')),
                 {'scopes': self.function_scopes})
 
-            self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
-                          package=self.component_info['package_name'])
+            if res:
+                self.log.info('Registered {count} scopes for {package}', count=len(self.function_scopes),
+                              package=self.component_info['package_name'])
 
     @property
     def session_env_mapping(self):

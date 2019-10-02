@@ -1,8 +1,5 @@
 import mdstudio
 import copy
-from functools import wraps
-
-import six
 
 from mdstudio.cache.cache_type import CacheType
 from mdstudio.db.connection_type import ConnectionType

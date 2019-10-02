@@ -17,6 +17,7 @@ try:
 except NameError:
     FileNotFoundError = IOError
 
+
 class ISchema(object):
     def __init__(self):
         self.cached = {}
@@ -200,7 +201,8 @@ class MDStudioClaimSchema(object):
     def to_schema(self):
         return self.schema
 
-    def flatten(self, session):
+    @staticmethod
+    def flatten(session):
         return True
 
 
