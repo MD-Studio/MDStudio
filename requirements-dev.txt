@@ -32,7 +32,7 @@ chardet==3.0.4            # via requests
 click==6.7
 constantly==15.1.0        # via twisted
 coverage==4.5.1
-cryptography==2.2.2
+cryptography==2.3
 dictdiffer==0.7.1
 docutils==0.14            # via sphinx
 faker==0.8.16
@@ -87,11 +87,11 @@ pyparsing==2.2.0          # via packaging
 pyqrcode==1.2.1
 python-dateutil==2.7.3    # via faker
 pytrie==0.3
-pytz==2018.4              # via babel
-pyyaml==3.12              # via bandit, sphinx-autobuild, watchdog
+pytz==2018.7              # via babel
+pyyaml==4.2b1             # via bandit, sphinx-autobuild, watchdog
 redis-py-cluster==1.3.4
 redis==2.10.6             # via redis-py-cluster
-requests==2.19.1          # via sphinx, treq
+requests==2.22            # via sphinx, treq
 rfc3987==1.3.7            # via jsonschema
 sdnotify==0.3.2
 sentinels==1.0.0
@@ -117,7 +117,7 @@ txtorcon==0.20.0
 typing==3.6.4
 u-msgpack-python==2.5.0
 unittest2==1.1.0
-urllib3==1.23             # via requests
+urllib3==1.24             # via requests
 watchdog==0.8.3           # via sphinx-autobuild
 webcolors==1.8.1          # via jsonschema
 zope.interface==4.5.0     # via twisted, txtorcon
