@@ -3,34 +3,38 @@
 export WORKDIR=/tmp/mdstudio
 export MD_CONFIG_ENVIRONMENTS=dev,docker
 
-# Docker based Services
-SERVICES=("common_resources" "lie_amber" "lie_atb" "lie_plants_docking" "lie_pylie" "lie_structures" "lie_haddock")
-
-# Services install locally with pip
+# Docker and standalone services
+SERVICES=("lie_amber" "lie_atb" "lie_plants_docking" "lie_pylie" "lie_structures" "lie_haddock")
 STANDALONE_SERVICES=( "lie_md" "lie_cli" )
+MDSTUDIO_LOGS=$( pwd )"/logs"
+MDSTUDIO_PYTHON=$( which python )
 
-# Create temporate files
+# Create temporate files directory for services
 ALL_SERVICES=(${SERVICES[@]} ${STANDALONE_SERVICES[@]})
 for s in ${ALL_SERVICES[@]}; do
     mkdir -p ${WORKDIR}/${s}
 done
 
 # start docker microservices
+docker-compose up -d crossbar common_resources
 docker-compose up -d crossbar ${SERVICES[@]}
 
 # Start standalone components locally
-for x in ${STANDALONE_SERVICES[@]};do
-    cd ${WORKDIR}/${x}
+# These are expected to have been installed locally by the user
+# Store process PID's in a local file to be used by MDStudio's 'stop.sh' script to
+# terminate standalone services.
 
-    echo "installing ${x} as a standalone component!"
-    if [[ ! -d ${x} ]]; then
-      git clone git://github.com/MD-Studio/${x}.git --single-branch
-    else
-      cd ${WORKDIR}/${x}/${x} && git pull
-    fi
+# Remove PID file
+if [[ -e standalone.pid ]]; then
+	rm standalone.pid
+fi
 
-    pip install -e ${WORKDIR}/${x}/${x} > /dev/null 2>&1
-    if [[ ${x} != "lie_cli" ]]; then
-	    python -u -m ${x} > /dev/null 2>&1 &
-    fi
+# Start standalone components locally
+for service in ${STANDALONE_SERVICES[@]}; do
+
+    ${MDSTUDIO_PYTHON} -u -m ${service} >> ${MDSTUDIO_LOGS}"/standalone.log" &
+	spid=$!
+	echo ${spid} >> standalone.pid
+    echo "Starting ${service} as standalone component status code: $? PID: ${spid}"
+
 done

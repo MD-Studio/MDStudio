@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
-# temporal ugly hack to kill all register lie microservices
-ps axf | grep python | grep lie | awk '{print "kill -9 " $1}' | sh
+# Terminate standalone microservices based on pid file
+if [[ -e standalone.pid ]]; then
+
+	cat standalone.pid | while read pid; do
+		echo "Stopping standalone service: ${pid}"
+		kill ${pid}
+	done
+
+	rm standalone.pid
+fi
 
 # stop docker components
 docker-compose down
-
