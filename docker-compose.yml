@@ -31,18 +31,6 @@ services:
         env_file:
             - .docker.env
 
-    # echo:
-      #     extends:
-    #         file: docker-compose-common.yml
-    #         service: base-py3
-    #     volumes:
-    #         # mount component
-    #         - ./components/lie_echo:/app/components/lie_echo
-    #     environment:
-    #         - COMPONENT=lie_echo
-    #     links:
-    #         - crossbar
-
     mongo:
         image: mongo:latest
         ports:
@@ -71,13 +59,15 @@ services:
       environment:
         - CROSSBAR_HOST=crossbar
             
-    # LIE components
+    # LIE components with local volume mounted
     lie_amber:
       image: mdstudio/lie_amber:0.0.4
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
 
     lie_atb:
       image: mdstudio/lie_atb:0.0.2
@@ -85,6 +75,8 @@ services:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
 
     lie_haddock:
       image: mdstudio/lie_haddock:0.0.2
@@ -92,6 +84,8 @@ services:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
 
     lie_plants_docking:
       image: mdstudio/lie_plants_docking:0.0.2
@@ -108,6 +102,8 @@ services:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
 
     lie_structures:
       image: mdstudio/lie_structures:0.0.4
@@ -115,8 +111,8 @@ services:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
-
-
+      volumes:
+        - ${WORKDIR}/lie_structures:/tmp/mdstudio/lie_structures
 
 volumes:
     mongo:
@@ -134,4 +130,4 @@ volumes:
     cli_pipcache:
         driver: "local"
     cli_pip:
-      driver: "local"
+        driver: "local"
