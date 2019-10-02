@@ -3,10 +3,10 @@
 # Terminate standalone microservices based on pid file
 if [[ -e standalone.pid ]]; then
 
-	cat standalone.pid | while read pid; do
+	while IFS= read -r pid; do
 		echo "Stopping standalone service: ${pid}"
 		kill ${pid}
-	done
+	done < standalone.pid
 
 	rm standalone.pid
 fi
