@@ -129,8 +129,6 @@ volumes:
         driver: "local"
     crossbar_pipcache:
         driver: "local"
-    crossbar_pipcache:
-        driver: "local"
     crossbar_venv:
         driver: "local"
     cli_pipcache:
