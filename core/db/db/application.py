@@ -110,7 +110,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.replace_one(request['collection'], request['filter'],
+        return database.replace_one(request['collection'], request['dbfilter'],
                                     request['replacement'], **kwargs)
 
     @endpoint('count',
@@ -128,7 +128,7 @@ class DBComponent(CoreComponentSession):
         else:
             kwargs = {
                 'collection': request['collection'],
-                'filter': request.get('filter', {})
+                'dbfilter': request.get('dbfilter', {})
             }
             if 'skip' in request:
                 kwargs['skip'] = request['skip']
@@ -152,7 +152,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.update_one(request['collection'], request['filter'],
+        return database.update_one(request['collection'], request['dbfilter'],
                                    request['update'], **kwargs)
 
     @endpoint('update_many',
@@ -168,7 +168,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.update_many(request['collection'], request['filter'],
+        return database.update_many(request['collection'], request['dbfilter'],
                                     request['update'], **kwargs)
 
     @endpoint('find_one',
@@ -187,7 +187,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.find_one(request['collection'], request['filter'], **kwargs)
+        return database.find_one(request['collection'], request['dbfilter'], **kwargs)
 
     @endpoint('find_many',
               'find/find-many-request',
@@ -207,7 +207,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.find_many(request['collection'], request['filter'], **kwargs)
+        return database.find_many(request['collection'], request['dbfilter'], **kwargs)
 
     @endpoint('find_one_and_update',
               'find/find-one-and-update-request',
@@ -228,7 +228,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.find_one_and_update(request['collection'], request['filter'],
+        return database.find_one_and_update(request['collection'], request['dbfilter'],
                                             request['update'], **kwargs)
 
     @endpoint('find_one_and_replace',
@@ -250,7 +250,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.find_one_and_replace(request['collection'], request['filter'],
+        return database.find_one_and_replace(request['collection'], request['dbfilter'],
                                              request['replacement'], **kwargs)
 
     @endpoint('find_one_and_delete',
@@ -268,7 +268,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.find_one_and_delete(request['collection'], request['filter'], **kwargs)
+        return database.find_one_and_delete(request['collection'], request['dbfilter'], **kwargs)
 
     @endpoint('distinct',
               'distinct/distinct-request',
@@ -278,8 +278,8 @@ class DBComponent(CoreComponentSession):
         database = self.get_database(claims)
 
         kwargs = {}
-        if 'filter' in request:
-            kwargs['filter'] = request['filter']
+        if 'dbfilter' in request:
+            kwargs['dbfilter'] = request['dbfilter']
 
         self.set_fields(claims, kwargs, request)
 
@@ -304,7 +304,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.delete_one(request['collection'], request['filter'], **kwargs)
+        return database.delete_one(request['collection'], request['dbfilter'], **kwargs)
 
     @endpoint('delete_many',
               'delete/delete-many',
@@ -317,7 +317,7 @@ class DBComponent(CoreComponentSession):
 
         self.set_fields(claims, kwargs, request)
 
-        return database.delete_many(request['collection'], request['filter'], **kwargs)
+        return database.delete_many(request['collection'], request['dbfilter'], **kwargs)
 
     @endpoint('create_indexes',
               'index/create-request/v1',

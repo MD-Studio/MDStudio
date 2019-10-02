@@ -91,7 +91,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         if not db_collection:
             return self._update_response(upsert)
 
-        self._convert_fields(fields, {'filter': dbfilter, 'replacement': replacement}, ['filter', 'replacement'], claims)
+        self._convert_fields(fields, {'dbfilter': dbfilter, 'replacement': replacement}, ['dbfilter', 'replacement'], claims)
 
         dbfilter = self._prepare_for_mongo(dbfilter)
         replacement = self._prepare_for_mongo(replacement)
@@ -101,7 +101,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         return self._update_response(upsert, result=replace_result)
 
     @make_deferred
-    def count(self, collection=None, filter=None, skip=None, limit=None, fields=None, claims=None, cursor_id=None,
+    def count(self, collection=None, dbfilter=None, skip=None, limit=None, fields=None, claims=None, cursor_id=None,
               with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Fields], Optional[dict], Optional[str], bool) -> Dict[str, Any]
         total = 0
@@ -114,10 +114,10 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
             limit = 0 if not limit else limit
 
             if db_collection:
-                self._convert_fields(fields, {'filter': filter}, ['filter'], claims)
-                filter = self._prepare_for_mongo(filter)
+                self._convert_fields(fields, {'dbfilter': dbfilter}, ['dbfilter'], claims)
+                dbfilter = self._prepare_for_mongo(dbfilter)
 
-                total = db_collection.count(filter, skip=skip, limit=limit)
+                total = db_collection.count(dbfilter, skip=skip, limit=limit)
 
         return {
             'total': total
@@ -131,7 +131,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         if not db_collection:
             return self._update_response(upsert)
 
-        self._convert_fields(fields, {'filter': dbfilter, 'update': update}, ['filter', 'update'], claims)
+        self._convert_fields(fields, {'dbfilter': dbfilter, 'update': update}, ['dbfilter', 'update'], claims)
 
         dbfilter = self._prepare_for_mongo(dbfilter)
         update = self._prepare_for_mongo(update)
@@ -148,7 +148,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
         if not db_collection:
             return self._update_response(upsert)
 
-        self._convert_fields(fields, {'filter': dbfilter, 'update': update}, ['filter', 'update'], claims)
+        self._convert_fields(fields, {'dbfilter': dbfilter, 'update': update}, ['dbfilter', 'update'], claims)
         dbfilter = self._prepare_for_mongo(dbfilter)
         update = self._prepare_for_mongo(update)
 
@@ -165,7 +165,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
         result = None
         if db_collection:
-            self._convert_fields(fields, {'filter': dbfilter}, ['filter'], claims)
+            self._convert_fields(fields, {'dbfilter': dbfilter}, ['dbfilter'], claims)
 
             dbfilter = self._prepare_for_mongo(dbfilter)
 
@@ -192,7 +192,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
                 'size': 0
             }
 
-        self._convert_fields(fields, {'filter': dbfilter}, ['filter'], claims)
+        self._convert_fields(fields, {'dbfilter': dbfilter}, ['dbfilter'], claims)
         dbfilter = self._prepare_for_mongo(dbfilter)
 
         cursor = db_collection.find(dbfilter, projection, skip=skip, limit=limit, sort=self._prepare_sortmode(sort))
@@ -206,7 +206,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
         result = None
         if db_collection:
-            self._convert_fields(fields, {'filter': dbfilter, 'update': update}, ['filter', 'update'], claims)
+            self._convert_fields(fields, {'dbfilter': dbfilter, 'update': update}, ['dbfilter', 'update'], claims)
 
             dbfilter = self._prepare_for_mongo(dbfilter)
             update = self._prepare_for_mongo(update)
@@ -229,7 +229,7 @@ class MongoDatabaseWrapper(IDatabase, ContextCallable):
 
         result = None
         if db_collection:
-            self._convert_fields(fields, {'filter': dbfilter, 'replacement': replacement}, ['filter', 'replacement'], claims)
+            self._convert_fields(fields, {'dbfilter': dbfilter, 'replacement': replacement}, ['dbfilter', 'replacement'], claims)
 
             dbfilter = self._prepare_for_mongo(dbfilter)
             replacement = self._prepare_for_mongo(replacement)

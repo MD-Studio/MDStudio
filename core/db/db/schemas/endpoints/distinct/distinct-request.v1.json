@@ -9,8 +9,8 @@
     "field": {
       "type": "string"
     },
-    "filter": {
-      "$ref": "resource://mdstudio/db/filter/v1"
+    "dbfilter": {
+      "$ref": "resource://mdstudio/db/dbfilter/v1"
     }
   },
   "required": [

@@ -226,7 +226,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'replace_one', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'replacement': {
                 'test2': 3
             }
@@ -245,7 +245,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'replace_one', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'upsert': True,
             'replacement': {
                 'test2': 3
@@ -269,7 +269,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2], fields=Fields(date_times=['date']))
         output = yield self.assertApi(self.service, 'replace_one', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'replacement': {
@@ -293,7 +293,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [{'test': 1}, {'test': 2}])
         output = yield self.assertApi(self.service, 'count', {
             'collection': self.collection,
-            'filter': {'test': {'$gt': 1}},
+            'dbfilter': {'test': {'$gt': 1}},
         }, self.claims)
 
         self.assertEqual(output, {'total': 1})
@@ -357,7 +357,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_one', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'update': {
                 '$set': {
                     'test2': 3
@@ -378,7 +378,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'update_one', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'upsert': True,
             'update': {
                 '$set': {
@@ -404,7 +404,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_one', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'update': {
@@ -433,7 +433,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_many', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'update': {
                 '$set': {
                     'test2': 3
@@ -454,7 +454,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'update_many', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'upsert': True,
             'update': {
                 '$set': {
@@ -480,7 +480,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'update_many', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'update': {
@@ -512,7 +512,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
-            'filter': {'test': 1}
+            'dbfilter': {'test': 1}
         }, self.claims)
 
         self.assertEqual(output, {
@@ -531,7 +531,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'projection': {'_id': 0}
         }, self.claims)
 
@@ -554,7 +554,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'skip': 1
         }, self.claims)
 
@@ -577,7 +577,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'sort': [
                 ['_id', 'desc']
             ]
@@ -600,7 +600,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_one', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'fields': {
                 'datetime': ['date']
             }
@@ -622,7 +622,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
-            'filter': {'test': 1}
+            'dbfilter': {'test': 1}
         }, self.claims)
 
         self.assertIsInstance(output['cursorId'], str)
@@ -645,7 +645,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'projection': {'_id': 0}
         }, self.claims)
 
@@ -672,7 +672,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'skip': 1
         }, self.claims)
 
@@ -699,7 +699,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'limit': 1
         }, self.claims)
 
@@ -726,7 +726,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'sort': [
                 ['_id', 'desc']
             ]
@@ -753,7 +753,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'find_many', {
             'collection': self.collection,
-            'filter': {'test': 1},
+            'dbfilter': {'test': 1},
             'fields': {
                 'datetime': ['date']
             }
@@ -775,7 +775,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'update': {
                 '$set': {
                     'test2': 3
@@ -796,7 +796,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'projection': {
                 '_id': 0
             },
@@ -820,7 +820,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2, o3])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'sort': [
                 ['_id', "desc"]
             ],
@@ -845,7 +845,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'returnUpdated': True,
             'update': {
                 '$set': {
@@ -865,7 +865,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'upsert': True,
             'update': {
                 '$set': {
@@ -889,7 +889,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_update', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'update': {
@@ -916,7 +916,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'replacement': {
                 'test2': 3
             }
@@ -935,7 +935,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'projection': {
                 '_id': 0
             },
@@ -957,7 +957,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2, o3])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'sort': [
                 ['_id', "desc"]
             ],
@@ -980,7 +980,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'returnUpdated': True,
             'replacement': {
                 'test2': 3
@@ -998,7 +998,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'upsert': True,
             'replacement': {
                 'test2': 3
@@ -1019,7 +1019,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_replace', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'replacement': {
@@ -1042,7 +1042,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
-            'filter': {'test': 2}
+            'dbfilter': {'test': 2}
         }, self.claims)
         cursor = yield self.db.find_many(self.collection, {})
         self.assertSequenceEqual(cursor['results'], [o1])
@@ -1057,7 +1057,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'projection': {
                 '_id': 0
             }
@@ -1076,7 +1076,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2, o3])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
-            'filter': {'test': 2},
+            'dbfilter': {'test': 2},
             'sort': [
                 ['_id', "desc"]
             ]
@@ -1095,7 +1095,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, [o1, o2])
         output = yield self.assertApi(self.service, 'find_one_and_delete', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'fields': {
@@ -1115,7 +1115,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         output = yield self.assertApi(self.service, 'distinct', {
             'collection': self.collection,
             'field': 'test',
-            'filter': {
+            'dbfilter': {
                 'test': {
                     '$gt': 1
                 }
@@ -1182,7 +1182,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_one', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             }
         }, self.claims)
@@ -1211,7 +1211,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_one', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'fields': {
@@ -1243,7 +1243,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_many', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             }
         }, self.claims)
@@ -1272,7 +1272,7 @@ class TestDBComponent(DBTestCase, APITestCase):
         yield self.db.insert_many(self.collection, objs)
         output = yield self.assertApi(self.service, 'delete_many', {
             'collection': self.collection,
-            'filter': {
+            'dbfilter': {
                 'test': 2
             },
             'fields': {
