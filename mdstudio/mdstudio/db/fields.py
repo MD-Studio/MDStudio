@@ -216,8 +216,7 @@ class Fields(object):
                 else:
                     subdoc[key] = parser(self, subdoc[key], subdoc, key, **kwargs)
 
-    @staticmethod
-    def parse_date_time(val, sub, key, *args, **kwargs):
+    def parse_date_time(self, val, sub, key, *args, **kwargs):
         if isinstance(val, (six.text_type, str)):
             return from_utc_string(val)
         elif isinstance(val, datetime.datetime):
@@ -230,8 +229,7 @@ class Fields(object):
         else:
             raise DatabaseException("Failed to parse datetime field '{}' with key '{}'".format(val, key))
 
-    @staticmethod
-    def parse_date(val, sub, key, *args, **kwargs):
+    def parse_date(self, val, sub, key, *args, **kwargs):
         if isinstance(val, (six.text_type, str)):
             return from_date_string(val)
         elif isinstance(val, datetime.datetime):
@@ -254,8 +252,7 @@ class Fields(object):
         else:
             return val
 
-    @staticmethod
-    def parse_hashed(val, sub, key, *args, **kwargs):
+    def parse_hashed(self, val, sub, key, *args, **kwargs):
         if isinstance(val, (six.text_type, str)):
             sval = val.encode()
         else:
