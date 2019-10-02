@@ -6,8 +6,8 @@
     "collection": {
       "$ref": "resource://mdstudio/db/collection/v1"
     },
-    "dbfilter": {
-      "$ref": "resource://mdstudio/db/dbfilter/v1"
+    "filter": {
+      "$ref": "resource://mdstudio/db/filter/v1"
     },
     "projection": {
       "$ref": "resource://mdstudio/db/projection/v1"
@@ -25,7 +25,7 @@
   },
   "required": [
     "collection",
-    "dbfilter"
+    "filter"
   ],
   "additionalProperties": false
 }

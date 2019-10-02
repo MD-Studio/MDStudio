@@ -61,11 +61,11 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('insert_many', request)
 
-    def replace_one(self, collection, dbfilter, replacement, upsert=False, fields=None):
+    def replace_one(self, collection, filter, replacement, upsert=False, fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter,
+            'filter': filter,
             'replacement': replacement,
             'upsert': upsert
         }
@@ -74,7 +74,7 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('replace_one', request)
 
-    def count(self, collection, dbfilter=None, skip=None, limit=None, fields=None, cursor_id=None, with_limit_and_skip=False):
+    def count(self, collection, filter=None, skip=None, limit=None, fields=None, cursor_id=None, with_limit_and_skip=False):
         # type: (CollectionType, Optional[DocumentType], Optional[int], Optional[int], Optional[Fields], Optional[str], bool) -> Dict[str, Any]
         request = {
             'collection': collection
@@ -85,8 +85,8 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
             if with_limit_and_skip:
                 request['withLimitAndSkip'] = with_limit_and_skip
         else:
-            if dbfilter:
-                request['dbfilter'] = dbfilter
+            if filter:
+                request['filter'] = filter
             if skip:
                 request['skip'] = skip
             if limit:
@@ -96,11 +96,11 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('count', request)
 
-    def update_one(self, collection, dbfilter, update, upsert=False, fields=None):
+    def update_one(self, collection, filter, update, upsert=False, fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter,
+            'filter': filter,
             'update': update
         }
         if upsert:
@@ -110,11 +110,11 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('update_one', request)
 
-    def update_many(self, collection, dbfilter, update, upsert=False, fields=None):
+    def update_many(self, collection, filter, update, upsert=False, fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter,
+            'filter': filter,
             'update': update
         }
         if upsert:
@@ -124,11 +124,11 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('update_many', request)
 
-    def find_one(self, collection, dbfilter, projection=None, skip=None, sort=None, fields=None):
+    def find_one(self, collection, filter, projection=None, skip=None, sort=None, fields=None):
         # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter
+            'filter': filter
         }
 
         if projection:
@@ -142,11 +142,11 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('find_one', request)
 
-    def find_many(self, collection, dbfilter, projection=None, skip=None, limit=None, sort=None, fields=None):
+    def find_many(self, collection, filter, projection=None, skip=None, limit=None, sort=None, fields=None):
         # type: (CollectionType, DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter
+            'filter': filter
         }
 
         if projection:
@@ -162,12 +162,12 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('find_many', request)
 
-    def find_one_and_update(self, collection, dbfilter, update, upsert=False, projection=None, sort=None,
+    def find_one_and_update(self, collection, filter, update, upsert=False, projection=None, sort=None,
                             return_updated=False, fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter,
+            'filter': filter,
             'update': update,
             'upsert': upsert,
             'returnUpdated': return_updated
@@ -182,12 +182,12 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('find_one_and_update', request)
 
-    def find_one_and_replace(self, collection, dbfilter, replacement, upsert=False, projection=None, sort=None,
+    def find_one_and_replace(self, collection, filter, replacement, upsert=False, projection=None, sort=None,
                              return_updated=False, fields=None):
         # type: (CollectionType, DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter,
+            'filter': filter,
             'replacement': replacement,
             'upsert': upsert,
             'returnUpdated': return_updated
@@ -202,11 +202,11 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('find_one_and_replace', request)
 
-    def find_one_and_delete(self, collection, dbfilter, projection=None, sort=None, fields=None):
+    def find_one_and_delete(self, collection, filter, projection=None, sort=None, fields=None):
         # type: (CollectionType, DocumentType, Optional[ProjectionOperators], SortOperators, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter
+            'filter': filter
         }
 
         if projection:
@@ -241,22 +241,22 @@ class SessionDatabaseWrapper(IDatabase, ContextCallable):
 
         return self._call('aggregate', request)
 
-    def delete_one(self, collection, dbfilter, fields=None):
+    def delete_one(self, collection, filter, fields=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter
+            'filter': filter
         }
         if fields:
             request['fields'] = fields.to_dict()
 
         return self._call('delete_one', request)
 
-    def delete_many(self, collection, dbfilter, fields=None):
+    def delete_many(self, collection, filter, fields=None):
         # type: (CollectionType, DocumentType, Optional[Fields]) -> Dict[str, Any]
         request = {
             'collection': collection,
-            'dbfilter': dbfilter
+            'filter': filter
         }
         if fields:
             request['fields'] = fields.to_dict()

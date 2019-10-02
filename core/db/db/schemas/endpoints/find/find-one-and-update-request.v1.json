@@ -6,8 +6,8 @@
     "collection": {
       "$ref": "resource://mdstudio/db/collection/v1"
     },
-    "dbfilter": {
-      "$ref": "resource://mdstudio/db/dbfilter/v1"
+    "filter": {
+      "$ref": "resource://mdstudio/db/filter/v1"
     },
     "update": {
       "$ref": "resource://mdstudio/db/document/v1"
@@ -32,7 +32,7 @@
   },
   "required": [
     "collection",
-    "dbfilter",
+    "filter",
     "update"
   ],
   "additionalProperties": false

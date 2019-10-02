@@ -6,7 +6,7 @@
     "collection": {
       "$ref": "resource://mdstudio/db/collection/v1"
     },
-    "dbfilter": {
+    "filter": {
       "$ref": "resource://mdstudio/db/document/v1"
     },
     "replacement": {
@@ -22,7 +22,7 @@
   },
   "required": [
     "collection",
-    "dbfilter",
+    "filter",
     "replacement"
   ],
   "additionalProperties": false

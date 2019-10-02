@@ -87,11 +87,11 @@ class Model(ContextCallable):
                                                fields=fields)
         return self.wrapper.extract(insert_many, 'ids')
 
-    def replace_one(self, dbfilter, replacement, upsert=False, fields=None):
+    def replace_one(self, filter, replacement, upsert=False, fields=None):
         # type: (DocumentType, DocumentType, bool, Optional[Fields]) -> Dict[ReplaceOneResponse, Any]
         fields = self.fields(fields)
         replace_one = self.wrapper.replace_one(self.collection,
-                                               filter=dbfilter,
+                                               filter=filter,
                                                replacement=replacement,
                                                upsert=upsert,
                                                fields=fields)
@@ -109,32 +109,32 @@ class Model(ContextCallable):
                                    with_limit_and_skip=with_limit_and_skip)
         return self.wrapper.extract(count, 'total')
 
-    def update_one(self, dbfilter, update, upsert=False, fields=None):
+    def update_one(self, filter, update, upsert=False, fields=None):
         # type: (DocumentType, DocumentType, bool, Optional[Fields]) -> Union[UpdateOneResponse, Chainable]
         fields = self.fields(fields)
         update_one = self.wrapper.update_one(self.collection,
-                                             filter=dbfilter,
+                                             filter=filter,
                                              update=update,
                                              upsert=upsert,
                                              fields=fields)
         return self.wrapper.transform(update_one, UpdateOneResponse)
 
-    def update_many(self, dbfilter, update, upsert=False, fields=None):
+    def update_many(self, filter, update, upsert=False, fields=None):
         # type: (DocumentType, DocumentType, bool, Optional[Fields]) -> Union[UpdateManyResponse, Chainable]
         fields = self.fields(fields)
         update_many = self.wrapper.update_many(self.collection,
-                                               filter=dbfilter,
+                                               filter=filter,
                                                update=update,
                                                upsert=upsert,
                                                fields=fields)
         return self.wrapper.transform(update_many, UpdateManyResponse)
 
     @chainable
-    def find_one(self, dbfilter, projection=None, skip=None, sort=None, fields=None):
+    def find_one(self, filter, projection=None, skip=None, sort=None, fields=None):
         # type: (DocumentType, Optional[ProjectionOperators], Optional[int], SortOperators, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one(self.collection,
-                                       filter=dbfilter,
+                                       filter=filter,
                                        projection=projection,
                                        skip=skip,
                                        sort=sort,
@@ -144,11 +144,11 @@ class Model(ContextCallable):
             fields.convert_call(result)
         return_value(result)
 
-    def find_many(self, dbfilter, projection=None, skip=None, limit=None, sort=None, fields=None):
+    def find_many(self, filter, projection=None, skip=None, limit=None, sort=None, fields=None):
         # type: (DocumentType, Optional[ProjectionOperators], Optional[int], Optional[int], SortOperators, Optional[Fields]) -> Cursor
         fields = self.fields(fields)
         results = self.wrapper.find_many(self.collection,
-                                         filter=dbfilter,
+                                         filter=filter,
                                          projection=projection,
                                          skip=skip,
                                          limit=limit,
@@ -158,11 +158,11 @@ class Model(ContextCallable):
         return self.wrapper.make_cursor(results, fields)
 
     @chainable
-    def find_one_and_update(self, dbfilter, update, upsert=False, projection=None, sort=None, return_updated=False, fields=None):
+    def find_one_and_update(self, filter, update, upsert=False, projection=None, sort=None, return_updated=False, fields=None):
         # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one_and_update(self.collection,
-                                                  filter=dbfilter,
+                                                  filter=filter,
                                                   update=update,
                                                   upsert=upsert,
                                                   projection=projection,
@@ -175,11 +175,11 @@ class Model(ContextCallable):
         return_value(result)
 
     @chainable
-    def find_one_and_replace(self, dbfilter, replacement, upsert=False, projection=None, sort=None, return_updated=False, fields=None):
+    def find_one_and_replace(self, filter, replacement, upsert=False, projection=None, sort=None, return_updated=False, fields=None):
         # type: (DocumentType, DocumentType, bool, Optional[ProjectionOperators], SortOperators, bool, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one_and_replace(self.collection,
-                                                   filter=dbfilter,
+                                                   filter=filter,
                                                    replacement=replacement,
                                                    upsert=upsert,
                                                    projection=projection,
@@ -193,11 +193,11 @@ class Model(ContextCallable):
         return_value(result)
 
     @chainable
-    def find_one_and_delete(self, dbfilter, projection=None, sort=None, fields=None):
+    def find_one_and_delete(self, filter, projection=None, sort=None, fields=None):
         # type: (DocumentType, Optional[ProjectionOperators], SortOperators, Optional[Fields]) -> Union[Optional[dict], Chainable]
         fields = self.fields(fields)
         result = self.wrapper.find_one_and_delete(self.collection,
-                                                  filter=dbfilter,
+                                                  filter=filter,
                                                   projection=projection,
                                                   sort=sort,
                                                   fields=fields)
@@ -222,19 +222,19 @@ class Model(ContextCallable):
                                          pipeline=pipeline)
         return self.wrapper.make_cursor(results, None)
 
-    def delete_one(self, dbfilter, fields=None):
+    def delete_one(self, filter, fields=None):
         # type: (DocumentType, Optional[Fields]) -> Union[int, Chainable]
         fields = self.fields(fields)
         delete_one = self.wrapper.delete_one(self.collection,
-                                             filter=dbfilter,
+                                             filter=filter,
                                              fields=fields)
         return self.wrapper.extract(delete_one, 'count')
 
-    def delete_many(self, dbfilter, fields=None):
+    def delete_many(self, filter, fields=None):
         # type: (DocumentType, Optional[Fields]) -> Union[int, Chainable]
         fields = self.fields(fields)
         delete_many = self.wrapper.delete_many(self.collection,
-                                               filter=dbfilter,
+                                               filter=filter,
                                                fields=fields)
         return self.wrapper.extract(delete_many, 'count')
 

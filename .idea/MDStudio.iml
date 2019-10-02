@@ -21,7 +21,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/logger" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/schema" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="MDStudio" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="R User Library" level="project" />
     <orderEntry type="library" name="R Skeletons" level="application" />
