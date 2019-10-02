@@ -207,12 +207,12 @@ class Model(ContextCallable):
             fields.convert_call(result)
         return_value(result)
 
-    def distinct(self, field, dbfilter=None, fields=None):
+    def distinct(self, field, filter=None, fields=None):
         # type: (str, Optional[DocumentType], Optional[Fields]) -> Union[List[dict], Chainable]
         fields = self.fields(fields)
         results = self.wrapper.distinct(self.collection,
                                         field=field,
-                                        filter=dbfilter,
+                                        filter=filter,
                                         fields=fields)
         return self.wrapper.extract(results, 'results')
 
