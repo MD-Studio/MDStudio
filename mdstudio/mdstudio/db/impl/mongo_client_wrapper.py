@@ -3,10 +3,9 @@ from pymongo import MongoClient
 from mdstudio.db.impl.mongo_database_wrapper import MongoDatabaseWrapper
 from mdstudio.logging.logger import Logger
 
-logger = Logger()
-
 
 class MongoClientWrapper(object):
+    logger = Logger()
 
     def __init__(self, host, port):
         self._host = host
@@ -17,7 +16,7 @@ class MongoClientWrapper(object):
     def get_database(self, database_name):
         if database_name not in self._databases:
             if database_name not in self._client.database_names():
-                logger.info('Creating database "{database}"', database=database_name)
+                self.logger.info('Creating database "{database}"', database=database_name)
 
             database = MongoDatabaseWrapper(database_name, self._client[database_name])
             self._databases[database_name] = database
@@ -35,6 +34,6 @@ class MongoClientWrapper(object):
                 import mongomock
                 return mongomock.MongoClient(host, port)
         except Exception:
-            logger.warn('Unable to create Mongo mock client on: {0} {1}'.format(host, port))
+            print('Unable to create Mongo mock client on: {0} {1}'.format(host, port))
 
         return MongoClient(host, port)
