@@ -60,6 +60,10 @@ class CommonSession(ApplicationSession):
         self.log_type = LogType.User
         self.default_call_context = None
 
+        self.daily_log = True
+        if config and config.extra:
+            self.daily_log = config.extra.get('daily_log', True)
+
         self.component_config = self.Config()
         self.function_scopes = self.extract_custom_scopes()  # @todo: register these
         self.load_environment(self.session_env_mapping, attribute='session')
@@ -67,8 +71,8 @@ class CommonSession(ApplicationSession):
         self.load_settings()
 
         self.pre_init()
-
-        self.log_collector = SessionLogObserver(self, self.log_type)
+        if self.daily_log:
+            self.log_collector = SessionLogObserver(self, self.log_type)
 
         super(CommonSession, self).__init__(config)
 
@@ -130,9 +134,7 @@ class CommonSession(ApplicationSession):
         claims['uri'] = procedure
         claims['action'] = 'call'
 
-        request = deepcopy(request)
-        convert_obj_to_json(request)
-
+        request = convert_obj_to_json(deepcopy(request))
         claims['requestHash'] = request_hash(request)
 
         signed_claims = yield super(CommonSession, self).call(u'mdstudio.auth.endpoint.sign', claims)
@@ -210,10 +212,10 @@ class CommonSession(ApplicationSession):
     @chainable
     def _on_join(self):
         yield self.upload_schemas()
-
         yield self.on_run()
 
-        yield self.log_collector.start_flushing(self)
+        if self.daily_log:
+            yield self.log_collector.start_flushing(self)
 
     @chainable
     def on_join(self):
