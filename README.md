@@ -1,7 +1,7 @@
 # MDStudio
 [![Build Status](https://travis-ci.org/MD-Studio/MDStudio.svg?branch=master)](https://travis-ci.org/MD-Studio/MDStudio)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/aff6245274f44a7991a3a25976ad6472)](https://www.codacy.com/app/tifonzafel/MDStudio?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MD-Studio/MDStudio&amp;utm_campaign=Badge_Grade)
-
+[![codecov](https://codecov.io/gh/MD-Studio/MDStudio/branch/master/graph/badge.svg)](https://codecov.io/gh/MD-Studio/MDStudio)
 
 ![Configuration settings](docs/img/mdstudio-logo.png)
 
