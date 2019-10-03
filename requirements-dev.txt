@@ -111,7 +111,7 @@ text-unidecode==1.2       # via faker
 tornado==5.0.2            # via livereload, sphinx-autobuild
 traceback2==1.4.0         # via unittest2
 treq==17.8.0
-twisted[tls]==19.7      # via treq, txtorcon
+twisted[tls]==18.4.0      # via treq, txtorcon
 txaio==2.10.0             # via autobahn
 txtorcon==0.20.0
 typing==3.6.4
