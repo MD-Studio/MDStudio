@@ -71,12 +71,12 @@ six==1.11.0               # via argon2-cffi, autobahn, automat, cryptography, py
 sortedcontainers==2.0.4   # via pytrie
 strict-rfc3339==0.7       # via jsonschema
 treq==17.8.0
-twisted[tls]==18.4.0      # via treq, txtorcon
+twisted[tls]==19.7        # via treq, txtorcon
 txaio==2.10.0             # via autobahn
 txtorcon==0.20.0
 typing==3.6.4
 u-msgpack-python==2.5.0
-urllib3==1.24             # via requests
+urllib3==1.24.2           # via requests
 watchdog==0.8.3
 webcolors==1.8.1          # via jsonschema
 zope.interface==4.5.0     # via twisted, txtorcon

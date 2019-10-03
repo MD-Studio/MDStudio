@@ -111,13 +111,13 @@ text-unidecode==1.2       # via faker
 tornado==5.0.2            # via livereload, sphinx-autobuild
 traceback2==1.4.0         # via unittest2
 treq==17.8.0
-twisted[tls]==18.4.0      # via treq, txtorcon
+twisted[tls]==19.7      # via treq, txtorcon
 txaio==2.10.0             # via autobahn
 txtorcon==0.20.0
 typing==3.6.4
 u-msgpack-python==2.5.0
 unittest2==1.1.0
-urllib3==1.24             # via requests
+urllib3==1.24.2           # via requests
 watchdog==0.8.3           # via sphinx-autobuild
 webcolors==1.8.1          # via jsonschema
 zope.interface==4.5.0     # via twisted, txtorcon
