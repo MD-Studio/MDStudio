@@ -1,18 +1,19 @@
 import json
 import uuid
+import six
+
 from datetime import timedelta
 from types import GeneratorType
 from typing import Union, Optional, Callable
-
-import six
 from jsonschema import ValidationError
 from twisted.internet.defer import _inlineCallbacks, Deferred
+from autobahn.wamp import RegisterOptions
 
 from mdstudio.api.api_result import APIResult
 from mdstudio.api.converter import convert_obj_to_json
 from mdstudio.api.request_hash import request_hash
-from mdstudio.api.schema import ISchema, EndpointSchema, validate_json_schema, ClaimSchema, MDStudioClaimSchema, InlineSchema, \
-    MDStudioSchema
+from mdstudio.api.schema import (ISchema, EndpointSchema, validate_json_schema, ClaimSchema,
+                                 MDStudioClaimSchema, InlineSchema, MDStudioSchema)
 from mdstudio.deferred.chainable import chainable
 from mdstudio.deferred.return_value import return_value
 
@@ -61,7 +62,7 @@ class WampEndpoint(object):
         return self.instance.register(self, self.uri, options=self.options)
 
     def __call__(self, request, signed_claims=None):
-        return self.execute(request, signed_claims)  # type: Chainable
+        return self.execute(request, signed_claims)
 
     @chainable
     def execute(self, request, signed_claims):
@@ -70,7 +71,7 @@ class WampEndpoint(object):
 
         from mdstudio.component.impl.common import CommonSession
 
-        request = bytes_to_str(request)
+        request = convert_obj_to_json(request)
         claims = yield super(CommonSession, self.instance).call(u'mdstudio.auth.endpoint.verify', signed_claims)
 
         claim_errors = self.validate_claims(claims, request)
@@ -216,7 +217,7 @@ class CursorWampEndpoint(WampEndpoint):
         if cid:
             meta = json.loads(self.instance.session.cache.extract('cursor#{}'.format(cid)))
             if meta.get('uuid') != cid:
-                return_value(APIResult(error='You tried to get a cursor that either doesn\'t exist, or is expired. Please check your code.'))
+                return_value(APIResult(error='You tried to get a cursor that doesn\'t exist or is expired. Please check your code.'))
             if not meta:
                 meta = None
 
@@ -251,7 +252,7 @@ class CursorWampEndpoint(WampEndpoint):
 
 
 def endpoint(uri, input_schema, output_schema=None, claim_schema=None, options=None, scope=None):
-    # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
+    # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], Optional[RegisterOptions], Optional[str]) -> Callable
     def wrap_f(f):
         return WampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
 
@@ -259,24 +260,8 @@ def endpoint(uri, input_schema, output_schema=None, claim_schema=None, options=N
 
 
 def cursor_endpoint(uri, input_schema, output_schema, claim_schema=None, options=None, scope=None):
-    # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], bool, Optional[str], Optional[RegisterOptions], Optional[str]) -> Callable
+    # type: (str, SchemaType, Optional[SchemaType], Optional[SchemaType], Optional[RegisterOptions], Optional[str]) -> Callable
     def wrap_f(f):
         return CursorWampEndpoint(f, uri, input_schema, output_schema, claim_schema, options, scope)
 
     return wrap_f
-
-
-def bytes_to_str(obj):
-    if isinstance(obj, dict):
-        for k in obj.keys():
-            if isinstance(k, bytes):
-                obj[k.decode()] = bytes_to_str(obj.pop(k))
-        for k, v in obj.items():
-            obj[k] = bytes_to_str(v)
-    elif isinstance(obj, list):
-        for i, v in enumerate(obj):
-            obj[i] = bytes_to_str(obj[i])
-    elif isinstance(obj, bytes):
-        return obj.decode()
-    
-    return obj

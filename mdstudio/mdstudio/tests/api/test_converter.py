@@ -13,7 +13,7 @@ class ConverterTest(TestCase):
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
             'f': '2017-10-26T09:15:00+00:00'
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'date': '2017-10-26T09:16:00+00:00',
             'f': '2017-10-26T09:15:00+00:00'
@@ -26,7 +26,7 @@ class ConverterTest(TestCase):
                 'f': '2017-10-26T09:15:00+00:00'
             }
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'o': {
                 'date': '2017-10-26T09:16:00+00:00',
@@ -42,7 +42,7 @@ class ConverterTest(TestCase):
                 'f': '2017-10-26T09:15:00+00:00'
             }
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'o': {
                 'date': ['2017-10-26T09:16:00+00:00', '2017-10-26T09:15:00+00:00'],
@@ -55,7 +55,7 @@ class ConverterTest(TestCase):
             'date': datetime.date(2017, 10, 26),
             'f': '2017-10-26'
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'date': '2017-10-26',
             'f': '2017-10-26'
@@ -68,7 +68,7 @@ class ConverterTest(TestCase):
                 'f': '2017-10-26'
             }
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'o': {
                 'date': '2017-10-26',
@@ -84,7 +84,7 @@ class ConverterTest(TestCase):
                 'f': '2017-10-26'
             }
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'o': {
                 'date': ['2017-10-26', '2017-10-26'],
@@ -97,7 +97,7 @@ class ConverterTest(TestCase):
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc),
             'date2': datetime.date(2017, 10, 26)
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'date': '2017-10-26T09:16:00+00:00',
             'date2': '2017-10-26'
@@ -108,8 +108,25 @@ class ConverterTest(TestCase):
             'date2': datetime.date(2017, 10, 26),
             'date': datetime.datetime(2017, 10, 26, 9, 16, tzinfo=pytz.utc)
         }
-        convert_obj_to_json(document)
+        document = convert_obj_to_json(document)
         self.assertEqual(document, {
             'date2': '2017-10-26',
             'date': '2017-10-26T09:16:00+00:00'
+        })
+
+    def test_convert_obj_to_json_bytes_keys(self):
+        document = {
+            b'requestHash': 'somerequesthash',
+            b'uri': 'mdstudio.logger.endpoint.push-logs',
+            'action': 'call',
+            'logType': 'user',
+            'username': 'lksjflk'
+        }
+        document = convert_obj_to_json(document)
+        self.assertEqual(document, {
+            'requestHash': 'somerequesthash',
+            'uri': 'mdstudio.logger.endpoint.push-logs',
+            'action': 'call',
+            'logType': 'user',
+            'username': 'lksjflk'
         })

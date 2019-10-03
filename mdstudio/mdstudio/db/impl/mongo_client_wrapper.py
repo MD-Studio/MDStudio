@@ -25,8 +25,7 @@ class MongoClientWrapper(object):
 
         return database
 
-    @staticmethod
-    def create_mongo_client(host, port):
+    def create_mongo_client(self, host, port):
         try:
             
             import mdstudio.unittest.db as db
@@ -34,5 +33,6 @@ class MongoClientWrapper(object):
                 import mongomock
                 return mongomock.MongoClient(host, port)
         except Exception:
-            pass
+            self.logger.warn('Unable to create Mongo mock client on: {0} {1}'.format(host, port))
+
         return MongoClient(host, port)
