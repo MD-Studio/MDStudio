@@ -9,7 +9,6 @@ import json
 import os
 
 from crossbar import run
-from twisted.internet import reactor
 from twisted.python.logfile import DailyLogFile
 
 from mdstudio.logging.brand import ascii_brand

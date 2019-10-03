@@ -310,9 +310,8 @@ class UserRepository(object):
 
         return request
 
-    """
-    Group CRUD
-    """
+
+    #Group CRUD
     @chainable
     def create_group(self, group_name, owner_username, display_name=None):
         if display_name is None:

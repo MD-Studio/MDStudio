@@ -2,8 +2,6 @@
 import copy
 from typing import Dict, Any, List, Optional
 
-import six
-
 from mdstudio.api.context import ContextCallable
 from mdstudio.db.sort_mode import SortMode
 from mdstudio.db.connection_type import ConnectionType

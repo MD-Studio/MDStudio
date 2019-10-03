@@ -6,11 +6,11 @@ import re
 from dateutil.parser import parse as parsedate
 from twisted.internet.defer import inlineCallbacks, returnValue
 from oauthlib import oauth2
-from oauthlib import common
 
 from mdstudio.service.model import Model
 
 from .client import OAuthClient
+
 
 # TODO: WebApplicationClient, BackendApplicationClient
 class OAuthRequestValidator(oauth2.RequestValidator):

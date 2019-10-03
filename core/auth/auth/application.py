@@ -30,6 +30,7 @@ from mdstudio.service.model import Model
 from .oauth.request_validator import OAuthRequestValidator
 from .authorizer import Authorizer
 
+
 #@todo: allot of unfinished code in this class!
 class AuthComponent(CoreComponentSession):
     def pre_init(self):

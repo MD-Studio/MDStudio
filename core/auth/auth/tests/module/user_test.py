@@ -8,13 +8,9 @@ Unit tests for the user component
 TODO: Add wamp_services unittests
 """
 import timeit
-
 import os
-import sys
-
 import random
 import unittest2
-import hashlib
 import string
 import shutil
 
