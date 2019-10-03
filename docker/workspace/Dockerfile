@@ -14,6 +14,6 @@ RUN echo "" >> ~/.bashrc && \
 
 ENV PYENV_SHELL=/bin/bash
 
-ADD .bashrc_mdstudio /root/.bashrc_mdstudio
+COPY .bashrc_mdstudio /root/.bashrc_mdstudio
 
 CMD "bash"
