@@ -48,5 +48,8 @@ script:
 
   # Run code coverage
   - coverage combine mdstudio/.coverage core/logger/.coverage core/db/.coverage core/schema/.coverage
+
+# Push the results back to codecov
+after_success:
   - codecov
 
