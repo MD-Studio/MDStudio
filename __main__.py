@@ -2,19 +2,20 @@ from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
 import argparse
-
-import twisted
 import yaml
 import json
 import os
 
 from crossbar import run
+from twisted.logger import Logger
 from twisted.python.logfile import DailyLogFile
 
 from mdstudio.logging.brand import ascii_brand
 from mdstudio.logging.impl.printing_observer import PrintingLogObserver
 
+
 if __name__ == '__main__':
+
     temp_config = None
     log_file = None
 
@@ -63,19 +64,11 @@ if __name__ == '__main__':
         if not os.path.isdir('logs'):
             os.mkdir('logs')
         log_file = DailyLogFile('daily.log', 'logs')
-        twisted.python.log.addObserver(PrintingLogObserver(log_file))
+        log = Logger(observer=PrintingLogObserver(log_file))
 
         print(ascii_brand)
+        run(['start', '--cbdir', '.', '--config', temp_config.name, '--loglevel', 'info',])
 
-        run([
-            'start',
-            '--cbdir',
-            '.',
-            '--config',
-            temp_config.name,
-            '--loglevel',
-            'info',
-        ])
     finally:
         if temp_config:
             os.remove(temp_config.name)
