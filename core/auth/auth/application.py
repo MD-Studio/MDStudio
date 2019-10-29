@@ -54,7 +54,7 @@ class AuthComponent(CoreComponentSession):
     @wamp.register(u'mdstudio.auth.endpoint.sign', options=wamp.RegisterOptions(details_arg='details'))
     @chainable
     def sign_claims(self, claims, details=None):
-        role = details.caller_authrole
+        role = details.caller_authrole or 'user'
 
         if not isinstance(claims, dict):
             raise TypeError()
@@ -96,7 +96,9 @@ class AuthComponent(CoreComponentSession):
                     claims['role'] = role
                 else:
                     raise Exception('This should not happen: claimed to be {} but was {}'.format(group_role, role))
+
         elif role == 'user':
+
             user = yield self.user_repository.find_user(details.caller_authid)
 
             claims = convert_obj_to_json(claims)

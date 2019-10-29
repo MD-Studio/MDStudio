@@ -106,6 +106,12 @@ workers:
               anonymous:
                 role: public
                 type: static
+              ticket:
+                type: static
+                principals:
+                  mdadmin:
+                    ticket: this_should_be_replaced_for_production!@#$%^&*()_+1234567890-=
+                    role: user
               scram:
                 authenticator: mdstudio.auth.endpoint.login
                 type: dynamic

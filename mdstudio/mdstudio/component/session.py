@@ -6,6 +6,7 @@ from mdstudio.cache.impl.connection import GlobalCache
 from mdstudio.component.impl.common import CommonSession
 from mdstudio.db.connection_type import ConnectionType
 from mdstudio.db.impl.connection import GlobalConnection
+from mdstudio.db.database import IDatabase
 from mdstudio.deferred.chainable import chainable
 from mdstudio.session import GlobalSession
 
@@ -19,8 +20,8 @@ class ComponentSession(CommonSession):
         auth_role = u'user'
         authid = u'{}'.format(self.component_config.session.username)
         password = u'{}'.format(self.component_config.session.password)
-        self.authenticator = create_authenticator(AuthScram.name, authid=authid, password=saslprep(password))
 
+        self.authenticator = create_authenticator(AuthScram.name, authid=authid, password=saslprep(password))
         self.join(self.config.realm, authmethods=auth_methods, authid=authid, authrole=auth_role, authextra=self.authenticator.authextra)
 
     onConnect = on_connect
