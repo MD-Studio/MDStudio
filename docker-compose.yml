@@ -60,24 +60,6 @@ services:
         - CROSSBAR_HOST=crossbar
             
     # LIE components with local volume mounted
-    lie_amber:
-      image: mdstudio/lie_amber:0.0.4
-      links:
-        - crossbar
-      environment:
-        - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_amber:/tmp/mdstudio/lie_amber
-
-    lie_atb:
-      image: mdstudio/lie_atb:0.0.2
-      links:
-        - crossbar
-      environment:
-        - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_atb:/tmp/mdstudio/lie_atb
-
     lie_haddock:
       image: mdstudio/lie_haddock:0.0.2
       links:
@@ -87,15 +69,6 @@ services:
       volumes:
         - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
 
-    lie_plants_docking:
-      image: mdstudio/lie_plants_docking:0.0.2
-      links:
-        - crossbar
-      environment:
-        - CROSSBAR_HOST=crossbar
-      volumes:
-        - ${WORKDIR}/lie_plants_docking:/tmp/mdstudio/lie_plants_docking
-        
     lie_pylie:
       image: mdstudio/lie_pylie:0.0.4
       links:
@@ -105,14 +78,50 @@ services:
       volumes:
         - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
 
-    lie_structures:
-      image: mdstudio/lie_structures:0.0.4
+    mdstudio_propka:
+      image: mdstudio/mdstudio_propka
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
       volumes:
-        - ${WORKDIR}/lie_structures:/tmp/mdstudio/lie_structures
+        - ${WORKDIR}/mdstudio_propka:/tmp/mdstudio/mdstudio_propka
+
+    mdstudio_atb:
+      image: mdstudio/mdstudio_atb
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/mdstudio_atb:/tmp/mdstudio/mdstudio_atb
+
+    mdstudio_amber:
+      image: mdstudio/mdstudio_amber
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/mdstudio_amber:/tmp/mdstudio/mdstudio_amber
+
+    mdstudio_structures:
+      image: mdstudio/mdstudio_structures
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/mdstudio_structures:/tmp/mdstudio/mdstudio_structures
+
+    mdstudio_smartcyp:
+      image: mdstudio/mdstudio_smartcyp
+      links:
+        - crossbar
+      environment:
+        - CROSSBAR_HOST=crossbar
+      volumes:
+        - ${WORKDIR}/mdstudio_smartcyp:/tmp/mdstudio/mdstudio_smartcyp
 
 volumes:
     mongo:

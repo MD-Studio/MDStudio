@@ -10,14 +10,11 @@ settings:
         components:
           - common_resources
           - echo
-          - lie_amber
-          - lie_atb
-          - lie_haddock
-          - lie_md
-          - lie_plants_docking
-          - lie_propka
-          - lie_pylie          
-          - lie_structures
+          - mdstudio_propka
+          - mdstudio_atb
+          - mdstudio_amber
+          - mdstudio_smartcyp
+          - mdstudio_structures
     clients:
       - username: mdadmin
         clientId: Ek@la7\xOhex;5;I$)G'+W<}DL|8h<
