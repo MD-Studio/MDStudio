@@ -17,6 +17,10 @@ in which communication is network based using JSON and the input/output of the e
 To make development and deployment easier we have setup a docker environment hosting the microservice broker and support microservices in a self
 consistent environment.
 
+> **NOTE**: some of the Python dependencies of MDStudio are version fixed. To prevent accidental updates that may prevent MDStudio
+  from working we advise to install MDStudio and it's dependencies in a virtual environment such as `virtual env` or Anaconda/miniconda
+  virtual environment.
+
 ### Quick-start docker based installation
 
 The only requirement MDStudio has is [Docker](https://www.docker.com/).
