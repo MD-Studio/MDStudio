@@ -4,7 +4,7 @@ export WORKDIR=/tmp/mdstudio
 export MD_CONFIG_ENVIRONMENTS=dev,docker
 
 # Docker and standalone services
-SERVICES=("lie_amber" "lie_atb" "lie_plants_docking" "lie_pylie" "lie_structures" "lie_haddock")
+SERVICES=("mdstudio_structures" "mdstudio_smartcyp" "mdstudio_atb" "mdstudio_amber" "mdstudio_propka")
 STANDALONE_SERVICES=( "lie_md" "lie_cli" )
 MDSTUDIO_LOGS=$( pwd )"/logs"
 MDSTUDIO_PYTHON=$( which python )
@@ -17,7 +17,8 @@ done
 
 # start docker microservices
 docker-compose up -d crossbar common_resources
-docker-compose up -d crossbar ${SERVICES[@]}
+docker-compose up -d ${SERVICES[@]}
+exit
 
 # Start standalone components locally
 # These are expected to have been installed locally by the user
