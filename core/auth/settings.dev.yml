@@ -10,11 +10,16 @@ settings:
         components:
           - common_resources
           - echo
+          - hello_world
+          - mdstudio_gromacs
           - mdstudio_propka
           - mdstudio_atb
           - mdstudio_amber
           - mdstudio_smartcyp
           - mdstudio_structures
+          - mdstudio_pylie
+          - mdstudio_haddock
+          - roundrobin
     clients:
       - username: mdadmin
         clientId: Ek@la7\xOhex;5;I$)G'+W<}DL|8h<
