@@ -60,14 +60,14 @@ services:
         - CROSSBAR_HOST=crossbar
             
     # LIE components with local volume mounted
-    lie_haddock:
-      image: mdstudio/lie_haddock:0.0.2
+    mdstudio_haddock:
+      image: mdstudio/mdstudio_haddock
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
       volumes:
-        - ${WORKDIR}/lie_haddock:/tmp/mdstudio/lie_haddock
+        - ${WORKDIR}/mdstudio_haddock:/tmp/mdstudio/mdstudio_haddock
 
     lie_pylie:
       image: mdstudio/lie_pylie:0.0.4
