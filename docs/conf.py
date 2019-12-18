@@ -352,9 +352,9 @@ Components
 
 """)
 
-    for i in glob.glob('../components/lie_*/lie_*/'):
+    for i in glob.glob('../components/dbfilter*/mdstudio_*/'):
         if not 'egg-info' in i:
-            names = re.match(r'../components/(lie_(.*))/lie_.*', i)
+            names = re.match(r'../components/(mdstudio_(.*))/mdstudio_.*', i)
             module_name = names.group(1)
             name = names.group(2)
 
