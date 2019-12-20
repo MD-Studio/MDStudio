@@ -69,14 +69,14 @@ services:
       volumes:
         - ${WORKDIR}/mdstudio_haddock:/tmp/mdstudio/mdstudio_haddock
 
-    lie_pylie:
-      image: mdstudio/lie_pylie:0.0.4
+    mdstudio_pylie:
+      image: mdstudio/mdstudio_pylie
       links:
         - crossbar
       environment:
         - CROSSBAR_HOST=crossbar
       volumes:
-        - ${WORKDIR}/lie_pylie:/tmp/mdstudio/lie_pylie
+        - ${WORKDIR}/mdstudio_pylie:/tmp/mdstudio/mdstudio_pylie
 
     mdstudio_propka:
       image: mdstudio/mdstudio_propka
