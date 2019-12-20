@@ -4,7 +4,7 @@ export WORKDIR=/tmp/mdstudio
 export MD_CONFIG_ENVIRONMENTS=dev,docker
 
 # Docker and standalone services
-SERVICES=("mdstudio_structures" "mdstudio_smartcyp" "mdstudio_atb" "mdstudio_amber" "mdstudio_propka" "mdstudio_haddock")
+SERVICES=("mdstudio_structures" "mdstudio_smartcyp" "mdstudio_atb" "mdstudio_amber" "mdstudio_propka" "mdstudio_haddock" "mdstudio_pylie")
 STANDALONE_SERVICES=( "mdstudio_gromacs")
 MDSTUDIO_LOGS=$( pwd )"/logs"
 MDSTUDIO_PYTHON=$( which python )
